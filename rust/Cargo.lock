@@ -1271,6 +1271,7 @@ dependencies = [
  "config",
  "ethers",
  "futures-util",
+ "log",
  "optics-core",
  "serde 1.0.123",
  "serde_json",
