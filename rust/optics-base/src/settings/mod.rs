@@ -99,9 +99,9 @@ impl Settings {
         let env = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
         s.merge(File::with_name(&format!("config/{}", env)).required(false))?;
 
-        // Add in settings from the environment (with a prefix of OPTRELAY)
-        // Eg.. `OPTRELAY_DEBUG=1 would set the `debug` key
-        s.merge(Environment::with_prefix("OPTRELAY"))?;
+        // Add in settings from the environment (with a prefix of OPTICS)
+        // Eg.. `OPTICS_DEBUG=1 would set the `debug` key
+        s.merge(Environment::with_prefix("OPTICS"))?;
 
         s.try_into()
     }

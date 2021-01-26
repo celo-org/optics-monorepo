@@ -91,15 +91,15 @@ We use the tokio async runtime environment. Please see the docs
 
 ### High-level guide to building an agent
 
-- `mkdir $AGENT_NAME && cd $AGENT_NAME`
-- `cargo init`
-- add dependencies to the new `Cargo.toml`
+- `cargo new $AGENT_NAME`
+- add the new directory name to the workspace `Cargo.toml`
+- add dependencies to the new directory's `Cargo.toml`
   - copy most of the dependencies from `optics-base`
 - create a new module in `src/$AGENT_NAME.rs`
   - add a new struct
   - implement `optics_base::agent::OpticsAgent` for your struct
   - your `run` function is the business logic of your agent
-- create a new settings module
+- create a new settings module `src/settings.rs`
   - reuse the `Settings` objects from `optics_base::settings`
   - make sure the read the docs :)
   - add your own new settings

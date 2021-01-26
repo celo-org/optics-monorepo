@@ -2,5 +2,6 @@
 
 members = [
     "optics-core",
-    "optics-base"
+    "optics-base",
+    "updater"
 ]

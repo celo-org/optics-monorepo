@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use color_eyre::Report;
+use color_eyre::{Report, Result};
 use ethers::core::types::Address;
 
 use optics_core::traits::{Home, Replica};
@@ -26,6 +26,7 @@ pub enum EthereumConnection {
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
+            let signer = signer?;
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
             Box::new(crate::abis::$contract::new(
                 $name,
@@ -61,16 +62,34 @@ macro_rules! construct_http_box_contract {
     }};
 }
 
+/// Ethereum signer types
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(untagged)]
+pub enum EthereumSigner {
+    /// Hex string of private key
+    HexKey(String),
+}
+
+impl EthereumSigner {
+    // TODO: allow ledger or other signer traits?
+    /// Try to conver the ethereum signer to a local wallet
+    pub fn try_into_wallet(&self) -> Result<ethers::signers::LocalWallet> {
+        match self {
+            EthereumSigner::HexKey(s) => Ok(s.parse()?),
+        }
+    }
+}
+
 /// Ethereum configuration
 #[derive(Debug, serde::Deserialize)]
 pub struct EthereumConf {
     connection: EthereumConnection,
-    signer: Option<String>,
+    signer: Option<EthereumSigner>,
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<ethers::signers::LocalWallet> {
-        self.signer.clone().map(|s| s.parse().expect("!valid key"))
+    fn signer(&self) -> Option<Result<ethers::signers::LocalWallet>> {
+        self.signer.clone().map(|s| s.try_into_wallet())
     }
 
     /// Try to convert this into a home contract
