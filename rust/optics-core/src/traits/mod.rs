@@ -46,6 +46,10 @@ pub type ChainCommunicationError = Box<dyn std::error::Error + Send + Sync>;
 /// Interface for attributes shared by Home and Replica
 #[async_trait]
 pub trait Common: Sync + Send + std::fmt::Debug {
+    /// Return an identifier (not necessarily unique) for the chain this
+    /// contract is running on.
+    fn name(&self) -> &str;
+
     /// Get the status of a transaction
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError>;
 

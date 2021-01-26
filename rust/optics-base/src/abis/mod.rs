@@ -26,6 +26,7 @@ where
 {
     contract: contracts::ReplicaContractInternal<M>,
     slip44: u32,
+    name: String,
 }
 
 impl<M> ReplicaContract<M>
@@ -34,10 +35,11 @@ where
 {
     /// Create a reference to a Replica at a specific Ethereum address on some
     /// chain
-    pub fn at(slip44: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(name: &str, slip44: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
             contract: contracts::ReplicaContractInternal::new(address, provider),
             slip44,
+            name: name.to_owned(),
         }
     }
 }
@@ -47,6 +49,10 @@ impl<M> Common for ReplicaContract<M>
 where
     M: ethers_providers::Middleware + 'static,
 {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         let receipt_opt = self
             .contract
@@ -182,6 +188,7 @@ where
 {
     contract: contracts::HomeContractInternal<M>,
     slip44: u32,
+    name: String,
 }
 
 impl<M> HomeContract<M>
@@ -190,10 +197,11 @@ where
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
-    pub fn at(slip44: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(name: &str, slip44: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
             contract: contracts::HomeContractInternal::new(address, provider),
             slip44,
+            name: name.to_owned(),
         }
     }
 }
@@ -203,6 +211,10 @@ impl<M> Common for HomeContract<M>
 where
     M: ethers_providers::Middleware + 'static,
 {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         let receipt_opt = self
             .contract

@@ -57,12 +57,12 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     async fn run_from_settings(&self, settings: &Settings) -> Result<()> {
         let home = settings
             .home
-            .try_into_home()
+            .try_into_home("home")
             .await
             .wrap_err("failed to instantiate Home")?;
 
         let replicas = join_all(settings.replicas.iter().map(|(k, v)| async move {
-            v.try_into_replica()
+            v.try_into_replica(k)
                 .await
                 .wrap_err_with(|| format!("Failed to instantiate replica named {}", k))
         }))

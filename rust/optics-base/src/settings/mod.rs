@@ -32,19 +32,20 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_into_home(&self, name: &str) -> Result<Box<dyn Home>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_home(self.slip44, self.address.parse()?).await
+                conf.try_into_home(name, self.slip44, self.address.parse()?)
+                    .await
             }
         }
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self) -> Result<Box<dyn Replica>, Report> {
+    pub async fn try_into_replica(&self, name: &str) -> Result<Box<dyn Replica>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_replica(self.slip44, self.address.parse()?)
+                conf.try_into_replica(name, self.slip44, self.address.parse()?)
                     .await
             }
         }
