@@ -352,12 +352,20 @@ where
             .into())
     }
 
-    async fn produce_update(&self) -> Result<Update, ChainCommunicationError> {
+    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         let (a, b) = self.contract.suggest_update().call().await?;
-        Ok(Update {
+
+        let previous_root: H256 = a.into();
+        let new_root: H256 = b.into();
+
+        if new_root.is_zero() || previous_root.is_zero() {
+            return Ok(None);
+        }
+
+        Ok(Some(Update {
             origin_chain: self.origin_slip44(),
-            previous_root: a.into(),
-            new_root: b.into(),
-        })
+            previous_root,
+            new_root,
+        }))
     }
 }

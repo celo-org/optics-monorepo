@@ -78,5 +78,5 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// This merely suggests an update. It does NOT ensure that no other valid
     /// update has been produced. The updater MUST take measures to prevent
     /// double-updating.
-    async fn produce_update(&self) -> Result<Update, ChainCommunicationError>;
+    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError>;
 }

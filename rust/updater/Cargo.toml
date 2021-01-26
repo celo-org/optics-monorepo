@@ -1,12 +1,10 @@
 [package]
-name = "optics-base"
+name = "optics-updater"
 version = "0.1.0"
 authors = ["James Prestwich <prestwich@clabs.co>"]
 edition = "2018"
 
-
 [dependencies]
-# Main block
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
 config = "0.10"
 serde = "1.0.120"
@@ -19,3 +17,4 @@ futures-util = "0.3.12"
 color-eyre = "0.5.0"
 
 optics-core = { path = "../optics-core" }
+optics-base = { path = "../optics-base" }

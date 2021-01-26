@@ -278,12 +278,12 @@
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "",
+        "name": "_current",
         "type": "bytes32"
       },
       {
         "internalType": "bytes32",
-        "name": "",
+        "name": "_new",
         "type": "bytes32"
       }
     ],
