@@ -24,17 +24,17 @@ pub enum EthereumConnection {
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.
 macro_rules! construct_box_contract {
-    ($contract:ident, $slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
+    ($contract:ident, $origin_slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
             let provider = ethers_middleware::SignerMiddleware::new($provider, signer);
             Box::new(crate::abis::$contract::at(
-                $slip44,
+                $origin_slip44,
                 $address,
                 provider.into(),
             ))
         } else {
             Box::new(crate::abis::$contract::at(
-                $slip44,
+                $origin_slip44,
                 $address,
                 $provider.into(),
             ))

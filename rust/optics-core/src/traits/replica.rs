@@ -9,6 +9,9 @@ use crate::{
 /// Interface for on-chain replicas
 #[async_trait]
 pub trait Replica: Common + Send + Sync + std::fmt::Debug {
+    /// Return the replica slip44 ID
+    fn destination_slip44(&self) -> u32;
+
     /// Return the pending root and time, if any
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError>;
 

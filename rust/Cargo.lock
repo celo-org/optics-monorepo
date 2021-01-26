@@ -1231,6 +1231,7 @@ dependencies = [
  "ethers-middleware",
  "ethers-providers",
  "ethers-signers",
+ "futures-util",
  "optics-core",
  "serde 1.0.120",
  "serde_json",

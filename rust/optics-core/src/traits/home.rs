@@ -4,6 +4,7 @@ use ethers_core::types::H256;
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
+    utils::domain_hash,
     Decode, Message, SignedUpdate, Update,
 };
 
@@ -11,6 +12,14 @@ use crate::{
 /// chains
 #[async_trait]
 pub trait Home: Common + Send + Sync + std::fmt::Debug {
+    /// Return the slip44 ID
+    fn origin_slip44(&self) -> u32;
+
+    /// Return the domain hash
+    fn domain_hash(&self) -> H256 {
+        domain_hash(self.origin_slip44())
+    }
+
     /// Fetch the message to destination at the sequence number (or error).
     /// This should fetch events from the chain API.
     ///

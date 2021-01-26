@@ -58,10 +58,6 @@ where
         Ok(receipt_opt.map(Into::into))
     }
 
-    fn origin_slip44(&self) -> u32 {
-        self.slip44
-    }
-
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.updater().call().await?.into())
     }
@@ -124,6 +120,10 @@ impl<M> Replica for ReplicaContract<M>
 where
     M: ethers_providers::Middleware + 'static,
 {
+    fn destination_slip44(&self) -> u32 {
+        self.slip44
+    }
+
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
         let (pending, confirm_at) = self.contract.next_pending().call().await?;
 
@@ -214,10 +214,6 @@ where
         Ok(receipt_opt.map(Into::into))
     }
 
-    fn origin_slip44(&self) -> u32 {
-        self.slip44
-    }
-
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.updater().call().await?.into())
     }
@@ -280,6 +276,10 @@ impl<M> Home for HomeContract<M>
 where
     M: ethers_providers::Middleware + 'static,
 {
+    fn origin_slip44(&self) -> u32 {
+        self.slip44
+    }
+
     async fn raw_message_by_sequence(
         &self,
         destination: u32,

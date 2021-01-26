@@ -7,7 +7,7 @@ pub mod replica;
 use async_trait::async_trait;
 use ethers_core::types::{TransactionReceipt, H256};
 
-use crate::{utils::domain_hash, SignedUpdate};
+use crate::SignedUpdate;
 
 pub use home::*;
 pub use replica::*;
@@ -48,14 +48,6 @@ pub type ChainCommunicationError = Box<dyn std::error::Error + Send + Sync>;
 pub trait Common: Sync + Send + std::fmt::Debug {
     /// Get the status of a transaction
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError>;
-
-    /// Return the slip44 ID
-    fn origin_slip44(&self) -> u32;
-
-    /// Return the domain hash
-    fn domain_hash(&self) -> H256 {
-        domain_hash(self.origin_slip44())
-    }
 
     /// Fetch the current updater value
     async fn updater(&self) -> Result<H256, ChainCommunicationError>;
