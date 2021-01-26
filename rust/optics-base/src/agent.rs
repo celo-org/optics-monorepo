@@ -4,6 +4,7 @@ use color_eyre::{
     Result,
 };
 use futures_util::future::{join_all, select_all};
+use log::error;
 use std::sync::Arc;
 
 use crate::settings::Settings;
@@ -36,6 +37,15 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         res
     }
 
+    /// Run the Agent, and tag errors with the slip44 ID of the replica
+    async fn run_report_error(home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()> {
+        let slip44 = replica.destination_slip44();
+        Self::run(home, replica)
+            .await
+            .wrap_err_with(|| format!("Replica with ID {} failed", slip44))
+    }
+
+    #[allow(unreachable_code)]
     /// Run several agents
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
