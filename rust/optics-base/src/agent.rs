@@ -23,10 +23,8 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         home: Arc<Box<dyn Home>>,
         replica: Box<dyn Replica>,
     ) -> Result<()> {
-        let slip44 = replica.destination_slip44();
-        self.run(home, replica)
-            .await
-            .wrap_err_with(|| format!("Replica with ID {} failed", slip44))
+        let err_msg = format!("Replica named {} failed", replica.name());
+        self.run(home, replica).await.wrap_err(err_msg)
     }
 
     #[allow(unreachable_code)]
