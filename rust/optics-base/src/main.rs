@@ -24,6 +24,7 @@ use color_eyre::Result;
 
 use crate::{agent::OpticsAgent, settings::Settings};
 
+/// An example main function for any agent that implemented Default
 async fn _example_main<OA>(settings: Settings) -> Result<()>
 where
     OA: OpticsAgent + Default,
@@ -34,7 +35,8 @@ where
     oa.run_from_settings(&settings).await
 }
 
-/// Read settings from the
+/// Read settings from the config file and set up reporting and logging based
+/// on the settings
 fn setup() -> Result<Settings> {
     color_eyre::install()?;
 
