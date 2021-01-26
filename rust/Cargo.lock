@@ -1232,6 +1232,7 @@ dependencies = [
  "ethers-providers",
  "ethers-signers",
  "futures-util",
+ "log",
  "optics-core",
  "serde 1.0.120",
  "serde_json",

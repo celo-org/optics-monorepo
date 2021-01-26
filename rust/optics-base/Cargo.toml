@@ -13,6 +13,8 @@ config = "0.10"
 serde = "1.0.120"
 serde_json = { version = "1.0.61", default-features = false }
 
+log = "0.4.13"
+
 ethers = { git = "https://github.com/gakonst/ethers-rs" }
 ethers-signers = { git = "https://github.com/gakonst/ethers-rs" }
 ethers-middleware = { git = "https://github.com/gakonst/ethers-rs" }

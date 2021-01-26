@@ -21,7 +21,7 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     /// Fetch the previous root.
     async fn previous_root(&self) -> Result<H256, ChainCommunicationError>;
 
-    /// Prove inclusion of some leaf in the replica
+    /// Dispatch a transaction to prove inclusion of some leaf in the replica.
     async fn prove(
         &self,
         leaf: H256,
