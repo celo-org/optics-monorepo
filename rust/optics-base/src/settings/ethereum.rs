@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use color_eyre::Report;
-use ethers_core::types::Address;
+use ethers::core::types::Address;
 
 use optics_core::traits::{Home, Replica};
 
@@ -26,7 +26,7 @@ pub enum EthereumConnection {
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
-            let provider = ethers_middleware::SignerMiddleware::new($provider, signer);
+            let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
             Box::new(crate::abis::$contract::new(
                 $name,
                 $slip44,
@@ -46,8 +46,8 @@ macro_rules! construct_box_contract {
 
 macro_rules! construct_ws_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $url:expr, $signer:expr) => {{
-        let ws = ethers_providers::Ws::connect($url).await?;
-        let provider = ethers_providers::Provider::new(ws);
+        let ws = ethers::providers::Ws::connect($url).await?;
+        let provider = ethers::providers::Provider::new(ws);
         construct_box_contract!($contract, $name, $slip44, $address, provider, $signer)
     }};
 }
@@ -55,7 +55,7 @@ macro_rules! construct_ws_box_contract {
 macro_rules! construct_http_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $url:expr, $signer:expr) => {{
         let provider =
-            ethers_providers::Provider::<ethers_providers::Http>::try_from($url.as_ref())?;
+            ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
 
         construct_box_contract!($contract, $name, $slip44, $address, provider, $signer)
     }};
@@ -69,7 +69,7 @@ pub struct EthereumConf {
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<ethers_signers::LocalWallet> {
+    fn signer(&self) -> Option<ethers::signers::LocalWallet> {
         self.signer.clone().map(|s| s.parse().expect("!valid key"))
     }
 

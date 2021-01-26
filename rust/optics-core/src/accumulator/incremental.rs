@@ -1,4 +1,4 @@
-use ethers_core::types::H256;
+use ethers::core::types::H256;
 
 use crate::accumulator::{hash_concat, TREE_DEPTH, ZERO_HASHES};
 

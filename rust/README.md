@@ -72,6 +72,7 @@ We use the tokio async runtime environment. Please see the docs
 - `mkdir $AGENT_NAME && cd $AGENT_NAME`
 - `cargo init`
 - add dependencies to the new `Cargo.toml`
+  - copy most of the dependencies from `optics-base`
 - create a new module in `src/$AGENT_NAME.rs`
   - add a new struct
   - implement `optics_base::agent::OpticsAgent` for your struct

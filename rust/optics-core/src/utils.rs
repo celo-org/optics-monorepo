@@ -1,4 +1,4 @@
-use ethers_core::types::H256;
+use ethers::core::types::H256;
 use sha3::{Digest, Keccak256};
 
 pub(crate) fn domain_hash(origin_slip44_id: u32) -> H256 {

@@ -19,11 +19,13 @@ pub mod traits;
 
 mod utils;
 
-use ethers_core::{
-    types::{Address, Signature, SignatureError, H256},
-    utils::hash_message,
+use ethers::{
+    core::{
+        types::{Address, Signature, SignatureError, H256},
+        utils::hash_message,
+    },
+    signers::Signer,
 };
-use ethers_signers::Signer;
 use sha3::{Digest, Keccak256};
 use std::convert::TryFrom;
 
@@ -34,7 +36,7 @@ use crate::{traits::ChainCommunicationError, utils::*};
 pub enum OpticsError {
     /// Signature Error pasthrough
     #[error(transparent)]
-    SignatureError(#[from] ethers_core::types::SignatureError),
+    SignatureError(#[from] SignatureError),
     /// Update does not build off the current root
     #[error("Update has wrong current root. Expected: {expected}. Got: {actual}.")]
     WrongCurrentRoot {
@@ -275,7 +277,7 @@ mod test {
     #[test]
     fn it_sign() {
         let t = async {
-            let signer: ethers_signers::LocalWallet =
+            let signer: ethers::signers::LocalWallet =
                 "1111111111111111111111111111111111111111111111111111111111111111"
                     .parse()
                     .unwrap();

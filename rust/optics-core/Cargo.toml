@@ -7,10 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ethers-core = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-signers = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-contract = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-providers = { git = "https://github.com/gakonst/ethers-rs" }
+ethers = { git = "https://github.com/gakonst/ethers-rs" }
 sha3 = "0.9.1"
 lazy_static = "*"
 thiserror = "*"

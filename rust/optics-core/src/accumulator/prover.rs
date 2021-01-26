@@ -3,7 +3,7 @@ use crate::accumulator::{
     TREE_DEPTH,
 };
 
-use ethers_core::types::H256;
+use ethers::core::types::H256;
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.

@@ -1,5 +1,5 @@
-use ethers_core::types::{H256, U256};
-use ethers_signers::LocalWallet;
+use ethers::core::types::{H256, U256};
+use ethers::signers::LocalWallet;
 use std::time::Duration;
 use tokio::time::interval;
 

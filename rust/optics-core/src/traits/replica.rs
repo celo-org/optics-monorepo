@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use ethers_core::types::{H256, U256};
+use ethers::core::types::{H256, U256};
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},

@@ -1,4 +1,4 @@
-use ethers_core::types::H256;
+use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
 

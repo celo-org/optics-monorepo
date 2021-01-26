@@ -4,28 +4,17 @@ version = "0.1.0"
 authors = ["James Prestwich <prestwich@clabs.co>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Main block
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
 optics-core = { path = "../optics-core" }
 config = "0.10"
 serde = "1.0.120"
 serde_json = { version = "1.0.61", default-features = false }
-
 log = "0.4.13"
-
-ethers = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-signers = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-middleware = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-core = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-providers = { git = "https://github.com/gakonst/ethers-rs" }
-ethers-contract = { git = "https://github.com/gakonst/ethers-rs", features = ["abigen"] }
-
+ethers = { git = "https://github.com/gakonst/ethers-rs", features = ["abigen"] }
 thiserror = { version = "1.0.22", default-features = false }
 async-trait = { version = "0.1.42", default-features = false }
-url = { version = "2.2.0", default-features = false }
-
 futures-util = "0.3.12"
-
 color-eyre = "0.5.0"

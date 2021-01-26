@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use ethers_core::types::{Address, H256, U256};
+use ethers::core::types::{Address, H256, U256};
 use std::sync::Arc;
 
 use optics_core::{
@@ -9,7 +9,7 @@ use optics_core::{
 
 #[allow(missing_docs)]
 mod contracts {
-    use ethers_contract::abigen;
+    use ethers::contract::abigen;
     abigen!(
         ReplicaContractInternal,
         "optics-base/src/abis/ProcessingReplica.abi.json"
@@ -22,7 +22,7 @@ mod contracts {
 #[derive(Debug)]
 pub struct ReplicaContract<M>
 where
-    M: ethers_providers::Middleware,
+    M: ethers::providers::Middleware,
 {
     contract: contracts::ReplicaContractInternal<M>,
     slip44: u32,
@@ -31,7 +31,7 @@ where
 
 impl<M> ReplicaContract<M>
 where
-    M: ethers_providers::Middleware,
+    M: ethers::providers::Middleware,
 {
     /// Create a reference to a Replica at a specific Ethereum address on some
     /// chain
@@ -47,7 +47,7 @@ where
 #[async_trait]
 impl<M> Common for ReplicaContract<M>
 where
-    M: ethers_providers::Middleware + 'static,
+    M: ethers::providers::Middleware + 'static,
 {
     fn name(&self) -> &str {
         &self.name
@@ -124,7 +124,7 @@ where
 #[async_trait]
 impl<M> Replica for ReplicaContract<M>
 where
-    M: ethers_providers::Middleware + 'static,
+    M: ethers::providers::Middleware + 'static,
 {
     fn destination_slip44(&self) -> u32 {
         self.slip44
@@ -184,7 +184,7 @@ where
 #[derive(Debug)]
 pub struct HomeContract<M>
 where
-    M: ethers_providers::Middleware,
+    M: ethers::providers::Middleware,
 {
     contract: contracts::HomeContractInternal<M>,
     slip44: u32,
@@ -193,7 +193,7 @@ where
 
 impl<M> HomeContract<M>
 where
-    M: ethers_providers::Middleware,
+    M: ethers::providers::Middleware,
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
@@ -209,7 +209,7 @@ where
 #[async_trait]
 impl<M> Common for HomeContract<M>
 where
-    M: ethers_providers::Middleware + 'static,
+    M: ethers::providers::Middleware + 'static,
 {
     fn name(&self) -> &str {
         &self.name
@@ -286,7 +286,7 @@ where
 #[async_trait]
 impl<M> Home for HomeContract<M>
 where
-    M: ethers_providers::Middleware + 'static,
+    M: ethers::providers::Middleware + 'static,
 {
     fn origin_slip44(&self) -> u32 {
         self.slip44

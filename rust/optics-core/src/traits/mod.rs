@@ -5,7 +5,7 @@ pub mod home;
 pub mod replica;
 
 use async_trait::async_trait;
-use ethers_core::types::{TransactionReceipt, H256};
+use ethers::core::types::{TransactionReceipt, H256};
 
 use crate::SignedUpdate;
 

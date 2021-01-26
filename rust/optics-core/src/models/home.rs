@@ -1,4 +1,4 @@
-use ethers_core::types::{Address, H256};
+use ethers::core::types::{Address, H256};
 use std::{collections::VecDeque, io::Write};
 
 use crate::{

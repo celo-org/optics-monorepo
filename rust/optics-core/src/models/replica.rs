@@ -1,5 +1,5 @@
 use crate::{OpticsError, SignedUpdate};
-use ethers_core::types::{Address, H256, U256};
+use ethers::core::types::{Address, H256, U256};
 
 /// Waiting state
 #[derive(Debug, Clone, Copy, Default)]
