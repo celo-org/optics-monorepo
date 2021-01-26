@@ -15,24 +15,28 @@ use optics_core::traits::{Home, Replica};
 #[async_trait]
 pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     /// Run the agent with the given home and replica
-    async fn run(home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()>;
+    async fn run(&self, home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()>;
 
     /// Run the Agent, and tag errors with the slip44 ID of the replica
-    async fn run_report_error(home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()> {
+    async fn run_report_error(
+        &self,
+        home: Arc<Box<dyn Home>>,
+        replica: Box<dyn Replica>,
+    ) -> Result<()> {
         let slip44 = replica.destination_slip44();
-        Self::run(home, replica)
+        self.run(home, replica)
             .await
             .wrap_err_with(|| format!("Replica with ID {} failed", slip44))
     }
 
     #[allow(unreachable_code)]
     /// Run several agents
-    async fn run_many(home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
+    async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
         let home = Arc::new(home);
 
         let mut futs: Vec<_> = replicas
             .into_iter()
-            .map(|replica| Self::run_report_error(home.clone(), replica))
+            .map(|replica| self.run_report_error(home.clone(), replica))
             .collect();
 
         loop {
@@ -50,7 +54,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     }
 
     /// Run several agents based on the settings
-    async fn run_from_settings(settings: &Settings) -> Result<()> {
+    async fn run_from_settings(&self, settings: &Settings) -> Result<()> {
         let home = settings
             .home
             .try_into_home()
@@ -66,6 +70,6 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         .into_iter()
         .collect::<Result<Vec<_>>>()?;
 
-        Self::run_many(home, replicas).await
+        self.run_many(home, replicas).await
     }
 }
