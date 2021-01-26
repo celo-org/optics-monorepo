@@ -38,9 +38,13 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     }
 
     /// Run the Agent, and tag errors with the slip44 ID of the replica
-    async fn run_report_error(home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()> {
+    async fn run_report_error(
+        &self,
+        home: Arc<Box<dyn Home>>,
+        replica: Box<dyn Replica>,
+    ) -> Result<()> {
         let slip44 = replica.destination_slip44();
-        Self::run(home, replica)
+        self.run(home, replica)
             .await
             .wrap_err_with(|| format!("Replica with ID {} failed", slip44))
     }
