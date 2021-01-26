@@ -25,3 +25,4 @@ optics-core = { path = "../optics-core" }
 [[example]]
 name = "example"
 path = "./bin/example.rs"
+path = "./bin/example.rs"
