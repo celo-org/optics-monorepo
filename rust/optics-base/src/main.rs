@@ -24,11 +24,14 @@ use color_eyre::Result;
 
 use crate::{agent::OpticsAgent, settings::Settings};
 
-async fn _main<OA>(settings: Settings) -> Result<()>
+async fn _example_main<OA>(settings: Settings) -> Result<()>
 where
-    OA: OpticsAgent,
+    OA: OpticsAgent + Default,
 {
-    OA::run_from_settings(&settings).await
+    // Instantiate an agent
+    let oa = OA::default();
+    // Use the agent to run a number of replicas
+    oa.run_from_settings(&settings).await
 }
 
 fn main() -> Result<()> {
