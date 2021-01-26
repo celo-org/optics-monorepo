@@ -43,6 +43,12 @@ Some agent sketches:
 - `relayer`
   - Relays signed updates from the home to the replica
   - Ensures updates are confirmed in a timely manner on the replica
+- `processor`
+  - retrieve leaves from home chain
+  - observe >=1 replica
+  - generate proofs for the messages
+  - submit messages and proofs to the replica for processing
+  - config option: gas params
 
 For Ethereum and Celo connections we use
 [ethers-rs](https://github.com/gakonst/ethers-rs). Please see the docs
