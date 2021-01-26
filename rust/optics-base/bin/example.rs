@@ -1,4 +1,4 @@
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::Result;
 
 use optics_base::{
     agent::OpticsAgent,
@@ -24,15 +24,7 @@ fn setup() -> Result<Settings> {
 
     let settings = Settings::new()?;
 
-    let builder = tracing_subscriber::fmt::fmt().with_max_level(settings.tracing.level);
-
-    match settings.tracing.style {
-        Style::Pretty => builder.pretty().try_init(),
-        Style::Json => builder.json().try_init(),
-        Style::Compact => builder.compact().try_init(),
-        Style::Default => builder.try_init(),
-    }
-    .map_err(|e| eyre!(e))?;
+    // TODO: setup logging based on settings
 
     Ok(settings)
 }

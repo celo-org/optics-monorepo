@@ -74,6 +74,7 @@ where
             }
 
             // Wait for the next tick on the interval
+
             interval.tick().await;
         }
     }
