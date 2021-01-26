@@ -34,17 +34,25 @@ where
     oa.run_from_settings(&settings).await
 }
 
-fn main() -> Result<()> {
+/// Read settings from the
+fn setup() -> Result<Settings> {
     color_eyre::install()?;
 
-    let settings = settings::Settings::new().expect("!config");
-    dbg!(settings);
+    let settings = Settings::new()?;
+
+    // TODO: setup logging based on settings
+
+    Ok(settings)
+}
+
+fn main() -> Result<()> {
+    let _settings = setup();
 
     // tokio::runtime::Builder::new_current_thread()
     //     .enable_all()
     //     .build()
     //     .unwrap()
-    //     .block_on(_main(settings))?;
+    //     .block_on(_example_main(settings))?;
 
     Ok(())
 }

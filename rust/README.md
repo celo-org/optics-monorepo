@@ -66,3 +66,23 @@ We use the tokio async runtime environment. Please see the docs
     - shared configuration file formats
     - basic setup for an off-chain agent
 - TODO: other agents :)
+
+### High-level guide to building an agent
+
+- `mkdir $AGENT_NAME && cd $AGENT_NAME`
+- `cargo init`
+- add dependencies to the new `Cargo.toml`
+- create a new module in `src/$AGENT_NAME.rs`
+  - add a new struct
+  - implement `optics_base::agent::OpticsAgent` for your struct
+  - your `run` function is the business logic of your agent
+- create a new settings module
+  - reuse the `Settings` objects from `optics_base::settings`
+  - make sure the read the docs :)
+  - add your own new settings
+- in `$AGENT_NAME/src/main.rs`
+  - add `mod _____` declarations for your agent and settings modules
+  - create `main` and `setup` functions
+  - follow the pattern in `optics-base/src/main.rs`
+- make a `config` folder and a toml file
+  - Make sure to include your own settings from above
