@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::{Address, H256, U256};
-use std::sync::Arc;
+use std::{error::Error as StdError, sync::Arc};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -59,7 +59,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
@@ -221,7 +221,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
