@@ -5,9 +5,14 @@ pub mod home;
 pub mod replica;
 
 use async_trait::async_trait;
-use ethers::core::types::{TransactionReceipt, H256};
+use ethers::{
+    contract::ContractError,
+    core::types::{TransactionReceipt, H256},
+    providers::{Middleware, ProviderError},
+};
+use std::error::Error as StdError;
 
-use crate::SignedUpdate;
+use crate::{OpticsError, SignedUpdate};
 
 pub use home::*;
 pub use replica::*;
@@ -41,7 +46,30 @@ impl From<TransactionReceipt> for TxOutcome {
 }
 
 /// ChainCommunicationError is a type-erased, thread safe, std error
-pub type ChainCommunicationError = Box<dyn std::error::Error + Send + Sync>;
+#[derive(Debug, thiserror::Error)]
+pub enum ChainCommunicationError {
+    /// Optics Error
+    #[error("{0}")]
+    OpticsError(#[from] OpticsError),
+    /// Contract Error
+    #[error("{0}")]
+    ContractError(Box<dyn StdError + Send + Sync>),
+    /// Provider Error
+    #[error("{0}")]
+    ProviderError(#[from] ProviderError),
+    /// Any other error
+    #[error("{0}")]
+    CustomError(#[from] Box<dyn StdError + Send + Sync>),
+}
+
+impl<M> From<ContractError<M>> for ChainCommunicationError
+where
+    M: Middleware + 'static,
+{
+    fn from(e: ContractError<M>) -> Self {
+        Self::ContractError(Box::new(e))
+    }
+}
 
 /// Interface for attributes shared by Home and Replica
 #[async_trait]

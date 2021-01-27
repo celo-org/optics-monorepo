@@ -29,7 +29,7 @@ use ethers::{
 use sha3::{Digest, Keccak256};
 use std::convert::TryFrom;
 
-use crate::{traits::ChainCommunicationError, utils::*};
+use crate::utils::*;
 
 /// Error types for Optics
 #[derive(Debug, thiserror::Error)]
@@ -52,9 +52,9 @@ pub enum OpticsError {
     /// IO error from Read/Write usage
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    /// ChainCommunicationError
-    #[error(transparent)]
-    ChainCommunicationError(#[from] ChainCommunicationError),
+    // /// ChainCommunicationError
+    // #[error(transparent)]
+    // ChainCommunicationError(#[from] ChainCommunicationError),
 }
 
 /// Simple trait for types with a canonical encoding

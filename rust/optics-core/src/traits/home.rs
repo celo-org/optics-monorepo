@@ -47,8 +47,9 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     ) -> Result<Option<Message>, ChainCommunicationError> {
         self.raw_message_by_sequence(destination, sequence)
             .await?
-            .map(|buf| Message::read_from(&mut &buf[..]).map_err(Into::into))
+            .map(|buf| Message::read_from(&mut &buf[..]))
             .transpose()
+            .map_err(Into::into)
     }
 
     /// Look up a message by its hash.
@@ -66,8 +67,9 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     ) -> Result<Option<Message>, ChainCommunicationError> {
         self.raw_message_by_leaf(leaf)
             .await?
-            .map(|buf| Message::read_from(&mut &buf[..]).map_err(Into::into))
+            .map(|buf| Message::read_from(&mut &buf[..]))
             .transpose()
+            .map_err(Into::into)
     }
 
     /// Fetch the sequence
