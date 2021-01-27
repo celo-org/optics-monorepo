@@ -1,6 +1,9 @@
 use async_trait::async_trait;
-use color_eyre::{eyre::eyre, Result};
-use ethers::signers::Signer;
+use color_eyre::{
+    eyre::{ensure, eyre},
+    Result,
+};
+use ethers::{signers::Signer, types::Address};
 use std::sync::Arc;
 use tokio::time::{interval, Interval};
 
@@ -52,6 +55,14 @@ where
         home: Arc<Box<dyn Home>>,
         _replica: Option<Box<dyn Replica>>,
     ) -> Result<()> {
+        let expected: Address = home.updater().await.map_err(|e| eyre!(e))?.into();
+        ensure!(
+            expected == self.signer.address(),
+            "Contract updater does not match keys. On-chain: {}. Local: {}",
+            expected,
+            self.signer.address()
+        );
+
         let mut interval = self.interval();
 
         loop {
