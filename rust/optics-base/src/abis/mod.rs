@@ -319,14 +319,21 @@ where
             .query()
             .await?;
 
-        let update_filter = filters.into_iter().next().unwrap();
-        
+        let update_filter = match filters.into_iter().next() {
+            Some(f) => f,
+            None => return Ok(None)
+        };
+
+        let signature = match Signature::try_from(update_filter.signature.as_slice()) {
+            Ok(s) => s,
+            Err(_) => return Ok(None)
+        };
+
         let update = Update {
             origin_slip44: update_filter.origin_slip44,
             previous_root: H256::from(update_filter.old_root),
             new_root: H256::from(update_filter.new_root),
         };
-        let signature = Signature::try_from(update_filter.signature.as_slice()).unwrap();
 
         Ok(Some(SignedUpdate {
             update,
