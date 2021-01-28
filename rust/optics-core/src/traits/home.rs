@@ -30,6 +30,13 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         sequence: u32,
     ) -> Result<Option<Vec<u8>>, ChainCommunicationError>;
 
+    /// Fetch signed message that came directly after `old_root`.
+    /// This should fetch events from the chain API
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
+
     /// Fetch the message to destination at the sequence number (or error).
     /// This should fetch events from the chain API
     async fn message_by_sequence(

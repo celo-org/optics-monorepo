@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use ethers::core::types::{Address, H256, U256};
-use std::sync::Arc;
+use ethers::core::types::{Address, Signature, H256, U256};
+use std::{error::Error as StdError, sync::Arc, convert::TryFrom};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -308,6 +308,22 @@ where
         Ok(filters.into_iter().next().map(|f| f.message))
     }
 
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        let filters = self
+            .contract
+            .update_filter()
+            .topic1(old_root)
+            .query()
+            .await?;
+
+        let update_vec = filters.into_iter().next().unwrap();
+
+        Ok()
+    }
+
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
@@ -354,10 +370,18 @@ where
 
     async fn produce_update(&self) -> Result<Update, ChainCommunicationError> {
         let (a, b) = self.contract.suggest_update().call().await?;
-        Ok(Update {
-            origin_chain: self.origin_slip44(),
-            previous_root: a.into(),
-            new_root: b.into(),
-        })
+
+        let previous_root: H256 = a.into();
+        let new_root: H256 = b.into();
+
+        if new_root.is_zero() || previous_root.is_zero() {
+            return Ok(None);
+        }
+
+        Ok(Some(Update {
+            origin_slip44: self.origin_slip44(),
+            previous_root,
+            new_root,
+        }))
     }
 }
