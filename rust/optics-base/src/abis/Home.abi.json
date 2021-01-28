@@ -89,7 +89,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "originSLIP44",
+        "name": "_originSLIP44",
         "type": "uint32"
       },
       {
