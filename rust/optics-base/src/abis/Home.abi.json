@@ -88,6 +88,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint32",
+        "name": "_originSLIP44",
+        "type": "uint32"
+      },
+      {
+        "indexed": true,
         "internalType": "bytes32",
         "name": "_oldRoot",
         "type": "bytes32"

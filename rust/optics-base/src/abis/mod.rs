@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use ethers::core::types::{Address, H256, U256};
-use std::sync::Arc;
+use ethers::core::types::{Address, Signature, H256, U256};
+use std::{error::Error as StdError, sync::Arc, convert::TryFrom};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -59,7 +59,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
@@ -221,7 +221,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
@@ -297,7 +297,7 @@ where
         destination: u32,
         sequence: u32,
     ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
-        let filters = self
+        let events = self
             .contract
             .dispatch_filter()
             .topic1(U256::from(destination))
@@ -305,16 +305,45 @@ where
             .query()
             .await?;
 
-        Ok(filters.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| f.message))
+    }
+
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        self.contract
+            .update_filter()
+            .topic1(old_root)
+            .query()
+            .await?
+            .first()
+            .map(|event| {
+                let signature = Signature::try_from(event.signature.as_slice())
+                    .expect("chain accepted invalid signature");
+                
+                let update = Update {
+                    origin_slip44: event.origin_slip44,
+                    previous_root: event.old_root.into(),
+                    new_root: event.new_root.into(),
+                };
+
+                SignedUpdate {
+                    signature,
+                    update
+                }
+            })
+            .map(Ok)
+            .transpose()
     }
 
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
     ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
-        let filters = self.contract.dispatch_filter().topic3(leaf).query().await?;
+        let events = self.contract.dispatch_filter().topic3(leaf).query().await?;
 
-        Ok(filters.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| f.message))
     }
 
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
@@ -352,12 +381,20 @@ where
             .into())
     }
 
-    async fn produce_update(&self) -> Result<Update, ChainCommunicationError> {
+    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         let (a, b) = self.contract.suggest_update().call().await?;
-        Ok(Update {
-            origin_chain: self.origin_slip44(),
-            previous_root: a.into(),
-            new_root: b.into(),
-        })
+
+        let previous_root: H256 = a.into();
+        let new_root: H256 = b.into();
+
+        if new_root.is_zero() || previous_root.is_zero() {
+            return Ok(None);
+        }
+
+        Ok(Some(Update {
+            origin_slip44: self.origin_slip44(),
+            previous_root,
+            new_root,
+        }))
     }
 }
