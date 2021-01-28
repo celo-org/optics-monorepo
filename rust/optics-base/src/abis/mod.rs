@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::{Address, Signature, H256, U256};
-use std::{error::Error as StdError, sync::Arc, convert::TryFrom};
+use std::{sync::Arc, convert::TryFrom};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -385,7 +385,7 @@ where
             .into())
     }
 
-    async fn produce_update(&self) -> Result<Update, ChainCommunicationError> {
+    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         let (a, b) = self.contract.suggest_update().call().await?;
 
         let previous_root: H256 = a.into();
