@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::{Address, Signature, H256, U256};
-use std::{sync::Arc, convert::TryFrom};
+use std::{error::Error as StdError, sync::Arc, convert::TryFrom};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -59,7 +59,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
@@ -221,7 +221,7 @@ where
             .client()
             .get_transaction_receipt(txid)
             .await
-            .map_err(Box::new)?;
+            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
 
         Ok(receipt_opt.map(Into::into))
     }
@@ -297,7 +297,7 @@ where
         destination: u32,
         sequence: u32,
     ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
-        let filters = self
+        let events = self
             .contract
             .dispatch_filter()
             .topic1(U256::from(destination))
@@ -305,49 +305,45 @@ where
             .query()
             .await?;
 
-        Ok(filters.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| f.message))
     }
 
     async fn signed_update_by_old_root(
         &self,
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        let filters = self
-            .contract
+        self.contract
             .update_filter()
             .topic1(old_root)
             .query()
-            .await?;
+            .await?
+            .first()
+            .map(|event| {
+                let signature = Signature::try_from(event.signature.as_slice())
+                    .expect("chain accepted invalid signature");
+                
+                let update = Update {
+                    origin_slip44: event.origin_slip44,
+                    previous_root: event.old_root.into(),
+                    new_root: event.new_root.into(),
+                };
 
-        let update_filter = match filters.into_iter().next() {
-            Some(f) => f,
-            None => return Ok(None)
-        };
-
-        let signature = match Signature::try_from(update_filter.signature.as_slice()) {
-            Ok(s) => s,
-            Err(_) => return Ok(None)
-        };
-
-        let update = Update {
-            origin_slip44: update_filter.origin_slip44,
-            previous_root: H256::from(update_filter.old_root),
-            new_root: H256::from(update_filter.new_root),
-        };
-
-        Ok(Some(SignedUpdate {
-            update,
-            signature,
-        }))
+                SignedUpdate {
+                    signature,
+                    update
+                }
+            })
+            .map(Ok)
+            .transpose()
     }
 
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
     ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
-        let filters = self.contract.dispatch_filter().topic3(leaf).query().await?;
+        let events = self.contract.dispatch_filter().topic3(leaf).query().await?;
 
-        Ok(filters.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| f.message))
     }
 
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
