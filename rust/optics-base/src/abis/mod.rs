@@ -319,9 +319,19 @@ where
             .query()
             .await?;
 
-        let update_vec = filters.into_iter().next().unwrap();
+        let update_filter = filters.into_iter().next().unwrap();
+        
+        let update = Update {
+            origin_slip44: update_filter.origin_slip44,
+            previous_root: H256::from(update_filter.old_root),
+            new_root: H256::from(update_filter.new_root),
+        };
+        let signature = Signature::try_from(update_filter.signature.as_slice()).unwrap();
 
-        Ok()
+        Ok(Some(SignedUpdate {
+            update,
+            signature,
+        }))
     }
 
     async fn raw_message_by_leaf(
