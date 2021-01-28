@@ -24,12 +24,16 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         home: Arc<Box<dyn Home>>,
         replica: Option<Box<dyn Replica>>,
     ) -> Result<()> {
-        if let Some(r) = replica {
-            let err_msg = format!("Replica named {} failed", r.name());
-            self.run(home, Some(r)).await.wrap_err(err_msg)
-        } else {
-            self.run(home, replica).await
+        let msg_opt = replica
+            .as_ref()
+            .map(|r| format!("Replica named {} failed", r.name()));
+
+        let mut res = self.run(home, replica).await;
+
+        if let Some(m) = msg_opt {
+            res = res.wrap_err(m);
         }
+        res
     }
 
     /// Run several agents
