@@ -92,6 +92,7 @@ abstract contract Common {
     bytes32 public current;
 
     event Update(
+        uint32 indexed originSLIP44,
         bytes32 indexed _oldRoot,
         bytes32 indexed _newRoot,
         bytes signature
