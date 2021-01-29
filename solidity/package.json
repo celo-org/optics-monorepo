@@ -21,7 +21,7 @@
   "dependencies": {},
   "scripts": {
     "prettier": "prettier --write 'contracts/**/*.sol'",
-    "compile": "hardhat compile",
+    "compile": "hardhat compile && ./scripts/update_abis.sh",
     "test": "hardhat test"
   },
   "author": "James Prestwich",
