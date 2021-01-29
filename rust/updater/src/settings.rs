@@ -22,9 +22,9 @@ impl Settings {
         let env = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
         s.merge(File::with_name(&format!("config/{}", env)).required(false))?;
 
-        // Add in settings from the environment (with a prefix of OPT_RELAY)
-        // Eg.. `OPT_RELAY_DEBUG=1 would set the `debug` key
-        s.merge(Environment::with_prefix("OPT_RELAY"))?;
+        // Add in settings from the environment (with a prefix of OPT_UPDATER)
+        // Eg.. `OPT_UPDATER_DEBUG=1 would set the `debug` key
+        s.merge(Environment::with_prefix("OPT_UPDATER"))?;
 
         s.try_into()
     }
