@@ -36,7 +36,7 @@ abstract contract Replica is Common, QueueManager {
     /// Hook for tasks
     function _beforeUpdate() internal virtual;
 
-    function next_pending()
+    function nextPending()
         external
         view
         returns (bytes32 _pending, uint256 _confirmAt)
@@ -66,15 +66,12 @@ abstract contract Replica is Common, QueueManager {
         queue.enqueue(_newRoot);
     }
 
-    function can_confirm() 
+    function canConfirm() 
         external
         view
         returns (bool)
     {
-        if(queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()]) {
-            return true;
-        }
-        return false;
+        return queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()];
     }
 
     function confirm() external notFailed {
