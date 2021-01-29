@@ -20,3 +20,7 @@ rpc-style = "Ethereum"
     rpc-style = "Ethereum"
         [replicas.EthereumClassic.config]
         connection = { type = "Ws", url = "ws://localhost:8545"}
+
+[tracing]
+level = "debug"
+style = "pretty"

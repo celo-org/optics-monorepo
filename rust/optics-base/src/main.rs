@@ -22,7 +22,10 @@ pub mod agent;
 
 use color_eyre::Result;
 
-use crate::{agent::OpticsAgent, settings::Settings};
+use crate::{
+    agent::OpticsAgent,
+    settings::{log::Style, Settings},
+};
 
 /// An example main function for any agent that implemented Default
 async fn _example_main<OA>(settings: Settings) -> Result<()>
@@ -42,7 +45,15 @@ fn setup() -> Result<Settings> {
 
     let settings = Settings::new()?;
 
-    // TODO: setup logging based on settings
+    let builder = tracing_subscriber::fmt::fmt().with_max_level(settings.tracing.level);
+
+    match settings.tracing.style {
+        Style::Pretty => builder.pretty().try_init(),
+        Style::Json => builder.json().try_init(),
+        Style::Compact => builder.compact().try_init(),
+        Style::Default => builder.try_init(),
+    }
+    .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     Ok(settings)
 }

@@ -4,7 +4,6 @@ use color_eyre::{
     Result,
 };
 use futures_util::future::{join_all, select_all};
-use log::error;
 use std::sync::Arc;
 
 use crate::settings::Settings;
@@ -18,6 +17,8 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     async fn run(&self, home: Arc<Box<dyn Home>>, replica: Box<dyn Replica>) -> Result<()>;
 
     /// Run the Agent, and tag errors with the slip44 ID of the replica
+    #[allow(clippy::unit_arg)]
+    #[tracing::instrument(err)]
     async fn run_report_error(
         &self,
         home: Arc<Box<dyn Home>>,
@@ -27,8 +28,9 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         self.run(home, replica).await.wrap_err(err_msg)
     }
 
-    #[allow(unreachable_code)]
     /// Run several agents
+    #[allow(clippy::unit_arg)]
+    #[tracing::instrument(err)]
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
         let home = Arc::new(home);
 
@@ -41,17 +43,18 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
             // This gets the first future to resolve.
             let (res, _, remaining) = select_all(futs).await;
             if res.is_err() {
-                error!("Replica shut down: {:#}", res.unwrap_err());
+                tracing::error!("Replica shut down: {:#}", res.unwrap_err());
             }
             futs = remaining;
             if futs.is_empty() {
                 return Err(eyre!("All replicas have shut down"));
             }
         }
-        unreachable!()
     }
 
-    /// Run several agents based on the settings
+    /// Run several agents based on a settings object
+    #[allow(clippy::unit_arg)]
+    #[tracing::instrument(err)]
     async fn run_from_settings(&self, settings: &Settings) -> Result<()> {
         let home = settings
             .home

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::{Address, Signature, H256, U256};
-use std::{error::Error as StdError, sync::Arc, convert::TryFrom};
+use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -53,6 +53,7 @@ where
         &self.name
     }
 
+    #[tracing::instrument(err)]
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         let receipt_opt = self
             .contract
@@ -64,10 +65,12 @@ where
         Ok(receipt_opt.map(Into::into))
     }
 
+    #[tracing::instrument(err)]
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.updater().call().await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn state(&self) -> Result<State, ChainCommunicationError> {
         let state = self.contract.state().call().await?;
         match state {
@@ -77,10 +80,12 @@ where
         }
     }
 
+    #[tracing::instrument(err)]
     async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.current().call().await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -95,6 +100,7 @@ where
             .into())
     }
 
+    #[tracing::instrument(err)]
     async fn double_update(
         &self,
         left: &SignedUpdate,
@@ -130,6 +136,7 @@ where
         self.slip44
     }
 
+    #[tracing::instrument(err)]
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
         let (pending, confirm_at) = self.contract.next_pending().call().await?;
 
@@ -140,14 +147,17 @@ where
         }
     }
 
+    #[tracing::instrument(err)]
     async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self.contract.confirm().send().await?.await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn previous_root(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.previous().call().await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn prove(
         &self,
         leaf: H256,
@@ -169,6 +179,7 @@ where
             .into())
     }
 
+    #[tracing::instrument(err)]
     async fn process(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -215,6 +226,7 @@ where
         &self.name
     }
 
+    #[tracing::instrument(err)]
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         let receipt_opt = self
             .contract
@@ -226,10 +238,12 @@ where
         Ok(receipt_opt.map(Into::into))
     }
 
+    #[tracing::instrument(err)]
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.updater().call().await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn state(&self) -> Result<State, ChainCommunicationError> {
         let state = self.contract.state().call().await?;
         match state {
@@ -239,10 +253,12 @@ where
         }
     }
 
+    #[tracing::instrument(err)]
     async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.current().call().await?.into())
     }
 
+    #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -257,6 +273,7 @@ where
             .into())
     }
 
+    #[tracing::instrument(err)]
     async fn double_update(
         &self,
         left: &SignedUpdate,
@@ -292,6 +309,7 @@ where
         self.slip44
     }
 
+    #[tracing::instrument(err)]
     async fn raw_message_by_sequence(
         &self,
         destination: u32,
@@ -308,6 +326,7 @@ where
         Ok(events.into_iter().next().map(|f| f.message))
     }
 
+    #[tracing::instrument(err)]
     async fn signed_update_by_old_root(
         &self,
         old_root: H256,
@@ -321,22 +340,20 @@ where
             .map(|event| {
                 let signature = Signature::try_from(event.signature.as_slice())
                     .expect("chain accepted invalid signature");
-                
+
                 let update = Update {
                     origin_slip44: event.origin_slip44,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
 
-                SignedUpdate {
-                    signature,
-                    update
-                }
+                SignedUpdate { signature, update }
             })
             .map(Ok)
             .transpose()
     }
 
+    #[tracing::instrument(err)]
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
@@ -346,10 +363,12 @@ where
         Ok(events.into_iter().next().map(|f| f.message))
     }
 
+    #[tracing::instrument(err)]
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         Ok(self.contract.sequences(destination).call().await?)
     }
 
+    #[tracing::instrument(err)]
     async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -364,6 +383,7 @@ where
             .into())
     }
 
+    #[tracing::instrument(err)]
     async fn improper_update(
         &self,
         update: &SignedUpdate,
@@ -381,6 +401,7 @@ where
             .into())
     }
 
+    #[tracing::instrument(err)]
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         let (a, b) = self.contract.suggest_update().call().await?;
 

@@ -7,7 +7,11 @@ use optics_core::traits::{Home, Replica};
 /// Ethereum configuration
 pub mod ethereum;
 
+/// Tracing configuration
+pub mod log;
+
 use ethereum::EthereumConf;
+use log::TracingConfig;
 
 /// A connection to _some_ blockchain.
 ///
@@ -81,6 +85,8 @@ pub struct Settings {
     pub home: ChainSetup,
     /// The replica configurations
     pub replicas: HashMap<String, ChainSetup>,
+    /// The tracing configuration
+    pub tracing: TracingConfig,
 }
 
 impl Settings {
