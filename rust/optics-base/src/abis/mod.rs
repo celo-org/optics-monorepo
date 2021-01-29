@@ -145,6 +145,11 @@ where
     }
 
     #[tracing::instrument(err)]
+    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError> {
+        Ok(self.contract.can_confirm().call().await?)
+    }
+
+    #[tracing::instrument(err)]
     async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self.contract.confirm().send().await?.await?.into())
     }

@@ -66,6 +66,17 @@ abstract contract Replica is Common, QueueManager {
         queue.enqueue(_newRoot);
     }
 
+    function can_confirm() 
+        external
+        view
+        returns (bool)
+    {
+        if(queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()]) {
+            return true;
+        }
+        return false;
+    }
+
     function confirm() external notFailed {
         require(queue.length() != 0, "No pending");
 
