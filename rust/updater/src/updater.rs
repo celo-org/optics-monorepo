@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use color_eyre::{
-    eyre::{ensure, eyre},
-    Result,
-};
+use color_eyre::{eyre::ensure, Result};
 use ethers::{signers::Signer, types::Address};
 use std::sync::Arc;
 use tokio::time::{interval, Interval};
@@ -55,7 +52,8 @@ where
         home: Arc<Box<dyn Home>>,
         _replica: Option<Box<dyn Replica>>,
     ) -> Result<()> {
-        let expected: Address = home.updater().await.map_err(|e| eyre!(e))?.into();
+        // First we check that we have the correct key to sign with.
+        let expected: Address = home.updater().await?.into();
         ensure!(
             expected == self.signer.address(),
             "Contract updater does not match keys. On-chain: {}. Local: {}",
@@ -63,16 +61,19 @@ where
             self.signer.address()
         );
 
+        // Set up the polling loop.
         let mut interval = self.interval();
-
         loop {
-            let update_opt = home.produce_update().await.map_err(|e| eyre!(e))?;
+            // Check if there is an update
+            let update_opt = home.produce_update().await?;
 
+            // If there is, sign it and submit it
             if let Some(update) = update_opt {
                 let signed = self.sign_update(&update).await?;
-                home.update(&signed).await.map_err(|e| eyre!(e))?;
+                home.update(&signed).await?;
             }
 
+            // Wait for the next tick on the interval
             interval.tick().await;
         }
     }

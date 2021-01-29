@@ -1,4 +1,11 @@
-//! The updater
+//! The updater signs updates and submits them to the home chain.
+//!
+//! This updater polls the Home for queued updates at a regular interval.
+//! It signs them and submits them back to the home chain.
+
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 mod settings;
 mod updater;
@@ -12,7 +19,7 @@ async fn _main(settings: Settings) -> Result<()> {
     let signer = settings.updater.try_into_wallet()?;
     let home = settings.base.home.try_into_home("home").await?;
 
-    let updater = Updater::new(signer, 5 * 60);
+    let updater = Updater::new(signer, settings.polling_interval);
 
     // Normally we would run_from_settings
     // but for an empty replica vector that would do nothing

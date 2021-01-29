@@ -9,6 +9,7 @@ pub struct Settings {
     #[serde(flatten)]
     pub(crate) base: BaseSettings,
     pub(crate) updater: EthereumSigner,
+    pub(crate) polling_interval: u64,
 }
 
 impl Settings {
