@@ -15,6 +15,9 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     /// Return the pending root and time, if any
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError>;
 
+    /// Check if there exists a pending update that can be confirmed
+    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError>;
+
     /// Confirm the next pending root (after its timer has elapsed);
     async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError>;
 
