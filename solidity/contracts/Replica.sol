@@ -121,7 +121,7 @@ contract ProcessingReplica is Replica {
 
     function process(bytes memory _message)
         public
-        returns (bool, bytes memory)
+        returns (bool _success, bytes memory _ret)
     {
         bytes29 _m = _message.ref(0);
 
@@ -132,7 +132,10 @@ contract ProcessingReplica is Replica {
             messages[keccak256(_message)] == MessageStatus.Pending,
             "not pending"
         );
-        lastProcessed = _sequence;
+
+        // Set the state now. We will set lastProcessed later. This prevents
+        // re-entry as one of the two require statements above will definitely
+        // fail.
         messages[_m.keccak()] = MessageStatus.Processed;
 
         // TODO: assembly this to avoid the clone?
@@ -149,7 +152,8 @@ contract ProcessingReplica is Replica {
         // and still return. We then delegate only the minimum processing gas.
         require(gasleft() >= PROCESS_GAS + RESERVE_GAS, "!gas");
         // transparently return.
-        return recipient.call{gas: PROCESS_GAS}(payload);
+        (_success, _ret) = recipient.call{gas: PROCESS_GAS}(payload);
+        lastProcessed = _sequence;
     }
 
     function prove(
