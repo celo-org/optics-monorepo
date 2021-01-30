@@ -62,7 +62,7 @@ library QueueLib {
 
     function length(Queue storage _q) internal view returns (uint256) {
         // Cannot underflow unless state is corrupted
-        return _q.first - _q.last - 1;
+        return _q.last + 1 - _q.first;
     }
 }
 
