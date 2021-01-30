@@ -20,7 +20,7 @@ pub mod settings;
 /// Base trait for an agent
 pub mod agent;
 
-use color_eyre::Result;
+use color_eyre::{eyre::eyre, Result};
 
 use crate::{
     agent::OpticsAgent,
@@ -53,14 +53,14 @@ fn setup() -> Result<Settings> {
         Style::Compact => builder.compact().try_init(),
         Style::Default => builder.try_init(),
     }
-    .map_err(|e| color_eyre::eyre::eyre!(e))?;
+    .map_err(|e| eyre!(e))?;
 
     Ok(settings)
 }
 
 fn main() -> Result<()> {
-    let _settings = setup();
-
+    let _settings = setup()?;
+    dbg!(_settings);
     // tokio::runtime::Builder::new_current_thread()
     //     .enable_all()
     //     .build()
