@@ -22,11 +22,7 @@
   },
   "dependencies": {},
   "scripts": {
-<<<<<<< HEAD
-    "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts ./lib",
-=======
     "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts",
->>>>>>> lint: run prettier on js tests and scripts
     "compile": "hardhat compile && ./scripts/update_abis.sh",
     "coverage": "hardhat coverage",
     "test": "hardhat test"
