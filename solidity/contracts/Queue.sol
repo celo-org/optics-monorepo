@@ -43,8 +43,8 @@ library QueueLib {
         returns (uint128 _last)
     {
         _last = _q.last;
-        for (uint256 i = 0; i < _items.length; i += 1) {
-            _last += 1;
+        for (uint i = 0; i<_items.length; i+=1) {
+            _last+= 1;
             bytes32 _item = _items[i];
             if (_item != bytes32(0)) {
                 _q.queue[_last] = _item;
