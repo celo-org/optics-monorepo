@@ -8,7 +8,15 @@ require('./scripts');
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: '0.7.6',
+  solidity: {
+    version: '0.7.6',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 999999,
+      },
+    },
+  },
 
   gasReporter: {
     currency: 'USD',
