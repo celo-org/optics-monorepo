@@ -25,6 +25,31 @@ extendEnvironment((hre) => {
     }
   }
 
+  class Updater {
+    constructor(signer, originSlip44) {
+      this.originSlip44 = originSlip44 ? originSlip44 : 0;
+      this.signer = signer;
+    }
+
+    domain() {
+      return ethers.utils.solidityKeccak256(
+        ['uint32', 'string'],
+        [this.originSlip44, 'OPTICS'],
+      );
+    }
+
+    async signUpdate(oldRoot, newRoot) {
+      let message = ethers.utils.concat([this.domain(), oldRoot, newRoot]);
+      let signature = await this.signer.signMessage(message);
+      return {
+        origin: this.originSlip44,
+        newRoot,
+        oldRoot,
+        signature,
+      };
+    }
+  }
+
   const getHomeFactory = async () => ethers.getContractFactory('Home');
   const getReplicaFactory = async () =>
     ethers.getContractFactory('ProcessingReplica');
@@ -32,6 +57,7 @@ extendEnvironment((hre) => {
   hre.optics = {
     Home,
     Replica,
+    Updater,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (...args) => {
