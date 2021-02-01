@@ -1,1 +1,1 @@
-require("./deploy.js");
+require('./deploy.js');

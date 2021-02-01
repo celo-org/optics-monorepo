@@ -5,12 +5,14 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^3.3.0",
     "@summa-tx/memview-sol": "^1.1.1",
-    "ethereum-waffle": "^3.2.1",
-    "ethers": "^5.0.25",
-    "hardhat": "^2.0.7",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.2.2",
+    "ethers": "^5.0.26",
+    "hardhat": "^2.0.8",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "2.2.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.3"
+    "prettier-plugin-solidity": "^1.0.0-beta.3",
+    "solidity-coverage": "^0.7.14"
   },
   "version": "0.0.0",
   "description": "Optimistic Interchain Communications",
@@ -20,8 +22,9 @@
   },
   "dependencies": {},
   "scripts": {
-    "prettier": "prettier --write 'contracts/**/*.sol'",
+    "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts",
     "compile": "hardhat compile && ./scripts/update_abis.sh",
+    "coverage": "hardhat coverage",
     "test": "hardhat test"
   },
   "author": "James Prestwich",
