@@ -22,7 +22,7 @@
   },
   "dependencies": {},
   "scripts": {
-    "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts",
+    "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts ./lib",
     "compile": "hardhat compile && ./scripts/update_abis.sh",
     "coverage": "hardhat coverage",
     "test": "hardhat test"

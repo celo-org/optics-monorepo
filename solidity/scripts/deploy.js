@@ -1,3 +1,4 @@
+// const { hre } = require('hardhat');
 const { types } = require('hardhat/config');
 
 task('deploy-home')

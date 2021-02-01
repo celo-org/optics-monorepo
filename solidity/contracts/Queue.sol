@@ -43,8 +43,8 @@ library QueueLib {
         returns (uint128 _last)
     {
         _last = _q.last;
-        for (uint i = 0; i<_items.length; i+=1) {
-            _last+= 1;
+        for (uint256 i = 0; i < _items.length; i += 1) {
+            _last += 1;
             bytes32 _item = _items[i];
             if (_item != bytes32(0)) {
                 _q.queue[_last] = _item;
@@ -53,8 +53,10 @@ library QueueLib {
         _q.last = _last;
     }
 
-
-    function dequeue(Queue storage _q, uint256 _number) internal returns (bytes32[] memory) {
+    function dequeue(Queue storage _q, uint256 _number)
+        internal
+        returns (bytes32[] memory)
+    {
         uint128 _last = _q.last;
         uint128 _first = _q.first;
         // Cannot underflow unless state is corrupted
@@ -62,7 +64,7 @@ library QueueLib {
 
         bytes32[] memory _items = new bytes32[](_number);
 
-        for (uint i = 0; i < _number; i++) {
+        for (uint256 i = 0; i < _number; i++) {
             _items[i] = _q.queue[_first];
             delete _q.queue[_first];
             _first++;
@@ -98,7 +100,11 @@ library QueueLib {
         return _q.last < _q.first;
     }
 
-    function _length(uint128 _last, uint128 _first) internal pure returns (uint256) {
+    function _length(uint128 _last, uint128 _first)
+        internal
+        pure
+        returns (uint256)
+    {
         return uint256(_last + 1 - _first);
     }
 

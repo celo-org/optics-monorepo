@@ -29,11 +29,17 @@ contract TestQueue is QueueManager {
         return queue.dequeue();
     }
 
-    function enqueueMany(bytes32[] calldata _items) external returns (uint256 _last) {
+    function enqueueMany(bytes32[] calldata _items)
+        external
+        returns (uint256 _last)
+    {
         return queue.enqueue(_items);
     }
 
-    function dequeueMany(uint256 _number) external returns (bytes32[] memory _items) {
+    function dequeueMany(uint256 _number)
+        external
+        returns (bytes32[] memory _items)
+    {
         return queue.dequeue(_number);
     }
 
