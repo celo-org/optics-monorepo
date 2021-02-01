@@ -19,13 +19,9 @@ use crate::{settings::Settings, relayer::Relayer};
 use optics_base::agent::OpticsAgent;
 
 async fn _main(settings: Settings) -> Result<()> {
-    let home = settings.base.home.try_into_home("home").await?;
-
     let relayer = Relayer::new(5 * 60);
-
-    // Normally we would run_from_settings
-    // but for an empty replica vector that would do nothing
-    relayer.run(home.into(), None).await?;
+    
+    relayer.run_from_settings(&settings.base).await?;
 
     Ok(())
 }
