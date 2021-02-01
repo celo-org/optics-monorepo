@@ -50,5 +50,21 @@ describe('Queue', async () => {
     // reverts
     await expect(queue.dequeue()).to.be.revertedWith('Empty');
     await expect(queue.peek()).to.be.revertedWith('Empty');
+
+    // Multi-enq
+    await queue.enqueueMany(items);
+    let length = await queue.length();
+    expect(length).to.equal(items.length);
+
+    // Multi-deq static call to check ret val
+    let deqed = await queue.callStatic.dequeueMany(items.length);
+    items.forEach((item, idx) => {
+      expect(item).to.equal(deqed[idx]);
+    });
+
+    // Multi-deq tx to check function
+    await queue.dequeueMany(items.length);
+    length = await queue.length();
+    expect(length).to.equal(0);
   });
 });
