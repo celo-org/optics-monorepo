@@ -29,7 +29,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         Common(_originSLIP44, address(0), bytes32(0))
     {
         sortition = ISortition(_sortition);
-        updater = sortition.current();
+        updater = ISortition(_sortition).current();
     }
 
     function fail() internal override {
