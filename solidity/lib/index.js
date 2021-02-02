@@ -55,8 +55,8 @@ extendEnvironment((hre) => {
       let signature = await this.signer.signMessage(message);
       return {
         origin: this.originSlip44,
-        newRoot,
         oldRoot,
+        newRoot,
         signature,
       };
     }
