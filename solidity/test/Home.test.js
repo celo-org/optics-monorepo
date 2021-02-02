@@ -42,7 +42,9 @@ describe('Home', async () => {
 
         const [oldRoot, newRoot] = await home.suggestUpdate();
         const { signature } = await updater.signUpdate(oldRoot, newRoot);
-        await home.update(oldRoot, newRoot, signature);
+        await expect(home.update(oldRoot, newRoot, signature))
+          .to.emit(home, 'Update')
+          .withArgs(originSLIP44, oldRoot, newRoot, signature);
       });
 
       it('Accepts and fails on valid double update proofs', async () => {});

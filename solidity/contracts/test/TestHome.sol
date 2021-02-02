@@ -13,14 +13,7 @@ contract TestHome is Home {
         _setFailed();
     }
 
-    function testCheckSig(
-        bytes32 _oldRoot, 
-        bytes32 _newRoot, 
-        bytes memory _signature
-    ) public view returns (address) {
-        bytes32 _digest =
-            keccak256(abi.encodePacked(DOMAIN_HASH, _oldRoot, _newRoot));
-        _digest = ECDSA.toEthSignedMessageHash(_digest);
-        return ECDSA.recover(_digest, _signature);
+    function queueContains(bytes32 _item) public view returns (bool) {
+        return queue.contains(_item);
     }
 }
