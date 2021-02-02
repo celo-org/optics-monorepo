@@ -52,7 +52,8 @@ extendEnvironment((hre) => {
 
     async signUpdate(oldRoot, newRoot) {
       let message = this.message(oldRoot, newRoot);
-      let signature = await this.signer.signMessage(message);
+      let msgHash = ethers.utils.arrayify(ethers.utils.keccak256(message));
+      let signature = await this.signer.signMessage(msgHash);
       return {
         origin: this.originSlip44,
         oldRoot,

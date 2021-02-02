@@ -17,6 +17,7 @@ describe('Home', async () => {
       beforeEach(async () => {      
         const mockSortition = await deployMockContract(signer, NoSortition.abi);
         await mockSortition.mock.current.returns(signer.address);
+        await mockSortition.mock.slash.returns();
 
         const Home = await ethers.getContractFactory('TestHome');
         home = await Home.deploy(originSLIP44, mockSortition.address);
@@ -41,11 +42,7 @@ describe('Home', async () => {
 
         const [oldRoot, newRoot] = await home.suggestUpdate();
         const { signature } = await updater.signUpdate(oldRoot, newRoot);
-        const recoveredAddr = await home.testCheckSig(oldRoot, newRoot, signature);
-        
-        console.log("Contract updater:", await home.updater());
-        console.log("Local updater:", signer.address);
-        console.log("valid signature:", recoveredAddr);
+        await home.update(oldRoot, newRoot, signature);
       });
 
       it('Accepts and fails on valid double update proofs', async () => {});
