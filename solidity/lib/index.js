@@ -50,13 +50,6 @@ extendEnvironment((hre) => {
       return ethers.utils.concat([this.domain(), oldRoot, newRoot]);
     }
 
-    async getAddress() {
-      if (!this.address) {
-        this.address = await this.signer.getAddress();
-      }
-      return this.address;
-    }
-
     async signUpdate(oldRoot, newRoot) {
       let message = this.message(oldRoot, newRoot);
       let signature = await this.signer.signMessage(message);
