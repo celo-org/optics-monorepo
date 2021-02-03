@@ -5,23 +5,27 @@ const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.js
 
 const ACTIVE = 0;
 const FAILED = 1;
+const originSLIP44 = 1234;
+
+let home;
+let updater;
+let fakeUpdater;
 
 describe('Home', async () => {
-  let home;
-  const originSLIP44 = 1234;
-
-  let [signer, fakeSigner] = provider.getWallets();
-  let updater = new optics.Updater(signer, originSLIP44);
-  const fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
-
-  const enqueueMessageAndSuggestUpdate = async (message, recipient) => {
+  // Helper function that enqueues message and returns its root
+  const enqueueMessageAndGetRoot = async (message, recipient) => {
     message = ethers.utils.formatBytes32String(message);
     recipient = ethers.utils.formatBytes32String(recipient);
     await home.enqueue(originSLIP44, recipient, message);
-    return await home.suggestUpdate();
+    const [_currentRoot, latestRoot] = await home.suggestUpdate();
+    return latestRoot;
   };
 
   beforeEach(async () => {
+    const [signer, fakeSigner] = provider.getWallets();
+    updater = new optics.Updater(signer, originSLIP44);
+    fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
+
     const mockSortition = await deployMockContract(signer, NoSortition.abi);
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
@@ -56,25 +60,19 @@ describe('Home', async () => {
   });
 
   it('Accepts a valid update', async () => {
-    const [oldRoot, newRoot] = await enqueueMessageAndSuggestUpdate(
-      'message',
-      'recipient',
-    );
-    const { signature } = await updater.signUpdate(oldRoot, newRoot);
-    await expect(home.update(oldRoot, newRoot, signature))
+    const currentRoot = await home.current();
+    const newRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+
+    const { signature } = await updater.signUpdate(currentRoot, newRoot);
+    await expect(home.update(currentRoot, newRoot, signature))
       .to.emit(home, 'Update')
-      .withArgs(originSLIP44, oldRoot, newRoot, signature);
+      .withArgs(originSLIP44, currentRoot, newRoot, signature);
   });
 
   it('Rejects update that does not build off of current root', async () => {
-    const [_firstRoot, secondRoot] = await enqueueMessageAndSuggestUpdate(
-      'message',
-      'recipient',
-    );
-    const [_, thirdRoot] = await enqueueMessageAndSuggestUpdate(
-      'message2',
-      'recipient2',
-    );
+    // First root is current root
+    const secondRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+    const thirdRoot = await enqueueMessageAndGetRoot('message2', 'recipient2');
 
     // Try to submit update that skips the current (first) root
     const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
@@ -84,13 +82,11 @@ describe('Home', async () => {
   });
 
   it('Rejects update that does not exist in queue', async () => {
-    const [oldRoot, _newRoot] = await enqueueMessageAndSuggestUpdate(
-      'message',
-      'recipient',
-    );
-    const fakeNewRoot = ethers.utils.formatBytes32String('fake root'); // better way to create fake root?
-    const { signature } = await updater.signUpdate(oldRoot, fakeNewRoot);
-    await expect(home.update(oldRoot, fakeNewRoot, signature)).to.emit(
+    const currentRoot = await home.current();
+    const fakeNewRoot = ethers.utils.formatBytes32String('fake root');
+
+    const { signature } = await updater.signUpdate(currentRoot, fakeNewRoot);
+    await expect(home.update(currentRoot, fakeNewRoot, signature)).to.emit(
       home,
       'ImproperUpdate',
     );
@@ -99,28 +95,23 @@ describe('Home', async () => {
   });
 
   it('Rejects update from non-updater address', async () => {
-    const [oldRoot, newRoot] = await enqueueMessageAndSuggestUpdate(
-      'message',
-      'recipient',
-    );
+    const currentRoot = await home.current();
+    const newRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+
     const { signature: fakeSignature } = await fakeUpdater.signUpdate(
-      oldRoot,
+      currentRoot,
       newRoot,
     );
     await expect(
-      home.update(oldRoot, newRoot, fakeSignature),
+      home.update(currentRoot, newRoot, fakeSignature),
     ).to.be.revertedWith('bad sig');
   });
 
   it('Fails on valid double update proof', async () => {
-    const [firstRoot, secondRoot] = await enqueueMessageAndSuggestUpdate(
-      'message',
-      'recipient',
-    );
-    const [_firstRoot, thirdRoot] = await enqueueMessageAndSuggestUpdate(
-      'message2',
-      'recipient2',
-    );
+    const firstRoot = await home.current();
+    const secondRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+    const thirdRoot = await enqueueMessageAndGetRoot('message2', 'recipient2');
+
     const { signature } = await updater.signUpdate(firstRoot, secondRoot);
     const { signature: signature2 } = await updater.signUpdate(
       firstRoot,
