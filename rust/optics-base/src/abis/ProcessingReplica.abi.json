@@ -361,9 +361,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "leaf",
-        "type": "bytes32"
+        "internalType": "bytes",
+        "name": "message",
+        "type": "bytes"
       },
       {
         "internalType": "bytes32[32]",
@@ -374,11 +374,6 @@
         "internalType": "uint256",
         "name": "index",
         "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "message",
-        "type": "bytes"
       }
     ],
     "name": "proveAndProcess",

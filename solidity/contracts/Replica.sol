@@ -174,12 +174,11 @@ contract ProcessingReplica is Replica {
     }
 
     function proveAndProcess(
-        bytes32 leaf,
+        bytes memory message,
         bytes32[32] calldata proof,
-        uint256 index,
-        bytes memory message
+        uint256 index
     ) external {
-        require(prove(leaf, proof, index), "!prove");
+        require(prove(keccak256(message), proof, index), "!prove");
         process(message);
     }
 }
