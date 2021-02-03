@@ -123,4 +123,12 @@ contract QueueManager {
     constructor() {
         queue.init();
     }
+
+    function queueContains(bytes32 _item) external view returns (bool) {
+        return queue.contains(_item);
+    }
+
+    function queueEnd() external view returns (bytes32) {
+        return queue.lastItem();
+    }
 }

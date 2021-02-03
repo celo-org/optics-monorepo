@@ -52,7 +52,7 @@ describe('Home', async () => {
     const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
     await home.enqueue(originSLIP44, recipient, message);
-    const latestEnqueuedRoot = await home.latestEnqueuedRoot();
+    const latestEnqueuedRoot = await home.queueEnd();
 
     const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
     expect(suggestedCurrent).to.equal(currentRoot);
