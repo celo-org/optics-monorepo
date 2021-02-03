@@ -16,4 +16,8 @@ contract TestHome is Home {
     function queueContains(bytes32 _item) public view returns (bool) {
         return queue.contains(_item);
     }
+
+    function latestEnqueuedRoot() public view returns (bytes32) {
+        return queue.lastItem();
+    }
 }

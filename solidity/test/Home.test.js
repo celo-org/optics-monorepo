@@ -41,6 +41,19 @@ describe('Home', async () => {
           .to.be.revertedWith('failed state');
       });
 
+      it('Suggests current root and latest root on suggestUpdate', async () => {
+        const currentRoot = await home.current();
+
+        const recipient = ethers.utils.formatBytes32String("recipient");
+        const message = ethers.utils.formatBytes32String("message");
+        await home.enqueue(originSLIP44, recipient, message);
+        const latestEnqueuedRoot = await home.latestEnqueuedRoot();
+
+        const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
+        expect(suggestedCurrent).to.equal(currentRoot);
+        expect(suggestedNew).to.equal(latestEnqueuedRoot);
+      });
+
       it('Accepts a valid update', async () => {
         const [oldRoot, newRoot] = await enqueueMessageAndSuggestUpdate("message", "recipient");
         const { signature } = await updater.signUpdate(oldRoot, newRoot);
