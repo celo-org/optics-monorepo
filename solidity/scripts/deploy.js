@@ -1,6 +1,6 @@
 const { types } = require('hardhat/config');
 
-task('deploy-home')
+task('deploy-home', 'Deploy a home.')
   .addParam('slip44', 'The origin chain SLIP44 ID', undefined, types.int)
   .addParam(
     'sortition',
@@ -10,12 +10,12 @@ task('deploy-home')
   )
   .setAction(async (args) => {
     let address = ethers.utils.getAddress(args.sortition);
-
-    let home = await optics.deployHome(args.slip44, address);
+    let signer = ethers.getSigner();
+    let home = await optics.deployHome(signer, args.slip44, address);
     console.log(home.address);
   });
 
-task('deploy-replica')
+task('deploy-replica', 'Deploy a replica.')
   .addParam('origin', 'The origin chain SLIP44 ID', undefined, types.int)
   .addParam(
     'destination',
@@ -48,7 +48,10 @@ task('deploy-replica')
       throw new Error('current must be a 32-byte 0x prefixed hex string');
     }
 
+    let signer = ethers.getSigner();
+
     await optics.deployReplica(
+      signer,
       args.origin,
       args.destination,
       updater,
