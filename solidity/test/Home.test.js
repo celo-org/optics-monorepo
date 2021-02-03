@@ -35,7 +35,7 @@ describe('Home', async () => {
         await expect(home.enqueue(originSLIP44, recipient, message)).to.be.revertedWith('Failed state');
       });
 
-      it('Accepts an update', async () => {
+      it('Accepts a valid update', async () => {
         const recipient = ethers.utils.formatBytes32String("recipient");
         const message = ethers.utils.formatBytes32String("message");
         await home.enqueue(originSLIP44, recipient, message);
@@ -47,5 +47,6 @@ describe('Home', async () => {
           .withArgs(originSLIP44, oldRoot, newRoot, signature);
       });
 
-      it('Accepts and fails on valid double update proofs', async () => {});
+      it('Fails on a valid double update proof', async () => {
+      });
 });

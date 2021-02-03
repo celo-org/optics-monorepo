@@ -147,7 +147,7 @@ abstract contract Common {
         if (
             Common.checkSig(_newRoot[0], _oldRoot[0], _signature) &&
             Common.checkSig(_newRoot[1], _oldRoot[1], _signature2) &&
-            (_newRoot[0] != _newRoot[1] || _oldRoot[0] != _oldRoot[1])
+            (_oldRoot[0] == _oldRoot[1] && _newRoot[0] != _newRoot[1])
         ) {
             fail();
             emit DoubleUpdate(_oldRoot, _newRoot, _signature, _signature2);
