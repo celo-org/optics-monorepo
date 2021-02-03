@@ -7,7 +7,7 @@ use optics_core::traits::{Home, Replica};
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum EthereumConnection {
     /// HTTP connection details
     Http {

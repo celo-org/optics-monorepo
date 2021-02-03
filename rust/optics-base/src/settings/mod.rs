@@ -7,14 +7,18 @@ use optics_core::traits::{Home, Replica};
 /// Ethereum configuration
 pub mod ethereum;
 
+/// Tracing configuration
+pub mod log;
+
 use ethereum::EthereumConf;
+use log::TracingConfig;
 
 /// A connection to _some_ blockchain.
 ///
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "rpc-style", content = "config")]
+#[serde(tag = "rpc-style", content = "config", rename_all = "camelCase")]
 pub enum ChainConf {
     /// Ethereum configuration
     Ethereum(EthereumConf),
@@ -81,6 +85,8 @@ pub struct Settings {
     pub home: ChainSetup,
     /// The replica configurations
     pub replicas: HashMap<String, ChainSetup>,
+    /// The tracing configuration
+    pub tracing: TracingConfig,
 }
 
 impl Settings {
