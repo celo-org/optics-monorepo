@@ -7,11 +7,9 @@ const ACTIVE = 0;
 const FAILED = 1;
 const originSLIP44 = 1234;
 
-let home;
-let updater;
-let fakeUpdater;
-
 describe('Home', async () => {
+  let home, signer, fakeSigner, updater, fakeUpdater;
+
   // Helper function that enqueues message and returns its root
   const enqueueMessageAndGetRoot = async (message, recipient) => {
     message = ethers.utils.formatBytes32String(message);
@@ -21,11 +19,13 @@ describe('Home', async () => {
     return latestRoot;
   };
 
-  beforeEach(async () => {
-    const [signer, fakeSigner] = provider.getWallets();
-    updater = new optics.Updater(signer, originSLIP44);
-    fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
+  before(async () => {
+    [signer, fakeSigner] = provider.getWallets();
+    updater = await optics.Updater.fromSigner(signer, originSLIP44);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originSLIP44);
+  });
 
+  beforeEach(async () => {
     const mockSortition = await deployMockContract(signer, NoSortition.abi);
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();

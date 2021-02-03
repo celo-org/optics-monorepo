@@ -35,7 +35,7 @@ extendEnvironment((hre) => {
       this.address = address;
     }
 
-    async static fromSigner(signer, originSlip44) {
+    static async fromSigner(signer, originSlip44) {
       return new Updater(signer, await signer.getAddress(), originSlip44, true);
     }
 
