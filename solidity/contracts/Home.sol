@@ -80,7 +80,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         bytes memory _signature
     ) public notFailed returns (bool) {
         require(Common.checkSig(_oldRoot, _newRoot, _signature), "bad sig");
-        require(_oldRoot == current, "Not a current update");
+        require(_oldRoot == current, "not a current update");
         if (!queue.contains(_newRoot)) {
             fail();
             emit ImproperUpdate();

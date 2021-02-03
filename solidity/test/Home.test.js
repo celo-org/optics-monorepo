@@ -1,17 +1,16 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
-
 const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
+
 const ACTIVE = 0;
 const FAILED = 1;
 
 describe('Home', async () => {
-    let sortition;
     let home;
     const originSLIP44 = 1234;
     
-    let [signer] = provider.getWallets();
+    let [signer, fakeSigner] = provider.getWallets();
     let updater = new optics.Updater(signer, originSLIP44);
 
       beforeEach(async () => {      
@@ -31,7 +30,7 @@ describe('Home', async () => {
         const recipient = ethers.utils.formatBytes32String("recipient");
         const message = ethers.utils.formatBytes32String("message");
         await expect(home.enqueue(originSLIP44, recipient, message))
-          .to.be.revertedWith('Failed state');
+          .to.be.revertedWith('failed state');
       });
 
       it('Accepts a valid update', async () => {
@@ -60,7 +59,7 @@ describe('Home', async () => {
         // Try to submit update that skips the current (first) root
         const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
         await expect(home.update(secondRoot, thirdRoot, signature))
-          .to.be.revertedWith('Not a current update');
+          .to.be.revertedWith('not a current update');
       });
 
       it('Rejects update that does not exist in the queue', async () => {
@@ -75,5 +74,18 @@ describe('Home', async () => {
           .to.emit(home, 'ImproperUpdate')
 
         expect(await home.state()).to.equal(FAILED);
+      });
+
+      it('Rejects update from non-updater address', async () => {
+        const fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
+
+        const recipient = ethers.utils.formatBytes32String("recipient");
+        const message = ethers.utils.formatBytes32String("message");
+        await home.enqueue(originSLIP44, recipient, message);
+
+        const [oldRoot, newRoot] = await home.suggestUpdate();
+        const { signature: fakeSignature } = await fakeUpdater.signUpdate(oldRoot, newRoot);
+        await expect(home.update(oldRoot, newRoot, fakeSignature))
+          .to.be.revertedWith("bad sig")
       });
 });

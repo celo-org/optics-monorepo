@@ -123,7 +123,7 @@ abstract contract Common {
     }
 
     modifier notFailed() {
-        require(state != States.FAILED, "Failed state");
+        require(state != States.FAILED, "failed state");
         _;
     }
 
