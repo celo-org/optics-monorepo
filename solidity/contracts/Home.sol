@@ -89,7 +89,14 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         return false;
     }
 
-    function suggestUpdate() external view returns (bytes32, bytes32) {
-        return (current, queue.lastItem());
+    function suggestUpdate()
+        external
+        view
+        returns (bytes32 _current, bytes32 _new)
+    {
+        if (queue.length() != 0) {
+            _current = current;
+            _new = queue.lastItem();
+        }
     }
 }
