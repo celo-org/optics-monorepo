@@ -1,4 +1,5 @@
-const { types } = require('hardhat/config');
+const { types, task } = require('hardhat/config');
+const utils = require('./utils.js');
 
 task('deploy-home', 'Deploy a home.')
   .addParam('slip44', 'The origin chain SLIP44 ID', undefined, types.int)

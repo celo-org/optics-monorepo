@@ -6,6 +6,12 @@ async function reportTxOutcome(tx, confs) {
   return await tx.wait(confs);
 }
 
+// turn a tightly packed proof into an array
+async function parseProof(rawProof) {
+  return ethers.utils.defaultAbiCoder.decode(['bytes32[32]'], rawProof);
+}
+
 module.exports = {
   reportTxOutcome,
+  parseProof,
 };

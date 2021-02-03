@@ -1,4 +1,3 @@
-const { ethers } = require('ethers');
 const { types, task } = require('hardhat/config');
 const utils = require('./utils.js');
 
