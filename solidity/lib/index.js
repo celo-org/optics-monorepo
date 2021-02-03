@@ -12,10 +12,14 @@ extendEnvironment((hre) => {
     }
 
     async submitDoubleUpdate(left, right) {
+      if (left.oldRoot !== right.oldRoot) {
+        throw new Error('Old roots do not match');
+      }
       return await this.doubleUpdate(
-        [left.oldRoot, right.oldRoot],
+        right.oldRoot,
         [left.newRoot, right.newRoot],
-        [left.signature, right.signature],
+        left.signature,
+        right.signature,
       );
     }
   }
