@@ -26,9 +26,17 @@ extendEnvironment((hre) => {
   }
 
   class Updater {
-    constructor(signer, originSlip44) {
+    constructor(signer, address, originSlip44, disableWarn) {
+      if (!disableWarn) {
+        throw new Error('Please use `Updater.fromSigner()` to instantiate.');
+      }
       this.originSlip44 = originSlip44 ? originSlip44 : 0;
       this.signer = signer;
+      this.address = address;
+    }
+
+    async static fromSigner(signer, originSlip44) {
+      return new Updater(signer, await signer.getAddress(), originSlip44, true);
     }
 
     domain() {
@@ -38,8 +46,12 @@ extendEnvironment((hre) => {
       );
     }
 
+    message(oldRoot, newRoot) {
+      return ethers.utils.concat([this.domain(), oldRoot, newRoot]);
+    }
+
     async signUpdate(oldRoot, newRoot) {
-      let message = ethers.utils.concat([this.domain(), oldRoot, newRoot]);
+      let message = this.message(oldRoot, newRoot);
       let signature = await this.signer.signMessage(message);
       return {
         origin: this.originSlip44,
