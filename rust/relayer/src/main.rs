@@ -1,26 +1,25 @@
-//! The relayer forwards signed updates from the home to chain to replicas and 
+//! The relayer forwards signed updates from the home to chain to replicas and
 //! confirms pending replica updates.
 //!
-//! This relayer polls the Home for signed updates at a regular interval.
-//! It then submits them as pending updates for the replica. This relayer
-//! also polls the Replica for pending updates that are ready to be confirmed
-//! and confirms them.
+//! At a regular interval, the relayer polls Home for signed updates and
+//! submits them as pending updates for the replica. The relayer also
+//! polls the Replica for pending updates that are ready to be confirmed
+//! and confirms them when available.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-mod settings;
 mod relayer;
+mod settings;
 
 use color_eyre::Result;
 
-use crate::{settings::Settings, relayer::Relayer};
+use crate::{relayer::Relayer, settings::Settings};
 use optics_base::agent::OpticsAgent;
 
 async fn _main(settings: Settings) -> Result<()> {
     let relayer = Relayer::new(5 * 60);
-    
     relayer.run_from_settings(&settings.base).await?;
 
     Ok(())
@@ -45,4 +44,3 @@ fn main() -> Result<()> {
         .unwrap()
         .block_on(_main(settings))
 }
-
