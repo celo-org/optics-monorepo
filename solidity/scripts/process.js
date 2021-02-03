@@ -76,7 +76,7 @@ task('process', 'Process a message that has been proven to a replica')
       let tx = await replica.process(message);
       await utils.reportTxOutcome(tx);
     } catch (e) {
-      console.log(
+      console.error(
         `Error: Replica will reject process with message\n\t${e.message}`,
       );
     }
@@ -128,7 +128,7 @@ task('prove-and-process', 'Prove and process a message')
         message,
       );
     } catch (e) {
-      console.log(
+      console.error(
         `Error: Replica will reject proveAndProcess with message\n\t${e.message}`,
       );
     }
