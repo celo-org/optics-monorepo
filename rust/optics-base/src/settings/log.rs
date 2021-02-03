@@ -64,9 +64,9 @@ impl Into<tracing_subscriber::filter::LevelFilter> for Level {
             Level::Off => tracing_subscriber::filter::LevelFilter::OFF,
             Level::Error => tracing_subscriber::filter::LevelFilter::ERROR,
             Level::Warn => tracing_subscriber::filter::LevelFilter::WARN,
-            Level::Debug => tracing_subscriber::filter::LevelFilter::INFO,
-            Level::Trace => tracing_subscriber::filter::LevelFilter::DEBUG,
-            Level::Info => tracing_subscriber::filter::LevelFilter::TRACE,
+            Level::Debug => tracing_subscriber::filter::LevelFilter::DEBUG,
+            Level::Trace => tracing_subscriber::filter::LevelFilter::TRACE,
+            Level::Info => tracing_subscriber::filter::LevelFilter::INFO,
         }
     }
 }
