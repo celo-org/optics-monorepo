@@ -10,17 +10,41 @@ extendEnvironment((hre) => {
     constructor(address, abi, providerOrSigner) {
       super(address, abi, providerOrSigner);
     }
+
+    async submitDoubleUpdate(left, right) {
+      return await this.doubleUpdate(
+        [left.oldRoot, right.oldRoot],
+        [left.newRoot, right.newRoot],
+        [left.signature, right.signature],
+      );
+    }
   }
 
   class Home extends Common {
     constructor(address, providerOrSigner) {
       super(address, HomeAbi, providerOrSigner);
     }
+
+    async submitSignedUpdate(update) {
+      return await this.update(
+        update.oldRoot,
+        update.newRoot,
+        update.signature,
+      );
+    }
   }
 
   class Replica extends Common {
     constructor(address, providerOrSigner) {
       super(address, ReplicaAbi, providerOrSigner);
+    }
+
+    async submitSignedUpdate(update) {
+      return await this.update(
+        update.oldRoot,
+        update.newRoot,
+        update.signature,
+      );
     }
   }
 
@@ -62,25 +86,27 @@ extendEnvironment((hre) => {
     }
   }
 
-  const getHomeFactory = async () => ethers.getContractFactory('Home');
-  const getReplicaFactory = async () =>
-    ethers.getContractFactory('ProcessingReplica');
+  const getHomeFactory = async (...args) =>
+    ethers.getContractFactory('Home', ...args);
+  const getReplicaFactory = async (...args) =>
+    ethers.getContractFactory('ProcessingReplica', ...args);
 
   hre.optics = {
+    Common,
     Home,
     Replica,
     Updater,
     getHomeFactory,
     getReplicaFactory,
-    deployHome: async (...args) => {
-      let contract = await (await getHomeFactory()).deploy(...args);
+    deployHome: async (signer, ...args) => {
+      let contract = await (await getHomeFactory(signer)).deploy(...args);
       await contract.deployed();
-      return new Home(contract.address, contract.signer);
+      return new Home(contract.address, signer);
     },
-    deployReplica: async (...args) => {
-      let contract = await (await getReplicaFactory()).deploy(...args);
+    deployReplica: async (signer, ...args) => {
+      let contract = await (await getReplicaFactory(signer)).deploy(...args);
       await contract.deployed();
-      return new Replica(contract.address, contract.signer);
+      return new Replica(contract.address, signer);
     },
   };
 });
