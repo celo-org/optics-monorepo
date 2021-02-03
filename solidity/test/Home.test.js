@@ -12,6 +12,7 @@ describe('Home', async () => {
     
     let [signer, fakeSigner] = provider.getWallets();
     let updater = new optics.Updater(signer, originSLIP44);
+    const fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
 
       beforeEach(async () => {      
         const mockSortition = await deployMockContract(signer, NoSortition.abi);
@@ -45,7 +46,7 @@ describe('Home', async () => {
           .withArgs(originSLIP44, oldRoot, newRoot, signature);
       });
 
-      it('Rejects update that does not build off the current root', async () => {
+      it('Rejects update that does not build off of current root', async () => {
         const recipient = ethers.utils.formatBytes32String("recipient");
         const message = ethers.utils.formatBytes32String("message");
         const recipient2 = ethers.utils.formatBytes32String("recipient2");
@@ -62,7 +63,7 @@ describe('Home', async () => {
           .to.be.revertedWith('not a current update');
       });
 
-      it('Rejects update that does not exist in the queue', async () => {
+      it('Rejects update that does not exist in queue', async () => {
         const recipient = ethers.utils.formatBytes32String("recipient");
         const message = ethers.utils.formatBytes32String("message");
         await home.enqueue(originSLIP44, recipient, message);
@@ -71,14 +72,12 @@ describe('Home', async () => {
         const fakeNewRoot = ethers.utils.formatBytes32String("fake root"); // better way to create fake root?
         const { signature } = await updater.signUpdate(oldRoot, fakeNewRoot);
         await expect(home.update(oldRoot, fakeNewRoot, signature))
-          .to.emit(home, 'ImproperUpdate')
+          .to.emit(home, 'ImproperUpdate');
 
         expect(await home.state()).to.equal(FAILED);
       });
 
       it('Rejects update from non-updater address', async () => {
-        const fakeUpdater = new optics.Updater(fakeSigner, originSLIP44);
-
         const recipient = ethers.utils.formatBytes32String("recipient");
         const message = ethers.utils.formatBytes32String("message");
         await home.enqueue(originSLIP44, recipient, message);
@@ -87,5 +86,27 @@ describe('Home', async () => {
         const { signature: fakeSignature } = await fakeUpdater.signUpdate(oldRoot, newRoot);
         await expect(home.update(oldRoot, newRoot, fakeSignature))
           .to.be.revertedWith("bad sig")
+      });
+
+      it('Fails on valid double update proof', async () => {
+        const recipient = ethers.utils.formatBytes32String("recipient");
+        const message = ethers.utils.formatBytes32String("message");
+        const recipient2 = ethers.utils.formatBytes32String("recipient2");
+        const message2 = ethers.utils.formatBytes32String("message2");
+
+        await home.enqueue(originSLIP44, recipient, message);
+        const [firstRoot, secondRoot] = await home.suggestUpdate();
+        await home.enqueue(originSLIP44, recipient2, message2);
+        const [_secondRoot, thirdRoot] = await home.suggestUpdate();
+
+        const { signature } = await updater.signUpdate(firstRoot, secondRoot);
+        const { signature: signature2 } = await updater.signUpdate(firstRoot, thirdRoot);
+        await expect(home.doubleUpdate(
+          [firstRoot, firstRoot], 
+          [secondRoot, thirdRoot], 
+          signature, signature2
+        )).to.emit(home, 'DoubleUpdate');
+
+        expect(await home.state()).to.equal(FAILED);
       });
 });
