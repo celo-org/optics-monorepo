@@ -11,7 +11,30 @@ async function parseProof(rawProof) {
   return ethers.utils.defaultAbiCoder.decode(['bytes32[32]'], rawProof);
 }
 
+async function validateUpdate(oldRoot, newRoot, signature, slip44) {
+  if (!ethers.utils.isHexString(oldRoot, 32)) {
+    throw new Error('oldRoot must be a 32-byte 0x prefixed hex string');
+  }
+  if (!ethers.utils.isHexString(newRoot, 32)) {
+    throw new Error('newRoot must be a 32-byte 0x prefixed hex string');
+  }
+  if (!ethers.utils.isHexString(signature, 65)) {
+    throw new Error('signature must be a 65-byte 0x prefixed hex string');
+  }
+
+  if (slip44) {
+    // TODO: validate the signature
+  }
+
+  return {
+    oldRoot,
+    newRoot,
+    signature,
+  };
+}
+
 module.exports = {
   reportTxOutcome,
   parseProof,
+  validateUpdate,
 };

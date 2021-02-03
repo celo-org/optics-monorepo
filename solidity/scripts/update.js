@@ -12,18 +12,9 @@ task('submit-update', 'Submit an update to a home or replica contract.')
   .addParam('newRoot', 'The new root', undefined, types.string)
   .addParam('signature', 'The updater signature', undefined, types.string)
   .setAction(async (args) => {
-    let { newRoot, oldRoot, signature } = args;
     let address = ethers.utils.getAddress(args.address);
-
-    if (!ethers.utils.isHexString(oldRoot, 32)) {
-      throw new Error('oldRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(newRoot, 32)) {
-      throw new Error('newRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(signature, 65)) {
-      throw new Error('signature must be a 65-byte 0x prefixed hex string');
-    }
+    let { newRoot, oldRoot, signature } = args;
+    let update = await utils.validateUpdate(newRoot, oldRoot, signature);
 
     let signer = await ethers.getSigner();
 
@@ -55,33 +46,14 @@ task('submit-double-update', 'Submit a double update to a home or replica.')
       newRoot2,
       signature2,
     } = args;
-    let address = ethers.utils.getAddress(args.address);
 
-    if (!ethers.utils.isHexString(oldRoot1, 32)) {
-      throw new Error('oldRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(newRoot1, 32)) {
-      throw new Error('newRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(signature1, 65)) {
-      throw new Error('signature must be a 65-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(oldRoot2, 32)) {
-      throw new Error('oldRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(newRoot2, 32)) {
-      throw new Error('newRoot must be a 32-byte 0x prefixed hex string');
-    }
-    if (!ethers.utils.isHexString(signature2, 65)) {
-      throw new Error('signature must be a 65-byte 0x prefixed hex string');
-    }
+    let address = ethers.utils.getAddress(args.address);
+    let update1 = await utils.validateUpdate(newRoot1, oldRoot1, signature1);
+    let update2 = await utils.validateUpdate(newRoot2, oldRoot2, signature2);
 
     let signer = await ethers.getSigner();
 
     let contract = new optics.Common(address, signer);
-    let tx = await contract.submitDoubleUpdate(
-      { oldRoot: oldRoot1, newRoot: newRoot1, signature: signature1 },
-      { oldRoot: oldRoot2, newRoot: newRoot2, signature: signature2 },
-    );
+    let tx = await contract.submitDoubleUpdate(update1, update2);
     await utils.reportTxOutcome(tx);
   });
