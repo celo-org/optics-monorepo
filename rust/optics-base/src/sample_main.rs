@@ -37,6 +37,7 @@ fn setup() -> Result<Settings> {
     Ok(settings)
 }
 
+#[allow(dead_code)]
 fn main() -> Result<()> {
     let _settings = setup()?;
     dbg!(_settings);
