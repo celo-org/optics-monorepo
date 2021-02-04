@@ -7,4 +7,8 @@ contract TestMerkle is MerkleTreeManager {
     using MerkleLib for MerkleLib.Tree;
 
     constructor() MerkleTreeManager() {}
+
+     function count() external view returns (uint256) {
+        return tree.count;
+     }
 }

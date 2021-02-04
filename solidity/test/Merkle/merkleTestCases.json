@@ -7,19 +7,19 @@
         "two",
         "three"
       ],
-      "root": "rootytoot"
+      "expectedRoot": "rootytoot"
     },
     {
       "testName": "one leaf",
       "leaves": [
         "one"
       ],
-      "root": "rootytoot"
+      "expectedRoot": "rootytoot"
     },
     {
       "testName": "no leaves",
       "leaves": [],
-      "root": "rootytoot"
+      "expectedRoot": "rootytoot"
     }
   ]
 }
