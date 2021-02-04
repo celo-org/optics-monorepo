@@ -7,19 +7,19 @@
         "two",
         "three"
       ],
-      "expectedRoot": "rootytoot"
+      "expectedRoot": "0xf6cc9c4c5afd09787687b14ad33ab459f17a6e3a7c315ff636214246a9d079c6"
     },
     {
       "testName": "one leaf",
       "leaves": [
         "one"
       ],
-      "expectedRoot": "rootytoot"
+      "expectedRoot": "0xd6261ffd808538d010dcfcd90303e119d3d0a0014f537d6bf003af259d93f749"
     },
     {
       "testName": "no leaves",
       "leaves": [],
-      "expectedRoot": "rootytoot"
+      "expectedRoot": "0x3963b360b0745b0a0ab1d889daf35e93a432e015a0c42a1d7f4f9b49bff2f338"
     }
   ]
 }
