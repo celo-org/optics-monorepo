@@ -71,6 +71,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
             bytes32 next = queue.dequeue();
             if (next == _newRoot) break;
         }
+
+        current = _newRoot;
         emit Update(originSLIP44, _oldRoot, _newRoot, _signature);
     }
 
