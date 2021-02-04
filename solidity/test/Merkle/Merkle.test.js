@@ -23,9 +23,8 @@ describe('Merkle', async () => {
             });
 
             it("returns the correct leaf count", async () => {
-                const expectedLeafCount = leaves.length;
                 const leafCount = await merkle.count();
-                expect(leafCount).to.equal(expectedLeafCount);
+                expect(leafCount).to.equal(leaves.length);
             });
 
             it("produces the proper root", async () => {
