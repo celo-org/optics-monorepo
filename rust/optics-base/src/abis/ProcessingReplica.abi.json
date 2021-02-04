@@ -40,9 +40,9 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "bytes32[2]",
+        "internalType": "bytes32",
         "name": "_oldRoot",
-        "type": "bytes32[2]"
+        "type": "bytes32"
       },
       {
         "indexed": false,
@@ -178,9 +178,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32[2]",
+        "internalType": "bytes32",
         "name": "_oldRoot",
-        "type": "bytes32[2]"
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32[2]",
@@ -317,12 +317,12 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "",
+        "name": "_success",
         "type": "bool"
       },
       {
         "internalType": "bytes",
-        "name": "",
+        "name": "_ret",
         "type": "bytes"
       }
     ],
@@ -384,6 +384,38 @@
     "name": "proveAndProcess",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_item",
+        "type": "bytes32"
+      }
+    ],
+    "name": "queueContains",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "queueEnd",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

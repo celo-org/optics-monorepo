@@ -98,7 +98,7 @@ abstract contract Common {
         bytes signature
     );
     event DoubleUpdate(
-        bytes32[2] _oldRoot,
+        bytes32 _oldRoot,
         bytes32[2] _newRoot,
         bytes _signature,
         bytes _signature2
@@ -123,7 +123,7 @@ abstract contract Common {
     }
 
     modifier notFailed() {
-        require(state != States.FAILED);
+        require(state != States.FAILED, "failed state");
         _;
     }
 
@@ -138,16 +138,18 @@ abstract contract Common {
         return ECDSA.recover(_digest, _signature) == updater;
     }
 
+    // Checks that updater signed both updates and that
+    // the two updates are not equal (i.e. conflicting)
     function doubleUpdate(
-        bytes32[2] calldata _oldRoot,
+        bytes32 _oldRoot,
         bytes32[2] calldata _newRoot,
         bytes calldata _signature,
         bytes calldata _signature2
     ) external notFailed {
         if (
-            Common.checkSig(_newRoot[0], _oldRoot[0], _signature) &&
-            Common.checkSig(_newRoot[1], _oldRoot[1], _signature2) &&
-            (_newRoot[0] != _newRoot[1] || _oldRoot[0] != _oldRoot[1])
+            Common.checkSig(_oldRoot, _newRoot[0], _signature) &&
+            Common.checkSig(_oldRoot, _newRoot[1], _signature2) &&
+            _newRoot[0] != _newRoot[1]
         ) {
             fail();
             emit DoubleUpdate(_oldRoot, _newRoot, _signature, _signature2);

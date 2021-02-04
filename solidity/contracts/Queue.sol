@@ -79,7 +79,7 @@ library QueueLib {
         view
         returns (bool)
     {
-        for (uint256 i = _q.first; i < _q.last; i++) {
+        for (uint256 i = _q.first; i <= _q.last; i++) {
             if (_q.queue[i] == _item) {
                 return true;
             }
@@ -122,5 +122,13 @@ contract QueueManager {
 
     constructor() {
         queue.init();
+    }
+
+    function queueContains(bytes32 _item) external view returns (bool) {
+        return queue.contains(_item);
+    }
+
+    function queueEnd() external view returns (bytes32) {
+        return queue.lastItem();
     }
 }

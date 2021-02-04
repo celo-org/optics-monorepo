@@ -66,7 +66,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) external notFailed {
-        if (improperUpdate(_newRoot, _oldRoot, _signature)) return;
+        if (improperUpdate(_oldRoot, _newRoot, _signature)) return;
         while (true) {
             bytes32 next = queue.dequeue();
             if (next == _newRoot) break;
@@ -79,8 +79,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) public notFailed returns (bool) {
-        require(Common.checkSig(_newRoot, _oldRoot, _signature), "bad sig");
-        require(_oldRoot == current, "Not a current update");
+        require(Common.checkSig(_oldRoot, _newRoot, _signature), "bad sig");
+        require(_oldRoot == current, "not a current update");
         if (!queue.contains(_newRoot)) {
             fail();
             emit ImproperUpdate();
