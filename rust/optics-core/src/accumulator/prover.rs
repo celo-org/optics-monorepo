@@ -7,11 +7,14 @@ use ethers::core::types::H256;
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
 pub struct Proof {
-    leaf: H256,
-    index: usize,
-    path: [H256; TREE_DEPTH],
+    /// The leaf
+    pub leaf: H256,
+    /// The index
+    pub index: usize,
+    /// The merkle branch
+    pub path: [H256; TREE_DEPTH],
 }
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
@@ -141,23 +144,64 @@ impl std::iter::Extend<H256> for Prover {
 }
 
 #[cfg(test)]
-mod test {
+pub(crate) mod test {
     use super::*;
+    use ethers::utils::hash_message;
+    use std::fs::File;
+    use std::io::Read;
+
+    #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub(crate) struct TestCase {
+        pub(crate) test_name: String,
+        pub(crate) leaves: Vec<String>,
+        pub(crate) proofs: Vec<Proof>,
+        pub(crate) expected_root: H256,
+    }
+
+    #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub(crate) struct TestJson {
+        pub(crate) test_cases: Vec<TestCase>,
+    }
+
+    pub(crate) fn load_test_json() -> TestJson {
+        let mut file = File::open("../../solidity/test/Merkle/merkleTestCases.json").unwrap();
+        let mut data = String::new();
+        file.read_to_string(&mut data).unwrap();
+        serde_json::from_str(&data).unwrap()
+    }
 
     #[test]
-    fn it_test() {
-        let mut tree = Prover::default();
+    fn it_produces_and_verifies_proofs() {
+        let test_json = load_test_json();
+        let test_cases = test_json.test_cases;
 
-        let elements: Vec<_> = (1..32).map(|i| H256::repeat_byte(i as u8)).collect();
-        tree.ingest(elements[0]).unwrap();
-        tree.ingest(elements[1]).unwrap();
-        tree.ingest(elements[2]).unwrap();
+        for test_case in test_cases.iter() {
+            let mut tree = Prover::default();
 
-        assert_eq!(tree.count(), 3);
+            // insert the leaves
+            for leaf in test_case.leaves.iter() {
+                let hashed_leaf = hash_message(leaf);
+                tree.ingest(hashed_leaf).unwrap();
+            }
 
-        let idx = 1;
-        let proof = tree.prove(idx).unwrap();
-        dbg!(&proof);
-        tree.verify(&proof).unwrap();
+            // assert the tree has the proper leaf count
+            assert_eq!(tree.count(), test_case.leaves.len());
+
+            // assert the tree generates the proper root
+            let root = tree.root(); // root is type H256
+            assert_eq!(root, test_case.expected_root);
+
+            for n in 0..test_case.leaves.len() {
+                // assert the tree generates the proper proof for this leaf
+                let proof = tree.prove(n).unwrap();
+                assert_eq!(proof, test_case.proofs[n]);
+                dbg!(&proof);
+
+                // check that the tree can verify the proof for this leaf
+                tree.verify(&proof).unwrap();
+            }
+        }
     }
 }

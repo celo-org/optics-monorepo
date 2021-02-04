@@ -8,7 +8,7 @@ pub mod merkle;
 pub mod prover;
 
 /// Use the prover where possible :)
-pub use prover::Prover;
+pub use prover::{Prover, ProverError};
 
 use ethers::core::types::H256;
 use lazy_static::lazy_static;

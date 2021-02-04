@@ -223,22 +223,24 @@ pub(crate) fn merkle_root_from_branch(
 ) -> H256 {
     assert_eq!(branch.len(), depth, "proof length should equal depth");
 
-    let mut merkle_root = leaf;
+    let mut current = leaf;
 
-    for (i, leaf) in branch.iter().enumerate().take(depth) {
+    for (i, next) in branch.iter().enumerate().take(depth) {
         let ith_bit = (index >> i) & 0x01;
         if ith_bit == 1 {
-            merkle_root = hash_concat(leaf, merkle_root);
+            current = hash_concat(next, current);
         } else {
-            merkle_root = hash_concat(merkle_root, leaf);
+            current = hash_concat(current, next);
         }
     }
 
-    merkle_root
+    current
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::accumulator::incremental;
+
     use super::*;
 
     #[test]
@@ -413,16 +415,30 @@ mod tests {
             assert!(verify_merkle_proof(*leaf, &proof, 32, i, tree.hash()));
         });
     }
-}
 
-#[cfg(test)]
-mod test {
-    use super::*;
     #[test]
-    fn it() {
-        ZERO_HASHES.iter().for_each(|e| {
-            dbg!(e);
-        });
+    fn it_correctly_calculate_zeroes() {
+        ZERO_HASHES
+            .iter()
+            .zip(ZERO_NODES.iter())
+            .take(TREE_DEPTH)
+            .for_each(|(left, right)| {
+                assert_eq!(*left, right.hash());
+            });
+    }
+
+    #[test]
+    fn it_is_compatible_with_incremental_merkle() {
+        let leaf = H256::repeat_byte(1);
+
+        let mut full = MerkleTree::create(&[], TREE_DEPTH);
+        let mut incr = incremental::IncrementalMerkle::default();
+        let second = MerkleTree::create(&[leaf], TREE_DEPTH);
+
+        full.push_leaf(leaf, TREE_DEPTH).unwrap();
+        incr.ingest(leaf);
+        assert_eq!(second.hash(), incr.root());
+        assert_eq!(full.hash(), incr.root());
     }
 }
 

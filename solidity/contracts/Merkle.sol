@@ -4,6 +4,8 @@
 
 pragma solidity >=0.6.11;
 
+import "hardhat/console.sol";
+
 // There is a bit of cruft in this design. The library needs the 0-hashes, but can't produce them on construction. Consider: hardcode constants?
 library MerkleLib {
     uint256 constant TREE_DEPTH = 32;
@@ -53,42 +55,44 @@ library MerkleLib {
         _zeroes[31] = Z_31;
     }
 
-    function branchRootWithCtx(
-        bytes32 _item,
-        bytes32[TREE_DEPTH] memory _branch,
-        uint256 _index,
-        bytes32[TREE_DEPTH] memory _zeroes
-    ) internal pure returns (bytes32 _node) {
-        uint256 _idx = _index;
-        _node = _item;
-        for (uint256 i = 0; i < TREE_DEPTH; i++) {
-            if ((_idx & 1) == 1)
-                _node = sha256(abi.encodePacked(_branch[i], _node));
-            else _node = sha256(abi.encodePacked(_node, _zeroes[i]));
-            _idx /= 2;
-        }
-    }
-
     function branchRoot(
         bytes32 _item,
         bytes32[TREE_DEPTH] memory _branch,
         uint256 _index
-    ) internal pure returns (bytes32 _node) {
-        bytes32[TREE_DEPTH] memory _zeroes = zeroHashes();
-        return branchRootWithCtx(_item, _branch, _index, _zeroes);
+    ) internal pure returns (bytes32 _current) {
+        _current = _item;
+
+        for (uint256 i = 0; i < TREE_DEPTH; i++) {
+            uint256 _ith_bit = (_index >> i) & 0x01;
+            bytes32 _next = _branch[i];
+            if (_ith_bit == 1) {
+                _current = keccak256(abi.encodePacked(_next, _current));
+            } else {
+                _current = keccak256(abi.encodePacked(_current, _next));
+            }
+        }
     }
 
     function rootWithCtx(Tree storage _tree, bytes32[TREE_DEPTH] memory _zeroes)
         internal
         view
-        returns (bytes32 _node)
+        returns (bytes32 _current)
     {
-        return
-            branchRootWithCtx(bytes32(0), _tree.branch, _tree.count, _zeroes);
+        uint256 _index = _tree.count;
+
+        for (uint256 i = 0; i < TREE_DEPTH; i++) {
+            uint256 _ith_bit = (_index >> i) & 0x01;
+            bytes32 _next = _tree.branch[i];
+            if (_ith_bit == 1) {
+                _current = keccak256(abi.encodePacked(_next, _current));
+            } else {
+                _current = keccak256(abi.encodePacked(_current, _zeroes[i]));
+            }
+        }
     }
 
-    function root(Tree storage _tree) internal view returns (bytes32 _node) {
-        return branchRoot(bytes32(0), _tree.branch, _tree.count);
+    function root(Tree storage _tree) internal view returns (bytes32) {
+        return rootWithCtx(_tree, zeroHashes());
     }
 
     function insert(Tree storage _tree, bytes32 _node) internal {
@@ -101,7 +105,7 @@ library MerkleLib {
                 _tree.branch[i] = _node;
                 return;
             }
-            _node = sha256(abi.encodePacked(_tree.branch[i], _node));
+            _node = keccak256(abi.encodePacked(_tree.branch[i], _node));
             size /= 2;
         }
         // As the loop should always end prematurely with the `return` statement,
