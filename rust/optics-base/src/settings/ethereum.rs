@@ -26,7 +26,6 @@ pub enum EthereumConnection {
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
-            let signer = signer?;
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
             Box::new(crate::abis::$contract::new(
                 $name,
