@@ -1,0 +1,25 @@
+{
+  "testCases": [
+    {
+      "testName": "three leaves",
+      "leaves": [
+        "one",
+        "two",
+        "three"
+      ],
+      "root": "rootytoot"
+    },
+    {
+      "testName": "one leaf",
+      "leaves": [
+        "one"
+      ],
+      "root": "rootytoot"
+    },
+    {
+      "testName": "no leaves",
+      "leaves": [],
+      "root": "rootytoot"
+    }
+  ]
+}
