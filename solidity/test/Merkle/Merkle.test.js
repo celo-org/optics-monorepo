@@ -1,6 +1,5 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
-const {keccak256} = require('js-sha3');
 
 const { testCases } = require('./merkleTestCases.json');
 
@@ -18,7 +17,8 @@ describe('Merkle', async () => {
 
                 //insert the leaves
                 for(let leaf of leaves) {
-                    await merkle.insert("0x" + keccak256(leaf));
+                    const leafHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(leaf));
+                    await merkle.insert(leafHash);
                 }
             });
 
