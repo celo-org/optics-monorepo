@@ -1307,7 +1307,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
- "serde 1.0.120",
+ "serde 1.0.123",
  "serde_json",
  "thiserror",
  "tokio",
@@ -2254,7 +2254,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb65ea441fbb84f9f6748fd496cf7f63ec9af5bca94dd86456978d055e8eb28b"
 dependencies = [
- "serde 1.0.120",
+ "serde 1.0.123",
  "tracing-core",
 ]
 
@@ -2269,7 +2269,7 @@ dependencies = [
  "lazy_static",
  "matchers",
  "regex",
- "serde 1.0.120",
+ "serde 1.0.123",
  "serde_json",
  "sharded-slab",
  "smallvec",
