@@ -36,7 +36,7 @@ abstract contract Replica is Common, QueueManager {
     /// Hook for tasks
     function _beforeUpdate() internal virtual;
 
-    function next_pending()
+    function nextPending()
         external
         view
         returns (bytes32 _pending, uint256 _confirmAt)
@@ -58,7 +58,7 @@ abstract contract Replica is Common, QueueManager {
         } else {
             require(current == _oldRoot, "Not current update");
         }
-        require(Common.checkSig(_newRoot, _oldRoot, _signature), "Bad sig");
+        require(Common.checkSig(_oldRoot, _newRoot, _signature), "Bad sig");
 
         _beforeUpdate();
 
