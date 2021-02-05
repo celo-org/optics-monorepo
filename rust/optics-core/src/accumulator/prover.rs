@@ -143,21 +143,60 @@ impl std::iter::Extend<H256> for Prover {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs::File;
+    use std::io::Read;
+    use ethers::utils::keccak256;
+
+    #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TestCase {
+        test_name: String,
+        leaves: Vec<String>,
+        expected_root: String,
+    }
+
+    #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TestJson {
+        test_cases: Vec<TestCase>,
+    }
+
+    fn load_test_json() -> TestJson {
+        let mut file = File::open("../../solidity/test/Merkle/merkleTestCases.json").unwrap();
+        let mut data = String::new();
+        file.read_to_string(&mut data).unwrap();
+        serde_json::from_str(&data).unwrap()
+    }
 
     #[test]
     fn it_test() {
-        let mut tree = Prover::default();
+        let test_json = load_test_json();
+        let test_cases = test_json.test_cases;
 
-        let elements: Vec<_> = (1..32).map(|i| H256::repeat_byte(i as u8)).collect();
-        tree.ingest(elements[0]).unwrap();
-        tree.ingest(elements[1]).unwrap();
-        tree.ingest(elements[2]).unwrap();
+        for test_case in test_cases.iter() {
+            let mut tree = Prover::default();
 
-        assert_eq!(tree.count(), 3);
+            // insert the leaves
+            for leaf in test_case.leaves.iter() {
+                //TODO: figure out how to replace fake leaf_hash real leaf in proper format
+                //let leaf_hash = leaf.as_bytes().map(|i| H256::repeat_byte(i as u8)).collect();
+                let leaf_hash = H256::repeat_byte(0 as u8);
+                tree.ingest(leaf_hash).unwrap();
+            }
 
-        let idx = 1;
-        let proof = tree.prove(idx).unwrap();
-        dbg!(&proof);
-        tree.verify(&proof).unwrap();
+            // assert the tree has the proper leaf count
+            assert_eq!(tree.count(), test_case.leaves.len());
+
+            // TODO: assert the tree generates the expected proof
+            // let idx = 1;
+            // let proof = tree.prove(idx).unwrap();
+
+            // TODO: assert the tree generates the expected root
+
+            // TODO: assert the tree can verify the proof
+            // dbg!(&proof);
+            // tree.verify(&proof).unwrap();
+        }
     }
 }
+
