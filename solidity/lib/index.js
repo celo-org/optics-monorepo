@@ -95,11 +95,30 @@ extendEnvironment((hre) => {
   const getReplicaFactory = async (...args) =>
     ethers.getContractFactory('ProcessingReplica', ...args);
 
+  const formatMessage = (
+    originSlip44,
+    sender,
+    sequence,
+    destinationSlip44,
+    recipient,
+    body,
+  ) => {
+    return ethers.utils.concat([
+      originSlip44,
+      sender,
+      sequence,
+      destinationSlip44,
+      recipient,
+      body,
+    ]);
+  };
+
   hre.optics = {
     Common,
     Home,
     Replica,
     Updater,
+    formatMessage,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {
