@@ -13,11 +13,7 @@ const initialLastProcessed = 0;
 describe('Replica', async () => {
   let replica, signer, fakeSigner, updater, fakeUpdater, processor;
 
-  const enqueueFirstUpdate = async (firstNewRoot) => {
-    const currentRoot = await replica.current();
-    const { signature } = await updater.signUpdate(currentRoot, firstNewRoot);
-    await replica.update(currentRoot, firstNewRoot, signature);
-  };
+  const bytes32 = (num) => `0x${Buffer.alloc(32, num).toString('hex')}`;
 
   const enqueueValidUpdate = async (newRoot) => {
     let oldRoot;
@@ -87,14 +83,13 @@ describe('Replica', async () => {
     await enqueueValidUpdate(firstNewRoot);
 
     const secondNewRoot = ethers.utils.formatBytes32String('second new root');
-    const { fakeSig } = await fakeUpdater.signUpdate(
+    const { signature: fakeSignature } = await fakeUpdater.signUpdate(
       firstNewRoot,
       secondNewRoot,
     );
 
-    // HEXSTRING ERROR
     await expect(
-      replica.update(firstNewRoot, secondNewRoot, fakeSig),
+      replica.update(firstNewRoot, secondNewRoot, fakeSignature),
     ).to.be.revertedWith('bad sig');
   });
 
@@ -105,7 +100,7 @@ describe('Replica', async () => {
 
     await expect(
       replica.update(fakeInitialRoot, newRoot, signature),
-    ).to.be.revertedWith('Not current update');
+    ).to.be.revertedWith('not current update');
   });
 
   it('Rejects updates not building off latest enqueued root', async () => {
@@ -121,7 +116,7 @@ describe('Replica', async () => {
 
     await expect(
       replica.update(fakeLatestRoot, secondNewRoot, signature),
-    ).to.be.revertedWith('Not end of queue');
+    ).to.be.revertedWith('not end of queue');
   });
 
   it('Accepts a double update proof', async () => {
@@ -157,5 +152,26 @@ describe('Replica', async () => {
 
   it('Processes a proved message', async () => {});
 
-  it('Fails to process a non-proved message', async () => {});
+  it('Fails to process an unproved message', async () => {
+    const [sender, recipient] = provider.getWallets();
+    const sequence = (await replica.lastProcessed()).add(1);
+    const userMessage = ethers.utils.formatBytes32String('message');
+
+    console.log(sequence);
+    console.log(await replica.ownSLIP44());
+
+    const formattedMessage = optics.formatMessage(
+      originSLIP44,
+      sender.address,
+      sequence,
+      ownSLIP44,
+      recipient.address,
+      userMessage,
+    );
+
+    // BUG: formatted JS message not lining up with contract (reverting with !destination)
+    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+      'not pending',
+    );
+  });
 });

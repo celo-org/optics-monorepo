@@ -54,11 +54,11 @@ abstract contract Replica is Common, QueueManager {
         bytes memory _signature
     ) external notFailed {
         if (queue.length() > 0) {
-            require(_oldRoot == queue.lastItem(), "Not end of queue");
+            require(_oldRoot == queue.lastItem(), "not end of queue");
         } else {
-            require(current == _oldRoot, "Not current update");
+            require(current == _oldRoot, "not current update");
         }
-        require(Common.checkSig(_oldRoot, _newRoot, _signature), "Bad sig");
+        require(Common.checkSig(_oldRoot, _newRoot, _signature), "bad sig");
 
         _beforeUpdate();
 
@@ -67,7 +67,7 @@ abstract contract Replica is Common, QueueManager {
     }
 
     function confirm() external notFailed {
-        require(queue.length() != 0, "No pending");
+        require(queue.length() != 0, "no pending");
 
         bytes32 _pending;
         uint256 _now = block.timestamp;
@@ -78,7 +78,7 @@ abstract contract Replica is Common, QueueManager {
 
         // This condition is hit if the while loop is never executed, because
         // the first queue item has not hit its timer yet
-        require(_pending != bytes32(0), "Not time");
+        require(_pending != bytes32(0), "not time");
 
         _beforeConfirm();
 

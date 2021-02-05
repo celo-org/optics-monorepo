@@ -62,6 +62,24 @@ extendEnvironment((hre) => {
     }
   }
 
+  const formatMessage = (
+    originSlip44,
+    sender,
+    sequence,
+    destinationSlip44,
+    recipient,
+    body,
+  ) => {
+    return ethers.utils.concat([
+      originSlip44,
+      sender,
+      sequence,
+      destinationSlip44,
+      recipient,
+      body,
+    ]);
+  };
+
   const getHomeFactory = async () => ethers.getContractFactory('Home');
   const getReplicaFactory = async () =>
     ethers.getContractFactory('ProcessingReplica');
@@ -70,6 +88,7 @@ extendEnvironment((hre) => {
     Home,
     Replica,
     Updater,
+    formatMessage,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (...args) => {
