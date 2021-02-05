@@ -4,6 +4,9 @@ pragma solidity >=0.6.11;
 import "../Replica.sol";
 
 contract TestReplica is ProcessingReplica {
+    using TypedMemView for bytes;
+    using TypedMemView for bytes29;
+    using Message for bytes29;
 
     constructor(
         uint32 _originSLIP44,
@@ -20,5 +23,10 @@ contract TestReplica is ProcessingReplica {
 
     function timestamp() external view returns (uint) {
         return block.timestamp;
+    }
+
+    function setMessagePending(bytes memory _message) external {
+        bytes29 _m = _message.ref(0);
+        messages[_m.keccak()] = MessageStatus.Pending;
     }
 }
