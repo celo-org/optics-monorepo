@@ -79,7 +79,10 @@ abstract contract Replica is Common, QueueManager {
 
         bytes32 _pending;
         uint256 _now = block.timestamp;
-        while (_now >= confirmAt[queue.peek()]) {
+
+        // Must check queue.length() because queue.peek() reverts if
+        // length == 0
+        while (queue.length() > 0 && _now >= confirmAt[queue.peek()]) {
             _pending = queue.dequeue();
             delete confirmAt[_pending];
         }
