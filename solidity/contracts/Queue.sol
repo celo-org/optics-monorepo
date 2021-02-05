@@ -124,6 +124,10 @@ contract QueueManager {
         queue.init();
     }
 
+    function queueLength() external view returns (uint256) {
+        return queue.length();
+    }
+
     function queueContains(bytes32 _item) external view returns (bool) {
         return queue.contains(_item);
     }
