@@ -184,28 +184,50 @@ describe('Replica', async () => {
 
   it('Rejects an invalid merkle proof', async () => {});
 
-  it('Processes a proved message', async () => {});
+  it('Processes a proved message', async () => {
+    let [sender, recipient] = provider.getWallets();
+    const sequence = (await replica.lastProcessed()).add(1);
+    const body = ethers.utils.formatBytes32String('body');
 
-  // it('Fails to process an unproved message', async () => {
-  //   const [sender, recipient] = provider.getWallets();
-  //   const sequence = (await replica.lastProcessed()).add(1);
-  //   const userMessage = ethers.utils.formatBytes32String('message');
+    sender = optics.ethersAddressToBytes32(sender.address);
+    recipient = optics.ethersAddressToBytes32(recipient.address);
 
-  //   console.log(sequence);
-  //   console.log(await replica.ownSLIP44());
+    const formattedMessage = optics.formatMessage(
+      originSLIP44,
+      sender,
+      sequence,
+      ownSLIP44,
+      recipient,
+      body,
+    );
 
-  //   const formattedMessage = optics.formatMessage(
-  //     originSLIP44,
-  //     sender.address,
-  //     sequence,
-  //     ownSLIP44,
-  //     recipient.address,
-  //     userMessage,
-  //   );
+    // Set message status to Message.Pending
+    await replica.setMessagePending(formattedMessage);
 
-  //   // BUG: formatted JS message not lining up with contract (reverting with !destination)
-  //   await expect(replica.process(formattedMessage)).to.be.revertedWith(
-  //     'not pending',
-  //   );
-  // });
+    await replica.process(formattedMessage);
+    expect(await replica.lastProcessed()).to.equal(sequence);
+  });
+
+  it('Fails to process an unproved message', async () => {
+    let [sender, recipient] = provider.getWallets();
+    const sequence = (await replica.lastProcessed()).add(1);
+    const body = ethers.utils.formatBytes32String('body');
+
+    sender = optics.ethersAddressToBytes32(sender.address);
+    recipient = optics.ethersAddressToBytes32(recipient.address);
+
+    const formattedMessage = optics.formatMessage(
+      originSLIP44,
+      sender,
+      sequence,
+      ownSLIP44,
+      recipient,
+      body,
+    );
+
+    // Don't set message status to Message.Pending
+    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+      'not pending',
+    );
+  });
 });
