@@ -186,16 +186,16 @@ mod test {
             // assert the tree has the proper leaf count
             assert_eq!(tree.count(), test_case.leaves.len());
 
-            // assert the root has been properly generated
+            // assert the tree generates the proper root
             let root = tree.root(); // root is type H256
             assert_eq!(root, test_case.expected_root);
 
             for n in 0 .. test_case.leaves.len() {
-                // assert the tree generates the expected proof for this leaf
+                // assert the tree generates the proper proof for this leaf
                 let proof = tree.prove(n).unwrap();
                 assert_eq!(proof, test_case.proofs[n]);
 
-                // check that the tree can verify the proof
+                // check that the tree can verify the proof for this leaf
                 tree.verify(&proof).unwrap();
             }
         }
