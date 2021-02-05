@@ -113,12 +113,18 @@ extendEnvironment((hre) => {
     ]);
   };
 
+  const increaseTimestamp = async (provider, increaseTime) => {
+    await provider.send('evm_increaseTime', [increaseTime]);
+    await provider.send('evm_mine');
+  };
+
   hre.optics = {
     Common,
     Home,
     Replica,
     Updater,
     formatMessage,
+    increaseTimestamp,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {
