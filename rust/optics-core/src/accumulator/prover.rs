@@ -145,7 +145,7 @@ mod test {
     use super::*;
     use std::fs::File;
     use std::io::Read;
-    use ethers::utils::keccak256;
+    use ethers::utils::hash_message;
 
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -178,10 +178,7 @@ mod test {
 
             // insert the leaves
             for leaf in test_case.leaves.iter() {
-                //TODO: figure out how to replace fake leaf_hash real leaf in proper format
-                //let leaf_hash = leaf.as_bytes().map(|i| H256::repeat_byte(i as u8)).collect();
-                let leaf_hash = H256::repeat_byte(0 as u8);
-                tree.ingest(leaf_hash).unwrap();
+                tree.ingest(hash_message(leaf)).unwrap();
             }
 
             // assert the tree has the proper leaf count

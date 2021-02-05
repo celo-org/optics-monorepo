@@ -17,7 +17,7 @@ describe('Merkle', async () => {
 
                 //insert the leaves
                 for(let leaf of leaves) {
-                    const leafHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(leaf));
+                    const leafHash = ethers.utils.hashMessage(leaf);
                     await merkle.insert(leafHash);
                 }
             });
