@@ -7,7 +7,7 @@ use ethers::core::types::H256;
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
 pub struct Proof {
     leaf: H256,
     index: usize,
@@ -152,7 +152,8 @@ mod test {
     struct TestCase {
         test_name: String,
         leaves: Vec<String>,
-        expected_root: String,
+        proofs: Vec<Proof>,
+        expected_root: H256,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
@@ -178,23 +179,25 @@ mod test {
 
             // insert the leaves
             for leaf in test_case.leaves.iter() {
-                tree.ingest(hash_message(leaf)).unwrap();
+                let hashed_leaf = hash_message(leaf);
+                tree.ingest(hashed_leaf).unwrap();
             }
 
             // assert the tree has the proper leaf count
             assert_eq!(tree.count(), test_case.leaves.len());
 
-            // TODO: assert the tree generates the expected root
-            // let root = tree.root();
-            // assert_eq!(root, test_case.expectedRoot);
+            // assert the root has been properly generated
+            let root = tree.root(); // root is type H256
+            assert_eq!(root, test_case.expected_root);
 
-            // TODO: assert the tree generates the expected proof
-            // let proof = tree.prove(test_case.leaves.len()).unwrap();
-            // assert_eq!(proof, test_case.expectedProof);
+            for n in 0 .. test_case.leaves.len() {
+                // assert the tree generates the expected proof for this leaf
+                let proof = tree.prove(n).unwrap();
+                assert_eq!(proof, test_case.proofs[n]);
 
-            // TODO: assert the tree can verify the proof
-            // dbg!(&proof);
-            // tree.verify(&proof).unwrap();
+                // check that the tree can verify the proof
+                tree.verify(&proof).unwrap();
+            }
         }
     }
 }
