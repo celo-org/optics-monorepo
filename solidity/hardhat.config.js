@@ -1,6 +1,3 @@
-require('hardhat-gas-reporter');
-require('solidity-coverage');
-
 require('./lib');
 require('./scripts');
 
