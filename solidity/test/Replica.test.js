@@ -11,11 +11,31 @@ const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
 
 describe('Replica', async () => {
-  let replica, homeSigner, processor, updater;
+  let replica, signer, fakeSigner, updater, fakeUpdater, processor;
+
+  const enqueueFirstUpdate = async (firstNewRoot) => {
+    const currentRoot = await replica.current();
+    const { signature } = await updater.signUpdate(currentRoot, firstNewRoot);
+    await replica.update(currentRoot, firstNewRoot, signature);
+  };
+
+  const enqueueValidUpdate = async (newRoot) => {
+    let oldRoot;
+    if ((await replica.queueLength()) == 0) {
+      oldRoot = await replica.current();
+    } else {
+      const [pending, _confirmAt] = await replica.nextPending();
+      oldRoot = pending;
+    }
+
+    const { signature } = await updater.signUpdate(oldRoot, newRoot);
+    await replica.update(oldRoot, newRoot, signature);
+  };
 
   before(async () => {
-    [homeSigner, processor] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(homeSigner, originSLIP44);
+    [signer, fakeSigner, processor] = provider.getWallets();
+    updater = await optics.Updater.fromSigner(signer, originSLIP44);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originSLIP44);
   });
 
   beforeEach(async () => {
@@ -31,16 +51,111 @@ describe('Replica', async () => {
     await replica.deployed();
   });
 
-  it('Returns the next pending update', async () => {
-    const currentRoot = await replica.current();
+  it('Halts on fail', async () => {
+    await replica.setFailed();
+    expect(await replica.state()).to.equal(FAILED);
+
     const newRoot = ethers.utils.formatBytes32String('new root');
-    const { signature } = await updater.signUpdate(currentRoot, newRoot);
-
-    const timestamp = await replica.timestamp();
-    await replica.update(currentRoot, newRoot, signature);
-    const [pending, confirmAt] = await replica.nextPending();
-
-    // TODO: timestamps incomparable
-    expect(pending).to.equal(newRoot);
+    await expect(enqueueValidUpdate(newRoot)).to.be.revertedWith(
+      'failed state',
+    );
   });
+
+  it('Enqueues pending updates', async () => {
+    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
+    await enqueueValidUpdate(firstNewRoot);
+    expect(await replica.queueEnd()).to.equal(firstNewRoot);
+
+    const secondNewRoot = ethers.utils.formatBytes32String('second next root');
+    await enqueueValidUpdate(secondNewRoot);
+    expect(await replica.queueEnd()).to.equal(secondNewRoot);
+  });
+
+  it('Returns the earliest pending update', async () => {
+    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
+    await enqueueValidUpdate(firstNewRoot);
+
+    const secondNewRoot = ethers.utils.formatBytes32String('second next root');
+    await enqueueValidUpdate(secondNewRoot);
+
+    const [pending, _confirmAt] = await replica.nextPending();
+    expect(pending).to.equal(firstNewRoot);
+  });
+
+  it('Rejects update with invalid signature', async () => {
+    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
+    await enqueueValidUpdate(firstNewRoot);
+
+    const secondNewRoot = ethers.utils.formatBytes32String('second new root');
+    const { fakeSig } = await fakeUpdater.signUpdate(
+      firstNewRoot,
+      secondNewRoot,
+    );
+
+    // HEXSTRING ERROR
+    await expect(
+      replica.update(firstNewRoot, secondNewRoot, fakeSig),
+    ).to.be.revertedWith('bad sig');
+  });
+
+  it('Rejects initial update not building off initial root', async () => {
+    const fakeInitialRoot = ethers.utils.formatBytes32String('fake root');
+    const newRoot = ethers.utils.formatBytes32String('new root');
+    const { signature } = await updater.signUpdate(fakeInitialRoot, newRoot);
+
+    await expect(
+      replica.update(fakeInitialRoot, newRoot, signature),
+    ).to.be.revertedWith('Not current update');
+  });
+
+  it('Rejects updates not building off latest enqueued root', async () => {
+    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
+    await enqueueValidUpdate(firstNewRoot);
+
+    const fakeLatestRoot = ethers.utils.formatBytes32String('fake root');
+    const secondNewRoot = ethers.utils.formatBytes32String('second new root');
+    const { signature } = await updater.signUpdate(
+      fakeLatestRoot,
+      secondNewRoot,
+    );
+
+    await expect(
+      replica.update(fakeLatestRoot, secondNewRoot, signature),
+    ).to.be.revertedWith('Not end of queue');
+  });
+
+  it('Accepts a double update proof', async () => {
+    const firstRoot = await replica.current();
+    const secondRoot = ethers.utils.formatBytes32String('second root');
+    const thirdRoot = ethers.utils.formatBytes32String('third root');
+
+    const { signature } = await updater.signUpdate(firstRoot, secondRoot);
+    const { signature: signature2 } = await updater.signUpdate(
+      firstRoot,
+      thirdRoot,
+    );
+
+    await expect(
+      replica.doubleUpdate(
+        firstRoot,
+        [secondRoot, thirdRoot],
+        signature,
+        signature2,
+      ),
+    ).to.emit(replica, 'DoubleUpdate');
+
+    expect(await replica.state()).to.equal(FAILED);
+  });
+
+  it('Batch-confirms several pending updates', async () => {});
+
+  it('Rejects an early confirmation', async () => {});
+
+  it('Accepts a valid merkle proof', async () => {});
+
+  it('Rejects an invalid merkle proof', async () => {});
+
+  it('Processes a proved message', async () => {});
+
+  it('Fails to process a non-proved message', async () => {});
 });

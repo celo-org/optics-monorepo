@@ -14,6 +14,10 @@ contract TestReplica is ProcessingReplica {
         uint256 _lastProcessed
     ) ProcessingReplica(_originSLIP44, _ownSLIP44, _updater, _optimisticSeconds, _start, _lastProcessed) {}
 
+    function setFailed() public {
+        _setFailed();
+    }
+
     function timestamp() external view returns (uint) {
         return block.timestamp;
     }
