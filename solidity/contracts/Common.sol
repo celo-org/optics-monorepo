@@ -57,15 +57,15 @@ library Message {
     }
 
     function sequence(bytes29 _message) internal pure returns (uint32) {
-        return uint32(_message.indexUint(32, 4));
-    }
-
-    function destination(bytes29 _message) internal pure returns (uint32) {
         return uint32(_message.indexUint(36, 4));
     }
 
+    function destination(bytes29 _message) internal pure returns (uint32) {
+        return uint32(_message.indexUint(40, 4));
+    }
+
     function recipient(bytes29 _message) internal pure returns (bytes32) {
-        return _message.index(40, 32);
+        return _message.index(44, 32);
     }
 
     function recipientAddress(bytes29 _message)
@@ -77,7 +77,7 @@ library Message {
     }
 
     function body(bytes29 _message) internal pure returns (bytes29) {
-        return _message.slice(72, _message.len() - 72, 0);
+        return _message.slice(76, _message.len() - 76, 0);
     }
 }
 
