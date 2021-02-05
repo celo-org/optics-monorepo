@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use color_eyre::{Report, Result};
+use color_eyre::{eyre::eyre, Report, Result};
 use ethers::core::types::Address;
 
 use optics_core::traits::{Home, Replica};
@@ -26,7 +26,6 @@ pub enum EthereumConnection {
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $slip44:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
-            let signer = signer?;
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
             Box::new(crate::abis::$contract::new(
                 $name,
@@ -64,18 +63,26 @@ macro_rules! construct_http_box_contract {
 
 /// Ethereum signer types
 #[derive(Debug, Clone, serde::Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum EthereumSigner {
-    /// Hex string of private key
-    HexKey(String),
+    /// A local hex key
+    HexKey {
+        /// Hex string of private key, without 0x prefix
+        key: String,
+    },
+    #[serde(other)]
+    /// Node will sign on RPC calls
+    Node,
 }
 
 impl EthereumSigner {
     // TODO: allow ledger or other signer traits?
     /// Try to conver the ethereum signer to a local wallet
+    #[tracing::instrument(err)]
     pub fn try_into_wallet(&self) -> Result<ethers::signers::LocalWallet> {
         match self {
-            EthereumSigner::HexKey(s) => Ok(s.parse()?),
+            EthereumSigner::HexKey { key } => Ok(key.parse()?),
+            EthereumSigner::Node => Err(eyre!("Node signer")),
         }
     }
 }
@@ -84,15 +91,16 @@ impl EthereumSigner {
 #[derive(Debug, serde::Deserialize)]
 pub struct EthereumConf {
     connection: EthereumConnection,
-    signer: Option<EthereumSigner>,
+    signer: EthereumSigner,
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<Result<ethers::signers::LocalWallet>> {
-        self.signer.clone().map(|s| s.try_into_wallet())
+    fn signer(&self) -> Option<ethers::signers::LocalWallet> {
+        self.signer.try_into_wallet().ok()
     }
 
     /// Try to convert this into a home contract
+    #[tracing::instrument(err)]
     pub async fn try_into_home(
         &self,
         name: &str,
@@ -118,6 +126,7 @@ impl EthereumConf {
     }
 
     /// Try to convert this into a replica contract
+    #[tracing::instrument(err)]
     pub async fn try_into_replica(
         &self,
         name: &str,

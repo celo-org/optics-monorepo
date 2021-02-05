@@ -3,7 +3,6 @@ slip44 = 52752
 address = "0x0000000000000000000000000000000000000000"
 rpc-style = "ethereum"
     [home.config]
-    signer = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"
     connection = { type = "http", url = "http://localhost:8545" }
 
 [replicas]
@@ -12,6 +11,7 @@ rpc-style = "ethereum"
     address = "0x0000000000000000000000000000000000000000"
     rpc-style = "ethereum"
         [replicas.EthereumMainnet.config]
+        signer =  {type = "hexKey", key = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"}
         connection = { type = "ws", url = "ws://localhost:8545"}
 
     [replicas.EthereumClassic]

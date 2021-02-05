@@ -7,33 +7,44 @@
         "type": "uint32"
       },
       {
+        "internalType": "address",
+        "name": "_sortition",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "uint32",
-        "name": "_ownSLIP44",
+        "name": "destination",
         "type": "uint32"
       },
       {
-        "internalType": "address",
-        "name": "_updater",
-        "type": "address"
+        "indexed": true,
+        "internalType": "uint32",
+        "name": "sequence",
+        "type": "uint32"
       },
       {
-        "internalType": "uint256",
-        "name": "_optimisticSeconds",
-        "type": "uint256"
-      },
-      {
+        "indexed": true,
         "internalType": "bytes32",
-        "name": "_start",
+        "name": "leaf",
         "type": "bytes32"
       },
       {
-        "internalType": "uint256",
-        "name": "_lastProcessed",
-        "type": "uint256"
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "message",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "Dispatch",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -64,6 +75,12 @@
       }
     ],
     "name": "DoubleUpdate",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "ImproperUpdate",
     "type": "event"
   },
   {
@@ -112,58 +129,6 @@
   },
   {
     "inputs": [],
-    "name": "PROCESS_GAS",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "RESERVE_GAS",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "confirm",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "confirmAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "current",
     "outputs": [
       {
@@ -204,66 +169,55 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "lastProcessed",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "uint32",
+        "name": "destination",
+        "type": "uint32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "recipient",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "body",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "view",
+    "name": "enqueue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "messages",
-    "outputs": [
-      {
-        "internalType": "enum ProcessingReplica.MessageStatus",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "next_pending",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_pending",
+        "name": "_oldRoot",
         "type": "bytes32"
       },
       {
-        "internalType": "uint256",
-        "name": "_confirmAt",
-        "type": "uint256"
+        "internalType": "bytes32",
+        "name": "_newRoot",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_signature",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "optimisticSeconds",
+    "name": "improperUpdate",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -277,108 +231,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "ownSLIP44",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "previous",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes",
-        "name": "_message",
-        "type": "bytes"
-      }
-    ],
-    "name": "process",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "_success",
-        "type": "bool"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_ret",
-        "type": "bytes"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "leaf",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32[32]",
-        "name": "proof",
-        "type": "bytes32[32]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "prove",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes",
-        "name": "message",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes32[32]",
-        "name": "proof",
-        "type": "bytes32[32]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "proveAndProcess",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -415,12 +267,75 @@
   },
   {
     "inputs": [],
+    "name": "root",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "name": "sequences",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "state",
     "outputs": [
       {
         "internalType": "enum Common.States",
         "name": "",
         "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "suggestUpdate",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_current",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_new",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tree",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

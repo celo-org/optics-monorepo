@@ -1,6 +1,6 @@
 use color_eyre::{eyre::eyre, Result};
 
-use crate::{
+use optics_base::{
     agent::OpticsAgent,
     settings::{log::Style, Settings},
 };

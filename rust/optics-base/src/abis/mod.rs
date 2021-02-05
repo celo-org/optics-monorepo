@@ -109,10 +109,7 @@ where
         Ok(self
             .contract
             .double_update(
-                [
-                    left.update.previous_root.to_fixed_bytes(),
-                    right.update.previous_root.to_fixed_bytes(),
-                ],
+                left.update.previous_root.to_fixed_bytes(),
                 [
                     left.update.new_root.to_fixed_bytes(),
                     right.update.new_root.to_fixed_bytes(),
@@ -282,10 +279,7 @@ where
         Ok(self
             .contract
             .double_update(
-                [
-                    left.update.previous_root.to_fixed_bytes(),
-                    right.update.previous_root.to_fixed_bytes(),
-                ],
+                left.update.previous_root.to_fixed_bytes(),
                 [
                     left.update.new_root.to_fixed_bytes(),
                     right.update.new_root.to_fixed_bytes(),

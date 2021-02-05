@@ -19,6 +19,3 @@ pub mod settings;
 
 /// Base trait for an agent
 pub mod agent;
-
-// example main
-mod sample_main;
