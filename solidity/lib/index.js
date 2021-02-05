@@ -80,6 +80,11 @@ extendEnvironment((hre) => {
     ]);
   };
 
+  const increaseTimestamp = async (provider, increaseTime) => {
+    await provider.send('evm_increaseTime', [increaseTime]);
+    await provider.send('evm_mine');
+  };
+
   const getHomeFactory = async () => ethers.getContractFactory('Home');
   const getReplicaFactory = async () =>
     ethers.getContractFactory('ProcessingReplica');
@@ -89,6 +94,7 @@ extendEnvironment((hre) => {
     Replica,
     Updater,
     formatMessage,
+    increaseTimestamp,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (...args) => {
