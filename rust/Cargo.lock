@@ -1288,6 +1288,8 @@ dependencies = [
  "async-trait",
  "ethers",
  "lazy_static",
+ "serde 1.0.123",
+ "serde_json",
  "sha3",
  "thiserror",
  "tokio",
