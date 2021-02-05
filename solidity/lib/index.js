@@ -70,14 +70,14 @@ extendEnvironment((hre) => {
     recipient,
     body,
   ) => {
-    return ethers.utils.concat([
-      originSlip44,
-      sender,
-      sequence,
-      destinationSlip44,
-      recipient,
-      body,
-    ]);
+    return ethers.utils.solidityPack(
+      ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
+      [originSlip44, sender, sequence, destinationSlip44, recipient, body],
+    );
+  };
+
+  const ethersAddressToBytes32 = (address) => {
+    return ethers.utils.hexZeroPad(ethers.utils.hexStripZeros(address), 32);
   };
 
   const increaseTimestamp = async (provider, increaseTime) => {
@@ -94,6 +94,7 @@ extendEnvironment((hre) => {
     Replica,
     Updater,
     formatMessage,
+    ethersAddressToBytes32,
     increaseTimestamp,
     getHomeFactory,
     getReplicaFactory,
