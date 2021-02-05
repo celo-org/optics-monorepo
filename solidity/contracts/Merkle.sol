@@ -4,6 +4,8 @@
 
 pragma solidity >=0.6.11;
 
+import 'hardhat/console.sol';
+
 // There is a bit of cruft in this design. The library needs the 0-hashes, but can't produce them on construction. Consider: hardcode constants?
 library MerkleLib {
     uint256 constant TREE_DEPTH = 32;
@@ -63,8 +65,8 @@ library MerkleLib {
         _node = _item;
         for (uint256 i = 0; i < TREE_DEPTH; i++) {
             if ((_idx & 1) == 1)
-                _node = sha256(abi.encodePacked(_branch[i], _node));
-            else _node = sha256(abi.encodePacked(_node, _zeroes[i]));
+                _node = keccak256(abi.encodePacked(_branch[i], _node));
+            else _node = keccak256(abi.encodePacked(_node, _zeroes[i]));
             _idx /= 2;
         }
     }
@@ -101,7 +103,7 @@ library MerkleLib {
                 _tree.branch[i] = _node;
                 return;
             }
-            _node = sha256(abi.encodePacked(_tree.branch[i], _node));
+            _node = keccak256(abi.encodePacked(_tree.branch[i], _node));
             size /= 2;
         }
         // As the loop should always end prematurely with the `return` statement,
