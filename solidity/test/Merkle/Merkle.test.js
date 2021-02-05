@@ -31,6 +31,8 @@ describe('Merkle', async () => {
                 const root = await merkle.root();
                 expect(root).to.equal(expectedRoot);
             });
+
+            //TODO: add expect that Merkle.sol can verify the generated leaves' proofs
         });
     }
 });
