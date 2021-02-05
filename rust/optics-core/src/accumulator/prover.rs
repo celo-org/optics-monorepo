@@ -187,11 +187,13 @@ mod test {
             // assert the tree has the proper leaf count
             assert_eq!(tree.count(), test_case.leaves.len());
 
-            // TODO: assert the tree generates the expected proof
-            // let idx = 1;
-            // let proof = tree.prove(idx).unwrap();
-
             // TODO: assert the tree generates the expected root
+            // let root = tree.root();
+            // assert_eq!(root, test_case.expectedRoot);
+
+            // TODO: assert the tree generates the expected proof
+            // let proof = tree.prove(test_case.leaves.len()).unwrap();
+            // assert_eq!(proof, test_case.expectedProof);
 
             // TODO: assert the tree can verify the proof
             // dbg!(&proof);
