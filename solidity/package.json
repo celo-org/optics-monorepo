@@ -9,10 +9,8 @@
     "ethereum-waffle": "^3.2.2",
     "ethers": "^5.0.28",
     "hardhat": "^2.0.8",
-    "hardhat-gas-reporter": "^1.0.4",
     "prettier": "2.2.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.3",
-    "solidity-coverage": "^0.7.14"
+    "prettier-plugin-solidity": "^1.0.0-beta.3"
   },
   "version": "0.0.0",
   "description": "Optimistic Interchain Communications",
@@ -20,7 +18,6 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
   "scripts": {
     "prettier": "prettier --write 'contracts/**/*.sol' ./test ./scripts",
     "compile": "hardhat compile && ./scripts/update_abis.sh",

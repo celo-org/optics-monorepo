@@ -1,9 +1,8 @@
 require('@nomiclabs/hardhat-waffle');
 const { extendEnvironment } = require('hardhat/config');
 
-const HomeAbi = require('../artifacts/contracts/Home.sol/Home.json').abi;
-const ReplicaAbi = require('../artifacts/contracts/Replica.sol/ProcessingReplica.json')
-  .abi;
+const HomeAbi = require('./Home.abi.json');
+const ReplicaAbi = require('./ProcessingReplica.abi.json');
 
 extendEnvironment((hre) => {
   const { ethers } = hre;
