@@ -8,6 +8,8 @@ library Message {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
+    uint constant PREFIX_LENGTH = 76;
+
     function formatMessage(
         uint32 _origin,
         bytes32 _sender,
@@ -77,7 +79,7 @@ library Message {
     }
 
     function body(bytes29 _message) internal pure returns (bytes29) {
-        return _message.slice(76, _message.len() - 76, 0);
+        return _message.slice(PREFIX_LENGTH, _message.len() - PREFIX_LENGTH, 0);
     }
 }
 
