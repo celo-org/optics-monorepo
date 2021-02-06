@@ -5,7 +5,7 @@ const utils = require('./utils.js');
 task('prove', 'Prove a message inclusion to a replica')
   .addParam(
     'address',
-    'The address of the contract to update.',
+    'The address of the replica contract.',
     undefined,
     types.string,
   )
@@ -56,7 +56,7 @@ task('prove', 'Prove a message inclusion to a replica')
 task('process', 'Process a message that has been proven to a replica')
   .addParam(
     'address',
-    'The address of the contract to update.',
+    'The address of the replica contract.',
     undefined,
     types.string,
   )
@@ -85,7 +85,7 @@ task('process', 'Process a message that has been proven to a replica')
 task('prove-and-process', 'Prove and process a message')
   .addParam(
     'address',
-    'The address of the contract to update.',
+    'The address of the replica contract.',
     undefined,
     types.string,
   )
