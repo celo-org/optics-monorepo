@@ -12,12 +12,14 @@ pub struct Relayer {
     interval_seconds: u64,
 }
 
+#[allow(clippy::unit_arg)]
 impl Relayer {
     /// Instantiate a new relayer
     pub fn new(interval_seconds: u64) -> Self {
         Self { interval_seconds }
     }
 
+    #[tracing::instrument(err)]
     async fn poll_updates(
         &self,
         home: Arc<Box<dyn Home>>,
@@ -37,6 +39,7 @@ impl Relayer {
         Ok(())
     }
 
+    #[tracing::instrument(err)]
     async fn poll_confirms(&self, replica: Arc<Box<dyn Replica>>) -> Result<()> {
         // Check for pending update that can be confirmed
         let can_confirm = replica.can_confirm().await?;
@@ -56,7 +59,9 @@ impl Relayer {
 }
 
 #[async_trait]
+#[allow(clippy::unit_arg)]
 impl OpticsAgent for Relayer {
+    #[tracing::instrument(err)]
     async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
         ensure!(replica.is_some(), "Relayer must have replica.");
         let replica = Arc::new(replica.unwrap());
@@ -67,6 +72,12 @@ impl OpticsAgent for Relayer {
                 self.poll_confirms(replica.clone())
             );
 
+            if let Err(ref e) = updated {
+                tracing::error!("Error polling updates: {:?}", e)
+            }
+            if let Err(ref e) = confirmed {
+                tracing::error!("Error polling confirms: {:?}", e)
+            }
             updated?;
             confirmed?;
             interval.tick().await;
