@@ -64,15 +64,25 @@ extendEnvironment((hre) => {
 
   const formatMessage = (
     originSlip44,
-    sender,
+    senderAddr,
     sequence,
     destinationSlip44,
-    recipient,
+    recipientAddr,
     body,
   ) => {
+    senderAddr = optics.ethersAddressToBytes32(senderAddr);
+    recipientAddr = optics.ethersAddressToBytes32(recipientAddr);
+
     return ethers.utils.solidityPack(
       ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
-      [originSlip44, sender, sequence, destinationSlip44, recipient, body],
+      [
+        originSlip44,
+        senderAddr,
+        sequence,
+        destinationSlip44,
+        recipientAddr,
+        body,
+      ],
     );
   };
 
@@ -80,7 +90,7 @@ extendEnvironment((hre) => {
     return ethers.utils.hexZeroPad(ethers.utils.hexStripZeros(address), 32);
   };
 
-  const increaseTimestamp = async (provider, increaseTime) => {
+  const increaseTimestampBy = async (provider, increaseTime) => {
     await provider.send('evm_increaseTime', [increaseTime]);
     await provider.send('evm_mine');
   };
@@ -95,7 +105,7 @@ extendEnvironment((hre) => {
     Updater,
     formatMessage,
     ethersAddressToBytes32,
-    increaseTimestamp,
+    increaseTimestampBy,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (...args) => {

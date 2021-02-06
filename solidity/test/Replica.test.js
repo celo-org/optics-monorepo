@@ -1,6 +1,7 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
+const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
 const ACTIVE = 0;
 const FAILED = 1;
@@ -13,15 +14,13 @@ const initialLastProcessed = 0;
 describe('Replica', async () => {
   let replica, signer, fakeSigner, updater, fakeUpdater, processor;
 
-  const bytes32 = (num) => `0x${Buffer.alloc(32, num).toString('hex')}`;
-
   const enqueueValidUpdate = async (newRoot) => {
     let oldRoot;
     if ((await replica.queueLength()) == 0) {
       oldRoot = await replica.current();
     } else {
-      const [pending, _confirmAt] = await replica.nextPending();
-      oldRoot = pending;
+      const lastEnqueued = await replica.queueEnd();
+      oldRoot = lastEnqueued;
     }
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
@@ -148,7 +147,7 @@ describe('Replica', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
     await enqueueValidUpdate(newRoot);
 
-    await optics.increaseTimestamp(provider, optimisticSeconds);
+    await optics.increaseTimestampBy(provider, optimisticSeconds);
 
     await replica.confirm();
     expect(await replica.current()).to.equal(newRoot);
@@ -162,7 +161,7 @@ describe('Replica', async () => {
     await enqueueValidUpdate(secondNewRoot);
 
     // Increase time enough for both updates to be confirmable
-    await optics.increaseTimestamp(provider, optimisticSeconds * 2);
+    await optics.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     await replica.confirm();
     expect(await replica.current()).to.equal(secondNewRoot);
@@ -175,29 +174,36 @@ describe('Replica', async () => {
     // Don't increase time enough for update to be confirmable.
     // Note that we use optimisticSeconds - 2 because the call to enqueue
     // the valid root has already increased the timestamp by 1.
-    await optics.increaseTimestamp(provider, optimisticSeconds - 2);
+    await optics.increaseTimestampBy(provider, optimisticSeconds - 2);
 
     await expect(replica.confirm()).to.be.revertedWith('not time');
   });
 
-  it('Accepts a valid merkle proof', async () => {});
-
-  it('Rejects an invalid merkle proof', async () => {});
-
+  // BUG: no .staticCall property to pick out return value when MockRecipient::message() returns string and function selector for message() likely being calculated wrong
   it('Processes a proved message', async () => {
-    let [sender, recipient] = provider.getWallets();
-    const sequence = (await replica.lastProcessed()).add(1);
-    const body = ethers.utils.formatBytes32String('body');
+    const [sender] = provider.getWallets();
+    // const mockRecipient = await deployMockContract(
+    //   recipient,
+    //   MockRecipient.abi,
+    // );
+    // await mockRecipient.mock.message.returns('message received');
 
-    sender = optics.ethersAddressToBytes32(sender.address);
-    recipient = optics.ethersAddressToBytes32(recipient.address);
+    const RecipientFactory = await ethers.getContractFactory('MockRecipient');
+    const recipient = await RecipientFactory.deploy();
+    await recipient.deployed();
+
+    const sequence = (await replica.lastProcessed()).add(1);
+
+    const interface = new ethers.utils.Interface(MockRecipient.abi);
+    const selector = interface.getSighash('message()');
+    const body = ethers.utils.formatBytes32String(selector);
 
     const formattedMessage = optics.formatMessage(
       originSLIP44,
-      sender,
+      sender.address,
       sequence,
       ownSLIP44,
-      recipient,
+      recipient.address,
       body,
     );
 
@@ -205,23 +211,23 @@ describe('Replica', async () => {
     await replica.setMessagePending(formattedMessage);
 
     await replica.process(formattedMessage);
-    expect(await replica.lastProcessed()).to.equal(sequence);
+    expect(await recipient.value()).to.equal('called');
+    // const ret = await replica.staticCall.process(formattedMessage);
+    // console.log(ret);
+    // expect(await replica.lastProcessed()).to.equal(sequence);
   });
 
   it('Fails to process an unproved message', async () => {
-    let [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = provider.getWallets();
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('body');
 
-    sender = optics.ethersAddressToBytes32(sender.address);
-    recipient = optics.ethersAddressToBytes32(recipient.address);
-
     const formattedMessage = optics.formatMessage(
       originSLIP44,
-      sender,
+      sender.address,
       sequence,
       ownSLIP44,
-      recipient,
+      recipient.address,
       body,
     );
 
