@@ -115,18 +115,9 @@ task('prove-and-process', 'Prove and process a message')
     let replica = new optics.Replica(address, signer);
 
     try {
-      await replica.callStatic.proveAndProcess(
-        ethers.utils.keccak256(message),
-        proof,
-        index,
-        message,
-      );
-      await replica.proveAndProcess(
-        ethers.utils.keccak256(message),
-        proof,
-        index,
-        message,
-      );
+      // preflight and make sure it works. This throws on revert
+      await replica.callStatic.proveAndProcess(message, proof, index);
+      await replica.proveAndProcess(message, proof, index);
     } catch (e) {
       console.error(
         `Error: Replica will reject proveAndProcess with message\n\t${e.message}`,
