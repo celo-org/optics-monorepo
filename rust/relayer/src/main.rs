@@ -13,10 +13,10 @@
 mod relayer;
 mod settings;
 
-use color_eyre::Result;
+use color_eyre::{eyre::eyre, Result};
 
 use crate::{relayer::Relayer, settings::Settings};
-use optics_base::agent::OpticsAgent;
+use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {
     let relayer = Relayer::new(5 * 60);
@@ -30,7 +30,15 @@ fn setup() -> Result<Settings> {
 
     let settings = Settings::new()?;
 
-    // TODO: setup logging based on settings
+    let builder = tracing_subscriber::fmt::fmt().with_max_level(settings.base.tracing.level);
+
+    match settings.base.tracing.style {
+        Style::Pretty => builder.pretty().try_init(),
+        Style::Json => builder.json().try_init(),
+        Style::Compact => builder.compact().try_init(),
+        Style::Default => builder.try_init(),
+    }
+    .map_err(|e| eyre!(e))?;
 
     Ok(settings)
 }
