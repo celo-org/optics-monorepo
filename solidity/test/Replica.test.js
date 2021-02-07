@@ -179,48 +179,42 @@ describe('Replica', async () => {
     await expect(replica.confirm()).to.be.revertedWith('not time');
   });
 
-  // BUG: no .staticCall property to pick out return value when MockRecipient::message() returns string and function selector for message() likely being calculated wrong
   it('Processes a proved message', async () => {
-    const [sender] = provider.getWallets();
-    // const mockRecipient = await deployMockContract(
-    //   recipient,
-    //   MockRecipient.abi,
-    // );
-    // await mockRecipient.mock.message.returns('message received');
-
-    const RecipientFactory = await ethers.getContractFactory('MockRecipient');
-    const recipient = await RecipientFactory.deploy();
-    await recipient.deployed();
+    const [sender, recipient] = provider.getWallets();
+    const mockRecipient = await deployMockContract(
+      recipient,
+      MockRecipient.abi,
+    );
+    await mockRecipient.mock.message.returns('message received');
 
     const sequence = (await replica.lastProcessed()).add(1);
-
     const interface = new ethers.utils.Interface(MockRecipient.abi);
     const selector = interface.getSighash('message()');
-    const body = ethers.utils.formatBytes32String(selector);
 
     const formattedMessage = optics.formatMessage(
       originSLIP44,
       sender.address,
       sequence,
       ownSLIP44,
-      recipient.address,
-      body,
+      mockRecipient.address,
+      selector,
     );
 
     // Set message status to Message.Pending
     await replica.setMessagePending(formattedMessage);
 
-    await replica.process(formattedMessage);
-    expect(await recipient.value()).to.equal('called');
-    // const ret = await replica.staticCall.process(formattedMessage);
-    // console.log(ret);
-    // expect(await replica.lastProcessed()).to.equal(sequence);
+    let [success, ret] = await replica.callStatic.process(formattedMessage);
+    expect(success).to.be.true;
+    expect(ret).to.equal('message received');
+    // ^BUG: ret is formatted as some odd hexstring, can't get "message received" to match it but logging shows that they're essentially the same but slightly different for some reason... like 1 or 2 digits are off :(
+
+    expect(await replica.lastProcessed()).to.equal(sequence);
   });
 
   it('Fails to process an unproved message', async () => {
     const [sender, recipient] = provider.getWallets();
     const sequence = (await replica.lastProcessed()).add(1);
-    const body = ethers.utils.formatBytes32String('body');
+    const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
       originSLIP44,

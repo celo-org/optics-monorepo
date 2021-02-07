@@ -2,11 +2,9 @@
 pragma solidity >=0.6.11;
 
 contract MockRecipient {
-    string public value = "not called";
-
     constructor() {}
     
-    function message() public {
-        value = "called";
+    function message() public pure returns (string memory) {
+        return "message received";
     }
 }
