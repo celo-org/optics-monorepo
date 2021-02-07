@@ -10,6 +10,7 @@ const ownSLIP44 = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
+const mockRecipientMessageString = 'message received';
 
 describe('Replica', async () => {
   let replica, signer, fakeSigner, updater, fakeUpdater, processor;
@@ -185,9 +186,11 @@ describe('Replica', async () => {
       recipient,
       MockRecipient.abi,
     );
-    await mockRecipient.mock.message.returns('message received');
+    await mockRecipient.mock.message.returns(mockRecipientMessageString);
 
     const sequence = (await replica.lastProcessed()).add(1);
+
+    // Get selector for mock's message() function
     const interface = new ethers.utils.Interface(MockRecipient.abi);
     const selector = interface.getSighash('message()');
 
@@ -203,11 +206,14 @@ describe('Replica', async () => {
     // Set message status to Message.Pending
     await replica.setMessagePending(formattedMessage);
 
+    // Static call doesn't change state, only tests return value of external call
     let [success, ret] = await replica.callStatic.process(formattedMessage);
+    [ret] = ethers.utils.defaultAbiCoder.decode(['string'], ret);
     expect(success).to.be.true;
-    expect(ret).to.equal('message received');
-    // ^BUG: ret is formatted as some odd hexstring, can't get "message received" to match it but logging shows that they're essentially the same but slightly different for some reason... like 1 or 2 digits are off :(
+    expect(ret).to.equal(mockRecipientMessageString);
 
+    // Now test call with state changes
+    await replica.process(formattedMessage);
     expect(await replica.lastProcessed()).to.equal(sequence);
   });
 
