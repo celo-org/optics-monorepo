@@ -107,7 +107,7 @@ impl Decode for Signature {
 }
 
 /// An Optics message between chains
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Message {
     /// 4   SLIP-44 ID
     pub origin: u32,
