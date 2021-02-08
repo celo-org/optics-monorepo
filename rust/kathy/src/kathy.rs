@@ -57,7 +57,14 @@ impl OpticsAgent for Kathy {
 #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChatGenerator {
+    #[serde(other)]
     Default,
+}
+
+impl Default for ChatGenerator {
+    fn default() -> Self {
+        Self::Default
+    }
 }
 
 impl ChatGenerator {
