@@ -5,10 +5,10 @@ const { testCases } = require('./merkleTestCases.json');
 
 describe('Merkle', async () => {
   for (let testCase of testCases) {
-    const { testName, leaves, expectedRoot } = testCase;
+    const { testName, leaves, expectedRoot, proofs } = testCase;
 
     describe(testName, async () => {
-      let merkle;
+      let merkle, root;
 
       before(async () => {
         const Merkle = await ethers.getContractFactory('TestMerkle');
@@ -28,11 +28,18 @@ describe('Merkle', async () => {
       });
 
       it('produces the proper root', async () => {
-        const root = await merkle.root();
+        root = await merkle.root();
         expect(root).to.equal(expectedRoot);
       });
 
-      //TODO: add expect that Merkle.sol can verify the generated leaves' proofs
+      it("can verify the leaves' proofs", async () => {
+        for(let proof of proofs) {
+          const {leaf, path, index } = proof;
+
+          const proofRoot = await merkle.branchRoot(leaf, path, index);
+          expect(root).to.equal(proofRoot);
+        }
+      });
     });
   }
 });
