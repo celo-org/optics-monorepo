@@ -37,7 +37,7 @@ describe('Merkle', async () => {
           const {leaf, path, index } = proof;
 
           const proofRoot = await merkle.branchRoot(leaf, path, index);
-          expect(root).to.equal(proofRoot);
+          expect(proofRoot).to.equal(root);
         }
       });
     });
