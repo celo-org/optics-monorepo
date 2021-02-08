@@ -2,7 +2,7 @@
   "testCases": [
     {
       "testName": "three leaves",
-      "expectedRoot": "0xd885138de54c71f027bf0cbf733dbeedb9a58d7ea95f299a375df162510be9fe",
+      "expectedRoot": "0x18f2f1646fee335a1eaf5191a8ce58ea772080057d0fda687df59c45e47e6f68",
       "leaves": ["one", "two", "three"],
       "proofs": [
         {
@@ -123,7 +123,7 @@
     },
     {
       "testName": "one leaf",
-      "expectedRoot": "0x4e8fc163d28ec51f9f670a94bab3029d8a4f1833609bcaed7d47edfdd07c0562",
+      "expectedRoot": "0x54fea87823728b754368018753f79a24e5f5cacee26c8785f3d33aabfd03372e",
       "leaves": ["one"],
       "proofs": [
         {
@@ -168,7 +168,7 @@
     },
     {
       "testName": "no leaves",
-      "expectedRoot": "0x3963b360b0745b0a0ab1d889daf35e93a432e015a0c42a1d7f4f9b49bff2f338",
+      "expectedRoot": "0x27ae5ba08d7291c96c8cbddcc148bf48a6d68c7974b94356f53754ef6171d757",
       "leaves": [],
       "proofs": []
     }
