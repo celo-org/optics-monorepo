@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { testCases } = require('./merkleTestCases.json');
+const { testCases } = require('../../vectors/merkleTestCases.json');
 
 describe('Merkle', async () => {
   for (let testCase of testCases) {

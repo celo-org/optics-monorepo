@@ -166,7 +166,7 @@ pub(crate) mod test {
     }
 
     pub(crate) fn load_test_json() -> TestJson {
-        let mut file = File::open("../../solidity/test/Merkle/merkleTestCases.json").unwrap();
+        let mut file = File::open("../../vectors/merkleTestCases.json").unwrap();
         let mut data = String::new();
         file.read_to_string(&mut data).unwrap();
         serde_json::from_str(&data).unwrap()
