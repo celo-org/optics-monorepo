@@ -67,6 +67,8 @@ describe('Home', async () => {
     await expect(home.update(currentRoot, newRoot, signature))
       .to.emit(home, 'Update')
       .withArgs(originSLIP44, currentRoot, newRoot, signature);
+
+    expect(await home.current()).to.equal(newRoot);
   });
 
   it('Rejects update that does not build off of current root', async () => {

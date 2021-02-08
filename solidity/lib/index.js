@@ -1,11 +1,11 @@
 require('@nomiclabs/hardhat-waffle');
+const ethers = require('ethers');
 const { extendEnvironment } = require('hardhat/config');
 
 const HomeAbi = require('./Home.abi.json');
 const ReplicaAbi = require('./ProcessingReplica.abi.json');
 
 extendEnvironment((hre) => {
-  const { ethers } = hre;
   class Common extends ethers.Contract {
     constructor(address, abi, providerOrSigner) {
       super(address, abi, providerOrSigner);
