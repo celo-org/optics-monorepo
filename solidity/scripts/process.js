@@ -108,7 +108,7 @@ task('prove-and-process', 'Prove and process a message')
     let proof = utils.parseProof(rawProof);
 
     if (!ethers.utils.isHexString(message)) {
-      throw new Error('newRoot must be a 0x prefixed hex string');
+      throw new Error('message must be a 0x prefixed hex string');
     }
 
     let signer = await ethers.getSigner();
@@ -123,4 +123,29 @@ task('prove-and-process', 'Prove and process a message')
         `Error: Replica will reject proveAndProcess with message\n\t${e.message}`,
       );
     }
+  });
+
+task('enqueue', 'Enqueue a message on the Home chain')
+  .addParam(
+    'address',
+    'The address of the replica contract.',
+    undefined,
+    types.string,
+  )
+  .addParam('destination', 'The destination chain.', undefined, types.int)
+  .addParam('recipient', 'The message recipient.', undefined, types.string)
+  .addParam('body', 'The message body.', undefined, types.string)
+  .setAction(async (args) => {
+    let address = ethers.utils.getAddress(args.address);
+    let { destination, recipient, body } = args;
+
+    ethers.utils.isHexString(recipient, 32);
+    if (!ethers.utils.isHexString(message)) {
+      throw new Error('body must be a 0x prefixed hex string');
+    }
+
+    let home = new optics.Home(address, signer);
+
+    let tx = await home.enqueue(destination, recipient, body);
+    await utils.reportTxOutcome(tx);
   });
