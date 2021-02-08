@@ -188,8 +188,7 @@ mod test {
 
             // assert the tree generates the proper root
             let root = tree.root(); // root is type H256
-
-            // assert_eq!(root, test_case.expected_root);
+            assert_eq!(root, test_case.expected_root);
 
             for n in 0..test_case.leaves.len() {
                 // assert the tree generates the proper proof for this leaf
