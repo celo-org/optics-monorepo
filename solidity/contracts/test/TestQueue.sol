@@ -10,11 +10,7 @@ contract TestQueue is QueueManager {
 
     // NB: this is unfortunately expensive
 
-    function contains(bytes32 _item)
-        external
-        view
-        returns (bool)
-    {
+    function contains(bytes32 _item) external view returns (bool) {
         return queue.contains(_item);
     }
 
@@ -26,10 +22,7 @@ contract TestQueue is QueueManager {
         return queue.peek();
     }
 
-    function enqueue(bytes32 _item)
-        external
-        returns (uint256 _last)
-    {
+    function enqueue(bytes32 _item) external returns (uint256 _last) {
         return queue.enqueue(_item);
     }
 

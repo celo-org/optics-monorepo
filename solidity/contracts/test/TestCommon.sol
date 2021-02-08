@@ -4,7 +4,11 @@ pragma solidity >=0.6.11;
 import "../Common.sol";
 
 contract TestCommon is Common {
-    constructor(uint32 _originSLIP44, address _updater, bytes32 _current) Common(_originSLIP44, _updater, _current) {}
+    constructor(
+        uint32 _originSLIP44,
+        address _updater,
+        bytes32 _current
+    ) Common(_originSLIP44, _updater, _current) {}
 
     function testCheckSig(
         bytes32 _oldRoot,
@@ -18,7 +22,11 @@ contract TestCommon is Common {
         _setFailed();
     }
 
-    function testDomainHash(uint32 _originSLIP44) external pure returns (bytes32) {
+    function testDomainHash(uint32 _originSLIP44)
+        external
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked(_originSLIP44, "OPTICS"));
     }
 }
