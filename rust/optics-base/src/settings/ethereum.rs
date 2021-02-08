@@ -7,7 +7,7 @@ use optics_core::traits::{Home, Replica};
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "kebab-case")]
 pub enum EthereumConnection {
     /// HTTP connection details
     Http {
@@ -63,7 +63,7 @@ macro_rules! construct_http_box_contract {
 
 /// Ethereum signer types
 #[derive(Debug, Clone, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "kebab-case")]
 pub enum EthereumSigner {
     /// A local hex key
     HexKey {

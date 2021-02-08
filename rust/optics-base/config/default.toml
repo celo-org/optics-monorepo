@@ -11,7 +11,7 @@ rpc-style = "ethereum"
     address = "0x0000000000000000000000000000000000000000"
     rpc-style = "ethereum"
         [replicas.EthereumMainnet.config]
-        signer =  {type = "hexKey", key = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"}
+        signer =  {type = "hex-key", key = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"}
         connection = { type = "ws", url = "ws://localhost:8545"}
 
     [replicas.EthereumClassic]

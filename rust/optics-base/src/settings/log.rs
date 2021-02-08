@@ -14,7 +14,7 @@ pub struct TracingConfig {
 
 /// Basic tracing configuration
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub enum Style {
     /// Pretty print
     Pretty,
@@ -35,7 +35,7 @@ impl Default for Style {
 
 /// Logging level
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub enum Level {
     /// Off
     Off,

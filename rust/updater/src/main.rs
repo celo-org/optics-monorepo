@@ -10,10 +10,11 @@
 mod settings;
 mod updater;
 
-use color_eyre::Result;
+use color_eyre::{eyre::eyre, Result};
+
+use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 use crate::{settings::Settings, updater::Updater};
-use optics_base::agent::OpticsAgent;
 
 async fn _main(settings: Settings) -> Result<()> {
     let signer = settings.updater.try_into_wallet()?;
@@ -33,7 +34,15 @@ fn setup() -> Result<Settings> {
 
     let settings = Settings::new()?;
 
-    // TODO: setup logging based on settings
+    let builder = tracing_subscriber::fmt::fmt().with_max_level(settings.base.tracing.level);
+
+    match settings.base.tracing.style {
+        Style::Pretty => builder.pretty().try_init(),
+        Style::Json => builder.json().try_init(),
+        Style::Compact => builder.compact().try_init(),
+        Style::Default => builder.try_init(),
+    }
+    .map_err(|e| eyre!(e))?;
 
     Ok(settings)
 }

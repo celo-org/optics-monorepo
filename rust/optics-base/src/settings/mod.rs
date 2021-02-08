@@ -18,7 +18,7 @@ use log::TracingConfig;
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "rpc-style", content = "config", rename_all = "camelCase")]
+#[serde(tag = "rpc-style", content = "config", rename_all = "kebab-case")]
 pub enum ChainConf {
     /// Ethereum configuration
     Ethereum(EthereumConf),

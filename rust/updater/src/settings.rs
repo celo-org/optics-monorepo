@@ -5,6 +5,7 @@ use std::env;
 use optics_base::settings::{ethereum::EthereumSigner, Settings as BaseSettings};
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Settings {
     #[serde(flatten)]
     pub(crate) base: BaseSettings,
