@@ -36,26 +36,6 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         res
     }
 
-    /// Run the Agent, and tag errors with the slip44 ID of the replica
-    #[allow(clippy::unit_arg)]
-    #[tracing::instrument(err)]
-    async fn run_report_error(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        replica: Option<Box<dyn Replica>>,
-    ) -> Result<()> {
-        let msg_opt = replica
-            .as_ref()
-            .map(|r| format!("Replica named {} failed", r.name()));
-
-        let mut res = self.run(home, replica).await;
-
-        if let Some(m) = msg_opt {
-            res = res.wrap_err(m);
-        }
-        res
-    }
-
     /// Run several agents
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
