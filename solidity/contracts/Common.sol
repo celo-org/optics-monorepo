@@ -8,7 +8,7 @@ library Message {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
-    uint constant PREFIX_LENGTH = 76;
+    uint256 constant PREFIX_LENGTH = 76;
 
     function formatMessage(
         uint32 _origin,
