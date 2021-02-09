@@ -3,8 +3,6 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
 
-const ACTIVE = 0;
-const FAILED = 1;
 const originSLIP44 = 1234;
 
 describe('Home', async () => {
@@ -37,7 +35,7 @@ describe('Home', async () => {
 
   it('Halts on fail', async () => {
     await home.setFailed();
-    expect(await home.state()).to.equal(FAILED);
+    expect(await home.state()).to.equal(optics.State.FAILED);
 
     const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
@@ -93,7 +91,7 @@ describe('Home', async () => {
       'ImproperUpdate',
     );
 
-    expect(await home.state()).to.equal(FAILED);
+    expect(await home.state()).to.equal(optics.State.FAILED);
   });
 
   it('Rejects update from non-updater address', async () => {
@@ -129,6 +127,6 @@ describe('Home', async () => {
       ),
     ).to.emit(home, 'DoubleUpdate');
 
-    expect(await home.state()).to.equal(FAILED);
+    expect(await home.state()).to.equal(optics.State.FAILED);
   });
 });

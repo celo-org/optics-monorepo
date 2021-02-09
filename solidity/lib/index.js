@@ -6,6 +6,17 @@ const HomeAbi = require('./Home.abi.json');
 const ReplicaAbi = require('./ProcessingReplica.abi.json');
 
 extendEnvironment((hre) => {
+  const State = {
+    ACTIVE: 0,
+    FAILED: 1,
+  };
+
+  const MessageStatus = {
+    NONE: 0,
+    PENDING: 1,
+    PROCESSED: 2,
+  };
+
   class Common extends ethers.Contract {
     constructor(address, abi, providerOrSigner) {
       super(address, abi, providerOrSigner);
@@ -139,6 +150,8 @@ extendEnvironment((hre) => {
   };
 
   hre.optics = {
+    State,
+    MessageStatus,
     Common,
     Home,
     Replica,

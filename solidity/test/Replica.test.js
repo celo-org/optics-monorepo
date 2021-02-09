@@ -5,12 +5,6 @@ const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/Moc
 
 const { testCases } = require('./Merkle/merkleTestCases.json');
 
-const ACTIVE = 0;
-const FAILED = 1;
-const MESSAGE_NONE = 0;
-const MESSAGE_PENDING = 1;
-const MESSAGE_PROCESSED = 2;
-
 const originSLIP44 = 1000;
 const ownSLIP44 = 2000;
 const optimisticSeconds = 3;
@@ -55,7 +49,7 @@ describe('Replica', async () => {
 
   it('Halts on fail', async () => {
     await replica.setFailed();
-    expect(await replica.state()).to.equal(FAILED);
+    expect(await replica.state()).to.equal(optics.State.FAILED);
 
     const newRoot = ethers.utils.formatBytes32String('new root');
     await expect(enqueueValidUpdate(newRoot)).to.be.revertedWith(
@@ -147,7 +141,7 @@ describe('Replica', async () => {
       ),
     ).to.emit(replica, 'DoubleUpdate');
 
-    expect(await replica.state()).to.equal(FAILED);
+    expect(await replica.state()).to.equal(optics.State.FAILED);
   });
 
   it('Confirms a ready update', async () => {
@@ -199,7 +193,9 @@ describe('Replica', async () => {
     expect(await replica.callStatic.prove(leaf, proof, index)).to.be.true;
 
     await replica.prove(leaf, proof, index);
-    expect(await replica.getMessageStatus(leaf)).to.equal(MESSAGE_PENDING);
+    expect(await replica.getMessageStatus(leaf)).to.equal(
+      optics.MessageStatus.PENDING,
+    );
   });
 
   it('Rejects invalid message proof', async () => {
@@ -218,7 +214,9 @@ describe('Replica', async () => {
     expect(await replica.callStatic.prove(leaf, proof, index)).to.be.false;
 
     await replica.prove(leaf, proof, index);
-    expect(await replica.getMessageStatus(leaf)).to.equal(MESSAGE_NONE);
+    expect(await replica.getMessageStatus(leaf)).to.equal(
+      optics.MessageStatus.NONE,
+    );
   });
 
   it('Processes a proved message', async () => {
