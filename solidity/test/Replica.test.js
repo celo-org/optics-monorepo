@@ -186,13 +186,12 @@ describe('Replica', async () => {
       recipient,
       MockRecipient.abi,
     );
-    await mockRecipient.mock.message.returns(mockRecipientMessageString);
+
+    const mockVal = '0x1234abcd';
+
+    await mockRecipient.mock.handle.returns(mockVal);
 
     const sequence = (await replica.lastProcessed()).add(1);
-
-    // Get selector for mock's message() function
-    const interface = new ethers.utils.Interface(MockRecipient.abi);
-    const selector = interface.getSighash('message()');
 
     const formattedMessage = optics.formatMessage(
       originSLIP44,
@@ -200,7 +199,7 @@ describe('Replica', async () => {
       sequence,
       ownSLIP44,
       mockRecipient.address,
-      selector,
+      '0x',
     );
 
     // Set message status to Message.Pending
@@ -208,9 +207,8 @@ describe('Replica', async () => {
 
     // Static call doesn't change state, only tests return value of external call
     let [success, ret] = await replica.callStatic.process(formattedMessage);
-    [ret] = ethers.utils.defaultAbiCoder.decode(['string'], ret);
     expect(success).to.be.true;
-    expect(ret).to.equal(mockRecipientMessageString);
+    expect(ret).to.equal(mockVal);
 
     // Now test call with state changes
     await replica.process(formattedMessage);

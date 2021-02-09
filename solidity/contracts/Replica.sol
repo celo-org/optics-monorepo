@@ -6,6 +6,14 @@ import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
 
+interface OpticsHandlerI {
+    function handle(
+        uint32 origin,
+        bytes32 sender,
+        bytes memory message
+    ) external returns (bytes memory);
+}
+
 abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
 
@@ -129,7 +137,7 @@ contract ProcessingReplica is Replica {
 
     function process(bytes memory _message)
         public
-        returns (bool _success, bytes memory _ret)
+        returns (bool _success, bytes memory _result)
     {
         bytes29 _m = _message.ref(0);
 
@@ -160,7 +168,22 @@ contract ProcessingReplica is Replica {
         // and still return. We then delegate only the minimum processing gas.
         require(gasleft() >= PROCESS_GAS + RESERVE_GAS, "!gas");
         // transparently return.
-        (_success, _ret) = recipient.call{gas: PROCESS_GAS}(payload);
+
+        try
+            OpticsHandlerI(recipient).handle{gas: PROCESS_GAS}(
+                _m.origin(),
+                _m.sender(),
+                payload
+            )
+        returns (bytes memory _response) {
+            _success = true;
+            _result = _response;
+        } catch (bytes memory _err) {
+            _success = false;
+            _result = _err;
+        }
+
+        // (_success, _ret) = recipient.call{gas: PROCESS_GAS}(payload);
         lastProcessed = _sequence;
     }
 

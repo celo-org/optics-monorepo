@@ -138,6 +138,19 @@
   },
   {
     "inputs": [],
+    "name": "canConfirm",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "confirm",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -237,7 +250,7 @@
   },
   {
     "inputs": [],
-    "name": "next_pending",
+    "name": "nextPending",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -408,6 +421,19 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "queueLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
