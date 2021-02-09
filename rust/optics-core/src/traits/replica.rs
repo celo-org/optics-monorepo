@@ -25,10 +25,27 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     async fn prove(
         &self,
         leaf: H256,
-        index: u32,
         proof: [H256; 32],
+        index: u32,
     ) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Trigger processing of a message
     async fn process(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
+
+    /// Prove a leaf in the replica and then process its message
+    async fn prove_and_process(
+        &self,
+        message: &Message,
+        proof: [H256; 32],
+        index: u32,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        self
+            .prove(message.to_leaf(), proof, index)
+            .await?;
+
+        Ok(self
+            .process(message)
+            .await?
+            .into())
+    }
 }

@@ -158,8 +158,8 @@ where
     async fn prove(
         &self,
         leaf: H256,
-        index: u32,
         proof: [H256; 32],
+        index: u32,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();
         sol_proof
@@ -181,6 +181,28 @@ where
         Ok(self
             .contract
             .process(message.to_vec())
+            .send()
+            .await?
+            .await?
+            .into())
+    }
+
+    #[tracing::instrument(err)]
+    async fn prove_and_process(
+        &self,
+        message: &Message,
+        proof: [H256; 32],
+        index: u32,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        let mut sol_proof: [[u8; 32]; 32] = Default::default();
+        sol_proof
+            .iter_mut()
+            .enumerate()
+            .for_each(|(i, elem)| *elem = proof[i].to_fixed_bytes());
+
+        Ok(self
+            .contract
+            .prove_and_process(message.to_vec(), sol_proof, index.into())
             .send()
             .await?
             .await?
