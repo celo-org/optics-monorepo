@@ -39,7 +39,11 @@ contract TestReplica is ProcessingReplica {
         messages[_m.keccak()] = MessageStatus.Pending;
     }
 
-    function getMessageStatus(bytes32 _leaf) external view returns (MessageStatus) {
+    function getMessageStatus(bytes32 _leaf)
+        external
+        view
+        returns (MessageStatus)
+    {
         return messages[_leaf];
     }
 
