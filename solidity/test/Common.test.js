@@ -6,7 +6,8 @@ const { testCases } = require('./domainHashTestCases.json');
 
 const ACTIVE = 0;
 const FAILED = 1;
-const originSLIP44 = 1234;
+const originSLIP44 = 1000;
+const ownSLIP44 = 2000;
 
 describe('Common', async () => {
   let common, signer, fakeSigner, updater, fakeUpdater, initialRoot;

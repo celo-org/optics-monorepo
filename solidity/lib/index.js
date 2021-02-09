@@ -120,7 +120,9 @@ extendEnvironment((hre) => {
   };
 
   const ethersAddressToBytes32 = (address) => {
-    return ethers.utils.hexZeroPad(ethers.utils.hexStripZeros(address), 32);
+    return ethers.utils
+      .hexZeroPad(ethers.utils.hexStripZeros(address), 32)
+      .toLowerCase();
   };
 
   const increaseTimestampBy = async (provider, increaseTime) => {
