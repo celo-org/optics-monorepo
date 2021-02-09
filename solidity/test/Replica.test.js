@@ -3,8 +3,14 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
+const { testCases } = require('./Merkle/merkleTestCases.json');
+
 const ACTIVE = 0;
 const FAILED = 1;
+const MESSAGE_NONE = 0;
+const MESSAGE_PENDING = 1;
+const MESSAGE_PROCESSED = 2;
+
 const originSLIP44 = 1000;
 const ownSLIP44 = 2000;
 const optimisticSeconds = 3;
@@ -180,6 +186,41 @@ describe('Replica', async () => {
     await expect(replica.confirm()).to.be.revertedWith('not time');
   });
 
+  it('Proves a valid message', async () => {
+    // Use 1st proof of 1st merkle vector test case
+    const testCase = testCases[0];
+    let { leaf, index, proof } = optics.infoFromMerkleTestCaseProof(
+      testCase.proofs[0],
+    );
+
+    await replica.setCurrentRoot(testCase.expectedRoot);
+
+    // Ensure proper static call return value
+    expect(await replica.callStatic.prove(leaf, proof, index)).to.be.true;
+
+    await replica.prove(leaf, proof, index);
+    expect(await replica.getMessageStatus(leaf)).to.equal(MESSAGE_PENDING);
+  });
+
+  it('Rejects invalid message proof', async () => {
+    // Use 1st proof of 1st merkle vector test case
+    const testCase = testCases[0];
+    let { leaf, index, proof } = optics.infoFromMerkleTestCaseProof(
+      testCase.proofs[0],
+    );
+
+    // Switch ordering of proof hashes
+    proof[0] = proof[1];
+    proof[1] = proof[0];
+
+    await replica.setCurrentRoot(testCase.expectedRoot);
+
+    expect(await replica.callStatic.prove(leaf, proof, index)).to.be.false;
+
+    await replica.prove(leaf, proof, index);
+    expect(await replica.getMessageStatus(leaf)).to.equal(MESSAGE_NONE);
+  });
+
   it('Processes a proved message', async () => {
     const [sender, recipient] = provider.getWallets();
     const mockRecipient = await deployMockContract(
@@ -206,13 +247,12 @@ describe('Replica', async () => {
     // Set message status to Message.Pending
     await replica.setMessagePending(formattedMessage);
 
-    // Static call doesn't change state, only tests return value of external call
+    // Ensure proper static call return value
     let [success, ret] = await replica.callStatic.process(formattedMessage);
     [ret] = ethers.utils.defaultAbiCoder.decode(['string'], ret);
     expect(success).to.be.true;
     expect(ret).to.equal(mockRecipientMessageString);
 
-    // Now test call with state changes
     await replica.process(formattedMessage);
     expect(await replica.lastProcessed()).to.equal(sequence);
   });
@@ -231,9 +271,49 @@ describe('Replica', async () => {
       body,
     );
 
-    // Don't set message status to Message.Pending
     await expect(replica.process(formattedMessage)).to.be.revertedWith(
       'not pending',
+    );
+  });
+
+  it('Fails to process out-of-order message', async () => {
+    const [sender, recipient] = provider.getWallets();
+
+    // Skip sequence ordering by adding 2 to lastProcessed
+    const sequence = (await replica.lastProcessed()).add(2);
+    const body = ethers.utils.formatBytes32String('message');
+
+    const formattedMessage = optics.formatMessage(
+      originSLIP44,
+      sender.address,
+      sequence,
+      ownSLIP44,
+      recipient.address,
+      body,
+    );
+
+    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+      '!sequence',
+    );
+  });
+
+  it('Fails to process message with wrong destination slip44', async () => {
+    const [sender, recipient] = provider.getWallets();
+    const sequence = (await replica.lastProcessed()).add(1);
+    const body = ethers.utils.formatBytes32String('message');
+
+    const formattedMessage = optics.formatMessage(
+      originSLIP44,
+      sender.address,
+      sequence,
+      // Wrong destination slip44
+      ownSLIP44 + 5,
+      recipient.address,
+      body,
+    );
+
+    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+      '!destination',
     );
   });
 });

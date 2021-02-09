@@ -128,6 +128,14 @@ extendEnvironment((hre) => {
     await provider.send('evm_mine');
   };
 
+  let infoFromMerkleTestCaseProof = (proof) => {
+    return {
+      leaf: proof.leaf,
+      index: proof.index,
+      proof: proof.path,
+    };
+  };
+
   hre.optics = {
     Common,
     Home,
@@ -136,6 +144,7 @@ extendEnvironment((hre) => {
     formatMessage,
     ethersAddressToBytes32,
     increaseTimestampBy,
+    infoFromMerkleTestCaseProof,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {
