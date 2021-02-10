@@ -136,11 +136,6 @@ extendEnvironment((hre) => {
       .toLowerCase();
   };
 
-  const increaseTimestampBy = async (provider, increaseTime) => {
-    await provider.send('evm_increaseTime', [increaseTime]);
-    await provider.send('evm_mine');
-  };
-
   hre.optics = {
     State,
     MessageStatus,
@@ -150,8 +145,6 @@ extendEnvironment((hre) => {
     Updater,
     formatMessage,
     ethersAddressToBytes32,
-    increaseTimestampBy,
-    infoFromMerkleTestCaseProof,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {

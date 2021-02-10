@@ -3,6 +3,7 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
+const testUtils = require('./utils');
 const { testCases } = require('./Merkle/merkleTestCases.json');
 
 const originSLIP44 = 1000;
@@ -148,7 +149,7 @@ describe('Replica', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
     await enqueueValidUpdate(newRoot);
 
-    await optics.increaseTimestampBy(provider, optimisticSeconds);
+    await testUtils.increaseTimestampBy(provider, optimisticSeconds);
 
     await replica.confirm();
     expect(await replica.current()).to.equal(newRoot);
@@ -162,7 +163,7 @@ describe('Replica', async () => {
     await enqueueValidUpdate(secondNewRoot);
 
     // Increase time enough for both updates to be confirmable
-    await optics.increaseTimestampBy(provider, optimisticSeconds * 2);
+    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     await replica.confirm();
     expect(await replica.current()).to.equal(secondNewRoot);
@@ -175,7 +176,7 @@ describe('Replica', async () => {
     // Don't increase time enough for update to be confirmable.
     // Note that we use optimisticSeconds - 2 because the call to enqueue
     // the valid root has already increased the timestamp by 1.
-    await optics.increaseTimestampBy(provider, optimisticSeconds - 2);
+    await testUtils.increaseTimestampBy(provider, optimisticSeconds - 2);
 
     await expect(replica.confirm()).to.be.revertedWith('not time');
   });
