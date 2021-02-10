@@ -183,36 +183,32 @@ describe('Replica', async () => {
   it('Proves a valid message', async () => {
     // Use 1st proof of 1st merkle vector test case
     const testCase = testCases[0];
-    let { leaf, index, proof } = optics.infoFromMerkleTestCaseProof(
-      testCase.proofs[0],
-    );
+    let { leaf, index, path } = testCase.proofs[0];
 
     await replica.setCurrentRoot(testCase.expectedRoot);
 
     // Ensure proper static call return value
-    expect(await replica.callStatic.prove(leaf, proof, index)).to.be.true;
+    expect(await replica.callStatic.prove(leaf, path, index)).to.be.true;
 
-    await replica.prove(leaf, proof, index);
+    await replica.prove(leaf, path, index);
     expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.PENDING);
   });
 
   it('Rejects invalid message proof', async () => {
     // Use 1st proof of 1st merkle vector test case
     const testCase = testCases[0];
-    let { leaf, index, proof } = optics.infoFromMerkleTestCaseProof(
-      testCase.proofs[0],
-    );
+    let { leaf, index, path } = testCase.proofs[0];
 
     // Switch ordering of proof hashes
-    const firstProof = proof[0];
-    proof[0] = proof[1];
-    proof[1] = firstProof;
+    const firstHash = path[0];
+    path[0] = path[1];
+    path[1] = firstHash;
 
     await replica.setCurrentRoot(testCase.expectedRoot);
 
-    expect(await replica.callStatic.prove(leaf, proof, index)).to.be.false;
+    expect(await replica.callStatic.prove(leaf, path, index)).to.be.false;
 
-    await replica.prove(leaf, proof, index);
+    await replica.prove(leaf, path, index);
     expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.NONE);
   });
 

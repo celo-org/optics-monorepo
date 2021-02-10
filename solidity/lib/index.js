@@ -141,14 +141,6 @@ extendEnvironment((hre) => {
     await provider.send('evm_mine');
   };
 
-  let infoFromMerkleTestCaseProof = (proof) => {
-    return {
-      leaf: proof.leaf,
-      index: proof.index,
-      proof: proof.path,
-    };
-  };
-
   hre.optics = {
     State,
     MessageStatus,
