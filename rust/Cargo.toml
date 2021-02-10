@@ -4,5 +4,6 @@ members = [
     "optics-core",
     "optics-base",
     "kathy",
-    "updater"
+    "updater",
+    "relayer"
 ]
