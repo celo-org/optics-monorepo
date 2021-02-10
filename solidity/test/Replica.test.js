@@ -193,9 +193,7 @@ describe('Replica', async () => {
     expect(await replica.callStatic.prove(leaf, proof, index)).to.be.true;
 
     await replica.prove(leaf, proof, index);
-    expect(await replica.getMessageStatus(leaf)).to.equal(
-      optics.MessageStatus.PENDING,
-    );
+    expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.PENDING);
   });
 
   it('Rejects invalid message proof', async () => {
@@ -214,9 +212,7 @@ describe('Replica', async () => {
     expect(await replica.callStatic.prove(leaf, proof, index)).to.be.false;
 
     await replica.prove(leaf, proof, index);
-    expect(await replica.getMessageStatus(leaf)).to.equal(
-      optics.MessageStatus.NONE,
-    );
+    expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.NONE);
   });
 
   it('Processes a proved message', async () => {
