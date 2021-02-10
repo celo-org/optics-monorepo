@@ -11,28 +11,23 @@ contract TestMessage {
     constructor() {}
 
     function origin(bytes memory _message) external pure returns (uint32) {
-        bytes29 _m = _message.ref(0);
-        return _m.origin();
+        return _message.ref(0).origin();
     }
 
     function sender(bytes memory _message) external pure returns (bytes32) {
-        bytes29 _m = _message.ref(0);
-        return _m.sender();
+        return _message.ref(0).sender();
     }
 
     function sequence(bytes memory _message) external pure returns (uint32) {
-        bytes29 _m = _message.ref(0);
-        return _m.sequence();
+        return _message.ref(0).sequence();
     }
 
     function destination(bytes memory _message) external pure returns (uint32) {
-        bytes29 _m = _message.ref(0);
-        return _m.destination();
+        return _message.ref(0).destination();
     }
 
     function recipient(bytes memory _message) external pure returns (bytes32) {
-        bytes29 _m = _message.ref(0);
-        return _m.recipient();
+        return _message.ref(0).recipient();
     }
 
     function recipientAddress(bytes memory _message)
@@ -40,12 +35,10 @@ contract TestMessage {
         pure
         returns (address)
     {
-        bytes29 _m = _message.ref(0);
-        return _m.recipientAddress();
+        return _message.ref(0).recipientAddress();
     }
 
     function body(bytes memory _message) external view returns (bytes memory) {
-        bytes29 _m = _message.ref(0);
-        return _m.body().clone();
+        return _message.ref(0).body().clone();
     }
 }
