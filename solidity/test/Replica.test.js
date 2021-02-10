@@ -204,8 +204,9 @@ describe('Replica', async () => {
     );
 
     // Switch ordering of proof hashes
+    const firstProof = proof[0];
     proof[0] = proof[1];
-    proof[1] = proof[0];
+    proof[1] = firstProof;
 
     await replica.setCurrentRoot(testCase.expectedRoot);
 
