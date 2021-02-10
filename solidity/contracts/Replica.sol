@@ -72,6 +72,8 @@ abstract contract Replica is Common, QueueManager {
 
         confirmAt[_newRoot] = block.timestamp + optimisticSeconds;
         queue.enqueue(_newRoot);
+
+        emit Update(originSLIP44, _oldRoot, _newRoot, _signature);
     }
 
     function canConfirm() external view returns (bool) {
