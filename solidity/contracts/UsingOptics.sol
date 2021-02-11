@@ -49,4 +49,8 @@ abstract contract UsingOptics is Ownable {
             _b := mload(add(_s, 0x20))
         }
     }
+
+    function addressToBytes32(address _addr) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(_addr)));
+    }
 }

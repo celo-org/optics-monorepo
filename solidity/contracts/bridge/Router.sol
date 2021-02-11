@@ -103,7 +103,7 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
             _id.domain = home.originSLIP44();
-            _id.id = bytes32(uint256(uint160(_token)));
+            _id.id = addressToBytes32(_token);
         }
     }
 
@@ -124,7 +124,7 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
         external
         override
         onlyReplica
-        onlyRemoteRouter(_origin, _sender) // hate this
+        onlyRemoteRouter(_origin, _sender)
         returns (bytes memory)
     {
         bytes29 _msg = _message.ref(0).mustBeMessage();
