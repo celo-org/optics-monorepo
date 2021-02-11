@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "../Replica.sol";
 import "./Types.sol";
-import "../Home.sol";
+import "../UsingOptics.sol";
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -34,40 +33,6 @@ interface BridgeTokenI {
         bytes32 _symbol,
         uint256 _decimals
     ) external;
-}
-
-abstract contract UsingOptics is Ownable {
-    mapping(address => uint32) public replicas;
-    Home home;
-
-    constructor() Ownable() {}
-
-    function isReplica(address _replica) internal view returns (bool) {
-        return replicas[_replica] != 0;
-    }
-
-    function enrollReplica(uint32 _domain, address _replica) public onlyOwner {
-        replicas[_replica] = _domain;
-    }
-
-    function unenrollReplica(address _replica) public onlyOwner {
-        replicas[_replica] = 0;
-    }
-
-    function setHome(address _home) public onlyOwner {
-        home = Home(_home);
-    }
-
-    modifier onlyReplica() {
-        require(isReplica(msg.sender), "!replica");
-        _;
-    }
-
-    function coerceBytes32(string memory _s) internal pure returns (bytes32 _b) {
-        assembly {
-            _b := mload(add(_s, 0x20))
-        }
-    }
 }
 
 contract BridgeRouter is OpticsHandlerI, UsingOptics {
