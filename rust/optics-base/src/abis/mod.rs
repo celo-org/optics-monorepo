@@ -86,6 +86,33 @@ where
     }
 
     #[tracing::instrument(err)]
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        self.contract
+            .update_filter()
+            .topic1(old_root)
+            .query()
+            .await?
+            .first()
+            .map(|event| {
+                let signature = Signature::try_from(event.signature.as_slice())
+                    .expect("chain accepted invalid signature");
+
+                let update = Update {
+                    origin_slip44: event.origin_slip44,
+                    previous_root: event.old_root.into(),
+                    new_root: event.new_root.into(),
+                };
+
+                SignedUpdate { signature, update }
+            })
+            .map(Ok)
+            .transpose()
+    }
+
+    #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -283,6 +310,33 @@ where
     }
 
     #[tracing::instrument(err)]
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        self.contract
+            .update_filter()
+            .topic1(old_root)
+            .query()
+            .await?
+            .first()
+            .map(|event| {
+                let signature = Signature::try_from(event.signature.as_slice())
+                    .expect("chain accepted invalid signature");
+
+                let update = Update {
+                    origin_slip44: event.origin_slip44,
+                    previous_root: event.old_root.into(),
+                    new_root: event.new_root.into(),
+                };
+
+                SignedUpdate { signature, update }
+            })
+            .map(Ok)
+            .transpose()
+    }
+
+    #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
@@ -345,33 +399,6 @@ where
             .await?;
 
         Ok(events.into_iter().next().map(|f| f.message))
-    }
-
-    #[tracing::instrument(err)]
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .topic1(old_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    origin_domain: event.origin_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { signature, update }
-            })
-            .map(Ok)
-            .transpose()
     }
 
     #[tracing::instrument(err)]

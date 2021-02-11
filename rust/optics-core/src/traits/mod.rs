@@ -78,7 +78,7 @@ pub trait Common: Sync + Send + std::fmt::Debug {
     /// contract is running on.
     fn name(&self) -> &str;
 
-    /// Get the status of a transaction
+    /// Get the status of a transaction.
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError>;
 
     /// Fetch the current updater value
@@ -87,8 +87,22 @@ pub trait Common: Sync + Send + std::fmt::Debug {
     /// Fetch the current state.
     async fn state(&self) -> Result<State, ChainCommunicationError>;
 
-    /// Fetch the current root
+    /// Fetch the current root.
     async fn current_root(&self) -> Result<H256, ChainCommunicationError>;
+
+    /// Fetch the first signed update building off of `old_root`. If `old_root`
+    /// was never accepted or has never been updated, this will produce `Ok(None)`.
+    /// This should fetch events from the chain API
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
+
+    /// Fetch most recent signed_update.
+    async fn poll_signed_update(&self) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        let current_root = self.current_root().await?;
+        self.signed_update_by_old_root(current_root).await
+    }
 
     /// Submit a signed update for inclusion
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError>;

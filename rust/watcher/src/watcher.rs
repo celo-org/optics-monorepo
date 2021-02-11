@@ -25,22 +25,6 @@ impl Watcher {
         }
     }
 
-    async fn poll_home_update(
-        &self,
-        home: Arc<Box<dyn Home>>,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        let current_root = home.current_root().await?;
-        home.signed_update_by_old_root(current_root).await
-    }
-
-    async fn poll_replica_update(
-        &self,
-        replica: Arc<Box<dyn Replica>>,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        let current_root = replica.current_root().await?;
-        replica.signed_update_by_old_root(current_root).await
-    }
-
     async fn replica_check_double_update(
         &self,
         replica: Arc<Box<dyn Replica>>,
@@ -89,7 +73,7 @@ impl Watcher {
     ) -> Result<()> {
         let mut interval = self.interval();
         loop {
-            let home_update_res = self.poll_home_update(home.clone()).await;
+            let home_update_res = home.poll_signed_update().await;
 
             if let Err(ref e) = home_update_res {
                 tracing::error!("Error polling home update: {:?}", e)
@@ -125,7 +109,7 @@ impl OpticsAgent for Watcher {
         
         let mut interval = self.interval();
         loop {
-            let replica_update_res = self.poll_replica_update(replica.clone()).await;
+            let replica_update_res = replica.poll_signed_update().await;
 
             if let Err(ref e) = replica_update_res {
                 tracing::error!("Error polling replica update: {:?}", e)
