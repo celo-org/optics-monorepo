@@ -5,14 +5,7 @@ import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-
-interface OpticsHandlerI {
-    function handle(
-        uint32 origin,
-        bytes32 sender,
-        bytes memory message
-    ) external returns (bytes memory);
-}
+import {OpticsHandlerI} from "./UsingOptics.sol";
 
 abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
