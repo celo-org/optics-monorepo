@@ -6,13 +6,7 @@ use tokio::{sync::RwLock, time::{interval, Interval}};
 use futures_util::future::{select_all};
 
 use optics_base::agent::OpticsAgent;
-use optics_core::{SignedUpdate, traits::{Home, Replica}};
-
-/// Home or Replica
-enum Common {
-    Home(Arc<Box<dyn Home>>),
-    Replica(Arc<Box<dyn Replica>>),
-}
+use optics_core::{SignedUpdate, traits::{Home, Replica, Common}};
 
 /// A watcher agent
 #[derive(Debug)]
@@ -31,19 +25,17 @@ impl Watcher {
         }
     }
 
-    async fn handle_new_update(&self, common: &Common, signed_update: &SignedUpdate) -> Result<()> {
+    async fn handle_new_update<C: Common + ?Sized> (
+        &self, common: &Arc<Box<C>>, 
+        signed_update: &SignedUpdate
+    ) -> Result<()> {
         let old_root = signed_update.update.previous_root;
         let new_root = signed_update.update.new_root;
 
         let history_read = self.history.read().await;
         if let Some(existing) = history_read.get(&old_root) {
             if existing.update.new_root != new_root {
-                match common {
-                    Common::Home(ref home) => 
-                        home.double_update(existing, signed_update).await?,
-                    Common::Replica(ref replica) => 
-                        replica.double_update(existing, signed_update).await?
-                }; 
+                common.double_update(existing, signed_update).await?;
             }
         } else {
             let mut history_write = self.history.write().await;
@@ -53,17 +45,14 @@ impl Watcher {
         Ok(())
     }
 
-    async fn watch(
+    async fn watch<C: Common + ?Sized>(
         &self,
-        common: Common,
+        common: Arc<Box<C>>,
     ) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
-            let update_res = match &common {
-                Common::Home(ref home) => home.poll_signed_update().await,
-                Common::Replica(ref replica) => replica.poll_signed_update().await
-            };
+            let update_res = common.poll_signed_update().await;
 
             if let Err(ref e) = update_res {
                 tracing::error!("Error polling update: {:?}", e)
@@ -90,7 +79,7 @@ impl OpticsAgent for Watcher {
     async fn run(&self, _home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
         ensure!(replica.is_some(), "Watcher must have replica.");
         let replica = Arc::new(replica.unwrap());
-        self.watch(Common::Replica(replica)).await
+        self.watch(replica).await
     }
     
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
@@ -101,7 +90,7 @@ impl OpticsAgent for Watcher {
             .map(|replica| self.run_report_error(home.clone(), Some(replica)))
             .collect();
         
-        let home_fut = self.watch(Common::Home(home.clone()));
+        let home_fut = self.watch(home.clone());
         futs.push(Box::pin(home_fut));
 
         loop {
