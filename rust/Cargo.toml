@@ -5,6 +5,6 @@ members = [
     "optics-base",
     "kathy",
     "updater",
-    "relayer"
-    "watcher",
+    "relayer",
+    "watcher"
 ]

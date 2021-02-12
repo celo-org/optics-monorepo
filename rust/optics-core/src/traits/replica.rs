@@ -3,7 +3,7 @@ use ethers::core::types::{H256, U256};
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
-    Message, SignedUpdate,
+    Message,
 };
 
 /// Interface for on-chain replicas
