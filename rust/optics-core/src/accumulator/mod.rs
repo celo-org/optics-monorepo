@@ -7,6 +7,8 @@ pub mod merkle;
 /// convenience. Useful for producing proofs that either may verify.
 pub mod prover;
 
+pub mod prover_sync;
+
 /// Use the prover where possible :)
 pub use prover::{Prover, ProverError};
 

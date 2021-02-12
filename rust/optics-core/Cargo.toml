@@ -12,6 +12,7 @@ sha3 = "0.9.1"
 lazy_static = "*"
 thiserror = "*"
 async-trait = { version = "0.1.42", default-features = false }
+tokio = { version = "1.0.1", features = ["rt", "macros"] }
 tracing = "0.1.22"
 tracing-futures = "0.2.4"
 serde = {version = "1.0", features = ["derive"]}
