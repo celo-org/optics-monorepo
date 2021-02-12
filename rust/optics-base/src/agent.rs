@@ -16,7 +16,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
     /// Run the agent with the given home and replica
     async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()>;
 
-    /// Run the Agent, and tag errors with the slip44 ID of the replica
+    /// Run the Agent, and tag errors with the domain ID of the replica
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
     async fn run_report_error(

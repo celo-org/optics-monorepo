@@ -12,12 +12,12 @@ use crate::{
 /// chains
 #[async_trait]
 pub trait Home: Common + Send + Sync + std::fmt::Debug {
-    /// Return the slip44 ID
-    fn origin_slip44(&self) -> u32;
+    /// Return the domain ID
+    fn origin_domain(&self) -> u32;
 
     /// Return the domain hash
     fn domain_hash(&self) -> H256 {
-        domain_hash(self.origin_slip44())
+        domain_hash(self.origin_domain())
     }
 
     /// Fetch the message to destination at the sequence number (or error).

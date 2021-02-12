@@ -25,7 +25,7 @@ where
     M: ethers::providers::Middleware,
 {
     contract: contracts::ReplicaContractInternal<M>,
-    slip44: u32,
+    domain: u32,
     name: String,
 }
 
@@ -35,10 +35,10 @@ where
 {
     /// Create a reference to a Replica at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, slip44: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
             contract: contracts::ReplicaContractInternal::new(address, provider),
-            slip44,
+            domain,
             name: name.to_owned(),
         }
     }
@@ -129,8 +129,8 @@ impl<M> Replica for ReplicaContract<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn destination_slip44(&self) -> u32 {
-        self.slip44
+    fn destination_domain(&self) -> u32 {
+        self.domain
     }
 
     #[tracing::instrument(err)]
@@ -222,7 +222,7 @@ where
     M: ethers::providers::Middleware,
 {
     contract: contracts::HomeContractInternal<M>,
-    slip44: u32,
+    domain: u32,
     name: String,
 }
 
@@ -232,10 +232,10 @@ where
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, slip44: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
             contract: contracts::HomeContractInternal::new(address, provider),
-            slip44,
+            domain,
             name: name.to_owned(),
         }
     }
@@ -326,8 +326,8 @@ impl<M> Home for HomeContract<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn origin_slip44(&self) -> u32 {
-        self.slip44
+    fn origin_domain(&self) -> u32 {
+        self.domain
     }
 
     #[tracing::instrument(err)]
@@ -363,7 +363,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    origin_slip44: event.origin_slip44,
+                    origin_domain: event.origin_domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -434,7 +434,7 @@ where
         }
 
         Ok(Some(Update {
-            origin_slip44: self.origin_slip44(),
+            origin_domain: self.origin_domain(),
             previous_root,
             new_root,
         }))

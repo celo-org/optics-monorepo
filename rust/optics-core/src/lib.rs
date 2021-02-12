@@ -184,7 +184,7 @@ impl Message {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Update {
     /// The origin chain
-    pub origin_slip44: u32,
+    pub origin_domain: u32,
     /// The previous root
     pub previous_root: H256,
     /// The new root
@@ -196,7 +196,7 @@ impl Encode for Update {
     where
         W: std::io::Write,
     {
-        writer.write_all(&self.origin_slip44.to_be_bytes())?;
+        writer.write_all(&self.origin_domain.to_be_bytes())?;
         writer.write_all(self.previous_root.as_ref())?;
         writer.write_all(self.new_root.as_ref())?;
         Ok(4 + 32 + 32)
@@ -209,7 +209,7 @@ impl Update {
         // domain(origin) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
-                .chain(domain_hash(self.origin_slip44))
+                .chain(domain_hash(self.origin_domain))
                 .chain(self.previous_root)
                 .chain(self.new_root)
                 .finalize()
@@ -282,7 +282,7 @@ mod test {
                     .parse()
                     .unwrap();
             let message = Update {
-                origin_slip44: 5,
+                origin_domain: 5,
                 new_root: H256::repeat_byte(1),
                 previous_root: H256::repeat_byte(2),
             };

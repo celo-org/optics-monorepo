@@ -1,7 +1,7 @@
 message-interval = 100
 
 [home]
-slip44 = 52752
+domain = 52752
 address = "0x0000000000000000000000000000000000000000"
 rpc-style = "Ethereum"
     [home.config]

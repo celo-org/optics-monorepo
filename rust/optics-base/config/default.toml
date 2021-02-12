@@ -1,5 +1,5 @@
 [home]
-slip44 = 52752
+domain = 52752
 address = "0x0000000000000000000000000000000000000000"
 rpc-style = "ethereum"
     [home.config]
@@ -7,7 +7,7 @@ rpc-style = "ethereum"
 
 [replicas]
     [replicas.EthereumMainnet]
-    slip44 = 60
+    domain = 60
     address = "0x0000000000000000000000000000000000000000"
     rpc-style = "ethereum"
         [replicas.EthereumMainnet.config]
@@ -15,7 +15,7 @@ rpc-style = "ethereum"
         connection = { type = "ws", url = "ws://localhost:8545"}
 
     [replicas.EthereumClassic]
-    slip44 = 61
+    domain = 61
     address = "0x0000000000000000000000000000000000000000"
     rpc-style = "ethereum"
         [replicas.EthereumClassic.config]

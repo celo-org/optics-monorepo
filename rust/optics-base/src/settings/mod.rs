@@ -24,11 +24,11 @@ pub enum ChainConf {
     Ethereum(EthereumConf),
 }
 
-/// A chain setup is a slip44 ID, an address on that chain (where the home or
+/// A chain setup is a domain ID, an address on that chain (where the home or
 /// replica is deployed) and details for connecting to the chain API.
 #[derive(Debug, serde::Deserialize)]
 pub struct ChainSetup {
-    slip44: u32,
+    domain: u32,
     address: String,
     #[serde(flatten)]
     chain: ChainConf,
@@ -39,7 +39,7 @@ impl ChainSetup {
     pub async fn try_into_home(&self, name: &str) -> Result<Box<dyn Home>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_home(name, self.slip44, self.address.parse()?)
+                conf.try_into_home(name, self.domain, self.address.parse()?)
                     .await
             }
         }
@@ -49,7 +49,7 @@ impl ChainSetup {
     pub async fn try_into_replica(&self, name: &str) -> Result<Box<dyn Replica>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_replica(name, self.slip44, self.address.parse()?)
+                conf.try_into_replica(name, self.domain, self.address.parse()?)
                     .await
             }
         }
