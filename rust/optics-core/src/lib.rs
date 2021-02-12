@@ -108,7 +108,7 @@ impl Decode for Signature {
 
 /// A full Optics message between chains
 #[derive(Debug, Default, Clone)]
-pub struct DispatchedMessage {
+pub struct StampedMessage {
     /// 4   SLIP-44 ID
     pub origin: u32,
     /// 32  Address in origin convention
@@ -135,7 +135,7 @@ pub struct Message {
 }
 
 
-impl Encode for DispatchedMessage {
+impl Encode for StampedMessage {
     fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
     where
         W: std::io::Write,
@@ -149,7 +149,7 @@ impl Encode for DispatchedMessage {
     }
 }
 
-impl Decode for DispatchedMessage {
+impl Decode for StampedMessage {
     fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
     where
         R: std::io::Read,
@@ -183,7 +183,7 @@ impl Decode for DispatchedMessage {
     }
 }
 
-impl DispatchedMessage {
+impl StampedMessage {
     /// Convert the message to a leaf
     pub fn to_leaf(&self) -> H256 {
         let mut k = Keccak256::new();
