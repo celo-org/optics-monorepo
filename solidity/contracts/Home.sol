@@ -22,11 +22,11 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     );
     event ImproperUpdate();
 
-    constructor(uint32 _originSLIP44, address _sortition)
+    constructor(uint32 _originDomain, address _sortition)
         payable
         MerkleTreeManager()
         QueueManager()
-        Common(_originSLIP44, address(0), bytes32(0))
+        Common(_originDomain, address(0), bytes32(0))
     {
         sortition = ISortition(_sortition);
         updater = ISortition(_sortition).current();
@@ -47,7 +47,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
 
         bytes memory _message =
             Message.formatMessage(
-                originSLIP44,
+                originDomain,
                 bytes32(uint256(uint160(msg.sender))),
                 sequence,
                 destination,
@@ -73,7 +73,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         }
 
         current = _newRoot;
-        emit Update(originSLIP44, _oldRoot, _newRoot, _signature);
+        emit Update(originDomain, _oldRoot, _newRoot, _signature);
     }
 
     function improperUpdate(

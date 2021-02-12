@@ -2,8 +2,8 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 
-const originSLIP44 = 1000;
-const ownSLIP44 = 2000;
+const originDomain = 1000;
+const ownDomain = 2000;
 
 describe('Message', async () => {
   let messageLib;
@@ -20,20 +20,20 @@ describe('Message', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const message = optics.formatMessage(
-      originSLIP44,
+      originDomain,
       sender.address,
       sequence,
-      ownSLIP44,
+      ownDomain,
       recipient.address,
       body,
     );
 
-    expect(await messageLib.origin(message)).to.equal(originSLIP44);
+    expect(await messageLib.origin(message)).to.equal(originDomain);
     expect(await messageLib.sender(message)).to.equal(
       optics.ethersAddressToBytes32(sender.address),
     );
     expect(await messageLib.sequence(message)).to.equal(sequence);
-    expect(await messageLib.destination(message)).to.equal(ownSLIP44);
+    expect(await messageLib.destination(message)).to.equal(ownDomain);
     expect(await messageLib.recipient(message)).to.equal(
       optics.ethersAddressToBytes32(recipient.address),
     );

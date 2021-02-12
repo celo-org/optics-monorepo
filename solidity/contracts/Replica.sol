@@ -17,19 +17,19 @@ interface OpticsHandlerI {
 abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
 
-    uint32 public immutable ownSLIP44;
+    uint32 public immutable ownDomain;
     uint256 public optimisticSeconds;
 
     mapping(bytes32 => uint256) public confirmAt;
 
     constructor(
-        uint32 _originSLIP44,
-        uint32 _ownSLIP44,
+        uint32 _originDomain,
+        uint32 _ownDomain,
         address _updater,
         uint256 _optimisticSeconds,
         bytes32 _current
-    ) Common(_originSLIP44, _updater, _current) QueueManager() {
-        ownSLIP44 = _ownSLIP44;
+    ) Common(_originDomain, _updater, _current) QueueManager() {
+        ownDomain = _ownDomain;
         optimisticSeconds = _optimisticSeconds;
         current = _current;
     }
@@ -119,13 +119,13 @@ contract ProcessingReplica is Replica {
     enum MessageStatus {None, Pending, Processed}
 
     constructor(
-        uint32 _originSLIP44,
-        uint32 _ownSLIP44,
+        uint32 _originDomain,
+        uint32 _ownDomain,
         address _updater,
         uint256 _optimisticSeconds,
         bytes32 _start,
         uint256 _lastProcessed
-    ) Replica(_originSLIP44, _ownSLIP44, _updater, _optimisticSeconds, _start) {
+    ) Replica(_originDomain, _ownDomain, _updater, _optimisticSeconds, _start) {
         lastProcessed = _lastProcessed;
     }
 
@@ -142,7 +142,7 @@ contract ProcessingReplica is Replica {
         bytes29 _m = _message.ref(0);
 
         uint32 _sequence = _m.sequence();
-        require(_m.destination() == ownSLIP44, "!destination");
+        require(_m.destination() == ownDomain, "!destination");
         require(_sequence == lastProcessed + 1, "!sequence");
         require(
             messages[keccak256(_message)] == MessageStatus.Pending,

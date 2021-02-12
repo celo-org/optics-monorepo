@@ -3,12 +3,12 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originSLIP44",
+        "name": "_originDomain",
         "type": "uint32"
       },
       {
         "internalType": "uint32",
-        "name": "_ownSLIP44",
+        "name": "_ownDomain",
         "type": "uint32"
       },
       {
@@ -72,7 +72,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "_originSLIP44",
+        "name": "_originDomain",
         "type": "uint32"
       },
       {
@@ -281,7 +281,7 @@
   },
   {
     "inputs": [],
-    "name": "originSLIP44",
+    "name": "originDomain",
     "outputs": [
       {
         "internalType": "uint32",
@@ -294,7 +294,7 @@
   },
   {
     "inputs": [],
-    "name": "ownSLIP44",
+    "name": "ownDomain",
     "outputs": [
       {
         "internalType": "uint32",

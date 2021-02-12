@@ -86,7 +86,7 @@ library Message {
 abstract contract Common {
     enum States {ACTIVE, FAILED}
 
-    uint32 public immutable originSLIP44;
+    uint32 public immutable originDomain;
     bytes32 public immutable DOMAIN_HASH;
 
     address public updater;
@@ -94,7 +94,7 @@ abstract contract Common {
     bytes32 public current;
 
     event Update(
-        uint32 indexed _originSLIP44,
+        uint32 indexed _originDomain,
         bytes32 indexed _oldRoot,
         bytes32 indexed _newRoot,
         bytes signature
@@ -107,14 +107,14 @@ abstract contract Common {
     );
 
     constructor(
-        uint32 _originSLIP44,
+        uint32 _originDomain,
         address _updater,
         bytes32 _current
     ) {
-        originSLIP44 = _originSLIP44;
+        originDomain = _originDomain;
         updater = _updater;
         current = _current;
-        DOMAIN_HASH = keccak256(abi.encodePacked(_originSLIP44, "OPTICS"));
+        DOMAIN_HASH = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
         state = States.ACTIVE;
     }
 

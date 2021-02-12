@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originSLIP44",
+        "name": "_originDomain",
         "type": "uint32"
       },
       {
@@ -89,7 +89,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "_originSLIP44",
+        "name": "_originDomain",
         "type": "uint32"
       },
       {
@@ -222,7 +222,7 @@
   },
   {
     "inputs": [],
-    "name": "originSLIP44",
+    "name": "originDomain",
     "outputs": [
       {
         "internalType": "uint32",

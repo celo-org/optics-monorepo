@@ -3,7 +3,7 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
 
-const originSLIP44 = 1234;
+const originDomain = 1234;
 
 describe('Home', async () => {
   let home, signer, fakeSigner, updater, fakeUpdater;
@@ -12,15 +12,15 @@ describe('Home', async () => {
   const enqueueMessageAndGetRoot = async (message, recipient) => {
     message = ethers.utils.formatBytes32String(message);
     recipient = ethers.utils.formatBytes32String(recipient);
-    await home.enqueue(originSLIP44, recipient, message);
+    await home.enqueue(originDomain, recipient, message);
     const [_currentRoot, latestRoot] = await home.suggestUpdate();
     return latestRoot;
   };
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originSLIP44);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originSLIP44);
+    updater = await optics.Updater.fromSigner(signer, originDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
   });
 
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('Home', async () => {
     await mockSortition.mock.slash.returns();
 
     const Home = await ethers.getContractFactory('TestHome');
-    home = await Home.deploy(originSLIP44, mockSortition.address);
+    home = await Home.deploy(originDomain, mockSortition.address);
     await home.deployed();
   });
 
@@ -40,7 +40,7 @@ describe('Home', async () => {
     const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
     await expect(
-      home.enqueue(originSLIP44, recipient, message),
+      home.enqueue(originDomain, recipient, message),
     ).to.be.revertedWith('failed state');
   });
 
@@ -49,7 +49,7 @@ describe('Home', async () => {
 
     const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
-    await home.enqueue(originSLIP44, recipient, message);
+    await home.enqueue(originDomain, recipient, message);
     const latestEnqueuedRoot = await home.queueEnd();
 
     const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
@@ -64,7 +64,7 @@ describe('Home', async () => {
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
     await expect(home.update(currentRoot, newRoot, signature))
       .to.emit(home, 'Update')
-      .withArgs(originSLIP44, currentRoot, newRoot, signature);
+      .withArgs(originDomain, currentRoot, newRoot, signature);
 
     expect(await home.current()).to.equal(newRoot);
   });

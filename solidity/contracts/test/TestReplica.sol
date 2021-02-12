@@ -9,16 +9,16 @@ contract TestReplica is ProcessingReplica {
     using Message for bytes29;
 
     constructor(
-        uint32 _originSLIP44,
-        uint32 _ownSLIP44,
+        uint32 _originDomain,
+        uint32 _ownDomain,
         address _updater,
         uint256 _optimisticSeconds,
         bytes32 _start,
         uint256 _lastProcessed
     )
         ProcessingReplica(
-            _originSLIP44,
-            _ownSLIP44,
+            _originDomain,
+            _ownDomain,
             _updater,
             _optimisticSeconds,
             _start,

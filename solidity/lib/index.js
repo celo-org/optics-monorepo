@@ -64,23 +64,23 @@ extendEnvironment((hre) => {
   }
 
   class Updater {
-    constructor(signer, address, originSlip44, disableWarn) {
+    constructor(signer, address, originDomain, disableWarn) {
       if (!disableWarn) {
         throw new Error('Please use `Updater.fromSigner()` to instantiate.');
       }
-      this.originSlip44 = originSlip44 ? originSlip44 : 0;
+      this.originDomain = originDomain ? originDomain : 0;
       this.signer = signer;
       this.address = address;
     }
 
-    static async fromSigner(signer, originSlip44) {
-      return new Updater(signer, await signer.getAddress(), originSlip44, true);
+    static async fromSigner(signer, originDomain) {
+      return new Updater(signer, await signer.getAddress(), originDomain, true);
     }
 
     domain() {
       return ethers.utils.solidityKeccak256(
         ['uint32', 'string'],
-        [this.originSlip44, 'OPTICS'],
+        [this.originDomain, 'OPTICS'],
       );
     }
 
@@ -93,7 +93,7 @@ extendEnvironment((hre) => {
       let msgHash = ethers.utils.arrayify(ethers.utils.keccak256(message));
       let signature = await this.signer.signMessage(msgHash);
       return {
-        origin: this.originSlip44,
+        origin: this.originDomain,
         oldRoot,
         newRoot,
         signature,
@@ -107,10 +107,10 @@ extendEnvironment((hre) => {
     ethers.getContractFactory('ProcessingReplica', ...args);
 
   const formatMessage = (
-    originSlip44,
+    originDomain,
     senderAddr,
     sequence,
-    destinationSlip44,
+    destinationDomain,
     recipientAddr,
     body,
   ) => {
@@ -120,10 +120,10 @@ extendEnvironment((hre) => {
     return ethers.utils.solidityPack(
       ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
       [
-        originSlip44,
+        originDomain,
         senderAddr,
         sequence,
-        destinationSlip44,
+        destinationDomain,
         recipientAddr,
         body,
       ],

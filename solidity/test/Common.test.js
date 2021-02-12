@@ -4,23 +4,23 @@ const { expect } = require('chai');
 
 const { testCases } = require('../../vectors/domainHashTestCases.json');
 
-const originSLIP44 = 1000;
-const ownSLIP44 = 2000;
+const originDomain = 1000;
+const ownDomain = 2000;
 
 describe('Common', async () => {
   let common, signer, fakeSigner, updater, fakeUpdater, initialRoot;
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originSLIP44);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originSLIP44);
+    updater = await optics.Updater.fromSigner(signer, originDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
     initialRoot = ethers.utils.formatBytes32String('initial root');
   });
 
   beforeEach(async () => {
     const CommonFactory = await ethers.getContractFactory('TestCommon');
     common = await CommonFactory.deploy(
-      originSLIP44,
+      originDomain,
       updater.signer.address,
       initialRoot,
     );
@@ -65,11 +65,11 @@ describe('Common', async () => {
     expect(await common.state()).to.equal(optics.State.FAILED);
   });
 
-  it('Calculates domain hashes from originSLIP44', async () => {
+  it('Calculates domain hashes from originDomain', async () => {
     // Compare Rust output in json file to solidity output
     for (let testCase of testCases) {
-      const { originSlip44, expectedDomainHash } = testCase;
-      const solidityDomainHash = await common.testDomainHash(originSlip44);
+      const { originDomain, expectedDomainHash } = testCase;
+      const solidityDomainHash = await common.testDomainHash(originDomain);
       expect(solidityDomainHash).to.equal(expectedDomainHash);
     }
   });

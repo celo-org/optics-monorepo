@@ -2,7 +2,7 @@ const { types, task } = require('hardhat/config');
 const utils = require('./utils.js');
 
 task('deploy-home', 'Deploy a home.')
-  .addParam('slip44', 'The origin chain SLIP44 ID', undefined, types.int)
+  .addParam('domain', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'sortition',
     'The updater identity handler',
@@ -12,15 +12,15 @@ task('deploy-home', 'Deploy a home.')
   .setAction(async (args) => {
     let address = ethers.utils.getAddress(args.sortition);
     let signer = ethers.getSigner();
-    let home = await optics.deployHome(signer, args.slip44, address);
+    let home = await optics.deployHome(signer, args.domain, address);
     console.log(home.address);
   });
 
 task('deploy-replica', 'Deploy a replica.')
-  .addParam('origin', 'The origin chain SLIP44 ID', undefined, types.int)
+  .addParam('origin', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'destination',
-    'The destination chain SLIP44 ID',
+    'The destination chain domain ID',
     undefined,
     types.int,
   )

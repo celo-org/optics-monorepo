@@ -6,8 +6,8 @@ const testUtils = require('./utils');
 const { testCases } = require('../../vectors/merkleTestCases.json');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
-const originSLIP44 = 1000;
-const ownSLIP44 = 2000;
+const originDomain = 1000;
+const ownDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
@@ -31,15 +31,15 @@ describe('Replica', async () => {
 
   before(async () => {
     [signer, fakeSigner, processor] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originSLIP44);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originSLIP44);
+    updater = await optics.Updater.fromSigner(signer, originDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
   });
 
   beforeEach(async () => {
     const Replica = await ethers.getContractFactory('TestReplica');
     replica = await Replica.deploy(
-      originSLIP44,
-      ownSLIP44,
+      originDomain,
+      ownDomain,
       updater.signer.address,
       optimisticSeconds,
       initialCurrentRoot,
@@ -227,10 +227,10 @@ describe('Replica', async () => {
     const sequence = (await replica.lastProcessed()).add(1);
 
     const formattedMessage = optics.formatMessage(
-      originSLIP44,
+      originDomain,
       sender.address,
       sequence,
-      ownSLIP44,
+      ownDomain,
       mockRecipient.address,
       '0x',
     );
@@ -253,10 +253,10 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originSLIP44,
+      originDomain,
       sender.address,
       sequence,
-      ownSLIP44,
+      ownDomain,
       recipient.address,
       body,
     );
@@ -274,10 +274,10 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originSLIP44,
+      originDomain,
       sender.address,
       sequence,
-      ownSLIP44,
+      ownDomain,
       recipient.address,
       body,
     );
@@ -287,17 +287,17 @@ describe('Replica', async () => {
     );
   });
 
-  it('Fails to process message with wrong destination slip44', async () => {
+  it('Fails to process message with wrong destination Domain', async () => {
     const [sender, recipient] = provider.getWallets();
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originSLIP44,
+      originDomain,
       sender.address,
       sequence,
-      // Wrong destination slip44
-      ownSLIP44 + 5,
+      // Wrong destination Domain
+      ownDomain + 5,
       recipient.address,
       body,
     );

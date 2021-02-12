@@ -7,8 +7,8 @@ contract TestHome is Home {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
-    constructor(uint32 _originSLIP44, address _sortition)
-        Home(_originSLIP44, _sortition)
+    constructor(uint32 _originDomain, address _sortition)
+        Home(_originDomain, _sortition)
     {}
 
     function setFailed() public {

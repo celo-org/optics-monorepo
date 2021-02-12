@@ -5,10 +5,10 @@ import "../Common.sol";
 
 contract TestCommon is Common {
     constructor(
-        uint32 _originSLIP44,
+        uint32 _originDomain,
         address _updater,
         bytes32 _current
-    ) Common(_originSLIP44, _updater, _current) {}
+    ) Common(_originDomain, _updater, _current) {}
 
     function testCheckSig(
         bytes32 _oldRoot,
@@ -22,11 +22,11 @@ contract TestCommon is Common {
         _setFailed();
     }
 
-    function testDomainHash(uint32 _originSLIP44)
+    function testDomainHash(uint32 _originDomain)
         external
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked(_originSLIP44, "OPTICS"));
+        return keccak256(abi.encodePacked(_originDomain, "OPTICS"));
     }
 }

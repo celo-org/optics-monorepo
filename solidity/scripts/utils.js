@@ -11,7 +11,7 @@ async function parseProof(rawProof) {
   return ethers.utils.defaultAbiCoder.decode(['bytes32[32]'], rawProof);
 }
 
-async function validateUpdate(oldRoot, newRoot, signature, slip44) {
+async function validateUpdate(oldRoot, newRoot, signature, domain) {
   if (!ethers.utils.isHexString(oldRoot, 32)) {
     throw new Error('oldRoot must be a 32-byte 0x prefixed hex string');
   }
@@ -22,7 +22,7 @@ async function validateUpdate(oldRoot, newRoot, signature, slip44) {
     throw new Error('signature must be a 65-byte 0x prefixed hex string');
   }
 
-  if (slip44) {
+  if (domain) {
     // TODO: validate the signature
   }
 
