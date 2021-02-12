@@ -106,9 +106,9 @@ impl Decode for Signature {
     }
 }
 
-/// An Optics message between chains
+/// A full Optics message between chains
 #[derive(Debug, Default, Clone)]
-pub struct Message {
+pub struct DispatchedMessage {
     /// 4   SLIP-44 ID
     pub origin: u32,
     /// 32  Address in origin convention
@@ -123,7 +123,19 @@ pub struct Message {
     pub body: Vec<u8>,
 }
 
-impl Encode for Message {
+/// A partial Optics message between chains
+#[derive(Debug, Default, Clone)]
+pub struct Message {
+    /// 4   SLIP-44 ID
+    pub destination: u32,
+    /// 32  Address in destination convention
+    pub recipient: H256,
+    /// 0+  Message contents
+    pub body: Vec<u8>,
+}
+
+
+impl Encode for DispatchedMessage {
     fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
     where
         W: std::io::Write,
@@ -137,7 +149,7 @@ impl Encode for Message {
     }
 }
 
-impl Decode for Message {
+impl Decode for DispatchedMessage {
     fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
     where
         R: std::io::Read,
@@ -171,7 +183,7 @@ impl Decode for Message {
     }
 }
 
-impl Message {
+impl DispatchedMessage {
     /// Convert the message to a leaf
     pub fn to_leaf(&self) -> H256 {
         let mut k = Keccak256::new();

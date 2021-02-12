@@ -2,11 +2,7 @@ use async_trait::async_trait;
 
 use ethers::core::types::H256;
 
-use crate::{
-    traits::{ChainCommunicationError, Common, TxOutcome},
-    utils::domain_hash,
-    Decode, Message, SignedUpdate, Update,
-};
+use crate::{Decode, DispatchedMessage, Message, SignedUpdate, Update, traits::{ChainCommunicationError, Common, TxOutcome}, utils::domain_hash};
 
 /// Interface for the Home chain contract. Allows abstraction over different
 /// chains
@@ -44,10 +40,10 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         &self,
         destination: u32,
         sequence: u32,
-    ) -> Result<Option<Message>, ChainCommunicationError> {
+    ) -> Result<Option<DispatchedMessage>, ChainCommunicationError> {
         self.raw_message_by_sequence(destination, sequence)
             .await?
-            .map(|buf| Message::read_from(&mut &buf[..]))
+            .map(|buf| DispatchedMessage::read_from(&mut &buf[..]))
             .transpose()
             .map_err(Into::into)
     }
@@ -64,10 +60,10 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     async fn message_by_leaf(
         &self,
         leaf: H256,
-    ) -> Result<Option<Message>, ChainCommunicationError> {
+    ) -> Result<Option<DispatchedMessage>, ChainCommunicationError> {
         self.raw_message_by_leaf(leaf)
             .await?
-            .map(|buf| Message::read_from(&mut &buf[..]))
+            .map(|buf| DispatchedMessage::read_from(&mut &buf[..]))
             .transpose()
             .map_err(Into::into)
     }

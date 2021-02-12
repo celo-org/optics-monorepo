@@ -3,7 +3,7 @@ use ethers::core::types::{H256, U256};
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
-    Message,
+    DispatchedMessage,
 };
 
 /// Interface for on-chain replicas
@@ -33,12 +33,12 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     ) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Trigger processing of a message
-    async fn process(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
+    async fn process(&self, message: &DispatchedMessage) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Prove a leaf in the replica and then process its message
     async fn prove_and_process(
         &self,
-        message: &Message,
+        message: &DispatchedMessage,
         proof: [H256; 32],
         index: u32,
     ) -> Result<TxOutcome, ChainCommunicationError> {
