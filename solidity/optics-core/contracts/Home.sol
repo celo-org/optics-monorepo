@@ -20,6 +20,12 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         bytes32 indexed leaf,
         bytes message
     );
+
+    event NewLeaf(
+        bytes32 indexed currentRoot,
+        bytes32 indexed leaf
+    );
+
     event ImproperUpdate();
 
     constructor(uint32 _originDomain, address _sortition)
@@ -58,6 +64,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
 
         tree.insert(_leaf);
         queue.enqueue(root());
+
+        emit NewLeaf(current, _leaf);
         emit Dispatch(destination, sequence, _leaf, _message);
     }
 

@@ -1307,6 +1307,7 @@ name = "optics-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "color-eyre",
  "ethers",
  "lazy_static",
  "serde 1.0.123",

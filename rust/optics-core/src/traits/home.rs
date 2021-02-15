@@ -64,6 +64,12 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
             .map_err(Into::into)
     }
 
+    /// Fetch all message leaves dispatched under currentRoot `root`.
+    async fn leaves_by_root(
+        &self, 
+        root: H256, 
+    ) -> Result<Vec<H256>, ChainCommunicationError>;
+
     /// Fetch the sequence
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
 
