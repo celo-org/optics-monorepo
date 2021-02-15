@@ -9,12 +9,12 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-mod watcher;
 mod settings;
+mod watcher;
 
 use color_eyre::{eyre::eyre, Result};
 
-use crate::{watcher::Watcher, settings::Settings};
+use crate::{settings::Settings, watcher::Watcher};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {

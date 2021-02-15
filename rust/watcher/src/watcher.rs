@@ -1,12 +1,21 @@
 use async_trait::async_trait;
-use color_eyre::{eyre::{eyre, ensure}, Result};
-use ethers::{core::types::H256};
+use color_eyre::{
+    eyre::{ensure, eyre},
+    Result,
+};
+use ethers::core::types::H256;
+use futures_util::future::select_all;
 use std::{collections::HashMap, sync::Arc};
-use tokio::{sync::RwLock, time::{interval, Interval}};
-use futures_util::future::{select_all};
+use tokio::{
+    sync::RwLock,
+    time::{interval, Interval},
+};
 
 use optics_base::agent::OpticsAgent;
-use optics_core::{SignedUpdate, traits::{Home, Replica, Common}};
+use optics_core::{
+    traits::{Common, Home, Replica},
+    SignedUpdate,
+};
 
 /// A watcher agent
 #[derive(Debug)]
@@ -25,9 +34,10 @@ impl Watcher {
         }
     }
 
-    async fn handle_new_update<C: Common + ?Sized> (
-        &self, common: &Arc<Box<C>>, 
-        signed_update: &SignedUpdate
+    async fn handle_new_update<C: Common + ?Sized>(
+        &self,
+        common: &Arc<Box<C>>,
+        signed_update: &SignedUpdate,
     ) -> Result<()> {
         let old_root = signed_update.update.previous_root;
         let new_root = signed_update.update.new_root;
@@ -45,10 +55,7 @@ impl Watcher {
         Ok(())
     }
 
-    async fn watch<C: Common + ?Sized>(
-        &self,
-        common: Arc<Box<C>>,
-    ) -> Result<()> {
+    async fn watch<C: Common + ?Sized>(&self, common: Arc<Box<C>>) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
@@ -76,12 +83,16 @@ impl Watcher {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
-    async fn run(&self, _home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
+    async fn run(
+        &self,
+        _home: Arc<Box<dyn Home>>,
+        replica: Option<Box<dyn Replica>>,
+    ) -> Result<()> {
         ensure!(replica.is_some(), "Watcher must have replica.");
         let replica = Arc::new(replica.unwrap());
         self.watch(replica).await
     }
-    
+
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
         let home = Arc::new(home);
 
@@ -89,7 +100,7 @@ impl OpticsAgent for Watcher {
             .into_iter()
             .map(|replica| self.run_report_error(home.clone(), Some(replica)))
             .collect();
-        
+
         let home_fut = self.watch(home.clone());
         futs.push(Box::pin(home_fut));
 

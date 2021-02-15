@@ -2,7 +2,7 @@
 use config::{Config, ConfigError, Environment, File};
 use std::env;
 
-use optics_base::settings::{Settings as BaseSettings};
+use optics_base::settings::Settings as BaseSettings;
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
