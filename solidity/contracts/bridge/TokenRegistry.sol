@@ -9,6 +9,26 @@ import "../UsingOptics.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
+
+// How the token registry works:
+// We sort token types as "representation" or "native".
+// Native means a contract that is originally deployed on this chain
+// Representation (repr) means a token that originates on some other chain
+//
+// We identify tokens by a 4 byte chain ID and a 32 byte identifier in that
+// chain's native address format. We leave upgradability and management of
+// that identity to the token's deployers.
+//
+// When the router handles an incoming message, it determines whether the
+// transfer is for a native asset. If not, it checks for an existing
+// representation. If no such representation exists, it deploys a new
+// representation token contract. It then stores the relationship in the
+// "reprToCanonical" and "canonicalToRepr" mappings to ensure we can always
+// perform a lookup in either direction
+//
+// Note that native tokens should NEVER be represented in these lookup tables.
+
+
 contract TokenRegistry is UsingOptics {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
