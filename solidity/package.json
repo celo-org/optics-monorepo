@@ -22,9 +22,9 @@
   },
   "scripts": {
     "prettier": "prettier --write './contracts' ./test ./scripts",
-    "compile": "hardhat compile && ./scripts/update_abis.sh",
-    "coverage": "hardhat coverage",
-    "test": "hardhat test"
+    "compile": "hardhat compile && npm run prettier && ./scripts/update_abis.sh",
+    "coverage": "npm run compile && hardhat coverage",
+    "test": "npm run compile && hardhat test"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0"
