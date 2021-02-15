@@ -4,6 +4,7 @@ pragma solidity >=0.6.11;
 import "./Home.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 interface OpticsHandlerI {
     function handle(
@@ -14,6 +15,9 @@ interface OpticsHandlerI {
 }
 
 abstract contract UsingOptics is Ownable {
+    using TypedMemView for bytes;
+    using TypedMemView for bytes29;
+
     mapping(address => uint32) public replicas;
     Home home;
 
@@ -45,9 +49,7 @@ abstract contract UsingOptics is Ownable {
         pure
         returns (bytes32 _b)
     {
-        assembly {
-            _b := mload(add(_s, 0x20))
-        }
+        _b = bytes(_s).ref(0).index(0, uint8(bytes(_s).length));
     }
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {

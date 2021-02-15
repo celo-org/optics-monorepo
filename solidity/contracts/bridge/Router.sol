@@ -2,59 +2,22 @@
 pragma solidity >=0.6.11;
 
 import "./Types.sol";
-import "../UsingOptics.sol";
+import "./TokenRegistry.sol";
+import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
 
-import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-interface BridgeTokenI {
-    function name() external view returns (string memory);
-
-    function symbol() external view returns (string memory);
-
-    function decimals() external view returns (uint256);
-
-    function transfer(address recipient, uint256 amount)
-        external
-        returns (bool);
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
-    function burn(address from, uint256 amnt) external;
-
-    function mint(address to, uint256 amnt) external;
-
-    function setDetails(
-        bytes32 _name,
-        bytes32 _symbol,
-        uint256 _decimals
-    ) external;
-}
-
-contract BridgeRouter is OpticsHandlerI, UsingOptics {
+contract BridgeRouter is OpticsHandlerI, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
-
-    struct TokenId {
-        uint32 domain;
-        bytes32 id;
-    }
+    using SafeERC20 for IERC20;
 
     mapping(uint32 => bytes32) internal remotes;
-    mapping(address => TokenId) internal reprToCanonical;
-    mapping(bytes32 => address) internal canoncialToRepr;
 
-    constructor() UsingOptics() {}
-
-    modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
-        _view.assertType(uint40(_t));
-        _;
-    }
+    constructor() TokenRegistry() {}
 
     function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
         remotes[_origin] = _router;
@@ -80,40 +43,6 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
     modifier onlyRemoteRouter(uint32 _origin, bytes32 _router) {
         require(isRemoteRouter(_origin, _router));
         _;
-    }
-
-    function isNative(BridgeTokenI _token) internal view returns (bool) {
-        return tokenIdFor(address(_token)).domain == home.originSLIP44();
-    }
-
-    function reprFor(bytes29 _tokenId)
-        internal
-        view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (BridgeTokenI)
-    {
-        return BridgeTokenI(canoncialToRepr[_tokenId.keccak()]);
-    }
-
-    function tokenIdFor(address _token)
-        internal
-        view
-        returns (TokenId memory _id)
-    {
-        _id = reprToCanonical[_token];
-        if (_id.domain == 0) {
-            _id.domain = home.originSLIP44();
-            _id.id = addressToBytes32(_token);
-        }
-    }
-
-    function ensureToken(bytes29 _tokenId)
-        internal
-        view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (BridgeTokenI)
-    {
-        // TODO: Clone factory on standard bridge token contract
     }
 
     function handle(
@@ -146,12 +75,12 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_action, BridgeMessage.Types.Xfer)
         returns (bytes memory)
     {
-        BridgeTokenI _token = ensureToken(_tokenId);
+        IERC20 _token = ensureToken(_tokenId);
 
         if (isNative(_token)) {
-            _token.transfer(_action.toAsAddress(), _action.amnt());
+            _token.safeTransfer(_action.evmRecipient(), _action.amnt());
         } else {
-            _token.mint(_action.toAsAddress(), _action.amnt());
+            downcast(_token).mint(_action.evmRecipient(), _action.amnt());
         }
 
         return hex"";
@@ -163,10 +92,14 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_action, BridgeMessage.Types.Details)
         returns (bytes memory)
     {
-        BridgeTokenI _token = ensureToken(_tokenId);
+        IERC20 _token = ensureToken(_tokenId);
         require(!isNative(_token), "!repr");
 
-        _token.setDetails(_action.name(), _action.symbol(), _action.decimals());
+        downcast(_token).setDetails(
+            _action.name(),
+            _action.symbol(),
+            _action.decimals()
+        );
 
         return hex"";
     }
@@ -177,12 +110,12 @@ contract BridgeRouter is OpticsHandlerI, UsingOptics {
         bytes32 _recipient,
         uint256 _amnt
     ) external {
-        BridgeTokenI _tok = BridgeTokenI(_token);
+        IERC20 _tok = IERC20(_token);
 
         if (isNative(_tok)) {
-            _tok.transferFrom(msg.sender, address(this), _amnt);
+            _tok.safeTransferFrom(msg.sender, address(this), _amnt);
         } else {
-            _tok.burn(msg.sender, _amnt);
+            downcast(_tok).burn(msg.sender, _amnt);
         }
 
         TokenId memory _tokId = tokenIdFor(_token);
