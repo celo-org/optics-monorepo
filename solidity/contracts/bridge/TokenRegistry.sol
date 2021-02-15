@@ -14,17 +14,23 @@ contract TokenRegistry is UsingOptics {
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
 
+    // simplifies the mapping type if we do it this way
     struct TokenId {
         uint32 domain;
         bytes32 id;
     }
 
+    // We should be able to deploy a new token on demand
     address tokenTemplate;
+
     function createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
         assembly {
             let clone := mload(0x40)
-            mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(
+                clone,
+                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+            )
             mstore(add(clone, 0x14), targetBytes)
             mstore(
                 add(clone, 0x28),
@@ -34,11 +40,23 @@ contract TokenRegistry is UsingOptics {
         }
     }
 
+    // lookup tables for tokens.
+
+    // Map the local address to the token ID.
     mapping(address => TokenId) internal reprToCanonical;
+
+    // Map the hash of the tightly-packed token ID to the address
+    // of the local representation.
+    //
+    // If the token is native, this MUST be address(0).
     mapping(bytes32 => address) internal canoncialToRepr;
 
     constructor() {
         tokenTemplate = address(new BridgeToken());
+    }
+
+    function setTemplate(address _newTemplate) external onlyOwner {
+        tokenTemplate = _newTemplate;
     }
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
@@ -48,15 +66,6 @@ contract TokenRegistry is UsingOptics {
 
     function downcast(IERC20 _token) internal pure returns (BridgeTokenI) {
         return BridgeTokenI(address(_token));
-    }
-
-    function reprFor(bytes29 _tokenId)
-        internal
-        view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (IERC20)
-    {
-        return IERC20(canoncialToRepr[_tokenId.keccak()]);
     }
 
     function tokenIdFor(address _token)
@@ -72,7 +81,26 @@ contract TokenRegistry is UsingOptics {
     }
 
     function isNative(IERC20 _token) internal view returns (bool) {
-        return tokenIdFor(address(_token)).domain == home.originSLIP44();
+        address _addr = address(_token);
+        // If this contract deployed it, it isn't native.
+        if (reprToCanonical[_addr].domain != 0) {
+            return false;
+        }
+        // Avoid returning true for non-existant contracts
+        uint256 _codeSize;
+        assembly {
+            _codeSize := extcodesize(_addr)
+        }
+        return _codeSize != 0;
+    }
+
+    function reprFor(bytes29 _tokenId)
+        internal
+        view
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (IERC20)
+    {
+        return IERC20(canoncialToRepr[_tokenId.keccak()]);
     }
 
     function deployToken(bytes29 _tokenId)
@@ -85,11 +113,7 @@ contract TokenRegistry is UsingOptics {
         _token = createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
-        BridgeTokenI(_token).setDetails(
-            _idHash,
-            _idHash,
-            18
-        );
+        BridgeTokenI(_token).setDetails(_idHash, _idHash, 18);
 
         reprToCanonical[_token].domain = _tokenId.domain();
         reprToCanonical[_token].id = _tokenId.id();
