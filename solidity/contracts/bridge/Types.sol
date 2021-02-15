@@ -92,7 +92,17 @@ library BridgeMessage {
         return _view.index(4, 32);
     }
 
-    function to(bytes29 _view)
+    function evmId(bytes29 _view)
+        internal
+        pure
+        typeAssert(_view, Types.TokenId)
+        returns (address)
+    {
+        // 4 bytes domain + 12 empty to trim for address
+        return _view.indexAddress(16);
+    }
+
+    function recipient(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Xfer)
@@ -101,13 +111,13 @@ library BridgeMessage {
         return _view.index(0, 32);
     }
 
-    function toAsAddress(bytes29 _view)
+    function evmRecipient(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Xfer)
         returns (address)
     {
-        return address(uint160(uint256(to(_view))));
+        return _view.indexAddress(12);
     }
 
     function amnt(bytes29 _view)
