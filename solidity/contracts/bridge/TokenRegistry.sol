@@ -75,7 +75,7 @@ contract TokenRegistry is UsingOptics {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = home.originSLIP44();
+            _id.domain = home.originDomain();
             _id.id = addressToBytes32(_token);
         }
     }
@@ -126,7 +126,7 @@ contract TokenRegistry is UsingOptics {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == home.originSLIP44()) {
+        if (_tokenId.domain() == home.originDomain()) {
             return IERC20(_tokenId.evmId());
         }
 
