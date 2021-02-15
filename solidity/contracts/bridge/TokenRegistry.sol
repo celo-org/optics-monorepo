@@ -109,7 +109,6 @@ contract TokenRegistry is UsingOptics {
         returns (address _token)
     {
         bytes32 _idHash = _tokenId.keccak();
-        // TODO: Clone factory on standard bridge token contract
         _token = createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
