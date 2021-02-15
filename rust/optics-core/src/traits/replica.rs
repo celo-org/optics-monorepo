@@ -33,7 +33,8 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     ) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Trigger processing of a message
-    async fn process(&self, message: &StampedMessage) -> Result<TxOutcome, ChainCommunicationError>;
+    async fn process(&self, message: &StampedMessage)
+        -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Prove a leaf in the replica and then process its message
     async fn prove_and_process(

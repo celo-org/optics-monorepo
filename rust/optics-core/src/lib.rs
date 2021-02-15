@@ -134,7 +134,6 @@ pub struct Message {
     pub body: Vec<u8>,
 }
 
-
 impl Encode for StampedMessage {
     fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
     where

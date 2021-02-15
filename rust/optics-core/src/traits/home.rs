@@ -2,7 +2,11 @@ use async_trait::async_trait;
 
 use ethers::core::types::H256;
 
-use crate::{Decode, StampedMessage, Message, SignedUpdate, Update, traits::{ChainCommunicationError, Common, TxOutcome}, utils::domain_hash};
+use crate::{
+    traits::{ChainCommunicationError, Common, TxOutcome},
+    utils::domain_hash,
+    Decode, Message, SignedUpdate, StampedMessage, Update,
+};
 
 /// Interface for the Home chain contract. Allows abstraction over different
 /// chains
