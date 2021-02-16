@@ -2,7 +2,8 @@
 pragma solidity >=0.6.11;
 
 import {ERC20} from "./OZERC20.sol";
-import {TypeCasts} from "../UsingOptics.sol";
+
+import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 

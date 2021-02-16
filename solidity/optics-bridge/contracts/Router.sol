@@ -5,7 +5,10 @@ import {BridgeMessage} from "./Types.sol";
 import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
 
-import {TypeCasts, OpticsHandlerI} from "../UsingOptics.sol";
+import {
+    TypeCasts,
+    OpticsHandlerI
+} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";

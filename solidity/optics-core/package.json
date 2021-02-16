@@ -21,7 +21,7 @@
     "test": "test"
   },
   "scripts": {
-    "prettier": "prettier --write './contracts' ./test ./scripts",
+    "prettier": "prettier --write ./contracts ./test ./scripts ./lib",
     "compile": "hardhat compile && npm run prettier && ./scripts/update_abis.sh",
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat test"
