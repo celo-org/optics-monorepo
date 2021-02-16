@@ -139,32 +139,33 @@ where
             .transpose()
     }
 
-    #[tracing::instrument(err)]
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .topic2(new_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
+    // TODO: remove
+    // #[tracing::instrument(err)]
+    // async fn signed_update_by_new_root(
+    //     &self,
+    //     new_root: H256,
+    // ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+    //     self.contract
+    //         .update_filter()
+    //         .topic2(new_root)
+    //         .query()
+    //         .await?
+    //         .first()
+    //         .map(|event| {
+    //             let signature = Signature::try_from(event.signature.as_slice())
+    //                 .expect("chain accepted invalid signature");
 
-                let update = Update {
-                    origin_slip44: event.origin_slip44,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
+    //             let update = Update {
+    //                 origin_slip44: event.origin_slip44,
+    //                 previous_root: event.old_root.into(),
+    //                 new_root: event.new_root.into(),
+    //             };
 
-                SignedUpdate { signature, update }
-            })
-            .map(Ok)
-            .transpose()
-    }
+    //             SignedUpdate { signature, update }
+    //         })
+    //         .map(Ok)
+    //         .transpose()
+    // }
 
     #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
@@ -420,32 +421,33 @@ where
             .transpose()
     }
 
-    #[tracing::instrument(err)]
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .topic2(new_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
+    // TODO: remove
+    // #[tracing::instrument(err)]
+    // async fn signed_update_by_new_root(
+    //     &self,
+    //     new_root: H256,
+    // ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+    //     self.contract
+    //         .update_filter()
+    //         .topic2(new_root)
+    //         .query()
+    //         .await?
+    //         .first()
+    //         .map(|event| {
+    //             let signature = Signature::try_from(event.signature.as_slice())
+    //                 .expect("chain accepted invalid signature");
 
-                let update = Update {
-                    origin_slip44: event.origin_slip44,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
+    //             let update = Update {
+    //                 origin_slip44: event.origin_slip44,
+    //                 previous_root: event.old_root.into(),
+    //                 new_root: event.new_root.into(),
+    //             };
 
-                SignedUpdate { signature, update }
-            })
-            .map(Ok)
-            .transpose()
-    }
+    //             SignedUpdate { signature, update }
+    //         })
+    //         .map(Ok)
+    //         .transpose()
+    // }
 
     #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
@@ -522,18 +524,19 @@ where
         Ok(events.into_iter().next().map(|f| f.message))
     }
 
-    async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError> {
-        Ok(self
-            .contract
-            .new_leaf_filter()
-            .topic0(root)
-            .query()
-            .await?
-            .into_iter()
-            .map(|event| event.leaf.into())
-            .rev()
-            .collect())
-    }
+    // TODO: remove
+    // async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError> {
+    //     Ok(self
+    //         .contract
+    //         .new_leaf_filter()
+    //         .topic0(root)
+    //         .query()
+    //         .await?
+    //         .into_iter()
+    //         .map(|event| event.leaf.into())
+    //         .rev()
+    //         .collect())
+    // }
 
     async fn leaf_by_tree_size(
         &self,

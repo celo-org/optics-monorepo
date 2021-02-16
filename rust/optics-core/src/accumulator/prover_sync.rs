@@ -11,6 +11,7 @@ use tokio::{
     time::{interval, Interval},
 };
 
+/// Struct to sync prover.
 pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Box<dyn Home>>,
@@ -26,10 +27,11 @@ pub enum ProverSyncError {
     MismatchedRoots { local_root: H256, update_root: H256 },
 }
 
-// If new signed_update available:
-//  - get list of all messages that have occurred since update
-//  - insert list of message leaves into merkle tree
+
 impl ProverSync {
+    /// Poll for signed updates at regular interval and update
+    /// local merkle tree with all leaves between new root and 
+    /// local root. 
     async fn poll_updates(&mut self) -> Result<()> {
         let mut interval = self.interval();
         loop {
@@ -49,6 +51,8 @@ impl ProverSync {
         Ok(())
     }
 
+    /// Given new root from signed update, ingest leaves one-by-one
+    /// until local root matches new root.
     async fn update_tree(&mut self, mut local_root: H256, new_root: H256) -> Result<()> {
         while local_root != new_root {
             let tree_size = self.prover.read().await.count();
@@ -63,7 +67,7 @@ impl ProverSync {
                 // If tree up to date but roots don't match, panic
                 local_root = self.prover.read().await.root();
                 if local_root != new_root {
-                    panic!("Local tree up-to-date but root does not match update");
+                    panic!("Local tree up-to-date but root does not match update"); // TODO: replace with real error handling
                 }
             }
         }
