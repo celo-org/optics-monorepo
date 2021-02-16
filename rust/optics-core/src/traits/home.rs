@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use ethers::core::types::H256;
+use color_eyre::eyre::Chain;
+use ethers::core::types::{H256, U256};
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
@@ -65,10 +66,13 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     }
 
     /// Fetch all message leaves dispatched under currentRoot `root`.
-    async fn leaves_by_root(
-        &self, 
-        root: H256, 
-    ) -> Result<Vec<H256>, ChainCommunicationError>;
+    async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError>;
+
+    /// Fetch the tree_size-th leaf inserted into the merkle tree.
+    async fn leaf_by_tree_size(
+        &self,
+        tree_size: usize,
+    ) -> Result<Option<H256>, ChainCommunicationError>;
 
     /// Fetch the sequence
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
