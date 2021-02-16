@@ -27,5 +27,8 @@
     "test": "hardhat test"
   },
   "author": "James Prestwich",
-  "license": "MIT OR Apache-2.0"
+  "license": "MIT OR Apache-2.0",
+  "dependencies": {
+    "truffle": "^5.1.66"
+  }
 }
