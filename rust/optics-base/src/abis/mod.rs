@@ -522,10 +522,7 @@ where
         Ok(events.into_iter().next().map(|f| f.message))
     }
 
-    async fn leaves_by_root(
-        &self, 
-        root: H256, 
-    ) -> Result<Vec<H256>, ChainCommunicationError> {
+    async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError> {
         Ok(self
             .contract
             .new_leaf_filter()
@@ -536,6 +533,20 @@ where
             .map(|event| event.leaf.into())
             .rev()
             .collect())
+    }
+
+    async fn leaf_by_tree_size(
+        &self,
+        tree_size: usize,
+    ) -> Result<Option<H256>, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .dispatch_filter()
+            .topic1(U256::from(tree_size))
+            .query()
+            .await?
+            .first()
+            .map(|event| event.leaf.into()))
     }
 
     #[tracing::instrument(err)]
