@@ -156,7 +156,7 @@ where
     //                 .expect("chain accepted invalid signature");
 
     //             let update = Update {
-    //                 origin_slip44: event.origin_slip44,
+    //                 origin_domain: event.origin_domain,
     //                 previous_root: event.old_root.into(),
     //                 new_root: event.new_root.into(),
     //             };
@@ -438,7 +438,7 @@ where
     //                 .expect("chain accepted invalid signature");
 
     //             let update = Update {
-    //                 origin_slip44: event.origin_slip44,
+    //                 origin_domain: event.origin_domain,
     //                 previous_root: event.old_root.into(),
     //                 new_root: event.new_root.into(),
     //             };
