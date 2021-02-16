@@ -4,7 +4,10 @@ pragma solidity >=0.6.11;
 import {BridgeMessage} from "./Types.sol";
 import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
 
-import {UsingOptics, TypeCasts} from "../UsingOptics.sol";
+import {
+    UsingOptics,
+    TypeCasts
+} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
