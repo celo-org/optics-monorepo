@@ -28,7 +28,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
         remotes[_origin] = _router;
     }
 
-    function mustGetRemote(uint32 _domain)
+    function mustHaveRemote(uint32 _domain)
         internal
         view
         returns (bytes32 _remote)
@@ -115,6 +115,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
         bytes32 _recipient,
         uint256 _amnt
     ) external {
+        bytes32 _remote = mustHaveRemote(_destination);
         IERC20 _tok = IERC20(_token);
 
         if (isNative(_tok)) {
@@ -130,12 +131,13 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
 
         home.enqueue(
             _destination,
-            mustGetRemote(_destination),
+            _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
         );
     }
 
     function updateDetails(address _token, uint32 _destination) external {
+        bytes32 _remote = mustHaveRemote(_destination);
         BridgeTokenI _tok = BridgeTokenI(_token);
 
         TokenId memory _tokId = tokenIdFor(_token);
@@ -151,7 +153,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
 
         home.enqueue(
             _destination,
-            mustGetRemote(_destination),
+            _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
         );
     }

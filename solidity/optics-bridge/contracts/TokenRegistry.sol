@@ -70,7 +70,7 @@ contract TokenRegistry is UsingOptics {
     // of the local representation.
     //
     // If the token is native, this MUST be address(0).
-    mapping(bytes32 => address) internal canoncialToRepr;
+    mapping(bytes32 => address) internal canonicalToRepr;
 
     constructor() {
         tokenTemplate = address(new BridgeToken());
@@ -121,7 +121,7 @@ contract TokenRegistry is UsingOptics {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
-        return IERC20(canoncialToRepr[_tokenId.keccak()]);
+        return IERC20(canonicalToRepr[_tokenId.keccak()]);
     }
 
     function deployToken(bytes29 _tokenId)
@@ -137,7 +137,7 @@ contract TokenRegistry is UsingOptics {
 
         reprToCanonical[_token].domain = _tokenId.domain();
         reprToCanonical[_token].id = _tokenId.id();
-        canoncialToRepr[_idHash] = _token;
+        canonicalToRepr[_idHash] = _token;
     }
 
     function ensureToken(bytes29 _tokenId)
@@ -151,7 +151,7 @@ contract TokenRegistry is UsingOptics {
         }
 
         // Repr
-        address _local = canoncialToRepr[_tokenId.keccak()];
+        address _local = canonicalToRepr[_tokenId.keccak()];
         if (_local == address(0)) {
             // DEPLO
             _local = deployToken(_tokenId);
