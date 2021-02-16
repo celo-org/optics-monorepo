@@ -42,14 +42,13 @@ impl Watcher {
         let old_root = signed_update.update.previous_root;
         let new_root = signed_update.update.new_root;
 
-        let history_read = self.history.read().await;
-        if let Some(existing) = history_read.get(&old_root) {
+        let mut history = self.history.write().await;
+        if let Some(existing) = history.get(&old_root) {
             if existing.update.new_root != new_root {
                 common.double_update(existing, signed_update).await?;
             }
         } else {
-            let mut history_write = self.history.write().await;
-            history_write.insert(old_root, signed_update.to_owned());
+            history.insert(old_root, signed_update.to_owned());
         };
 
         Ok(())
