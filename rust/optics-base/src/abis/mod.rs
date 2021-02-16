@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::{Address, Signature, H256, U256};
-use std::{convert::TryFrom, error::Error as StdError, sync::Arc, thread::current};
+use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
@@ -138,34 +138,6 @@ where
             .map(Ok)
             .transpose()
     }
-
-    // TODO: remove
-    // #[tracing::instrument(err)]
-    // async fn signed_update_by_new_root(
-    //     &self,
-    //     new_root: H256,
-    // ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-    //     self.contract
-    //         .update_filter()
-    //         .topic2(new_root)
-    //         .query()
-    //         .await?
-    //         .first()
-    //         .map(|event| {
-    //             let signature = Signature::try_from(event.signature.as_slice())
-    //                 .expect("chain accepted invalid signature");
-
-    //             let update = Update {
-    //                 origin_domain: event.origin_domain,
-    //                 previous_root: event.old_root.into(),
-    //                 new_root: event.new_root.into(),
-    //             };
-
-    //             SignedUpdate { signature, update }
-    //         })
-    //         .map(Ok)
-    //         .transpose()
-    // }
 
     #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
@@ -421,34 +393,6 @@ where
             .transpose()
     }
 
-    // TODO: remove
-    // #[tracing::instrument(err)]
-    // async fn signed_update_by_new_root(
-    //     &self,
-    //     new_root: H256,
-    // ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-    //     self.contract
-    //         .update_filter()
-    //         .topic2(new_root)
-    //         .query()
-    //         .await?
-    //         .first()
-    //         .map(|event| {
-    //             let signature = Signature::try_from(event.signature.as_slice())
-    //                 .expect("chain accepted invalid signature");
-
-    //             let update = Update {
-    //                 origin_domain: event.origin_domain,
-    //                 previous_root: event.old_root.into(),
-    //                 new_root: event.new_root.into(),
-    //             };
-
-    //             SignedUpdate { signature, update }
-    //         })
-    //         .map(Ok)
-    //         .transpose()
-    // }
-
     #[tracing::instrument(err)]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
@@ -523,21 +467,7 @@ where
 
         Ok(events.into_iter().next().map(|f| f.message))
     }
-
-    // TODO: remove
-    // async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError> {
-    //     Ok(self
-    //         .contract
-    //         .new_leaf_filter()
-    //         .topic0(root)
-    //         .query()
-    //         .await?
-    //         .into_iter()
-    //         .map(|event| event.leaf.into())
-    //         .rev()
-    //         .collect())
-    // }
-
+    
     async fn leaf_by_tree_size(
         &self,
         tree_size: usize,

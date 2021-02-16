@@ -65,10 +65,6 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
             .map_err(Into::into)
     }
 
-    // TODO: remove
-    /// Fetch all message leaves dispatched under currentRoot `root`.
-    // async fn leaves_by_root(&self, root: H256) -> Result<Vec<H256>, ChainCommunicationError>;
-
     /// Fetch the tree_size-th leaf inserted into the merkle tree.
     async fn leaf_by_tree_size(
         &self,
