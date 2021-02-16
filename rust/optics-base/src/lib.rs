@@ -19,3 +19,5 @@ pub mod settings;
 
 /// Base trait for an agent
 pub mod agent;
+
+mod utils;
