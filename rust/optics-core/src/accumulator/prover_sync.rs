@@ -8,7 +8,7 @@ use tokio::{
         oneshot::{error::TryRecvError, Receiver},
         RwLock,
     },
-    time::{interval, Interval},
+    time::interval,
 };
 
 /// Struct to sync prover.
@@ -21,23 +21,36 @@ pub struct ProverSync {
 /// ProverSync errors
 #[derive(Debug, thiserror::Error)]
 pub enum ProverSyncError {
-    /// Local tree up-to-date but root does not match update"
-    #[error("Local tree up-to-date but root does not match update. Local root: {local_root}. Update root: {update_root}.")]
-    MismatchedRoots { local_root: H256, update_root: H256 },
+    /// Local tree up-to-date but root does not match signed update"
+    #[error("Local tree up-to-date but root does not match update. Local root: {local_root}. Update root: {new_root}.")]
+    MismatchedRoots {
+        /// Root of prover's local merkle tree
+        local_root: H256, 
+        /// New root contained in signed update
+        new_root: H256 
+    },
 }
 
 impl ProverSync {
     /// Poll for signed updates at regular interval and update
-    /// local merkle tree with all leaves between new root and 
-    /// local root. Use short interval for bootup syncing and longer
+    /// local merkle tree with all leaves between local root and 
+    /// new root. Use short interval for bootup syncing and longer
     /// interval for regular polling.
-    async fn poll_updates(&mut self, interval_seconds: u64) -> Result<()> {
+    async fn poll_updates(&mut self, interval_seconds: u64) -> Result<(), ProverSyncError> {
         let mut interval = interval(Duration::from_secs(interval_seconds));
 
         loop {
-            let mut local_root = self.prover.read().await.root();
+            let local_root = self.prover.read().await.root();
 
-            if let Some(signed_update) = self.home.signed_update_by_old_root(local_root).await? {
+            let signed_update_res = self.home.signed_update_by_old_root(local_root).await;
+
+            // If error polling signed update, log error and try again
+            if let Err(e) = signed_update_res {
+                tracing::error!("Error retrieving signed_update: {}", e);
+                continue;
+            }
+
+            if let Some(signed_update) = signed_update_res.unwrap() {
                 self.update_tree(local_root, signed_update.update.new_root)
                     .await?;
             }
@@ -53,23 +66,35 @@ impl ProverSync {
 
     /// Given new root from signed update, ingest leaves one-by-one
     /// until local root matches new root.
-    async fn update_tree(&mut self, mut local_root: H256, new_root: H256) -> Result<()> {
+    async fn update_tree(&mut self, mut local_root: H256, new_root: H256) -> Result<(), ProverSyncError> {
         while local_root != new_root {
             let tree_size = self.prover.read().await.count();
-            if let Some(leaf) = self.home.leaf_by_tree_size(tree_size).await? {
+            let leaf_res = self.home.leaf_by_tree_size(tree_size).await;
+
+            // If error retrieving leaf, log error and try again
+            if let Err(e) = leaf_res {
+                tracing::error!("Error retrieving leaf at tree_size {}: {}", tree_size, e);
+                continue;
+            }
+
+            if let Some(leaf) = leaf_res.unwrap() {
                 // If new leaf exists, try to ingest
                 let mut prover_write = self.prover.write().await;
 
-                // If error ingesting leaf, local_root is same so will try again
+                // If error ingesting leaf, log error and try again
                 if let Err(e) = prover_write.ingest(leaf) {
-                    tracing::error!("Error ingesting leaf: {}", e)
+                    tracing::error!("Error ingesting leaf: {}", e);
+                    continue;
                 }
                 local_root = self.prover.read().await.root();
             } else {
-                // If tree up to date but roots don't match, panic
+                //If local tree up-to-date but doesn't match new root, bubble up MismatchedRoots error
                 local_root = self.prover.read().await.root();
                 if local_root != new_root {
-                    panic!("Local tree up-to-date but root does not match update"); // TODO: replace with real error handling
+                    return Err(ProverSyncError::MismatchedRoots {
+                        local_root,
+                        new_root,
+                    });
                 }
             }
         }

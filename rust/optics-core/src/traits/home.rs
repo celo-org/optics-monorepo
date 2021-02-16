@@ -66,6 +66,7 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     }
 
     /// Fetch the tree_size-th leaf inserted into the merkle tree.
+    /// Returns `Ok(None)` if no leaf exists for given `tree_size`.
     async fn leaf_by_tree_size(
         &self,
         tree_size: usize,
