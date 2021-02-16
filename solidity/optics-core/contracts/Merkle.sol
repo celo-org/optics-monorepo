@@ -190,4 +190,8 @@ contract MerkleTreeManager {
     function root() public view returns (bytes32) {
         return tree.root();
     }
+
+    function count() public view returns (uint256) {
+        return tree.count;
+    }
 }

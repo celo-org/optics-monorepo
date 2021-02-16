@@ -15,8 +15,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     ISortition sortition;
 
     event Dispatch(
-        uint32 indexed destination,
-        uint32 indexed sequence,
+        uint256 indexed treeSize,
+        uint64 indexed destinationAndSequence,
         bytes32 indexed leaf,
         bytes message
     );
@@ -43,6 +43,13 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         sortition.slash(msg.sender);
     }
 
+    function calcDestinationAndSequence(
+        uint32 _destination,
+        uint32 _sequence
+    ) internal pure returns (uint64) {
+        return (uint64(_destination) << 32) & _sequence;
+    }
+
     function enqueue(
         uint32 destination,
         bytes32 recipient,
@@ -65,8 +72,11 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         tree.insert(_leaf);
         queue.enqueue(root());
 
-        emit NewLeaf(current, _leaf);
-        emit Dispatch(destination, sequence, _leaf, _message);
+        emit Dispatch(
+            count(),
+            calcDestinationAndSequence(destination, sequence), 
+            _leaf, 
+            _message);
     }
 
     function update(
