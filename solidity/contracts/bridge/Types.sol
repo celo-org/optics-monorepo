@@ -9,7 +9,7 @@ library BridgeMessage {
 
     uint256 private constant TOKEN_ID_LEN = 36;
     uint256 private constant XFER_LEN = 64;
-    uint256 private constant DETAILS_LEN = 96;
+    uint256 private constant DETAILS_LEN = 65;
 
     enum Types {
         Invalid, // 0
@@ -47,7 +47,7 @@ library BridgeMessage {
     function formatDetails(
         bytes32 _name,
         bytes32 _symbol,
-        uint256 _decimals
+        uint8 _decimals
     ) internal pure returns (bytes29) {
         return
             mustBeDetails(abi.encodePacked(_name, _symbol, _decimals).ref(0));
@@ -151,9 +151,9 @@ library BridgeMessage {
         internal
         pure
         typeAssert(_view, Types.Details)
-        returns (uint256)
+        returns (uint8)
     {
-        return _view.indexUint(64, 32);
+        return uint8(_view.indexUint(64, 1));
     }
 
     function tokenId(bytes29 _view)
