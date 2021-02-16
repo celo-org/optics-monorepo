@@ -2,7 +2,7 @@ use crate::{accumulator::prover::Prover, traits::Home};
 use color_eyre::Result;
 use core::panic;
 use ethers::core::types::H256;
-use std::sync::Arc;
+use std::{time::Duration, sync::Arc};
 use tokio::{
     sync::{
         oneshot::{error::TryRecvError, Receiver},
@@ -15,7 +15,6 @@ use tokio::{
 pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Box<dyn Home>>,
-    interval_seconds: u64,
     rx: Receiver<()>,
 }
 
@@ -27,13 +26,14 @@ pub enum ProverSyncError {
     MismatchedRoots { local_root: H256, update_root: H256 },
 }
 
-
 impl ProverSync {
     /// Poll for signed updates at regular interval and update
     /// local merkle tree with all leaves between new root and 
-    /// local root. 
-    async fn poll_updates(&mut self) -> Result<()> {
-        let mut interval = self.interval();
+    /// local root. Use short interval for bootup syncing and longer
+    /// interval for regular polling.
+    async fn poll_updates(&mut self, interval_seconds: u64) -> Result<()> {
+        let mut interval = interval(Duration::from_secs(interval_seconds));
+
         loop {
             let mut local_root = self.prover.read().await.root();
 
@@ -59,6 +59,8 @@ impl ProverSync {
             if let Some(leaf) = self.home.leaf_by_tree_size(tree_size).await? {
                 // If new leaf exists, try to ingest
                 let mut prover_write = self.prover.write().await;
+
+                // If error ingesting leaf, local_root is same so will try again
                 if let Err(e) = prover_write.ingest(leaf) {
                     tracing::error!("Error ingesting leaf: {}", e)
                 }
@@ -73,10 +75,5 @@ impl ProverSync {
         }
 
         Ok(())
-    }
-
-    #[doc(hidden)]
-    fn interval(&self) -> Interval {
-        interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 }
