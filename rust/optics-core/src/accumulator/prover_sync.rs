@@ -1,6 +1,5 @@
-use crate::{accumulator::prover::Prover, traits::Home};
+use crate::{accumulator::{prover::{Prover, ProverError}, incremental::IncrementalMerkle}, traits::Home};
 use color_eyre::Result;
-use core::panic;
 use ethers::core::types::H256;
 use std::{time::Duration, sync::Arc};
 use tokio::{
@@ -15,6 +14,7 @@ use tokio::{
 pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Box<dyn Home>>,
+    incremental: IncrementalMerkle,
     rx: Receiver<()>,
 }
 
@@ -29,6 +29,12 @@ pub enum ProverSyncError {
         /// New root contained in signed update
         new_root: H256 
     },
+    /// ProverSync attempts Prover operation and receives ProverError
+    #[error("Prover error occurred: {error}.")]
+    ProverError {
+        /// Error returned by Prover operation
+        error: ProverError
+    }
 }
 
 impl ProverSync {
@@ -51,7 +57,7 @@ impl ProverSync {
             }
 
             if let Some(signed_update) = signed_update_res.unwrap() {
-                self.update_tree(local_root, signed_update.update.new_root)
+                self.update_prover_tree(local_root, signed_update.update.new_root)
                     .await?;
             }
 
@@ -64,11 +70,34 @@ impl ProverSync {
         Ok(())
     }
 
-    /// Given new root from signed update, ingest leaves one-by-one
-    /// until local root matches new root.
-    async fn update_tree(&mut self, mut local_root: H256, new_root: H256) -> Result<(), ProverSyncError> {
+    /// First attempt to update incremental merkle tree with all leaves 
+    /// produced between `local_root` and `new_root`. If successful (i.e. 
+    /// incremental tree is updated until its root equals the `new_root`), 
+    /// commit to changes by batch updating the prover's actual merkle tree.
+    async fn update_prover_tree(&mut self, local_root: H256, new_root: H256) -> Result<(), ProverSyncError> {
+        let mut leaves: Vec<H256> = Vec::new();
+
+        // If roots don't match by end of incremental update, will return 
+        // MismatchedRoots error
+        self.update_incremental(local_root, new_root, &mut leaves).await?;
+
+        let mut prover_write = self.prover.write().await;
+        for leaf in leaves.into_iter() {
+            if let Err(e) = prover_write.ingest(leaf) {
+                return Err(ProverSyncError::ProverError {error: e});
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Given `local_root` and `new_root` from signed update, ingest leaves
+    /// into incremental merkle one-by-one until local root matches new root.
+    /// If incremental merkle is up-to-date with update but roots still don't 
+    /// match, return `MismatchedRoots` error.
+    async fn update_incremental(&mut self, mut local_root: H256, new_root: H256, leaves: &mut Vec<H256>) -> Result<(), ProverSyncError> {
         while local_root != new_root {
-            let tree_size = self.prover.read().await.count();
+            let tree_size = self.incremental.count();
             let leaf_res = self.home.leaf_by_tree_size(tree_size).await;
 
             // If error retrieving leaf, log error and try again
@@ -77,19 +106,15 @@ impl ProverSync {
                 continue;
             }
 
+            // If new leaf exists, try to ingest into incremental
             if let Some(leaf) = leaf_res.unwrap() {
-                // If new leaf exists, try to ingest
-                let mut prover_write = self.prover.write().await;
-
-                // If error ingesting leaf, log error and try again
-                if let Err(e) = prover_write.ingest(leaf) {
-                    tracing::error!("Error ingesting leaf: {}", e);
-                    continue;
-                }
-                local_root = self.prover.read().await.root();
+                self.incremental.ingest(leaf);
+                leaves.push(leaf);
+                local_root = self.incremental.root();
             } else {
-                //If local tree up-to-date but doesn't match new root, bubble up MismatchedRoots error
-                local_root = self.prover.read().await.root();
+                // If local incremental tree up-to-date but doesn't match new 
+                // root, bubble up MismatchedRoots error
+                local_root = self.incremental.root();
                 if local_root != new_root {
                     return Err(ProverSyncError::MismatchedRoots {
                         local_root,
