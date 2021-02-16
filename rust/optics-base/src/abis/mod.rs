@@ -92,7 +92,7 @@ where
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         self.contract
             .update_filter()
-            .topic1(old_root)
+            .topic2(old_root)
             .query()
             .await?
             .first()
@@ -119,7 +119,7 @@ where
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         self.contract
             .update_filter()
-            .topic2(new_root)
+            .topic3(new_root)
             .query()
             .await?
             .first()
@@ -343,7 +343,7 @@ where
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         self.contract
             .update_filter()
-            .topic1(old_root)
+            .topic2(old_root)
             .query()
             .await?
             .first()
@@ -370,7 +370,7 @@ where
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         self.contract
             .update_filter()
-            .topic2(new_root)
+            .topic3(new_root)
             .query()
             .await?
             .first()
