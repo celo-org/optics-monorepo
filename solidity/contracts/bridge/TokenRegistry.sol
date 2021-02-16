@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Types.sol";
+import {BridgeMessage} from "./Types.sol";
 import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
 
-import "../UsingOptics.sol";
+import {UsingOptics, TypeCasts} from "../UsingOptics.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-
 
 // How the token registry works:
 // We sort token types as "representation" or "native".
@@ -27,7 +26,6 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 // perform a lookup in either direction
 //
 // Note that native tokens should NEVER be represented in these lookup tables.
-
 
 contract TokenRegistry is UsingOptics {
     using TypedMemView for bytes;
@@ -96,7 +94,7 @@ contract TokenRegistry is UsingOptics {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
             _id.domain = home.originDomain();
-            _id.id = addressToBytes32(_token);
+            _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
 

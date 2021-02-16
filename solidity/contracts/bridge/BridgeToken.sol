@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./OZERC20.sol";
+import {ERC20} from "./OZERC20.sol";
+import {TypeCasts} from "../UsingOptics.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -19,7 +20,7 @@ interface BridgeTokenI {
     function setDetails(
         bytes32 _name,
         bytes32 _symbol,
-        uint256 _decimals
+        uint8 _decimals
     ) external;
 }
 
@@ -56,13 +57,22 @@ contract BridgeToken is BridgeTokenI, Ownable, ERC20 {
         return _decimals;
     }
 
-    function burn(address from, uint256 amnt) external override onlyOwner {}
+    function burn(address from, uint256 amnt) external override onlyOwner {
+        _burn(from, amnt);
+    }
 
-    function mint(address to, uint256 amnt) external override onlyOwner {}
+    function mint(address to, uint256 amnt) external override onlyOwner {
+        _mint(to, amnt);
+    }
 
     function setDetails(
-        bytes32 _name,
-        bytes32 _symbol,
-        uint256 _decimals
-    ) external override onlyOwner {}
+        bytes32 _newName,
+        bytes32 _newSymbol,
+        uint8 _newDecimals
+    ) external override onlyOwner {
+        // careful with naming convention change here
+        _name = TypeCasts.coerceString(_newName);
+        _symbol = TypeCasts.coerceString(_newSymbol);
+        _decimals = _newDecimals;
+    }
 }

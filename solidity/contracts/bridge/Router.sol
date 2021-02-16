@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Types.sol";
-import "./TokenRegistry.sol";
+import {BridgeMessage} from "./Types.sol";
+import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
+
+import {TypeCasts, OpticsHandlerI} from "../UsingOptics.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
@@ -139,8 +141,8 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
 
         bytes29 _action =
             BridgeMessage.formatDetails(
-                coerceBytes32(_tok.name()),
-                coerceBytes32(_tok.symbol()),
+                TypeCasts.coerceBytes32(_tok.name()),
+                TypeCasts.coerceBytes32(_tok.symbol()),
                 _tok.decimals()
             );
 
