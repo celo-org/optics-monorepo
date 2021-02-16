@@ -19,7 +19,11 @@ mod test {
     // Prints domain hashes used in solidity/test/domainHashTestCases.sol
     fn output_domain_hashes() {
         for n in 1..=3 {
-            println!("Domain hash for origin domain of {}: {:?}", n, domain_hash(n));
+            println!(
+                "Domain hash for origin domain of {}: {:?}",
+                n,
+                domain_hash(n)
+            );
         }
     }
 }

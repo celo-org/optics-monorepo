@@ -467,7 +467,7 @@ where
 
         Ok(events.into_iter().next().map(|f| f.message))
     }
-    
+
     async fn leaf_by_tree_size(
         &self,
         tree_size: usize,
