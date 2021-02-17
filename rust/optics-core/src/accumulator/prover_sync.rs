@@ -35,6 +35,12 @@ pub enum ProverSyncError {
         /// New root contained in signed update
         new_root: H256,
     },
+    /// Local root was never signed by updater and submitted to Home.
+    #[error("Local root {local_root} was never signed by updater and submitted to Home.")]
+    InvalidLocalRoot {
+        /// Root of prover's local merkle tree
+        local_root: H256,
+    },
     /// ProverSync attempts Prover operation and receives ProverError
     #[error(transparent)]
     ProverError(#[from] ProverError),
@@ -73,6 +79,8 @@ impl ProverSync {
             if let Some(signed_update) = signed_update_opt {
                 self.update_prover_tree(local_root, signed_update.update.new_root)
                     .await?;
+            } else if self.home.signed_update_by_new_root(local_root).await?.is_none() {
+                return Err(ProverSyncError::InvalidLocalRoot{ local_root });
             }
 
             if let Err(TryRecvError::Closed) = self.rx.try_recv() {
