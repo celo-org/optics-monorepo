@@ -114,6 +114,10 @@ impl ProverSync {
 
         while local_root != new_root {
             let tree_size = incremental.count();
+
+            // As we fill the incremental merkle, its tree_size will always be
+            // equal to the index of the next leaf we want (e.g. if tree_size 
+            // is 3, we want the 4th leaf, which is at index 3)
             let leaf_opt = self.home.leaf_by_tree_index(tree_size).await?;
 
             if let Some(leaf) = leaf_opt {
@@ -121,7 +125,7 @@ impl ProverSync {
                 leaves.push(leaf);
                 local_root = incremental.root();
             } else {
-                // If local incremental tree up-to-date but doesn't match new
+                // If local incremental tree is up-to-date but doesn't match new
                 // root, bubble up MismatchedRoots error
                 local_root = incremental.root();
                 if local_root != new_root {
