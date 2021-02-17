@@ -72,6 +72,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         tree.insert(_leaf);
         queue.enqueue(root());
 
+        // leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
             count() - 1,
             calcDestinationAndSequence(destination, sequence), 
