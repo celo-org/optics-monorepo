@@ -5,7 +5,6 @@ use crate::{
     },
     traits::{ChainCommunicationError, Home},
 };
-use color_eyre::Result;
 use ethers::core::types::H256;
 use std::{sync::Arc, time::Duration};
 use tokio::{
@@ -38,10 +37,10 @@ pub enum ProverSyncError {
     },
     /// ProverSync attempts Prover operation and receives ProverError
     #[error(transparent)]
-    ProverError(ProverError),
+    ProverError(#[from] ProverError),
     /// ProverSync receives ChainCommunicationError from chain API
     #[error(transparent)]
-    ChainCommunicationError(ChainCommunicationError),
+    ChainCommunicationError(#[from] ChainCommunicationError),
 }
 
 impl ProverSync {
@@ -56,11 +55,7 @@ impl ProverSync {
         loop {
             let local_root = self.prover.read().await.root();
 
-            let signed_update_opt = self
-                .home
-                .signed_update_by_old_root(local_root)
-                .await
-                .map_err(|e| ProverSyncError::ChainCommunicationError(e))?;
+            let signed_update_opt = self.home.signed_update_by_old_root(local_root).await?;
 
             if let Some(signed_update) = signed_update_opt {
                 self.update_prover_tree(local_root, signed_update.update.new_root)
@@ -119,11 +114,7 @@ impl ProverSync {
 
         while local_root != new_root {
             let tree_size = incremental.count();
-            let leaf_opt = self
-                .home
-                .leaf_by_tree_index(tree_size)
-                .await
-                .map_err(|e| ProverSyncError::ChainCommunicationError(e))?;
+            let leaf_opt = self.home.leaf_by_tree_index(tree_size).await?;
 
             if let Some(leaf) = leaf_opt {
                 incremental.ingest(leaf);
