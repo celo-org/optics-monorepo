@@ -26,7 +26,7 @@ pub struct Watcher {
 
 #[allow(clippy::unit_arg)]
 impl Watcher {
-    /// Instantiates a new watcher
+    /// Instantiate a new watcher.
     pub fn new(interval_seconds: u64) -> Self {
         Self {
             interval_seconds,
@@ -34,6 +34,10 @@ impl Watcher {
         }
     }
 
+    /// Check that signed update received by Home or Replica isn't a double 
+    /// update. If update is new, add to local history. If update already exists
+    /// in history and has a different `new_root` than the current signed 
+    /// update, try to submit double update proof.
     async fn check_double_update<C: Common + ?Sized>(
         &self,
         common: &Arc<Box<C>>,
@@ -54,6 +58,14 @@ impl Watcher {
         Ok(())
     }
 
+    /// Check that signed update received by Replica isn't fraudulent and has
+    /// been submitted to the Home. If the signed update doesn't exist on Home 
+    /// and was indeed polled from the Replica, it is fraudulent, as this means 
+    /// the updater signed data and submitted it to the Replica but not the 
+    /// Home. If the signed_update wasn't actually polled from the Replica 
+    /// (e.g. it was read from the tx pool), the update might still be honest 
+    /// (could just be waiting in the Home queue), in which case `home.
+    /// improper_update()` will not end up slashing the updater.
     async fn check_fraudulent_update(
         &self,
         home: &Arc<Box<dyn Home>>,
@@ -68,6 +80,7 @@ impl Watcher {
         Ok(())
     }
 
+    /// Polls home for signed updates and checks for double update fraud.
     async fn watch_home(&self, home: Arc<Box<dyn Home>>) -> Result<()> {
         let mut interval = self.interval();
 
@@ -87,6 +100,8 @@ impl Watcher {
         }
     }
 
+    /// Polls replica for signed updates and checks for both double update
+    /// fraud and fraudulent updates.
     async fn watch_replica(&self, home: Arc<Box<dyn Home>>, replica: Arc<Box<dyn Replica>>) -> Result<()> {
         let mut interval = self.interval();
 
