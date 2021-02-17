@@ -3,6 +3,7 @@
 pub mod incremental;
 /// A full incremental merkle. Suitable for running off-chain.
 pub mod merkle;
+
 /// A wrapper around an incremental and a full merkle, with added safety and
 /// convenience. Useful for producing proofs that either may verify.
 pub mod prover;

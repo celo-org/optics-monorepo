@@ -1,7 +1,5 @@
 use async_trait::async_trait;
-
-use color_eyre::eyre::Chain;
-use ethers::core::types::{H256, U256};
+use ethers::core::types::{H256};
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
@@ -67,7 +65,7 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
 
     /// Fetch the tree_size-th leaf inserted into the merkle tree.
     /// Returns `Ok(None)` if no leaf exists for given `tree_size`.
-    async fn leaf_by_tree_size(
+    async fn leaf_by_tree_index(
         &self,
         tree_size: usize,
     ) -> Result<Option<H256>, ChainCommunicationError>;

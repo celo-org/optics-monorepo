@@ -470,7 +470,7 @@ where
         Ok(events.into_iter().next().map(|f| f.message))
     }
 
-    async fn leaf_by_tree_size(
+    async fn leaf_by_tree_index(
         &self,
         tree_size: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
