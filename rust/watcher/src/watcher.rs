@@ -34,7 +34,7 @@ impl Watcher {
         }
     }
 
-    async fn handle_new_update<C: Common + ?Sized>(
+    async fn check_double_update<C: Common + ?Sized>(
         &self,
         common: &Arc<Box<C>>,
         signed_update: &SignedUpdate,
@@ -54,19 +54,53 @@ impl Watcher {
         Ok(())
     }
 
-    async fn watch<C: Common + ?Sized>(&self, common: Arc<Box<C>>) -> Result<()> {
+    async fn check_fraudulent_update(
+        &self,
+        home: &Arc<Box<dyn Home>>,
+        signed_update: &SignedUpdate,
+    ) -> Result<()> {
+        let new_root = signed_update.update.new_root;
+        if home.signed_update_by_new_root(new_root).await?.is_none() {
+            home.improper_update(signed_update).await?;
+            // TODO: tell UsingOptics contract to halt replicas
+        }
+
+        Ok(())
+    }
+
+    async fn watch_home(&self, home: Arc<Box<dyn Home>>) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
-            let update_res = common.poll_signed_update().await;
+            let update_res = home.poll_signed_update().await;
 
             if let Err(ref e) = update_res {
-                tracing::error!("Error polling update: {:?}", e)
+                tracing::error!("Error polling update: {:?}", e);
             }
 
             let update_opt = update_res?;
             if let Some(ref new_update) = update_opt {
-                self.handle_new_update(&common, new_update).await?
+                self.check_double_update(&home, new_update).await?;
+            }
+
+            interval.tick().await;
+        }
+    }
+
+    async fn watch_replica(&self, home: Arc<Box<dyn Home>>, replica: Arc<Box<dyn Replica>>) -> Result<()> {
+        let mut interval = self.interval();
+
+        loop {
+            let update_res = replica.poll_signed_update().await;
+
+            if let Err(ref e) = update_res {
+                tracing::error!("Error polling update: {:?}", e);
+            }
+
+            let update_opt = update_res?;
+            if let Some(ref new_update) = update_opt {
+                self.check_double_update(&replica, new_update).await?;
+                self.check_fraudulent_update(&home, new_update).await?;
             }
 
             interval.tick().await;
@@ -84,12 +118,12 @@ impl Watcher {
 impl OpticsAgent for Watcher {
     async fn run(
         &self,
-        _home: Arc<Box<dyn Home>>,
+        home: Arc<Box<dyn Home>>,
         replica: Option<Box<dyn Replica>>,
     ) -> Result<()> {
         ensure!(replica.is_some(), "Watcher must have replica.");
         let replica = Arc::new(replica.unwrap());
-        self.watch(replica).await
+        self.watch_replica(home, replica).await
     }
 
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
@@ -100,7 +134,7 @@ impl OpticsAgent for Watcher {
             .map(|replica| self.run_report_error(home.clone(), Some(replica)))
             .collect();
 
-        let home_fut = self.watch(home.clone());
+        let home_fut = self.watch_home(home.clone());
         futs.push(Box::pin(home_fut));
 
         loop {
