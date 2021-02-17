@@ -51,11 +51,7 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(
-        prover: Arc<RwLock<Prover>>, 
-        home: Arc<Box<dyn Home>>, 
-        rx: Receiver<()>
-    ) -> Self {
+    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Box<dyn Home>>, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,
@@ -63,6 +59,7 @@ impl ProverSync {
             rx,
         }
     }
+    
     /// Poll for signed updates at regular interval and update
     /// local merkle tree with all leaves between local root and
     /// new root. Use short interval for bootup syncing and longer
@@ -79,8 +76,13 @@ impl ProverSync {
             if let Some(signed_update) = signed_update_opt {
                 self.update_prover_tree(local_root, signed_update.update.new_root)
                     .await?;
-            } else if self.home.signed_update_by_new_root(local_root).await?.is_none() {
-                return Err(ProverSyncError::InvalidLocalRoot{ local_root });
+            } else if self
+                .home
+                .signed_update_by_new_root(local_root)
+                .await?
+                .is_none()
+            {
+                return Err(ProverSyncError::InvalidLocalRoot { local_root });
             }
 
             if let Err(TryRecvError::Closed) = self.rx.try_recv() {
@@ -111,8 +113,8 @@ impl ProverSync {
         let mut prover = self.prover.write().await;
 
         // Check that local root still equals prover's root just in case
-        // another entity wrote to prover while we were building the leaf 
-        // vector. If roots no longer match, return Ok(()) and restart 
+        // another entity wrote to prover while we were building the leaf
+        // vector. If roots no longer match, return Ok(()) and restart
         // poll_updates loop.
         if local_root != prover.root() {
             return Ok(());
@@ -146,7 +148,7 @@ impl ProverSync {
             let tree_size = incremental.count();
 
             // As we fill the incremental merkle, its tree_size will always be
-            // equal to the index of the next leaf we want (e.g. if tree_size 
+            // equal to the index of the next leaf we want (e.g. if tree_size
             // is 3, we want the 4th leaf, which is at index 3)
             let leaf_opt = self.home.leaf_by_tree_index(tree_size).await?;
 
