@@ -1,7 +1,10 @@
-use crate::{accumulator::{
+use crate::{
+    accumulator::{
         incremental::IncrementalMerkle,
         prover::{Prover, ProverError},
-    }, traits::{ChainCommunicationError, Home}};
+    },
+    traits::{ChainCommunicationError, Home},
+};
 use color_eyre::Result;
 use ethers::core::types::H256;
 use std::{sync::Arc, time::Duration};
@@ -54,7 +57,9 @@ impl ProverSync {
         loop {
             let local_root = self.prover.read().await.root();
 
-            let signed_update_opt = self.home.signed_update_by_old_root(local_root)
+            let signed_update_opt = self
+                .home
+                .signed_update_by_old_root(local_root)
                 .await
                 .map_err(|e| ProverSyncError::ChainCommunicationError(e))?;
 
@@ -84,19 +89,21 @@ impl ProverSync {
     ) -> Result<(), ProverSyncError> {
         // If roots don't match by end of incremental update, will return
         // MismatchedRoots error
-        let leaves = self.update_incremental_and_return_leaves(local_root, new_root).await?;
+        let leaves = self
+            .update_incremental_and_return_leaves(local_root, new_root)
+            .await?;
 
         let mut prover_write = self.prover.write().await;
         prover_write.extend(leaves.into_iter());
         assert_eq!(new_root, prover_write.root());
-        
+
         Ok(())
     }
 
     /// Given `local_root` and `new_root` from signed update, ingest leaves
     /// into incremental merkle one-by-one until local root matches new root
-    /// and return ingested leaves if successful. If incremental merkle is 
-    /// up-to-date with update but roots still don't match, return 
+    /// and return ingested leaves if successful. If incremental merkle is
+    /// up-to-date with update but roots still don't match, return
     /// `MismatchedRoots` error.
     #[tracing::instrument(err)]
     async fn update_incremental_and_return_leaves(
@@ -105,7 +112,7 @@ impl ProverSync {
         new_root: H256,
     ) -> Result<Vec<H256>, ProverSyncError> {
         let mut leaves: Vec<H256> = Vec::new();
-        
+
         // Create clone of ProverSync's incremental so we can easily discard
         // changes in case of bad update
         let mut incremental = self.incremental.clone();
@@ -113,7 +120,9 @@ impl ProverSync {
 
         while local_root != new_root {
             let tree_size = incremental.count();
-            let leaf_opt = self.home.leaf_by_tree_index(tree_size)
+            let leaf_opt = self
+                .home
+                .leaf_by_tree_index(tree_size)
                 .await
                 .map_err(|e| ProverSyncError::ChainCommunicationError(e))?;
 
