@@ -29,7 +29,7 @@ pub struct ProverSync {
 #[derive(Debug, thiserror::Error)]
 pub enum ProverSyncError {
     /// Local tree up-to-date but root does not match signed update"
-    #[error("Local tree up-to-date but root does not match update. Local root: {local_root}. Update root: {new_root}. WARNING: this could indicate malicious updater or long reorganiation process!")]
+    #[error("Local tree up-to-date but root does not match update. Local root: {local_root}. Update root: {new_root}. WARNING: this could indicate malicious updater and/or long reorganization process!")]
     MismatchedRoots {
         /// Root of prover's local merkle tree
         local_root: H256,
