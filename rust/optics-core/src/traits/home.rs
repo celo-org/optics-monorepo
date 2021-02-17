@@ -63,11 +63,15 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
             .map_err(Into::into)
     }
 
-    /// Fetch the tree_size-th leaf inserted into the merkle tree.
+    /// Fetch the tree_index-th leaf inserted into the merkle tree.
     /// Returns `Ok(None)` if no leaf exists for given `tree_size`.
+    /// If tree_index == 0, this will return the first enqueued leaf.
+    /// This is because the Home emits the index at which the leaf was
+    /// inserted in (tree.count() - 1), thus the first enqueued leaf has
+    /// an index of 0.
     async fn leaf_by_tree_index(
         &self,
-        tree_size: usize,
+        tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError>;
 
     /// Fetch the sequence

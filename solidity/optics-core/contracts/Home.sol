@@ -15,7 +15,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     ISortition sortition;
 
     event Dispatch(
-        uint256 indexed treeSize,
+        uint256 indexed leafIndex,
         uint64 indexed destinationAndSequence,
         bytes32 indexed leaf,
         bytes message
@@ -73,7 +73,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         queue.enqueue(root());
 
         emit Dispatch(
-            count(),
+            count() - 1,
             calcDestinationAndSequence(destination, sequence), 
             _leaf, 
             _message);

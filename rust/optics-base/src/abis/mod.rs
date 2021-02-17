@@ -472,12 +472,12 @@ where
 
     async fn leaf_by_tree_index(
         &self,
-        tree_size: usize,
+        tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         Ok(self
             .contract
             .dispatch_filter()
-            .topic1(U256::from(tree_size))
+            .topic1(U256::from(tree_index))
             .query()
             .await?
             .first()
