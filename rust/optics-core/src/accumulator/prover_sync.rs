@@ -87,9 +87,18 @@ impl ProverSync {
             .update_incremental_and_return_leaves(local_root, new_root)
             .await?;
 
-        let mut prover_write = self.prover.write().await;
-        prover_write.extend(leaves.into_iter());
-        assert_eq!(new_root, prover_write.root());
+        let mut prover = self.prover.write().await;
+
+        // Check that local root still equals prover's root just in case
+        // another entity wrote to prover while we were building the leaf 
+        // vector. If roots no longer match, return Ok(()) and restart 
+        // poll_updates loop.
+        if local_root != prover.root() {
+            return Ok(());
+        }
+
+        prover.extend(leaves.into_iter());
+        assert_eq!(new_root, prover.root());
 
         Ok(())
     }
