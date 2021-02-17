@@ -44,6 +44,19 @@ pub enum ProverSyncError {
 }
 
 impl ProverSync {
+    /// Instantiates a new ProverSync.
+    pub fn new(
+        prover: Arc<RwLock<Prover>>, 
+        home: Arc<Box<dyn Home>>, 
+        rx: Receiver<()>
+    ) -> Self {
+        Self {
+            prover,
+            home,
+            incremental: IncrementalMerkle::default(),
+            rx,
+        }
+    }
     /// Poll for signed updates at regular interval and update
     /// local merkle tree with all leaves between local root and
     /// new root. Use short interval for bootup syncing and longer
