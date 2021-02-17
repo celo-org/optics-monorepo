@@ -19,7 +19,7 @@ pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Box<dyn Home>>,
     incremental: IncrementalMerkle,
-    num_retries: i32,
+    num_retries: u32,
     rx: Receiver<()>,
 }
 
