@@ -75,6 +75,12 @@ pub enum EthereumSigner {
     Node,
 }
 
+impl Default for EthereumSigner {
+    fn default() -> Self {
+        Self::Node
+    }
+}
+
 impl EthereumSigner {
     // TODO: allow ledger or other signer traits?
     /// Try to conver the ethereum signer to a local wallet
@@ -91,6 +97,7 @@ impl EthereumSigner {
 #[derive(Debug, serde::Deserialize)]
 pub struct EthereumConf {
     connection: EthereumConnection,
+    #[serde(default)]
     signer: EthereumSigner,
 }
 
