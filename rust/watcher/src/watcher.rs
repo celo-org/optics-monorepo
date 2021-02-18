@@ -75,6 +75,7 @@ impl Watcher {
         if home.signed_update_by_new_root(new_root).await?.is_none() {
             home.improper_update(signed_update).await?;
             // TODO: tell UsingOptics contract to halt replicas
+            std::todo!()
         }
 
         Ok(())
