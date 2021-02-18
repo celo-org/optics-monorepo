@@ -64,8 +64,8 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
         bytes29 _msg = _message.ref(0).mustBeMessage();
         bytes29 _tokenId = _msg.tokenId();
         bytes29 _action = _msg.action();
-        if (_action.isXfer()) {
-            return handleXfer(_tokenId, _action);
+        if (_action.isTransfer()) {
+            return handleTransfer(_tokenId, _action);
         }
         if (_action.isDetails()) {
             return handleDetails(_tokenId, _action);
@@ -74,10 +74,10 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
         return hex"";
     }
 
-    function handleXfer(bytes29 _tokenId, bytes29 _action)
+    function handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Xfer)
+        typeAssert(_action, BridgeMessage.Types.Transfer)
         returns (bytes memory)
     {
         IERC20 _token = ensureToken(_tokenId);
@@ -127,7 +127,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
         TokenId memory _tokId = tokenIdFor(_token);
         bytes29 _tokenId =
             BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
-        bytes29 _action = BridgeMessage.formatXfer(_recipient, _amnt);
+        bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
 
         home.enqueue(
             _destination,

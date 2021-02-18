@@ -8,12 +8,12 @@ library BridgeMessage {
     using TypedMemView for bytes29;
 
     uint256 private constant TOKEN_ID_LEN = 36;
-    uint256 private constant XFER_LEN = 64;
+    uint256 private constant TRANSFER_LEN = 64;
     uint256 private constant DETAILS_LEN = 65;
 
     enum Types {
         Invalid, // 0
-        Xfer, // 1
+        Transfer, // 1
         Details, // 2
         TokenId, // 3
         Message // 4
@@ -28,20 +28,20 @@ library BridgeMessage {
         return Types(uint8(_view.typeOf()));
     }
 
-    function isXfer(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.Xfer;
+    function isTransfer(bytes29 _view) internal pure returns (bool) {
+        return messageType(_view) == Types.Transfer;
     }
 
     function isDetails(bytes29 _view) internal pure returns (bool) {
         return messageType(_view) == Types.Details;
     }
 
-    function formatXfer(bytes32 _to, uint256 _amnt)
+    function formatTransfer(bytes32 _to, uint256 _amnt)
         internal
         pure
         returns (bytes29)
     {
-        return mustBeXfer(abi.encodePacked(_to, _amnt).ref(0));
+        return mustBeTransfer(abi.encodePacked(_to, _amnt).ref(0));
     }
 
     function formatDetails(
@@ -67,7 +67,7 @@ library BridgeMessage {
         typeAssert(_tokenId, Types.TokenId)
         returns (bytes memory)
     {
-        require(isDetails(_action) || isXfer(_action), "!action");
+        require(isDetails(_action) || isTransfer(_action), "!action");
         bytes29[] memory _views = new bytes29[](2);
         _views[0] = _tokenId;
         _views[1] = _action;
@@ -105,7 +105,7 @@ library BridgeMessage {
     function recipient(bytes29 _view)
         internal
         pure
-        typeAssert(_view, Types.Xfer)
+        typeAssert(_view, Types.Transfer)
         returns (bytes32)
     {
         return _view.index(0, 32);
@@ -114,7 +114,7 @@ library BridgeMessage {
     function evmRecipient(bytes29 _view)
         internal
         pure
-        typeAssert(_view, Types.Xfer)
+        typeAssert(_view, Types.Transfer)
         returns (address)
     {
         return _view.indexAddress(12);
@@ -123,7 +123,7 @@ library BridgeMessage {
     function amnt(bytes29 _view)
         internal
         pure
-        typeAssert(_view, Types.Xfer)
+        typeAssert(_view, Types.Transfer)
         returns (uint256)
     {
         return _view.indexUint(32, 32);
@@ -182,14 +182,14 @@ library BridgeMessage {
         return
             _view.slice(
                 TOKEN_ID_LEN,
-                TOKEN_ID_LEN + XFER_LEN,
-                uint40(Types.Xfer)
+                TOKEN_ID_LEN + TRANSFER_LEN,
+                uint40(Types.Transfer)
             );
     }
 
-    function tryAsXfer(bytes29 _view) internal pure returns (bytes29) {
-        if (_view.len() == XFER_LEN) {
-            return _view.castTo(uint40(Types.Xfer));
+    function tryAsTransfer(bytes29 _view) internal pure returns (bytes29) {
+        if (_view.len() == TRANSFER_LEN) {
+            return _view.castTo(uint40(Types.Transfer));
         }
         return TypedMemView.nullView();
     }
@@ -211,7 +211,7 @@ library BridgeMessage {
     function tryAsMessage(bytes29 _view) internal pure returns (bytes29) {
         uint256 _len = _view.len();
         if (
-            _len == TOKEN_ID_LEN + XFER_LEN ||
+            _len == TOKEN_ID_LEN + TRANSFER_LEN ||
             _len == TOKEN_ID_LEN + DETAILS_LEN
         ) {
             return _view.castTo(uint40(Types.Message));
@@ -219,12 +219,12 @@ library BridgeMessage {
         return TypedMemView.nullView();
     }
 
-    function mustBeXfer(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsXfer(_view).assertValid();
+    function mustBeTransfer(bytes29 _view) internal pure returns (bytes29) {
+        return tryAsTransfer(_view).assertValid();
     }
 
     function mustBeDetails(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsXfer(_view).assertValid();
+        return tryAsTransfer(_view).assertValid();
     }
 
     function mustBeTokenId(bytes29 _view) internal pure returns (bytes29) {
