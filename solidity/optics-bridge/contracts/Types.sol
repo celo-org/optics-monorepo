@@ -224,7 +224,7 @@ library BridgeMessage {
     }
 
     function mustBeDetails(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsTransfer(_view).assertValid();
+        return tryAsDetails(_view).assertValid();
     }
 
     function mustBeTokenId(bytes29 _view) internal pure returns (bytes29) {
