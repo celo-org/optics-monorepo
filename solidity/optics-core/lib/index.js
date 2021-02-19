@@ -130,10 +130,21 @@ extendEnvironment((hre) => {
     );
   };
 
+  const messageToLeaf = (message) => {
+    return ethers.utils.solidityKeccak256(['bytes'], [message]);
+  };
+
   const ethersAddressToBytes32 = (address) => {
     return ethers.utils
       .hexZeroPad(ethers.utils.hexStripZeros(address), 32)
       .toLowerCase();
+  };
+
+  const calcDestinationAndSequence = (destination, sequence) => {
+    return (
+      (ethers.BigNumber.from(destination) << 32) &
+      ethers.BigNumber.from(sequence)
+    );
   };
 
   hre.optics = {
@@ -144,7 +155,9 @@ extendEnvironment((hre) => {
     Replica,
     Updater,
     formatMessage,
+    messageToLeaf,
     ethersAddressToBytes32,
+    calcDestinationAndSequence,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {
