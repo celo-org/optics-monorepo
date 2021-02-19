@@ -10,7 +10,7 @@ describe('Home', async () => {
   let home, signer, fakeSigner, updater, fakeUpdater, recipient;
 
   // Helper function that enqueues message and returns its root.
-  // The message recipient the same for all messages enqueued.
+  // The message recipient is the same for all messages enqueued.
   const enqueueMessageAndGetRoot = async (message) => {
     message = ethers.utils.formatBytes32String(message);
     await home.enqueue(

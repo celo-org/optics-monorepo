@@ -47,6 +47,16 @@ extendEnvironment((hre) => {
         update.signature,
       );
     }
+
+    // Returns list of Dispatch events with given destination and sequence
+    async dispatchByDestinationAndSequence(destination, sequence) {
+      const filter = this.filters.Dispatch(
+        null,
+        calcDestinationAndSequence(destination, sequence),
+      );
+
+      return await this.queryFilter(filter);
+    }
   }
 
   class Replica extends Common {
