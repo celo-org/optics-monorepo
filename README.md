@@ -41,7 +41,7 @@ messages, which are put into a merkle tree (the "message tree"). The message
 tree's root may be transferred to any number of "replica" chains.
 
 Rather than proving validity of the commitment, we put a delay on message
-receipt, and ensure that failures are publicly visible. This ensure that
+receipt, and ensure that failures are publicly visible. This ensures that
 participants in the protocol have a chance to react to failures before the
 failure can harm them. Which is to say, rather than preventing the inclusion of
 bad messages, Optics guarantees that message recipients are aware of the

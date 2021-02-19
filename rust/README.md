@@ -19,7 +19,7 @@
 ### Useful cargo extensions
 
 - tree
-  - show the dependency tree. Allows searchign for specific packages
+  - show the dependency tree. Allows searching for specific packages
   - install: `cargo install cargo-tree`
   - invoke: `cargo tree`
 - clippy
