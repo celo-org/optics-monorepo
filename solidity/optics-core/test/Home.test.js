@@ -3,22 +3,27 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
 
-const originDomain = 1234;
+const originDomain = 1000;
+const destDomain = 2000;
 
 describe('Home', async () => {
-  let home, signer, fakeSigner, updater, fakeUpdater;
+  let home, signer, fakeSigner, updater, fakeUpdater, recipient;
 
-  // Helper function that enqueues message and returns its root
-  const enqueueMessageAndGetRoot = async (message, recipient) => {
+  // Helper function that enqueues message and returns its root.
+  // The message recipient the same for all messages enqueued.
+  const enqueueMessageAndGetRoot = async (message) => {
     message = ethers.utils.formatBytes32String(message);
-    recipient = ethers.utils.formatBytes32String(recipient);
-    await home.enqueue(originDomain, recipient, message);
+    await home.enqueue(
+      destDomain,
+      optics.ethersAddressToBytes32(recipient.address),
+      message,
+    );
     const [_currentRoot, latestRoot] = await home.suggestUpdate();
     return latestRoot;
   };
 
   before(async () => {
-    [signer, fakeSigner] = provider.getWallets();
+    [signer, fakeSigner, recipient] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, originDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
   });
@@ -37,19 +42,59 @@ describe('Home', async () => {
     await home.setFailed();
     expect(await home.state()).to.equal(optics.State.FAILED);
 
-    const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
     await expect(
-      home.enqueue(originDomain, recipient, message),
+      home.enqueue(
+        destDomain,
+        optics.ethersAddressToBytes32(recipient.address),
+        message,
+      ),
     ).to.be.revertedWith('failed state');
+  });
+
+  it('Enqueues a message', async () => {
+    const message = ethers.utils.formatBytes32String('message');
+    const sequence = (await home.sequences(originDomain)) + 1;
+
+    // Format data that will be emitted from Dispatch event
+    const destinationAndSequence = optics.calcDestinationAndSequence(
+      destDomain,
+      sequence,
+    );
+    const formattedMessage = optics.formatMessage(
+      originDomain,
+      signer.address,
+      sequence,
+      destDomain,
+      recipient.address,
+      message,
+    );
+    const leaf = optics.messageToLeaf(formattedMessage);
+    const leafIndex = await home.currentLeafIndex();
+
+    // Send message with signer address as msg.sender
+    await expect(
+      home
+        .connect(signer)
+        .enqueue(
+          destDomain,
+          optics.ethersAddressToBytes32(recipient.address),
+          message,
+        ),
+    )
+      .to.emit(home, 'Dispatch')
+      .withArgs(destinationAndSequence, leafIndex, leaf, formattedMessage);
   });
 
   it('Suggests current root and latest root on suggestUpdate', async () => {
     const currentRoot = await home.current();
 
-    const recipient = ethers.utils.formatBytes32String('recipient');
     const message = ethers.utils.formatBytes32String('message');
-    await home.enqueue(originDomain, recipient, message);
+    await home.enqueue(
+      destDomain,
+      optics.ethersAddressToBytes32(recipient.address),
+      message,
+    );
     const latestEnqueuedRoot = await home.queueEnd();
 
     const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
@@ -59,7 +104,7 @@ describe('Home', async () => {
 
   it('Accepts a valid update', async () => {
     const currentRoot = await home.current();
-    const newRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+    const newRoot = await enqueueMessageAndGetRoot('message');
 
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
     await expect(home.update(currentRoot, newRoot, signature))
@@ -71,8 +116,8 @@ describe('Home', async () => {
 
   it('Rejects update that does not build off of current root', async () => {
     // First root is current root
-    const secondRoot = await enqueueMessageAndGetRoot('message', 'recipient');
-    const thirdRoot = await enqueueMessageAndGetRoot('message2', 'recipient2');
+    const secondRoot = await enqueueMessageAndGetRoot('message');
+    const thirdRoot = await enqueueMessageAndGetRoot('message2');
 
     // Try to submit update that skips the current (first) root
     const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
@@ -96,7 +141,7 @@ describe('Home', async () => {
 
   it('Rejects update from non-updater address', async () => {
     const currentRoot = await home.current();
-    const newRoot = await enqueueMessageAndGetRoot('message', 'recipient');
+    const newRoot = await enqueueMessageAndGetRoot('message');
 
     const { signature: fakeSignature } = await fakeUpdater.signUpdate(
       currentRoot,
@@ -109,8 +154,8 @@ describe('Home', async () => {
 
   it('Fails on valid double update proof', async () => {
     const firstRoot = await home.current();
-    const secondRoot = await enqueueMessageAndGetRoot('message', 'recipient');
-    const thirdRoot = await enqueueMessageAndGetRoot('message2', 'recipient2');
+    const secondRoot = await enqueueMessageAndGetRoot('message');
+    const thirdRoot = await enqueueMessageAndGetRoot('message2');
 
     const { signature } = await updater.signUpdate(firstRoot, secondRoot);
     const { signature: signature2 } = await updater.signUpdate(
