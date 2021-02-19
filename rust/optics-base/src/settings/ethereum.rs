@@ -4,6 +4,7 @@ use color_eyre::{eyre::eyre, Report, Result};
 use ethers::core::types::Address;
 
 use optics_core::traits::{Home, Replica};
+use optics_ethereum;
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]

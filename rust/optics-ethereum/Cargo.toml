@@ -1,10 +1,12 @@
 [package]
-name = "optics-base"
+name = "optics-ethereum"
 version = "0.1.0"
-authors = ["James Prestwich <prestwich@clabs.co>"]
+authors = ["Erin Hales <mcbridee093@gmail.com>"]
 edition = "2018"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+// TODO: Clean up dependencies
 [dependencies]
 # Main block
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
@@ -21,8 +23,4 @@ tracing-futures = "0.2.4"
 tracing-subscriber = "0.2.15"
 
 optics-core = { path = "../optics-core" }
-optics-ethereum = { path = "../optics-ethereum"}
-
-[[example]]
-name = "example"
-path = "./bin/example.rs"
+optics-base = { path = "../optics-base"}

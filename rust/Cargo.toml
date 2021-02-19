@@ -3,6 +3,7 @@
 members = [
     "optics-core",
     "optics-base",
+    "optics-ethereum",
     "kathy",
     "updater",
     "relayer",

@@ -4,9 +4,13 @@ use optics_core::{
     traits::{ChainCommunicationError, Common, Home, Replica, State, TxOutcome},
     Encode, Message, SignedUpdate, StampedMessage, Update,
 };
-use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
-use crate::utils::*;
+// TODO: Should I move destination_and_sequence to optics-ethereum utils?
+use optics_base::utils::{
+    destination_and_sequence
+};
+
+use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 #[allow(missing_docs)]
 mod contracts {
