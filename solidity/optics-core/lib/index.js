@@ -2,8 +2,8 @@ require('@nomiclabs/hardhat-waffle');
 const ethers = require('ethers');
 const { extendEnvironment } = require('hardhat/config');
 
-const HomeAbi = require('./Home.abi.json');
-const ReplicaAbi = require('./ProcessingReplica.abi.json');
+const HomeAbi = require('../../../abis/Home.abi.json');
+const ReplicaAbi = require('../../../abis/ProcessingReplica.abi.json');
 
 extendEnvironment((hre) => {
   const State = {

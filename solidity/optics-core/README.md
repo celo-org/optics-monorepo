@@ -11,4 +11,3 @@ On-chain implementations of Optics in Solidity.
 
 - `npm run compile`
 - `npm run test`
-  - (no tests yet)

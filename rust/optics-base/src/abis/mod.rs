@@ -13,10 +13,10 @@ mod contracts {
     use ethers::contract::abigen;
     abigen!(
         ReplicaContractInternal,
-        "optics-base/src/abis/ProcessingReplica.abi.json"
+        "../abis/ProcessingReplica.abi.json"
     );
 
-    abigen!(HomeContractInternal, "optics-base/src/abis/Home.abi.json");
+    abigen!(HomeContractInternal, "../abis/Home.abi.json");
 }
 
 /// A struct that provides access to an Ethereum replica contract
