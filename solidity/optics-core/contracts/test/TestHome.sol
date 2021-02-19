@@ -11,6 +11,10 @@ contract TestHome is Home {
         Home(_originDomain, _sortition)
     {}
 
+    function currentLeafIndex() external view returns (uint256) {
+        return count();
+    }
+
     function setFailed() public {
         _setFailed();
     }
