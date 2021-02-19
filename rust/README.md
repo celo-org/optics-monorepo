@@ -11,7 +11,7 @@
   - generate documentation and open it in a web browser
 - `cargo build`
   - compile the project
-- `cargo run`
+- `cargo run --example example`
   - run the default executable for the current project
 - `cargo test`
   - run the tests

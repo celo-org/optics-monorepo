@@ -1,8 +1,9 @@
-[home]
+[home] # ChainSetup
 domain = 52752
 address = "0x0000000000000000000000000000000000000000"
-rpc-style = "ethereum"
+rpc-style = "ethereum" # ChainConf (flattened into ChainSetup)
     [home.config]
+    # Missing signer. Will use EthereumSigner::default()
     connection = { type = "http", url = "http://localhost:8545" }
 
 [replicas]
