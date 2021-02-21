@@ -96,7 +96,7 @@ impl Watcher {
 
     #[tracing::instrument(err)]
     /// Polls home for signed updates and checks for double update fraud.
-    async fn watch_home(&self, watcher_home: WatcherHome) -> Result<()> {
+    async fn watch_home(&self, mut watcher_home: WatcherHome) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
