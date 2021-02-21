@@ -6,10 +6,7 @@ use color_eyre::{
 use ethers::core::types::H256;
 use futures_util::future::{join_all, select_all};
 use std::{collections::HashMap, sync::Arc};
-use tokio::{
-    sync::RwLock,
-    time::{interval, Interval},
-};
+use tokio::{sync::{RwLock}, time::{interval, Interval}};
 
 use optics_base::agent::OpticsAgent;
 use optics_core::{
@@ -99,7 +96,7 @@ impl Watcher {
 
     #[tracing::instrument(err)]
     /// Polls home for signed updates and checks for double update fraud.
-    async fn watch_home(&self, home: Arc<Box<dyn Home>>) -> Result<()> {
+    async fn watch_home(&self, watcher_home: WatcherHome) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
@@ -184,13 +181,17 @@ impl OpticsAgent for Watcher {
 
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
         let home = Arc::new(home);
+        let watcher_home = WatcherHome {
+            home: home.clone(),
+            local_root: H256::default(),
+        };
 
         let mut futs: Vec<_> = replicas
             .into_iter()
             .map(|replica| self.run_report_error(home.clone(), Some(replica)))
             .collect();
 
-        let home_fut = self.watch_home(home.clone());
+        let home_fut = self.watch_home(watcher_home);
         futs.push(Box::pin(home_fut));
 
         loop {
