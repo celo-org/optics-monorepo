@@ -4,7 +4,7 @@ use color_eyre::{eyre::eyre, Report, Result};
 use ethers::core::types::Address;
 
 use optics_core::traits::{Home, Replica};
-use optics_ethereum;
+use optics_ethereum::abis::{HomeContract, ReplicaContract};
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
@@ -28,14 +28,14 @@ macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
-            Box::new(crate::abis::$contract::new(
+            Box::new(optics_ethereum::abis::$contract::new(
                 $name,
                 $domain,
                 $address,
                 provider.into(),
             ))
         } else {
-            Box::new(crate::abis::$contract::new(
+            Box::new(optics_ethereum::abis::$contract::new(
                 $name,
                 $domain,
                 $address,
