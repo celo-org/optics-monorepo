@@ -1059,6 +1059,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "rand 0.8.3",
  "serde 1.0.123",
  "serde_json",
  "thiserror",
