@@ -16,8 +16,6 @@ use optics_core::{
     traits::{Home, Replica},
 };
 
-//TODO: remove unused packages (above) and add any needed ones
-
 /// A processor agent
 #[derive(Debug)]
 pub struct Processor {
@@ -61,6 +59,14 @@ impl OpticsAgent for Processor {
         let domain = replica.destination_domain();
 
         let mut interval = self.interval();
+
+        // The basic structure of this loop is as follows:
+        // 1. Get the last processed index
+        // 2. Check if the Home knows of a message above that index
+        //      - If not, wait and poll again
+        // 3. Check if we have a proof for that message
+        //      - If not, wait and poll again
+        // 4. Submit the proof to the replica
         loop {
             let last_processed = replica.last_processed().await?;
             let index = last_processed.as_usize() + 1;
@@ -76,8 +82,6 @@ impl OpticsAgent for Processor {
 
             let proof = proof_res.unwrap();
             replica.prove_and_process(&message, &proof).await?;
-
-            // TODO: poll the Replica for confirmed updates; if there are confirmed updates, construct a proof; call proveAndProcess on the replica
 
             interval.tick().await;
         }
@@ -104,13 +108,13 @@ impl OpticsAgent for Processor {
             }
             futs = remaining;
 
-            // TODO:
+            // TODO: this is only checked when one of the replicas fails. We should fix that.
             if tx.is_closed() {
                 return sync_task.await?.wrap_err("ProverSync task has shut down");
             }
             if futs.is_empty() {
-                // TODO: is this a race condition?
-                tx.send(()).expect("!closed");
+                // We don't care if the remote is dropped, as we are shutting down anyway
+                let _ = tx.send(());
                 return Err(eyre!("All replicas have shut down"));
             }
         }
