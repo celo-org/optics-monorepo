@@ -1,11 +1,48 @@
+use std::convert::TryFrom;
+
 use async_trait::async_trait;
 use ethers::core::types::H256;
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
     utils::domain_hash,
-    Decode, Message, SignedUpdate, StampedMessage, Update,
+    Decode, Message, OpticsError, SignedUpdate, StampedMessage, Update,
 };
+
+/// A Stamped message that has been committed at some leaf index
+#[derive(Debug, Default, Clone)]
+pub struct RawCommittedMessage {
+    /// The index at which the message is committed
+    pub leaf_index: u32,
+    /// The fully detailed message that was committed
+    pub message: Vec<u8>,
+}
+
+/// A Stamped message that has been committed at some leaf index
+#[derive(Debug, Default, Clone)]
+pub struct CommittedMessage {
+    /// The index at which the message is committed
+    pub leaf_index: u32,
+    /// The fully detailed message that was committed
+    pub message: StampedMessage,
+}
+
+impl AsRef<StampedMessage> for CommittedMessage {
+    fn as_ref(&self) -> &StampedMessage {
+        &self.message
+    }
+}
+
+impl TryFrom<RawCommittedMessage> for CommittedMessage {
+    type Error = OpticsError;
+
+    fn try_from(raw: RawCommittedMessage) -> Result<Self, Self::Error> {
+        Ok(Self {
+            leaf_index: raw.leaf_index,
+            message: StampedMessage::read_from(&mut &raw.message[..])?,
+        })
+    }
+}
 
 /// Interface for the Home chain contract. Allows abstraction over different
 /// chains
@@ -27,7 +64,7 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         &self,
         destination: u32,
         sequence: u32,
-    ) -> Result<Option<Vec<u8>>, ChainCommunicationError>;
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
 
     /// Fetch the message to destination at the sequence number (or error).
     /// This should fetch events from the chain API
@@ -35,10 +72,10 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         &self,
         destination: u32,
         sequence: u32,
-    ) -> Result<Option<StampedMessage>, ChainCommunicationError> {
+    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
         self.raw_message_by_sequence(destination, sequence)
             .await?
-            .map(|buf| StampedMessage::read_from(&mut &buf[..]))
+            .map(|raw| CommittedMessage::try_from(raw))
             .transpose()
             .map_err(Into::into)
     }
@@ -48,17 +85,17 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
-    ) -> Result<Option<Vec<u8>>, ChainCommunicationError>;
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
 
     /// Look up a message by its hash.
     /// This should fetch events from the chain API
     async fn message_by_leaf(
         &self,
         leaf: H256,
-    ) -> Result<Option<StampedMessage>, ChainCommunicationError> {
+    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
         self.raw_message_by_leaf(leaf)
             .await?
-            .map(|buf| StampedMessage::read_from(&mut &buf[..]))
+            .map(|raw| CommittedMessage::try_from(raw))
             .transpose()
             .map_err(Into::into)
     }

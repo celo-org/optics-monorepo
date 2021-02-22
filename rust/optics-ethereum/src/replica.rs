@@ -211,7 +211,7 @@ where
 
     #[tracing::instrument(err)]
     async fn last_processed(&self) -> Result<U256, ChainCommunicationError> {
-        todo!()
+        Ok(self.contract.last_processed().call().await?.into())
     }
 
     #[tracing::instrument(err)]

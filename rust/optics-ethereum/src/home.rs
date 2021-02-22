@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
-    traits::{ChainCommunicationError, Common, DoubleUpdate, Home, State, TxOutcome},
+    traits::{
+        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
+    },
     Message, SignedUpdate, Update,
 };
 
@@ -186,7 +188,7 @@ where
         &self,
         destination: u32,
         sequence: u32,
-    ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         let dest_and_seq = destination_and_sequence(destination, sequence);
 
         let events = self
@@ -196,17 +198,23 @@ where
             .query()
             .await?;
 
-        Ok(events.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| RawCommittedMessage {
+            leaf_index: f.leaf_index.as_u32(),
+            message: f.message,
+        }))
     }
 
     #[tracing::instrument(err)]
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
-    ) -> Result<Option<Vec<u8>>, ChainCommunicationError> {
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         let events = self.contract.dispatch_filter().topic3(leaf).query().await?;
 
-        Ok(events.into_iter().next().map(|f| f.message))
+        Ok(events.into_iter().next().map(|f| RawCommittedMessage {
+            leaf_index: f.leaf_index.as_u32(),
+            message: f.message,
+        }))
     }
 
     async fn leaf_by_tree_index(

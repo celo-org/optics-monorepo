@@ -69,19 +69,17 @@ impl OpticsAgent for Processor {
         // 4. Submit the proof to the replica
         loop {
             let last_processed = replica.last_processed().await?;
-            let index = last_processed.as_usize() + 1;
+            let sequence = last_processed.as_u32() + 1;
 
-            let message = home
-                .message_by_sequence(domain, last_processed.as_u32())
-                .await?;
+            let message = home.message_by_sequence(domain, sequence).await?;
             reset_loop_if!(message.is_none(), interval);
 
             let message = message.unwrap();
-            let proof_res = self.prover.read().await.prove(index);
+            let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
             reset_loop_if!(proof_res.is_err(), interval);
 
             let proof = proof_res.unwrap();
-            replica.prove_and_process(&message, &proof).await?;
+            replica.prove_and_process(message.as_ref(), &proof).await?;
 
             interval.tick().await;
         }
