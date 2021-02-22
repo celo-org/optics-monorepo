@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
+    accumulator::prover::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
     Encode, SignedUpdate, StampedMessage, Update,
 };
@@ -209,21 +210,21 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn prove(
-        &self,
-        leaf: H256,
-        proof: [H256; 32],
-        index: u32,
-    ) -> Result<TxOutcome, ChainCommunicationError> {
+    async fn last_processed(&self) -> Result<U256, ChainCommunicationError> {
+        todo!()
+    }
+
+    #[tracing::instrument(err)]
+    async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();
         sol_proof
             .iter_mut()
             .enumerate()
-            .for_each(|(i, elem)| *elem = proof[i].to_fixed_bytes());
+            .for_each(|(i, elem)| *elem = proof.path[i].to_fixed_bytes());
 
         Ok(self
             .contract
-            .prove(leaf.into(), sol_proof, index.into())
+            .prove(proof.leaf.into(), sol_proof, proof.index.into())
             .send()
             .await?
             .await?
@@ -248,18 +249,17 @@ where
     async fn prove_and_process(
         &self,
         message: &StampedMessage,
-        proof: [H256; 32],
-        index: u32,
+        proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();
         sol_proof
             .iter_mut()
             .enumerate()
-            .for_each(|(i, elem)| *elem = proof[i].to_fixed_bytes());
+            .for_each(|(i, elem)| *elem = proof.path[i].to_fixed_bytes());
 
         Ok(self
             .contract
-            .prove_and_process(message.to_vec(), sol_proof, index.into())
+            .prove_and_process(message.to_vec(), sol_proof, proof.index.into())
             .send()
             .await?
             .await?

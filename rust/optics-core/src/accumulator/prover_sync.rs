@@ -60,12 +60,12 @@ impl ProverSync {
         }
     }
 
-    /// Poll for signed updates at regular interval and update
+    /// Consume self and poll for signed updates at regular interval. Update
     /// local merkle tree with all leaves between local root and
     /// new root. Use short interval for bootup syncing and longer
     /// interval for regular polling.
     #[tracing::instrument(err)]
-    async fn poll_updates(&mut self, interval_seconds: u64) -> Result<(), ProverSyncError> {
+    pub async fn poll_updates(mut self, interval_seconds: u64) -> Result<(), ProverSyncError> {
         let mut interval = interval(Duration::from_secs(interval_seconds));
 
         loop {

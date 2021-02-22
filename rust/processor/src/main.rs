@@ -8,12 +8,12 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-mod settings;
 mod processor;
+mod settings;
 
 use color_eyre::{eyre::eyre, Result};
 
-use crate::{settings::Settings, processor::Processor};
+use crate::{processor::Processor, settings::Settings};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {

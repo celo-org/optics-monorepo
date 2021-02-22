@@ -1,0 +1,26 @@
+updater = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"
+polling_interval = 100
+
+[home]
+domain = 52752
+address = "0x0000000000000000000000000000000000000000"
+rpc-style = "Ethereum"
+    [home.config]
+    signer = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"
+    connection = { type = "http", url = "http://localhost:8545" }
+
+[replicas]
+    [replicas.EthereumMainnet]
+    domain = 60
+    address = "0x0000000000000000000000000000000000000000"
+    rpc-style = "ethereum"
+        [replicas.EthereumMainnet.config]
+        signer =  {type = "hex-key", key = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"}
+        connection = { type = "ws", url = "ws://localhost:8545"}
+
+    [replicas.EthereumClassic]
+    domain = 61
+    address = "0x0000000000000000000000000000000000000000"
+    rpc-style = "ethereum"
+        [replicas.EthereumClassic.config]
+        connection = { type = "ws", url = "ws://localhost:8545"}
