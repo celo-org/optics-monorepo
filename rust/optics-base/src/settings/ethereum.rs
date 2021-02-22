@@ -27,14 +27,14 @@ macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
-            Box::new(optics_ethereum::abis::$contract::new(
+            Box::new(optics_ethereum::$contract::new(
                 $name,
                 $domain,
                 $address,
                 provider.into(),
             ))
         } else {
-            Box::new(optics_ethereum::abis::$contract::new(
+            Box::new(optics_ethereum::$contract::new(
                 $name,
                 $domain,
                 $address,

@@ -4,9 +4,17 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-/// Settings and configuration from file
+/// Home abi
 #[cfg(not(doctest))]
-pub mod abis;
+mod home;
 
+/// Replica abi
+#[cfg(not(doctest))]
+mod replica;
 /// Base trait for an agent
 mod utils;
+
+pub use home::Home;
+
+pub use replica::Replica;
+
