@@ -195,6 +195,22 @@ describe('Replica', async () => {
     expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.PENDING);
   });
 
+  it('Rejects an already-proven message', async () => {
+    const testCase = testCases[0];
+    let { leaf, index, path } = testCase.proofs[0];
+
+    await replica.setCurrentRoot(testCase.expectedRoot);
+
+    // Prove message, which changes status to MessageStatus.Pending
+    await replica.prove(leaf, path, index);
+    expect(await replica.messages(leaf)).to.equal(optics.MessageStatus.PENDING);
+
+    // Try to prove message again
+    await expect(replica.prove(leaf, path, index)).to.be.revertedWith(
+      '!MessageStatus.None',
+    );
+  });
+
   it('Rejects invalid message proof', async () => {
     // Use 1st proof of 1st merkle vector test case
     const testCase = testCases[0];
@@ -235,7 +251,7 @@ describe('Replica', async () => {
       '0x',
     );
 
-    // Set message status to Message.Pending
+    // Set message status to MessageStatus.Pending
     await replica.setMessagePending(formattedMessage);
 
     // Ensure proper static call return value
