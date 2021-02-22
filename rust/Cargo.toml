@@ -7,5 +7,6 @@ members = [
     "kathy",
     "updater",
     "relayer",
-    "watcher"
+    "watcher",
+    "processor"
 ]
