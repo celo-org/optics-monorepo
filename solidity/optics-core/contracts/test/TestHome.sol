@@ -11,7 +11,7 @@ contract TestHome is Home {
         Home(_originDomain, _sortition)
     {}
 
-    function currentLeafIndex() external view returns (uint256) {
+    function nextLeafIndex() external view returns (uint256) {
         return count();
     }
 

@@ -70,7 +70,7 @@ describe('Home', async () => {
       message,
     );
     const leaf = optics.messageToLeaf(formattedMessage);
-    const leafIndex = await home.currentLeafIndex();
+    const leafIndex = await home.nextLeafIndex();
 
     // Send message with signer address as msg.sender
     await expect(
