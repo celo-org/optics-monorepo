@@ -187,7 +187,7 @@ contract ProcessingReplica is Replica {
         bytes32[32] calldata proof,
         uint256 index
     ) public returns (bool) {
-        require(messages[leaf] == MesageStatus.None, "already processed");
+        require(messages[leaf] == MesageStatus.None, "!Message.None");
         bytes32 actual = MerkleLib.branchRoot(leaf, proof, index);
 
         // NB:
