@@ -30,7 +30,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm test && npm prettier && npm lint"
+      "pre-commit": "npm test && npm run prettier && npm run lint"
     }
   },
   "author": "James Prestwich",
