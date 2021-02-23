@@ -39,11 +39,23 @@ impl Processor {
     }
 }
 
+macro_rules! reset_loop {
+    ($interval:ident) => {{
+        $interval.tick().await;
+        continue;
+    }};
+}
+
 macro_rules! reset_loop_if {
     ($condition:expr, $interval:ident) => {
         if $condition {
-            $interval.tick().await;
-            continue;
+            reset_loop!($interval);
+        }
+    };
+    ($condition:expr, $interval:ident, $($arg:tt)*) => {
+        if $condition {
+            tracing::info!($($arg)*);
+            reset_loop!($interval);
         }
     };
 }
@@ -72,13 +84,32 @@ impl OpticsAgent for Processor {
             let sequence = last_processed.as_u32() + 1;
 
             let message = home.message_by_sequence(domain, sequence).await?;
-            reset_loop_if!(message.is_none(), interval);
+            reset_loop_if!(
+                message.is_none(),
+                interval,
+                "Remote does not contain message at {}:{}",
+                domain,
+                sequence
+            );
 
             let message = message.unwrap();
+
+            // Lock is dropped immediately
             let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
-            reset_loop_if!(proof_res.is_err(), interval);
+            reset_loop_if!(
+                proof_res.is_err(),
+                interval,
+                "Prover does not contain leaf at index {}",
+                message.leaf_index
+            );
 
             let proof = proof_res.unwrap();
+            if proof.leaf != message.message.to_leaf() {
+                let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
+                tracing::error!("{}", err);
+                color_eyre::eyre::bail!(err);
+            }
+
             replica.prove_and_process(message.as_ref(), &proof).await?;
 
             interval.tick().await;
