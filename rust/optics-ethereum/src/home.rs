@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use ethers::core::types::{Address, Signature, H256, U256};
 use ethers::contract::abigen;
+use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
     traits::{ChainCommunicationError, Common, Home, State, TxOutcome},
     Message, SignedUpdate, Update,

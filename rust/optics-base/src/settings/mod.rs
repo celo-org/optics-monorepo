@@ -1,7 +1,7 @@
 use color_eyre::Report;
 use config::{Config, ConfigError, Environment, File};
-use std::{collections::HashMap, env};
 use serde::Deserialize;
+use std::{collections::HashMap, env};
 
 use optics_core::traits::{Home, Replica};
 

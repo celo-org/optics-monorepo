@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use ethers::core::types::{Address, Signature, H256, U256};
 use ethers::contract::abigen;
+use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
     traits::{ChainCommunicationError, Common, Replica, State, TxOutcome},
     Encode, SignedUpdate, StampedMessage, Update,
@@ -9,7 +9,10 @@ use optics_core::{
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 #[allow(missing_docs)]
-abigen!(ReplicaContractInternal, "../abis/ProcessingReplica.abi.json");
+abigen!(
+    ReplicaContractInternal,
+    "../abis/ProcessingReplica.abi.json"
+);
 
 /// A struct that provides access to an Ethereum replica contract
 #[derive(Debug)]
