@@ -53,29 +53,25 @@ impl Watcher {
             }
         } else {
             history.insert(old_root, signed_update.to_owned());
-        };
+        }
 
         Ok(())
     }
 
-    /// Check that signed update received by Replica isn't fraudulent and has
-    /// been submitted to the Home. If the signed update doesn't exist on Home 
-    /// and was indeed polled from the Replica, it is fraudulent, as this means 
-    /// the updater signed data and submitted it to the Replica but not the 
-    /// Home. If the signed_update wasn't actually polled from the Replica 
-    /// (e.g. it was read from the tx pool), the update might still be honest 
-    /// (could just be waiting in the Home queue), in which case `home.
-    /// improper_update()` will not end up slashing the updater.
+    /// Ensures that Replica's update is not fraudulent by submitting
+    /// update to Home. `home.update` interally calls `improperUpdate` and
+    /// will slash the updater if the replica's update is indeed fraudulent.
+    /// If the replica is running behind the Home and receives a "fraudulent 
+    /// update," this will be flagged as a double update.
     async fn check_fraudulent_update(
         &self,
         home: &Arc<Box<dyn Home>>,
         signed_update: &SignedUpdate,
     ) -> Result<()> {
-        let new_root = signed_update.update.new_root;
-        if home.signed_update_by_new_root(new_root).await?.is_none() {
-            home.improper_update(signed_update).await?;
-            // TODO: tell UsingOptics contract to halt replicas
-            std::todo!()
+        let old_root = signed_update.update.previous_root;
+        if old_root == home.current_root().await? {
+            // It is okay if tx reverts
+            let _ = home.update(signed_update).await;
         }
 
         Ok(())
