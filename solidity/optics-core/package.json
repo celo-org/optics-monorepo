@@ -9,6 +9,7 @@
     "ethers": "^5.0.29",
     "hardhat": "^2.0.8",
     "hardhat-gas-reporter": "^1.0.4",
+    "husky": "^4.3.8",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.4",
     "solidity-coverage": "^0.7.14"
@@ -26,6 +27,11 @@
     "test": "npm run compile && hardhat test",
     "lint": "solium -d contracts/ && eslint test/",
     "lint:fix": "solium --fix -d contracts/ && eslint --fix test/"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test && npm prettier && npm lint"
+    }
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
