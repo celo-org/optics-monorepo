@@ -4,6 +4,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.0",
+    "eslint": "^7.20.0",
     "ethereum-waffle": "^3.2.2",
     "ethers": "^5.0.29",
     "hardhat": "^2.0.8",
@@ -22,7 +23,9 @@
     "prettier": "prettier --write ./contracts ./test ./scripts ./lib",
     "compile": "hardhat compile && npm run prettier && ./scripts/update_abis.sh",
     "coverage": "npm run compile && hardhat coverage",
-    "test": "npm run compile && hardhat test"
+    "test": "npm run compile && hardhat test",
+    "lint": "solium -d contracts/ && eslint test/",
+    "lint:fix": "solium --fix -d contracts/ && eslint --fix test/"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
