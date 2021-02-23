@@ -52,23 +52,21 @@ impl OpticsAgent for Kathy {
         let mut interval = self.interval();
 
         loop {
-            let messages = self.generator.gen_chat();
-            for message in messages.into_iter() {
-                home.enqueue(&message).await?;
-            }
+            let message = self.generator.gen_chat();
+            home.enqueue(&message).await?;
             interval.tick().await;
         }
     }
 }
 
 /// Generators for messages
-#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChatGenerator {
     Default,
-    Static,
-    Random,
-    OrderedList,
+    Static(String),
+    OrderedList{messages: Vec<String>},
+    Random{length: usize},
 }
 
 impl Default for ChatGenerator {
@@ -86,50 +84,26 @@ impl ChatGenerator {
             .collect()
     }
 
-    pub fn gen_chat(&self) -> Vec<Message> {
+    pub fn gen_chat(&self) -> Message {
         match self {
-            ChatGenerator::Default => vec!(Default::default()),
-            ChatGenerator::Static => vec!(
+            ChatGenerator::Default => Default::default(),
+            ChatGenerator::Static(body) => Message {
+                destination: Default::default(),
+                recipient: Default::default(),
+                body: body.clone().into(),
+            },
+            ChatGenerator::OrderedList{messages} => {
                 Message {
-                    destination: 1,
-                    recipient: H256::from_slice("recipient".as_bytes()),
-                    body: String::from("message").into(),
+                    destination: Default::default(),
+                    recipient: Default::default(),
+                    body: messages[0].clone().into(),
                 }
-            ),
-            ChatGenerator::Random => vec!(
-                Message {
-                    destination: thread_rng().gen(),
-                    recipient: H256::from_slice(Self::rand_string(30).as_bytes()),
-                    body: Self::rand_string(30).into(),
-                }
-            ),
-            ChatGenerator::OrderedList => vec!(
-                Message {
-                    destination: 1,
-                    recipient: H256::from_slice("recipient1".as_bytes()),
-                    body: String::from("message1").into(),
-                },
-                Message {
-                    destination: 2,
-                    recipient: H256::from_slice("recipient2".as_bytes()),
-                    body: String::from("message2").into(),
-                },
-                Message {
-                    destination: 3,
-                    recipient: H256::from_slice("recipient3".as_bytes()),
-                    body: String::from("message3").into(),
-                },
-                Message {
-                    destination: 4,
-                    recipient: H256::from_slice("recipient4".as_bytes()),
-                    body: String::from("message4").into(),
-                },
-                Message {
-                    destination: 5,
-                    recipient: H256::from_slice("recipient5".as_bytes()),
-                    body: String::from("message5").into(),
-                }
-            ),
+            },
+            ChatGenerator::Random{length} => Message {
+                destination: thread_rng().gen(),
+                recipient: H256::from_slice(Self::rand_string(length.clone()).as_bytes()),
+                body: Self::rand_string(length.clone()).into(),
+            },
         }
     }
 }
