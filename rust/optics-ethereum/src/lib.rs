@@ -11,10 +11,9 @@ mod home;
 /// Replica abi
 #[cfg(not(doctest))]
 mod replica;
+
 /// Base trait for an agent
 mod utils;
 
-pub use home::Home;
-
-pub use replica::Replica;
-
+#[cfg(not(doctest))]
+pub use crate::{home::HomeContract, replica::ReplicaContract};
