@@ -1,9 +1,9 @@
 //! The watcher observes the home and replicas for double update fraud.
 //!
 //! At a regular interval, the watcher polls Home and Replicas for signed
-//! updates and checks them against its local DB of updates for double update
-//! fraud. If fraud is detected, the watcher submits a double update proof to
-//! to the corresponding contract.
+//! updates and checks them against its local DB of updates for fraud. It
+//! checks for double updates on both the Home and Replicas and fraudulent
+//! updates on just the Replicas by verifying Replica updates on the Home.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
