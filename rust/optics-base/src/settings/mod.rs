@@ -61,24 +61,25 @@ impl ChainSetup {
 /// follows:
 ///
 /// ```
-// / use optics_base::settings::*;
-// /
-// / pub struct OtherSettings { /* anything */ };
-// /
-// / #[derive(Debug, Deseirialize)]
-// / pub struct MySettings {
-// /     #[serde(flatten)]
-// /     base_settings: Settings,
-// /     #[serde(flatten)]
-// /     other_settings: (),
-// / }
-// /
-// / // Make sure to define MySettings::new()
-// / impl MySettings {
-// /     fn new() -> Self {
-// /         unimplemented!()
-// /     }
-// / }
+/// use optics_base::settings::*;
+/// use serde::Deserialize;
+///
+/// pub struct OtherSettings { /* anything */ };
+///
+/// #[derive(Debug, Deserialize)]
+/// pub struct MySettings {
+///     #[serde(flatten)]
+///     base_settings: Settings,
+///     #[serde(flatten)]
+///     other_settings: (),
+/// }
+///
+/// // Make sure to define MySettings::new()
+/// impl MySettings {
+///     fn new() -> Self {
+///         unimplemented!()
+///     }
+/// }
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Settings {
