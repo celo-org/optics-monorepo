@@ -26,6 +26,10 @@ pub enum State {
     Failed,
 }
 
+/// Returned by `check_double_update` if double update exists
+#[derive(Debug, Clone)]
+pub struct DoubleUpdate(pub SignedUpdate, pub SignedUpdate);
+
 /// The result of a transaction
 #[derive(Debug)]
 pub struct TxOutcome {
@@ -118,7 +122,6 @@ pub trait Common: Sync + Send + std::fmt::Debug {
     /// Submit a double update for slashing
     async fn double_update(
         &self,
-        left: &SignedUpdate,
-        right: &SignedUpdate,
+        double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError>;
 }

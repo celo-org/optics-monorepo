@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
-    traits::{ChainCommunicationError, Common, Replica, State, TxOutcome},
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
     Encode, SignedUpdate, StampedMessage, Update,
 };
 
@@ -153,19 +153,18 @@ where
     #[tracing::instrument(err)]
     async fn double_update(
         &self,
-        left: &SignedUpdate,
-        right: &SignedUpdate,
+        double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
             .double_update(
-                left.update.previous_root.to_fixed_bytes(),
+                double.0.update.previous_root.to_fixed_bytes(),
                 [
-                    left.update.new_root.to_fixed_bytes(),
-                    right.update.new_root.to_fixed_bytes(),
+                    double.0.update.new_root.to_fixed_bytes(),
+                    double.1.update.new_root.to_fixed_bytes(),
                 ],
-                left.signature.to_vec(),
-                right.signature.to_vec(),
+                double.0.signature.to_vec(),
+                double.1.signature.to_vec(),
             )
             .send()
             .await?

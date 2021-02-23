@@ -4,7 +4,7 @@ use color_eyre::{
     Result,
 };
 use ethers::core::types::H256;
-use futures_util::future::select_all;
+use futures_util::future::{join_all, select_all};
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::RwLock,
@@ -13,7 +13,7 @@ use tokio::{
 
 use optics_base::agent::OpticsAgent;
 use optics_core::{
-    traits::{Home, Replica},
+    traits::{DoubleUpdate, Home, Replica},
     SignedUpdate,
 };
 
@@ -24,14 +24,25 @@ pub struct Watcher {
     history: RwLock<HashMap<H256, SignedUpdate>>,
 }
 
-/// Watcher errors
-#[derive(Debug)]
-pub enum WatcherError {
-    /// Returned by `check_double_update` if double update exists
-    DoubleUpdate {
-        existing_update: SignedUpdate,
-        new_update: SignedUpdate,
-    },
+macro_rules! reset_loop {
+    ($interval:ident) => {{
+        $interval.tick().await;
+        continue;
+    }};
+}
+
+macro_rules! reset_loop_if {
+    ($condition:expr, $interval:ident) => {
+        if $condition {
+            reset_loop!($interval);
+        }
+    };
+    ($condition:expr, $interval:ident, $($arg:tt)*) => {
+        if $condition {
+            tracing::info!($($arg)*);
+            reset_loop!($interval);
+        }
+    };
 }
 
 #[allow(clippy::unit_arg)]
@@ -48,26 +59,23 @@ impl Watcher {
     /// update. If update is new, add to local history. If update already exists
     /// in history and has a different `new_root` than the current signed
     /// update, try to submit double update proof.
-    async fn check_double_update(
-        &self,
-        signed_update: &SignedUpdate,
-    ) -> Result<(), WatcherError> {
+    async fn check_double_update(&self, signed_update: &SignedUpdate) -> Result<(), DoubleUpdate> {
         let old_root = signed_update.update.previous_root;
         let new_root = signed_update.update.new_root;
 
         let mut history = self.history.write().await;
-        if let Some(existing) = history.get(&old_root) {
-            if existing.update.new_root != new_root {
-                return Err(WatcherError::DoubleUpdate {
-                    existing_update: existing.to_owned(),
-                    new_update: signed_update.to_owned(),
-                });
-            }
-        } else {
+
+        if !history.contains_key(&old_root) {
             history.insert(old_root, signed_update.to_owned());
+            return Ok(());
         }
 
-        Ok(())
+        let existing = history.get(&old_root).expect("!contains");
+        if existing.update.new_root == new_root {
+            Ok(())
+        } else {
+            Err(DoubleUpdate(existing.to_owned(), signed_update.to_owned()))
+        }
     }
 
     /// Ensures that Replica's update is not fraudulent by submitting
@@ -95,26 +103,20 @@ impl Watcher {
         let mut interval = self.interval();
 
         loop {
-            let update_res = home.poll_signed_update().await;
+            let update_opt = home.poll_signed_update().await?;
+            reset_loop_if!(update_opt.is_none(), interval);
+            let new_update = update_opt.unwrap();
 
-            if let Err(ref e) = update_res {
-                tracing::error!("Error polling update: {:?}", e);
-            }
+            let double_update_res = self.check_double_update(&new_update).await;
+            reset_loop_if!(double_update_res.is_ok(), interval);
 
-            let update_opt = update_res?;
-            if let Some(ref new_update) = update_opt {
-                if let Err(WatcherError::DoubleUpdate {
-                    existing_update,
-                    new_update,
-                }) = self.check_double_update(new_update).await
-                {
-                    if let Err(e) = home.double_update(&existing_update, &new_update).await {
-                        tracing::error!("Failed to submit double update: {:?}", e);
-                    }
-                }
-            }
+            let double = double_update_res.unwrap_err();
+            home.double_update(&double).await?;
+            color_eyre::eyre::bail!("Detected double update");
 
-            interval.tick().await;
+            // TODO: bubble this up and submit to ALL replicas
+            // // loop always resets early unless there's a double update.
+            // return Ok(double_update_res.unwrap_err());
         }
     }
 
@@ -128,27 +130,36 @@ impl Watcher {
         let mut interval = self.interval();
 
         loop {
-            let update_res = replica.poll_signed_update().await;
+            let update_opt = replica.poll_signed_update().await?;
+            reset_loop_if!(update_opt.is_none(), interval);
+            let new_update = update_opt.unwrap();
 
-            if let Err(ref e) = update_res {
-                tracing::error!("Error polling update: {:?}", e);
-            }
+            self.check_fraudulent_update(&home, &new_update).await?;
 
-            let update_opt = update_res?;
-            if let Some(ref new_update) = update_opt {
-                if let Err(WatcherError::DoubleUpdate {
-                    existing_update,
-                    new_update,
-                }) = self.check_double_update(new_update).await
-                {
-                    if let Err(e) = replica.double_update(&existing_update, &new_update).await {
-                        tracing::error!("Failed to submit double update: {:?}", e);
-                    }
-                }
-                self.check_fraudulent_update(&home, new_update).await?;
-            }
+            let double_update_res = self.check_double_update(&new_update).await;
+            reset_loop_if!(double_update_res.is_ok(), interval);
 
-            interval.tick().await;
+            let double = double_update_res.unwrap_err();
+
+            let results = join_all(vec![
+                home.double_update(&double),
+                replica.double_update(&double),
+            ])
+            .await;
+
+            // Report each error. Temporary solution
+            results
+                .into_iter()
+                .filter(Result::is_err)
+                .map(Result::unwrap_err)
+                .for_each(|err| {
+                    tracing::error!("Error submitting double update: {}", err);
+                });
+            color_eyre::eyre::bail!("Detected double update");
+
+            // TODO: bubble this up and submit to ALL replicas
+            // // loop always resets early unless there's a double update.
+            // return Ok(double_update_res.unwrap_err());
         }
     }
 
@@ -164,7 +175,11 @@ impl OpticsAgent for Watcher {
     async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
         ensure!(replica.is_some(), "Watcher must have replica.");
         let replica = Arc::new(replica.unwrap());
-        self.watch_replica(home, replica).await
+
+        // TODO: handle double update
+        let _double = self.watch_replica(home, replica).await?;
+
+        Ok(())
     }
 
     async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
