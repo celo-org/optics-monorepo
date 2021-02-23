@@ -59,7 +59,7 @@ impl ProverSync {
             rx,
         }
     }
-    
+
     /// Poll for signed updates at regular interval and update
     /// local merkle tree with all leaves between local root and
     /// new root. Use short interval for bootup syncing and longer

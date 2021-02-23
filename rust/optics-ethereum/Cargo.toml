@@ -1,0 +1,17 @@
+[package]
+name = "optics-ethereum"
+version = "0.1.0"
+authors = ["Erin Hales <mcbridee093@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Main block
+serde = "1.0.120"
+serde_json = { version = "1.0.61", default-features = false }
+ethers = { git = "https://github.com/gakonst/ethers-rs", features = ["abigen"] }
+async-trait = { version = "0.1.42", default-features = false }
+tracing = "0.1.22"
+
+optics-core = { path = "../optics-core" }

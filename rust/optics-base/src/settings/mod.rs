@@ -1,5 +1,6 @@
 use color_eyre::Report;
 use config::{Config, ConfigError, Environment, File};
+use serde::Deserialize;
 use std::{collections::HashMap, env};
 
 use optics_core::traits::{Home, Replica};
@@ -17,7 +18,7 @@ use log::TracingConfig;
 ///
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(tag = "rpc-style", content = "config", rename_all = "kebab-case")]
 pub enum ChainConf {
     /// Ethereum configuration
@@ -26,7 +27,7 @@ pub enum ChainConf {
 
 /// A chain setup is a domain ID, an address on that chain (where the home or
 /// replica is deployed) and details for connecting to the chain API.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct ChainSetup {
     domain: u32,
     address: String,
@@ -61,10 +62,11 @@ impl ChainSetup {
 ///
 /// ```
 /// use optics_base::settings::*;
+/// use serde::Deserialize;
 ///
 /// pub struct OtherSettings { /* anything */ };
 ///
-/// #[derive(Debug, serde::Deseirialize)]
+/// #[derive(Debug, Deserialize)]
 /// pub struct MySettings {
 ///     #[serde(flatten)]
 ///     base_settings: Settings,
@@ -79,7 +81,7 @@ impl ChainSetup {
 ///     }
 /// }
 /// ```
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Settings {
     /// The home configuration
     pub home: ChainSetup,

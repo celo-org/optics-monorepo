@@ -87,6 +87,8 @@ We use the tokio async runtime environment. Please see the docs
     - trait implementations for different chains
     - shared configuration file formats
     - basic setup for an off-chain agent
+- `optics-ethereum`
+  - interfaces to the ethereum contracts
 - TODO: other agents :)
 
 ### High-level guide to building an agent
@@ -101,7 +103,7 @@ We use the tokio async runtime environment. Please see the docs
   - your `run` function is the business logic of your agent
 - create a new settings module `src/settings.rs`
   - reuse the `Settings` objects from `optics_base::settings`
-  - make sure the read the docs :)
+  - make sure to read the docs :)
   - add your own new settings
 - in `$AGENT_NAME/src/main.rs`
   - add `mod _____` declarations for your agent and settings modules

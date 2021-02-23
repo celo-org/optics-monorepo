@@ -11,13 +11,8 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-/// Interfaces to the ethereum contracts
-pub mod abis;
-
 /// Settings and configuration from file
 pub mod settings;
 
 /// Base trait for an agent
 pub mod agent;
-
-mod utils;
