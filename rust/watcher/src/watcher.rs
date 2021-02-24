@@ -202,12 +202,20 @@ impl OpticsAgent for Watcher {
         futs.push(Box::pin(home_fut));
 
         loop {
+            // We get the first future to resolve
             let (res, _, remaining) = select_all(futs).await;
 
             match res {
+                // if it's an error, just report the error and restart the loop
                 Err(e) => {
                     tracing::error!("Home or replica shut down: {:#}", e);
+                    futs = remaining;
+                    if futs.is_empty() {
+                        return Err(eyre!("Home and replicas have shut down"));
+                    }
                 }
+                // if it's a double update, we kick off notification of
+                // all replicas and homes, and break the loop
                 Ok(double) => {
                     self.notify_double_update(&double)
                         .await
@@ -216,11 +224,13 @@ impl OpticsAgent for Watcher {
                     break;
                 }
             }
-            futs = remaining;
-            if futs.is_empty() {
-                return Err(eyre!("Home and replicas have shut down"));
-            }
         }
-        bail!("Double update detected! Watcher has been shut down!");
+        bail!(
+            r#"
+            Double update detected!
+            All contracts notified!
+            Watcher has been shut down!
+        "#
+        );
     }
 }
