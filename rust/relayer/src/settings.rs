@@ -2,14 +2,13 @@
 use config::{Config, ConfigError, Environment, File};
 use std::env;
 
-use optics_base::settings::{ethereum::EthereumSigner, Settings as BaseSettings};
+use optics_base::settings::Settings as BaseSettings;
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Settings {
     #[serde(flatten)]
     pub(crate) base: BaseSettings,
-    pub(crate) updater: EthereumSigner,
     pub(crate) polling_interval: u64,
 }
 

@@ -179,7 +179,7 @@ impl OpticsAgent for Watcher {
     {
         Ok(Self::new(
             settings.polling_interval,
-            settings.as_ref().try_into_core("watcher").await?,
+            settings.as_ref().try_into_core().await?,
         ))
     }
 

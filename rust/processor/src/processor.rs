@@ -78,7 +78,7 @@ impl OpticsAgent for Processor {
     {
         Ok(Self::new(
             settings.polling_interval,
-            settings.as_ref().try_into_core("processor").await?,
+            settings.as_ref().try_into_core().await?,
         ))
     }
 

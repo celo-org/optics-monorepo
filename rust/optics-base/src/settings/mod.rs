@@ -31,6 +31,7 @@ pub enum ChainConf {
 /// replica is deployed) and details for connecting to the chain API.
 #[derive(Debug, Deserialize)]
 pub struct ChainSetup {
+    name: String,
     domain: u32,
     address: String,
     #[serde(flatten)]
@@ -39,20 +40,20 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self, name: &str) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_into_home(&self) -> Result<Box<dyn Home>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_home(name, self.domain, self.address.parse()?)
+                conf.try_into_home(&self.name, self.domain, self.address.parse()?)
                     .await
             }
         }
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self, name: &str) -> Result<Box<dyn Replica>, Report> {
+    pub async fn try_into_replica(&self) -> Result<Box<dyn Replica>, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_replica(name, self.domain, self.address.parse()?)
+                conf.try_into_replica(&self.name, self.domain, self.address.parse()?)
                     .await
             }
         }
@@ -88,7 +89,7 @@ pub struct Settings {
     /// The home configuration
     pub home: ChainSetup,
     /// The replica configurations
-    pub replicas: HashMap<String, ChainSetup>,
+    pub replicas: Vec<ChainSetup>,
     /// The tracing configuration
     pub tracing: TracingConfig,
 }
@@ -97,21 +98,21 @@ impl Settings {
     /// Try to get all replicas from this settings object
     pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Box<dyn Replica>>>, Report> {
         let mut result = HashMap::default();
-        for (k, v) in self.replicas.iter() {
-            result.insert(k.clone(), Arc::new(v.try_into_replica(k).await?));
+        for v in self.replicas.iter() {
+            result.insert(v.name.clone(), Arc::new(v.try_into_replica().await?));
         }
         Ok(result)
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self, name: &str) -> Result<Box<dyn Home>, Report> {
-        self.home.try_into_home(name).await
+    pub async fn try_home(&self) -> Result<Box<dyn Home>, Report> {
+        self.home.try_into_home().await
     }
 
     /// Try to generate an agent core
-    pub async fn try_into_core(&self, name: &str) -> Result<AgentCore, Report> {
+    pub async fn try_into_core(&self) -> Result<AgentCore, Report> {
         Ok(AgentCore {
-            home: Arc::new(self.try_home(name).await?),
+            home: Arc::new(self.try_home().await?),
             replicas: self.try_replicas().await?,
         })
     }

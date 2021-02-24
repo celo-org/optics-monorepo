@@ -60,7 +60,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         Ok(Self::new(
             settings.updater.try_into_wallet()?,
             settings.polling_interval,
-            settings.as_ref().try_into_core("updater").await?,
+            settings.as_ref().try_into_core().await?,
         ))
     }
 

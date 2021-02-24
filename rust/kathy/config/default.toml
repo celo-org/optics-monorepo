@@ -1,6 +1,7 @@
 message-interval = 100
 
 [home]
+name = "celo"
 domain = 52752
 address = "0x0000000000000000000000000000000000000000"
 rpc-style = "Ethereum"
@@ -8,6 +9,6 @@ rpc-style = "Ethereum"
     signer = "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc"
     connection = { type = "http", url = "http://localhost:8545" }
 
-[replicas]
-# empty table.
+[[replicas]]
+# empty vector.
 # no replicas needed for updater

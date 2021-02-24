@@ -81,7 +81,7 @@ impl OpticsAgent for Relayer {
     {
         Ok(Self::new(
             settings.polling_interval,
-            settings.as_ref().try_into_core("relayer").await?,
+            settings.as_ref().try_into_core().await?,
         ))
     }
 

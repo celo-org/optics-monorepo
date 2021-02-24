@@ -45,7 +45,7 @@ impl OpticsAgent for Kathy {
         Ok(Self::new(
             settings.message_interval,
             ChatGenerator::Default,
-            settings.as_ref().try_into_core("kathy").await?,
+            settings.as_ref().try_into_core().await?,
         ))
     }
 
