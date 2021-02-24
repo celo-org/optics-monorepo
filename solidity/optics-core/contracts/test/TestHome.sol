@@ -18,4 +18,12 @@ contract TestHome is Home {
     function setFailed() public {
         _setFailed();
     }
+
+    function testDestinationAndSequence(uint32 _destination, uint32 _sequence)
+        external
+        pure
+        returns (uint64)
+    {
+        return destinationAndSequence(_destination, _sequence);
+    }
 }
