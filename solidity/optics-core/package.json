@@ -27,11 +27,6 @@
     "lint": "solium -d contracts/ && eslint test/",
     "lint:fix": "solium --fix -d contracts/ && eslint --fix test/"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm test && npm run prettier && npm run lint"
-    }
-  },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
   "dependencies": {
