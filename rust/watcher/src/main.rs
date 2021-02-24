@@ -18,8 +18,8 @@ use crate::{settings::Settings, watcher::Watcher};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let watcher = Watcher::new(5 * 60);
-    watcher.run_from_settings(&settings.base).await?;
+    let watcher = Watcher::from_settings(settings).await?;
+    watcher.run_all().await?;
 
     Ok(())
 }

@@ -3,48 +3,66 @@ use color_eyre::{
     eyre::{eyre, WrapErr},
     Result,
 };
-use futures_util::future::{join_all, select_all};
-use std::sync::Arc;
+use futures_util::future::select_all;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::settings::Settings;
 use optics_core::traits::{Home, Replica};
 
+/// Properties shared across all agents
+#[derive(Debug)]
+pub struct AgentCore {
+    /// A boxed Home
+    pub home: Arc<Box<dyn Home>>,
+    /// A map of boxed Replicas
+    pub replicas: HashMap<String, Arc<Box<dyn Replica>>>,
+}
+
 /// A trait for an application that runs on a replica and a reference to a
 /// home.
 #[async_trait]
-pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
+pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
+    /// The settings object for this agent
+    type Settings: AsRef<Settings>;
+
+    /// Instantiate the agent from the standard settings object
+    async fn from_settings(settings: Self::Settings) -> Result<Self>
+    where
+        Self: Sized;
+
+    /// Return a reference to a home contract
+    fn home(&self) -> Arc<Box<dyn Home>> {
+        self.as_ref().home.clone()
+    }
+
+    /// Get a mutable reference to the replicas map
+    fn replicas(&self) -> &HashMap<String, Arc<Box<dyn Replica>>> {
+        &self.as_ref().replicas
+    }
+
+    /// Get a reference to a replica by its name
+    fn replica_by_name(&self, name: &str) -> Option<Arc<Box<dyn Replica>>> {
+        self.replicas().get(name).map(Clone::clone)
+    }
+
     /// Run the agent with the given home and replica
-    async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()>;
+    async fn run(&self, replica: &str) -> Result<()>;
 
     /// Run the Agent, and tag errors with the domain ID of the replica
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
-    async fn run_report_error(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        replica: Option<Box<dyn Replica>>,
-    ) -> Result<()> {
-        let msg_opt = replica
-            .as_ref()
-            .map(|r| format!("Replica named {} failed", r.name()));
-
-        let mut res = self.run(home, replica).await;
-
-        if let Some(m) = msg_opt {
-            res = res.wrap_err(m);
-        }
-        res
+    async fn run_report_error(&self, replica: &str) -> Result<()> {
+        let m = format!("Replica named {} failed", replica);
+        self.run(replica).await.wrap_err(m)
     }
 
-    /// Run several agents
+    /// Run several agents by replica name
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
-    async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
-        let home = Arc::new(home);
-
+    async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let mut futs: Vec<_> = replicas
-            .into_iter()
-            .map(|replica| self.run_report_error(home.clone(), Some(replica)))
+            .iter()
+            .map(|replica| self.run_report_error(replica))
             .collect();
 
         loop {
@@ -60,25 +78,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug {
         }
     }
 
-    /// Run several agents based on a settings object
+    /// Run several agents
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
-    async fn run_from_settings(&self, settings: &Settings) -> Result<()> {
-        let home = settings
-            .home
-            .try_into_home("home")
-            .await
-            .wrap_err("failed to instantiate Home")?;
-
-        let replicas = join_all(settings.replicas.iter().map(|(k, v)| async move {
-            v.try_into_replica(k)
-                .await
-                .wrap_err_with(|| format!("Failed to instantiate replica named {}", k))
-        }))
-        .await
-        .into_iter()
-        .collect::<Result<Vec<_>>>()?;
-
-        self.run_many(home, replicas).await
+    async fn run_all(&self) -> Result<()> {
+        let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
+        self.run_many(&names).await
     }
 }

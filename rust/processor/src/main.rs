@@ -17,8 +17,8 @@ use crate::{processor::Processor, settings::Settings};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let processor = Processor::new(5 * 60);
-    processor.run_from_settings(&settings.base).await?;
+    let processor = Processor::from_settings(settings).await?;
+    processor.run_all().await?;
 
     Ok(())
 }

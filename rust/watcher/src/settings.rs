@@ -12,6 +12,12 @@ pub struct Settings {
     pub(crate) polling_interval: u64,
 }
 
+impl AsRef<BaseSettings> for Settings {
+    fn as_ref(&self) -> &BaseSettings {
+        &self.base
+    }
+}
+
 impl Settings {
     /// Read settings from the config file
     pub fn new() -> Result<Self, ConfigError> {

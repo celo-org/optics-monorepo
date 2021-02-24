@@ -1,20 +1,25 @@
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
-use ethers::{signers::Signer, types::Address};
-use std::sync::Arc;
+use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
 use tokio::time::{interval, Interval};
 
-use optics_base::agent::OpticsAgent;
-use optics_core::{
-    traits::{Home, Replica},
-    SignedUpdate, Update,
-};
+use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_core::{SignedUpdate, Update};
+
+use crate::settings::Settings;
 
 /// An updater agent
 #[derive(Debug)]
 pub struct Updater<S> {
     signer: S,
     interval_seconds: u64,
+    core: AgentCore,
+}
+
+impl<S> AsRef<AgentCore> for Updater<S> {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
+    }
 }
 
 impl<S> Updater<S>
@@ -22,10 +27,11 @@ where
     S: Signer,
 {
     /// Instantiate a new updater
-    pub fn new(signer: S, interval_seconds: u64) -> Self {
+    pub fn new(signer: S, interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             signer,
             interval_seconds,
+            core,
         }
     }
 
@@ -41,18 +47,26 @@ where
 }
 
 #[async_trait]
-impl<S, E> OpticsAgent for Updater<S>
-where
-    S: Signer<Error = E>,
-    // Bit of a kludge. but should be fine. All current error types are static
-    E: std::error::Error + Send + Sync + 'static,
-{
-    async fn run(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        _replica: Option<Box<dyn Replica>>,
-    ) -> Result<()> {
+// This is a bit of a kludge to make from_settings work.
+// Ideally this hould be generic across all signers.
+// Right now we only have one
+impl OpticsAgent for Updater<LocalWallet> {
+    type Settings = Settings;
+
+    async fn from_settings(settings: Self::Settings) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self::new(
+            settings.updater.try_into_wallet()?,
+            settings.polling_interval,
+            settings.as_ref().try_into_core("updater").await?,
+        ))
+    }
+
+    async fn run(&self, _replica: &str) -> Result<()> {
         // First we check that we have the correct key to sign with.
+        let home = self.home();
         let expected: Address = home.updater().await?.into();
         ensure!(
             expected == self.signer.address(),

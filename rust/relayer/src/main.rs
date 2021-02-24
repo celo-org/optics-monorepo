@@ -19,8 +19,8 @@ use crate::{relayer::Relayer, settings::Settings};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let relayer = Relayer::new(5 * 60);
-    relayer.run_from_settings(&settings.base).await?;
+    let relayer = Relayer::from_settings(settings).await?;
+    relayer.run_all().await?;
 
     Ok(())
 }

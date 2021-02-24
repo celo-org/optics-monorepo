@@ -1,32 +1,33 @@
 use async_trait::async_trait;
-use std::sync::Arc;
 use tokio::time::{interval, Interval};
 
 use color_eyre::Result;
 
-use optics_base::agent::OpticsAgent;
-use optics_core::{
-    traits::{Home, Replica},
-    Message,
-};
+use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_core::Message;
+
+use crate::settings::Settings;
 
 /// Chatty Kathy
+#[derive(Debug)]
 pub struct Kathy {
     interval_seconds: u64,
     generator: ChatGenerator,
+    core: AgentCore,
 }
 
-impl std::fmt::Debug for Kathy {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Kathy")
+impl AsRef<AgentCore> for Kathy {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
     }
 }
 
 impl Kathy {
-    pub fn new(interval_seconds: u64, generator: ChatGenerator) -> Self {
+    pub fn new(interval_seconds: u64, generator: ChatGenerator, core: AgentCore) -> Self {
         Self {
             interval_seconds,
             generator,
+            core,
         }
     }
 
@@ -38,16 +39,22 @@ impl Kathy {
 
 #[async_trait]
 impl OpticsAgent for Kathy {
-    async fn run(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        _replica: Option<Box<dyn Replica>>,
-    ) -> Result<()> {
+    type Settings = Settings;
+
+    async fn from_settings(settings: Settings) -> Result<Self> {
+        Ok(Self::new(
+            settings.message_interval,
+            ChatGenerator::Default,
+            settings.as_ref().try_into_core("kathy").await?,
+        ))
+    }
+
+    async fn run(&self, _: &str) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
             let message = self.generator.gen_chat();
-            home.enqueue(&message).await?;
+            self.home().enqueue(&message).await?;
             interval.tick().await;
         }
     }

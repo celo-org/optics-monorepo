@@ -9,19 +9,16 @@ mod settings;
 
 use color_eyre::{eyre::eyre, Result};
 
-use kathy::ChatGenerator;
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 use crate::{kathy::Kathy, settings::Settings};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let home = settings.base.home.try_into_home("home").await?;
-
-    let kathy = Kathy::new(settings.message_interval, ChatGenerator::Default);
+    let kathy = Kathy::from_settings(settings).await?;
 
     // Normally we would run_from_settings
     // but for an empty replica vector that would do nothing
-    kathy.run(home.into(), None).await?;
+    kathy.run("").await?;
 
     Ok(())
 }

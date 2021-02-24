@@ -12,19 +12,15 @@ mod updater;
 
 use color_eyre::{eyre::eyre, Result};
 
+use ethers::prelude::LocalWallet;
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 use crate::{settings::Settings, updater::Updater};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let signer = settings.updater.try_into_wallet()?;
-    let home = settings.base.home.try_into_home("home").await?;
+    let updater = Updater::<LocalWallet>::from_settings(settings).await?;
 
-    let updater = Updater::new(signer, settings.polling_interval);
-
-    // Normally we would run_from_settings
-    // but for an empty replica vector that would do nothing
-    updater.run(home.into(), None).await?;
+    updater.run("").await?;
 
     Ok(())
 }

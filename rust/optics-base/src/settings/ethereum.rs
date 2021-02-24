@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use color_eyre::{eyre::eyre, Report, Result};
-use ethers::core::types::Address;
+use ethers::{core::types::Address, signers::LocalWallet};
 
 use optics_core::traits::{Home, Replica};
 
@@ -83,9 +83,9 @@ impl Default for EthereumSigner {
 
 impl EthereumSigner {
     // TODO: allow ledger or other signer traits?
-    /// Try to conver the ethereum signer to a local wallet
+    /// Try to convert the ethereum signer to a local wallet
     #[tracing::instrument(err)]
-    pub fn try_into_wallet(&self) -> Result<ethers::signers::LocalWallet> {
+    pub fn try_into_wallet(&self) -> Result<LocalWallet> {
         match self {
             EthereumSigner::HexKey { key } => Ok(key.parse()?),
             EthereumSigner::Node => Err(eyre!("Node signer")),
@@ -102,7 +102,7 @@ pub struct EthereumConf {
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<ethers::signers::LocalWallet> {
+    fn signer(&self) -> Option<LocalWallet> {
         self.signer.try_into_wallet().ok()
     }
 

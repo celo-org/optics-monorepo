@@ -1,7 +1,7 @@
 use color_eyre::Report;
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, sync::Arc};
 
 use optics_core::traits::{Home, Replica};
 
@@ -13,6 +13,8 @@ pub mod log;
 
 use ethereum::EthereumConf;
 use log::TracingConfig;
+
+use crate::agent::AgentCore;
 
 /// A connection to _some_ blockchain.
 ///
@@ -92,6 +94,28 @@ pub struct Settings {
 }
 
 impl Settings {
+    /// Try to get all replicas from this settings object
+    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Box<dyn Replica>>>, Report> {
+        let mut result = HashMap::default();
+        for (k, v) in self.replicas.iter() {
+            result.insert(k.clone(), Arc::new(v.try_into_replica(k).await?));
+        }
+        Ok(result)
+    }
+
+    /// Try to get a home object
+    pub async fn try_home(&self, name: &str) -> Result<Box<dyn Home>, Report> {
+        self.home.try_into_home(name).await
+    }
+
+    /// Try to generate an agent core
+    pub async fn try_into_core(&self, name: &str) -> Result<AgentCore, Report> {
+        Ok(AgentCore {
+            home: Arc::new(self.try_home(name).await?),
+            replicas: self.try_replicas().await?,
+        })
+    }
+
     /// Read settings from the config file
     pub fn new() -> Result<Self, ConfigError> {
         let mut s = Config::new();

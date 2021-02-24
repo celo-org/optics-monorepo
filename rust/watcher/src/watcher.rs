@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use color_eyre::{
-    eyre::{ensure, eyre},
-    Result,
-};
+use color_eyre::{eyre::eyre, Result};
 use ethers::core::types::H256;
 use futures_util::future::{join_all, select_all};
 use std::{collections::HashMap, sync::Arc};
@@ -11,17 +8,26 @@ use tokio::{
     time::{interval, Interval},
 };
 
-use optics_base::agent::OpticsAgent;
+use optics_base::agent::{AgentCore, OpticsAgent};
 use optics_core::{
     traits::{DoubleUpdate, Home, Replica},
     SignedUpdate,
 };
+
+use crate::settings::Settings;
 
 /// A watcher agent
 #[derive(Debug)]
 pub struct Watcher {
     interval_seconds: u64,
     history: RwLock<HashMap<H256, SignedUpdate>>,
+    core: AgentCore,
+}
+
+impl AsRef<AgentCore> for Watcher {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
+    }
 }
 
 macro_rules! reset_loop {
@@ -48,10 +54,11 @@ macro_rules! reset_loop_if {
 #[allow(clippy::unit_arg)]
 impl Watcher {
     /// Instantiate a new watcher.
-    pub fn new(interval_seconds: u64) -> Self {
+    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             interval_seconds,
             history: RwLock::new(HashMap::new()),
+            core,
         }
     }
 
@@ -83,15 +90,11 @@ impl Watcher {
     /// will slash the updater if the replica's update is indeed fraudulent.
     /// If the replica is running behind the Home and receives a "fraudulent
     /// update," this will be flagged as a double update.
-    async fn check_fraudulent_update(
-        &self,
-        home: &Arc<Box<dyn Home>>,
-        signed_update: &SignedUpdate,
-    ) -> Result<()> {
+    async fn check_fraudulent_update(&self, signed_update: &SignedUpdate) -> Result<()> {
         let old_root = signed_update.update.previous_root;
-        if old_root == home.current_root().await? {
+        if old_root == self.home().current_root().await? {
             // It is okay if tx reverts
-            let _ = home.update(signed_update).await;
+            let _ = self.home().update(signed_update).await;
         }
 
         Ok(())
@@ -122,11 +125,7 @@ impl Watcher {
 
     /// Polls replica for signed updates and checks for both double update
     /// fraud and fraudulent updates.
-    async fn watch_replica(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        replica: Arc<Box<dyn Replica>>,
-    ) -> Result<()> {
+    async fn watch_replica(&self, replica: Arc<Box<dyn Replica>>) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
@@ -134,7 +133,7 @@ impl Watcher {
             reset_loop_if!(update_opt.is_none(), interval);
             let new_update = update_opt.unwrap();
 
-            self.check_fraudulent_update(&home, &new_update).await?;
+            self.check_fraudulent_update(&new_update).await?;
 
             let double_update_res = self.check_double_update(&new_update).await;
             reset_loop_if!(double_update_res.is_ok(), interval);
@@ -142,7 +141,7 @@ impl Watcher {
             let double = double_update_res.unwrap_err();
 
             let results = join_all(vec![
-                home.double_update(&double),
+                self.home().double_update(&double),
                 replica.double_update(&double),
             ])
             .await;
@@ -172,25 +171,35 @@ impl Watcher {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
-    async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
-        ensure!(replica.is_some(), "Watcher must have replica.");
-        let replica = Arc::new(replica.unwrap());
+    type Settings = Settings;
 
-        // TODO: handle double update
-        let _double = self.watch_replica(home, replica).await?;
+    async fn from_settings(settings: Self::Settings) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self::new(
+            settings.polling_interval,
+            settings.as_ref().try_into_core("watcher").await?,
+        ))
+    }
+
+    async fn run(&self, replica: &str) -> Result<()> {
+        let replica = self
+            .replica_by_name(replica)
+            .ok_or_else(|| eyre!("No replica named {}", replica))?;
+
+        let _double = self.watch_replica(replica).await?;
 
         Ok(())
     }
 
-    async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
-        let home = Arc::new(home);
-
+    async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let mut futs: Vec<_> = replicas
             .into_iter()
-            .map(|replica| self.run_report_error(home.clone(), Some(replica)))
+            .map(|replica| self.run_report_error(replica))
             .collect();
 
-        let home_fut = self.watch_home(home.clone());
+        let home_fut = self.watch_home(self.home());
         futs.push(Box::pin(home_fut));
 
         loop {

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use color_eyre::{
-    eyre::{ensure, eyre, Context},
+    eyre::{eyre, Context},
     Result,
 };
 use futures_util::future::select_all;
@@ -10,26 +10,33 @@ use tokio::{
     time::{interval, Interval},
 };
 
-use optics_base::agent::OpticsAgent;
-use optics_core::{
-    accumulator::{prover_sync::ProverSync, Prover},
-    traits::{Home, Replica},
-};
+use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_core::accumulator::{prover_sync::ProverSync, Prover};
+
+use crate::settings::Settings;
 
 /// A processor agent
 #[derive(Debug)]
 pub struct Processor {
     interval_seconds: u64,
     prover: Arc<RwLock<Prover>>,
+    core: AgentCore,
+}
+
+impl AsRef<AgentCore> for Processor {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
+    }
 }
 
 #[allow(clippy::unit_arg)]
 impl Processor {
     /// Instantiate a new processor
-    pub fn new(interval_seconds: u64) -> Self {
+    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             interval_seconds,
             prover: Default::default(),
+            core,
         }
     }
 
@@ -63,11 +70,23 @@ macro_rules! reset_loop_if {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Processor {
-    #[tracing::instrument(err)]
-    async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
-        ensure!(replica.is_some(), "Processor must have replica.");
-        let replica = Arc::new(replica.unwrap());
+    type Settings = Settings;
 
+    async fn from_settings(settings: Self::Settings) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self::new(
+            settings.polling_interval,
+            settings.as_ref().try_into_core("processor").await?,
+        ))
+    }
+
+    #[tracing::instrument(err)]
+    async fn run(&self, replica: &str) -> Result<()> {
+        let replica = self
+            .replica_by_name(replica)
+            .ok_or_else(|| eyre!("No replica named {}", replica))?;
         let domain = replica.destination_domain();
 
         let mut interval = self.interval();
@@ -83,7 +102,7 @@ impl OpticsAgent for Processor {
             let last_processed = replica.last_processed().await?;
             let sequence = last_processed.as_u32() + 1;
 
-            let message = home.message_by_sequence(domain, sequence).await?;
+            let message = self.home().message_by_sequence(domain, sequence).await?;
             reset_loop_if!(
                 message.is_none(),
                 interval,
@@ -117,16 +136,20 @@ impl OpticsAgent for Processor {
     }
 
     #[tracing::instrument(err)]
-    async fn run_many(&self, home: Box<dyn Home>, replicas: Vec<Box<dyn Replica>>) -> Result<()> {
-        let home = Arc::new(home);
+    async fn run_many(&self, replicas: &[&str]) -> Result<()> {
+        // let replicas: Vec<_> = replicas
+        //     .iter()
+        //     .filter_map(|name| self.replica_by_name(name))
+        //     .collect();
+
         let (tx, rx) = channel();
 
-        let sync = ProverSync::new(self.prover.clone(), home.clone(), rx);
+        let sync = ProverSync::new(self.prover.clone(), self.home(), rx);
         let sync_task = tokio::spawn(sync.poll_updates(self.interval_seconds));
 
         let mut futs: Vec<_> = replicas
             .into_iter()
-            .map(|replica| self.run_report_error(home.clone(), Some(replica)))
+            .map(|replica| self.run_report_error(replica))
             .collect();
 
         loop {

@@ -1,22 +1,34 @@
 use async_trait::async_trait;
-use color_eyre::{eyre::ensure, Result};
+use color_eyre::{eyre::eyre, Result};
 use std::sync::Arc;
 use tokio::time::{interval, Interval};
 
-use optics_base::agent::OpticsAgent;
+use optics_base::agent::{AgentCore, OpticsAgent};
 use optics_core::traits::{Home, Replica};
+
+use crate::settings::Settings;
 
 /// A relayer agent
 #[derive(Debug)]
 pub struct Relayer {
     interval_seconds: u64,
+    core: AgentCore,
+}
+
+impl AsRef<AgentCore> for Relayer {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
+    }
 }
 
 #[allow(clippy::unit_arg)]
 impl Relayer {
     /// Instantiate a new relayer
-    pub fn new(interval_seconds: u64) -> Self {
-        Self { interval_seconds }
+    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
+        Self {
+            interval_seconds,
+            core,
+        }
     }
 
     #[tracing::instrument(err)]
@@ -61,14 +73,28 @@ impl Relayer {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Relayer {
+    type Settings = Settings;
+
+    async fn from_settings(settings: Self::Settings) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self::new(
+            settings.polling_interval,
+            settings.as_ref().try_into_core("relayer").await?,
+        ))
+    }
+
     #[tracing::instrument(err)]
-    async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
-        ensure!(replica.is_some(), "Relayer must have replica.");
-        let replica = Arc::new(replica.unwrap());
+    async fn run(&self, replica: &str) -> Result<()> {
+        let replica = self
+            .replica_by_name(replica)
+            .ok_or_else(|| eyre!("No replica named {}", replica))?;
+
         let mut interval = self.interval();
         loop {
             let (updated, confirmed) = tokio::join!(
-                self.poll_updates(home.clone(), replica.clone()),
+                self.poll_updates(self.home(), replica.clone()),
                 self.poll_confirms(replica.clone())
             );
 
