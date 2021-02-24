@@ -21,6 +21,18 @@ pub struct Watcher {
     history: RwLock<HashMap<H256, SignedUpdate>>,
 }
 
+#[derive(Debug)]
+pub struct WatcherHome {
+    home: Arc<Box<dyn Home>>,
+    local_root: H256,
+}
+
+#[derive(Debug)]
+pub struct WatcherReplica {
+    replica: Arc<Box<dyn Replica>>,
+    local_root: H256,
+}
+
 macro_rules! reset_loop {
     ($interval:ident) => {{
         $interval.tick().await;
@@ -79,7 +91,7 @@ impl Watcher {
     /// update to Home. `home.update` interally calls `improperUpdate` and
     /// will slash the updater if the replica's update is indeed fraudulent.
     /// If the replica is running behind the Home and receives a "fraudulent
-    /// update," this will be flagged as a double update.
+    /// update," this will later be flagged as a double update.
     async fn check_fraudulent_update(
         &self,
         home: &Arc<Box<dyn Home>>,
@@ -96,19 +108,26 @@ impl Watcher {
 
     #[tracing::instrument(err)]
     /// Polls home for signed updates and checks for double update fraud.
-    async fn watch_home(&self, mut watcher_home: WatcherHome) -> Result<()> {
+    async fn watch_home(&self, ref mut watcher_home: WatcherHome) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
-            let update_opt = home.poll_signed_update().await?;
+            let update_opt = watcher_home
+                .home
+                .signed_update_by_old_root(watcher_home.local_root)
+                .await?;
+
             reset_loop_if!(update_opt.is_none(), interval);
             let new_update = update_opt.unwrap();
 
             let double_update_res = self.check_double_update(&new_update).await;
-            reset_loop_if!(double_update_res.is_ok(), interval);
+            if double_update_res.is_ok() {
+                watcher_home.local_root = new_update.update.new_root;
+                reset_loop!(interval);
+            }
 
             let double = double_update_res.unwrap_err();
-            home.double_update(&double).await?;
+            watcher_home.home.double_update(&double).await?;
             color_eyre::eyre::bail!("Detected double update");
 
             // TODO: bubble this up and submit to ALL replicas
@@ -122,25 +141,32 @@ impl Watcher {
     async fn watch_replica(
         &self,
         home: Arc<Box<dyn Home>>,
-        replica: Arc<Box<dyn Replica>>,
+        ref mut watcher_replica: WatcherReplica,
     ) -> Result<()> {
         let mut interval = self.interval();
 
         loop {
-            let update_opt = replica.poll_signed_update().await?;
+            let update_opt = watcher_replica
+                .replica
+                .signed_update_by_old_root(watcher_replica.local_root)
+                .await?;
+
             reset_loop_if!(update_opt.is_none(), interval);
             let new_update = update_opt.unwrap();
 
             self.check_fraudulent_update(&home, &new_update).await?;
 
             let double_update_res = self.check_double_update(&new_update).await;
-            reset_loop_if!(double_update_res.is_ok(), interval);
+            if double_update_res.is_ok() {
+                watcher_replica.local_root = new_update.update.new_root;
+                reset_loop!(interval);
+            }
 
             let double = double_update_res.unwrap_err();
 
             let results = join_all(vec![
                 home.double_update(&double),
-                replica.double_update(&double),
+                watcher_replica.replica.double_update(&double),
             ])
             .await;
 
@@ -172,9 +198,13 @@ impl OpticsAgent for Watcher {
     async fn run(&self, home: Arc<Box<dyn Home>>, replica: Option<Box<dyn Replica>>) -> Result<()> {
         ensure!(replica.is_some(), "Watcher must have replica.");
         let replica = Arc::new(replica.unwrap());
+        let watcher_replica = WatcherReplica {
+            replica,
+            local_root: H256::default(),
+        };
 
         // TODO: handle double update
-        let _double = self.watch_replica(home, replica).await?;
+        let _double = self.watch_replica(home, watcher_replica).await?;
 
         Ok(())
     }
