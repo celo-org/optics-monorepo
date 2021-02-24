@@ -23,11 +23,6 @@ tracing-subscriber = "0.2.15"
 optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../optics-ethereum"}
 
-[dev-dependencies.cargo-husky]
-version = "1"
-default-features = false # Disable features which are enabled by default
-features = ["precommit-hook", "run-cargo-test", "run-cargo-fmt", "run-cargo-clippy"]
-
 [[example]]
 name = "example"
 path = "./bin/example.rs"

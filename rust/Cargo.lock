@@ -1325,7 +1325,6 @@ name = "optics-base"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "cargo-husky",
  "color-eyre",
  "config",
  "ethers",
@@ -1346,7 +1345,6 @@ name = "optics-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "cargo-husky",
  "color-eyre",
  "ethers",
  "lazy_static",
@@ -1376,7 +1374,6 @@ name = "optics-updater"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "cargo-husky",
  "color-eyre",
  "config",
  "ethers",
@@ -1707,7 +1704,6 @@ name = "relayer"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "cargo-husky",
  "color-eyre",
  "config",
  "ethers",
@@ -2555,7 +2551,6 @@ name = "watcher"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "cargo-husky",
  "color-eyre",
  "config",
  "ethers",

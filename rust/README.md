@@ -4,6 +4,8 @@
 
 - install `rustup`
   - [link here](https://rustup.rs/)
+- setup pre-commit hooks
+  - run `cp ../pre-commit.sh ../.git/hooks/pre-commit`
 
 ### Useful cargo commands
 
