@@ -1,0 +1,29 @@
+{
+  "testCases": [
+    {
+      "destination": 100,
+      "expectedDestinationAndSequence": 0,
+      "sequence": 500
+    },
+    {
+      "destination": 200,
+      "expectedDestinationAndSequence": 0,
+      "sequence": 1000
+    },
+    {
+      "destination": 300,
+      "expectedDestinationAndSequence": 0,
+      "sequence": 1500
+    },
+    {
+      "destination": 400,
+      "expectedDestinationAndSequence": 0,
+      "sequence": 2000
+    },
+    {
+      "destination": 500,
+      "expectedDestinationAndSequence": 0,
+      "sequence": 2500
+    }
+  ]
+}
