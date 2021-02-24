@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::{
+    eyre::{bail, eyre},
+    Result,
+};
 use ethers::core::types::H256;
 use futures_util::future::{join_all, select_all};
 use std::{collections::HashMap, sync::Arc};
@@ -10,7 +13,7 @@ use tokio::{
 
 use optics_base::agent::{AgentCore, OpticsAgent};
 use optics_core::{
-    traits::{DoubleUpdate, Home, Replica},
+    traits::{ChainCommunicationError, DoubleUpdate, Home, Replica, TxOutcome},
     SignedUpdate,
 };
 
@@ -102,7 +105,7 @@ impl Watcher {
 
     #[tracing::instrument(err)]
     /// Polls home for signed updates and checks for double update fraud.
-    async fn watch_home(&self, home: Arc<Box<dyn Home>>) -> Result<()> {
+    async fn watch_home(&self, home: Arc<Box<dyn Home>>) -> Result<DoubleUpdate> {
         let mut interval = self.interval();
 
         loop {
@@ -114,18 +117,18 @@ impl Watcher {
             reset_loop_if!(double_update_res.is_ok(), interval);
 
             let double = double_update_res.unwrap_err();
-            home.double_update(&double).await?;
-            color_eyre::eyre::bail!("Detected double update");
+            // home.double_update(&double).await?;
+            // color_eyre::eyre::bail!("Detected double update");
 
             // TODO: bubble this up and submit to ALL replicas
-            // // loop always resets early unless there's a double update.
-            // return Ok(double_update_res.unwrap_err());
+            // loop always resets early unless there's a double update.
+            return Ok(double);
         }
     }
 
     /// Polls replica for signed updates and checks for both double update
     /// fraud and fraudulent updates.
-    async fn watch_replica(&self, replica: Arc<Box<dyn Replica>>) -> Result<()> {
+    async fn watch_replica(&self, replica: Arc<Box<dyn Replica>>) -> Result<DoubleUpdate> {
         let mut interval = self.interval();
 
         loop {
@@ -140,25 +143,9 @@ impl Watcher {
 
             let double = double_update_res.unwrap_err();
 
-            let results = join_all(vec![
-                self.home().double_update(&double),
-                replica.double_update(&double),
-            ])
-            .await;
-
-            // Report each error. Temporary solution
-            results
-                .into_iter()
-                .filter(Result::is_err)
-                .map(Result::unwrap_err)
-                .for_each(|err| {
-                    tracing::error!("Error submitting double update: {}", err);
-                });
-            color_eyre::eyre::bail!("Detected double update");
-
             // TODO: bubble this up and submit to ALL replicas
-            // // loop always resets early unless there's a double update.
-            // return Ok(double_update_res.unwrap_err());
+            // loop always resets early unless there's a double update.
+            return Ok(double);
         }
     }
 
@@ -166,12 +153,26 @@ impl Watcher {
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
+
+    async fn notify_double_update(
+        &self,
+        double: &DoubleUpdate,
+    ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
+        let mut futs: Vec<_> = self
+            .replicas()
+            .values()
+            .map(|replica| replica.double_update(&double))
+            .collect();
+        futs.push(self.core.home.double_update(double));
+        join_all(futs).await
+    }
 }
 
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
     type Settings = Settings;
+    type Output = DoubleUpdate;
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
@@ -183,14 +184,12 @@ impl OpticsAgent for Watcher {
         ))
     }
 
-    async fn run(&self, replica: &str) -> Result<()> {
+    async fn run(&self, replica: &str) -> Result<DoubleUpdate> {
         let replica = self
             .replica_by_name(replica)
             .ok_or_else(|| eyre!("No replica named {}", replica))?;
 
-        let _double = self.watch_replica(replica).await?;
-
-        Ok(())
+        self.watch_replica(replica).await
     }
 
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
@@ -204,13 +203,24 @@ impl OpticsAgent for Watcher {
 
         loop {
             let (res, _, remaining) = select_all(futs).await;
-            if res.is_err() {
-                tracing::error!("Home or replica shut down: {:#}", res.unwrap_err());
+
+            match res {
+                Err(e) => {
+                    tracing::error!("Home or replica shut down: {:#}", e);
+                }
+                Ok(double) => {
+                    self.notify_double_update(&double)
+                        .await
+                        .iter()
+                        .for_each(|res| tracing::info!("{:#?}", res));
+                    break;
+                }
             }
             futs = remaining;
             if futs.is_empty() {
                 return Err(eyre!("Home and replicas have shut down"));
             }
         }
+        bail!("Double update detected! Watcher has been shut down!");
     }
 }

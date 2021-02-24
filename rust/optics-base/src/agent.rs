@@ -25,6 +25,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     /// The settings object for this agent
     type Settings: AsRef<Settings>;
 
+    /// The output of the agent's task. For watchers, this is a double update.
+    /// For most other agents, it will be the unit type `()`. This gives us the
+    /// option to have replicas return actionable info on failure/completion.
+    type Output: std::fmt::Debug;
+
     /// Instantiate the agent from the standard settings object
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
@@ -46,12 +51,12 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Run the agent with the given home and replica
-    async fn run(&self, replica: &str) -> Result<()>;
+    async fn run(&self, replica: &str) -> Result<Self::Output>;
 
     /// Run the Agent, and tag errors with the domain ID of the replica
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
-    async fn run_report_error(&self, replica: &str) -> Result<()> {
+    async fn run_report_error(&self, replica: &str) -> Result<Self::Output> {
         let m = format!("Replica named {} failed", replica);
         self.run(replica).await.wrap_err(m)
     }
