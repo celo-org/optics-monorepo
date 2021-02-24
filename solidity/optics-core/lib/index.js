@@ -150,11 +150,10 @@ extendEnvironment((hre) => {
       .toLowerCase();
   };
 
-  const calcDestinationAndSequence = (destination, sequence) => {
-    return (
-      (ethers.BigNumber.from(destination) << 32) &
-      ethers.BigNumber.from(sequence)
-    );
+  const destinationAndSequence = (destination, sequence) => {
+    return ethers.BigNumber.from(destination)
+      .mul(ethers.BigNumber.from(2).pow(32))
+      .add(ethers.BigNumber.from(sequence));
   };
 
   hre.optics = {
@@ -167,7 +166,7 @@ extendEnvironment((hre) => {
     formatMessage,
     messageToLeaf,
     ethersAddressToBytes32,
-    calcDestinationAndSequence,
+    destinationAndSequence,
     getHomeFactory,
     getReplicaFactory,
     deployHome: async (signer, ...args) => {

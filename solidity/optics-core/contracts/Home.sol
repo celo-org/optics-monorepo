@@ -42,7 +42,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         pure
         returns (uint64)
     {
-        return (uint64(_destination) << 32) & _sequence;
+        return (uint64(_destination) << 32) | _sequence;
     }
 
     function enqueue(

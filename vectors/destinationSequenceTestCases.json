@@ -1,29 +1,29 @@
 {
   "testCases": [
     {
-      "destination": 100,
-      "expectedDestinationAndSequence": 0,
-      "sequence": 500
+      "destination": 1,
+      "expectedDestinationAndSequence": 4294967298,
+      "sequence": 2
     },
     {
-      "destination": 200,
-      "expectedDestinationAndSequence": 0,
-      "sequence": 1000
+      "destination": 2,
+      "expectedDestinationAndSequence": 8589934595,
+      "sequence": 3
     },
     {
-      "destination": 300,
-      "expectedDestinationAndSequence": 0,
-      "sequence": 1500
+      "destination": 3,
+      "expectedDestinationAndSequence": 12884901892,
+      "sequence": 4
     },
     {
-      "destination": 400,
-      "expectedDestinationAndSequence": 0,
-      "sequence": 2000
+      "destination": 4,
+      "expectedDestinationAndSequence": 17179869189,
+      "sequence": 5
     },
     {
-      "destination": 500,
-      "expectedDestinationAndSequence": 0,
-      "sequence": 2500
+      "destination": 5,
+      "expectedDestinationAndSequence": 21474836486,
+      "sequence": 6
     }
   ]
 }

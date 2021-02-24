@@ -61,10 +61,11 @@ describe('Home', async () => {
     const sequence = (await home.sequences(originDomain)) + 1;
 
     // Format data that will be emitted from Dispatch event
-    const destinationAndSequence = optics.calcDestinationAndSequence(
+    const destinationAndSequence = optics.destinationAndSequence(
       destDomain,
       sequence,
     );
+
     const formattedMessage = optics.formatMessage(
       originDomain,
       signer.address,
@@ -87,7 +88,7 @@ describe('Home', async () => {
         ),
     )
       .to.emit(home, 'Dispatch')
-      .withArgs(destinationAndSequence, leafIndex, leaf, formattedMessage);
+      .withArgs(leafIndex, destinationAndSequence, leaf, formattedMessage);
   });
 
   it('Suggests current root and latest root on suggestUpdate', async () => {

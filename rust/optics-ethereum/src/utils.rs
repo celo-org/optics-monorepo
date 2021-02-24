@@ -1,6 +1,6 @@
 // Return destination and sequence
 pub(crate) fn destination_and_sequence(destination: u32, sequence: u32) -> u64 {
-    ((destination as u64) << 32) & sequence as u64
+    ((destination as u64) << 32) | sequence as u64
 }
 
 #[cfg(test)]
@@ -16,9 +16,9 @@ mod test {
     fn output_destination_and_sequences() {
         let test_cases: Vec<Value> = (1..=5)
             .map(|i| json!({
-                "destination": i * 100,
-                "sequence": i * 500,
-                "expectedDestinationAndSequence": destination_and_sequence(i * 100, i * 500)
+                "destination": i,
+                "sequence": i + 1,
+                "expectedDestinationAndSequence": destination_and_sequence(i, i + 1)
             }))
             .collect();
 
