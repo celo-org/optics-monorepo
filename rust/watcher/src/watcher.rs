@@ -93,11 +93,11 @@ impl Watcher {
     /// will slash the updater if the replica's update is indeed fraudulent.
     /// If the replica is running behind the Home and receives a "fraudulent
     /// update," this will be flagged as a double update.
-    async fn check_fraudulent_update(&self, signed_update: &SignedUpdate) -> Result<()> {
-        let old_root = signed_update.update.previous_root;
+    async fn check_fraudulent_update(&self, update: &SignedUpdate) -> Result<()> {
+        let old_root = update.update.previous_root;
         if old_root == self.home().current_root().await? {
             // It is okay if tx reverts
-            let _ = self.home().update(signed_update).await;
+            self.handle_missing_update(update).await?;
         }
 
         Ok(())
@@ -154,7 +154,7 @@ impl Watcher {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
-    async fn notify_double_update(
+    async fn handle_double_update(
         &self,
         double: &DoubleUpdate,
     ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
@@ -165,6 +165,14 @@ impl Watcher {
             .collect();
         futs.push(self.core.home.double_update(double));
         join_all(futs).await
+    }
+
+    // Handle an update that is missing on the Home contract
+    async fn handle_missing_update(
+        &self,
+        update: &SignedUpdate,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        self.core.home.update(update).await
     }
 }
 
@@ -217,7 +225,7 @@ impl OpticsAgent for Watcher {
                 // if it's a double update, we kick off notification of
                 // all replicas and homes, and break the loop
                 Ok(double) => {
-                    self.notify_double_update(&double)
+                    self.handle_double_update(&double)
                         .await
                         .iter()
                         .for_each(|res| tracing::info!("{:#?}", res));
@@ -229,6 +237,9 @@ impl OpticsAgent for Watcher {
             r#"
             Double update detected!
             All contracts notified!
+
+// Handle an update that is missing on the Home contract
+            async fn handle_missing_update()
             Watcher has been shut down!
         "#
         );
