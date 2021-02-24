@@ -13,7 +13,7 @@ use tokio::{
 
 use optics_base::agent::{AgentCore, OpticsAgent};
 use optics_core::{
-    traits::{ChainCommunicationError, DoubleUpdate, Home, Replica, TxOutcome},
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Home, Replica, TxOutcome},
     SignedUpdate,
 };
 
@@ -65,11 +65,43 @@ impl Watcher {
         }
     }
 
+    /// Sync the history of the current root by querying it from the Home
+    async fn crawl_history<C>(&self, contract: Arc<Box<C>>) -> Result<DoubleUpdate>
+    where
+        C: Common + ?Sized,
+    {
+        let mut interval = self.interval();
+
+        let mut current_root = contract.current_root().await?;
+        loop {
+            let previous_update = contract.signed_update_by_new_root(current_root).await?;
+            if previous_update.is_none() {
+                break;
+            }
+
+            let previous_update = previous_update.unwrap();
+            let double = self.handle_update(&previous_update).await;
+            if double.is_err() {
+                return Ok(double.unwrap_err());
+            }
+
+            current_root = previous_update.update.previous_root;
+            if current_root.is_zero() {
+                break;
+            }
+            interval.tick().await;
+        }
+        loop {
+            // halt in place without ever returning
+            interval.tick().await;
+        }
+    }
+
     /// Check that signed update received by Home or Replica isn't a double
     /// update. If update is new, add to local history. If update already exists
     /// in history and has a different `new_root` than the current signed
     /// update, try to submit double update proof.
-    async fn check_double_update(&self, signed_update: &SignedUpdate) -> Result<(), DoubleUpdate> {
+    async fn handle_update(&self, signed_update: &SignedUpdate) -> Result<(), DoubleUpdate> {
         let old_root = signed_update.update.previous_root;
         let new_root = signed_update.update.new_root;
 
@@ -113,7 +145,7 @@ impl Watcher {
             reset_loop_if!(update_opt.is_none(), interval);
             let new_update = update_opt.unwrap();
 
-            let double_update_res = self.check_double_update(&new_update).await;
+            let double_update_res = self.handle_update(&new_update).await;
             reset_loop_if!(double_update_res.is_ok(), interval);
 
             let double = double_update_res.unwrap_err();
@@ -138,7 +170,7 @@ impl Watcher {
 
             self.check_fraudulent_update(&new_update).await?;
 
-            let double_update_res = self.check_double_update(&new_update).await;
+            let double_update_res = self.handle_update(&new_update).await;
             reset_loop_if!(double_update_res.is_ok(), interval);
 
             let double = double_update_res.unwrap_err();
@@ -154,10 +186,17 @@ impl Watcher {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
+    // Handle a double-update once it has been detected.
+    #[tracing::instrument]
     async fn handle_double_update(
         &self,
         double: &DoubleUpdate,
     ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
+        tracing::info!(
+            "Dispatching double-update notifications to home and {} replicas",
+            self.replicas().len()
+        );
+
         let mut futs: Vec<_> = self
             .replicas()
             .values()
@@ -173,6 +212,14 @@ impl Watcher {
         update: &SignedUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self.core.home.update(update).await
+    }
+
+    async fn crawl_replica_history(&self, replica: &str) -> Result<DoubleUpdate> {
+        let replica = self
+            .replica_by_name(replica)
+            .ok_or_else(|| eyre!("No replica named {}", replica))?;
+
+        self.crawl_history(replica).await
     }
 }
 
@@ -201,13 +248,21 @@ impl OpticsAgent for Watcher {
     }
 
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
+        // this is a bit ugly. It is spinning up a watch and a history crawler
+        // for each replica
         let mut futs: Vec<_> = replicas
             .into_iter()
-            .map(|replica| self.run_report_error(replica))
+            .map(|replica| {
+                vec![
+                    self.run_report_error(replica),
+                    Box::pin(self.crawl_replica_history(replica)),
+                ]
+            })
+            .flatten()
             .collect();
 
-        let home_fut = self.watch_home(self.home());
-        futs.push(Box::pin(home_fut));
+        futs.push(Box::pin(self.watch_home(self.home())));
+        futs.push(Box::pin(self.crawl_history(self.home())));
 
         loop {
             // We get the first future to resolve
@@ -237,9 +292,6 @@ impl OpticsAgent for Watcher {
             r#"
             Double update detected!
             All contracts notified!
-
-// Handle an update that is missing on the Home contract
-            async fn handle_missing_update()
             Watcher has been shut down!
         "#
         );
