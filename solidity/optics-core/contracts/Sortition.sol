@@ -11,8 +11,8 @@ interface ISortition {
 // TODO: make this inherit from common, then have home inherit from it?
 // Or keep external for easier upgrading?
 contract NoSortition is ISortition {
-    address updater;
-    uint256 constant BOND_SIZE = 50 ether;
+    address internal updater;
+    uint256 internal constant BOND_SIZE = 50 ether;
 
     constructor(address _updater) payable {
         require(msg.value >= BOND_SIZE, "insufficient bond");

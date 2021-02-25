@@ -12,7 +12,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
 
     mapping(uint32 => uint32) public sequences;
 
-    ISortition sortition;
+    ISortition internal sortition;
 
     event Dispatch(
         uint256 indexed leafIndex,
