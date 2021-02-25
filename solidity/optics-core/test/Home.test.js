@@ -18,6 +18,7 @@ describe('Home', async () => {
       optics.ethersAddressToBytes32(recipient.address),
       message,
     );
+    // eslint-disable-next-line no-unused-vars
     const [_currentRoot, latestRoot] = await home.suggestUpdate();
     return latestRoot;
   };

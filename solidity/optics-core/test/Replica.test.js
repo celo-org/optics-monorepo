@@ -11,10 +11,10 @@ const ownDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
-const mockRecipientMessageString = 'message received';
+// const mockRecipientMessageString = 'message received';
 
 describe('Replica', async () => {
-  let replica, signer, fakeSigner, updater, fakeUpdater, processor;
+  let replica, signer, fakeSigner, updater, fakeUpdater;
 
   const enqueueValidUpdate = async (newRoot) => {
     let oldRoot;
@@ -30,7 +30,7 @@ describe('Replica', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner, processor] = provider.getWallets();
+    [signer, fakeSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, originDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
   });

@@ -1,6 +1,6 @@
 /* global describe before it */
 
-const { waffle, ethers } = require('hardhat');
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('Queue', async () => {
