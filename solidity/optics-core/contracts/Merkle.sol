@@ -6,7 +6,8 @@ pragma solidity >=0.6.11;
 
 import "hardhat/console.sol";
 
-// There is a bit of cruft in this design. The library needs the 0-hashes, but can't produce them on construction. Consider: hardcode constants?
+// There is a bit of cruft in this design. The library needs the 0-hashes,
+// but can't produce them on construction. Consider: hardcode constants?
 library MerkleLib {
     uint256 constant TREE_DEPTH = 32;
     uint256 constant MAX_LEAVES = 2**TREE_DEPTH - 1;
