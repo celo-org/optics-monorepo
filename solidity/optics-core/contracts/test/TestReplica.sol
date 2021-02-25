@@ -24,7 +24,7 @@ contract TestReplica is ProcessingReplica {
             _start,
             _lastProcessed
         )
-    {}
+    {} // solhint-disable-line no-empty-blocks
 
     function setFailed() public {
         _setFailed();

@@ -4,6 +4,7 @@ pragma solidity >=0.6.11;
 import {OpticsHandlerI} from "../UsingOptics.sol";
 
 contract MockRecipient is OpticsHandlerI {
+    // solhint-disable-next-line no-empty-blocks
     constructor() {}
 
     function handle(

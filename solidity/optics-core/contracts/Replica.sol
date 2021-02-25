@@ -128,6 +128,7 @@ contract ProcessingReplica is Replica {
         previous = current;
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function _beforeUpdate() internal override {}
 
     function process(bytes memory _message)

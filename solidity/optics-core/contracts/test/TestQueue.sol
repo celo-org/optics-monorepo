@@ -6,6 +6,7 @@ import "../Queue.sol";
 contract TestQueue is QueueManager {
     using QueueLib for QueueLib.Queue;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() QueueManager() {}
 
     // NB: this is unfortunately expensive

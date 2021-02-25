@@ -64,9 +64,9 @@ library MerkleLib {
         _current = _item;
 
         for (uint256 i = 0; i < TREE_DEPTH; i++) {
-            uint256 _ith_bit = (_index >> i) & 0x01;
+            uint25 _ithBit = (_index >> i) & 0x01;
             bytes32 _next = _branch[i];
-            if (_ith_bit == 1) {
+            if (_ithBit == 1) {
                 _current = keccak256(abi.encodePacked(_next, _current));
             } else {
                 _current = keccak256(abi.encodePacked(_current, _next));
@@ -82,9 +82,9 @@ library MerkleLib {
         uint256 _index = _tree.count;
 
         for (uint256 i = 0; i < TREE_DEPTH; i++) {
-            uint256 _ith_bit = (_index >> i) & 0x01;
+            uint256 _ithBit = (_index >> i) & 0x01;
             bytes32 _next = _tree.branch[i];
-            if (_ith_bit == 1) {
+            if (_ithBit == 1) {
                 _current = keccak256(abi.encodePacked(_next, _current));
             } else {
                 _current = keccak256(abi.encodePacked(_current, _zeroes[i]));
@@ -186,6 +186,7 @@ contract MerkleTreeManager {
 
     MerkleLib.Tree public tree;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() {}
 
     function root() public view returns (bytes32) {

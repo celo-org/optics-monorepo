@@ -8,6 +8,7 @@ contract TestMessage {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() {}
 
     function origin(bytes memory _message) external pure returns (uint32) {

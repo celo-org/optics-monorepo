@@ -9,7 +9,7 @@ contract TestHome is Home {
 
     constructor(uint32 _originDomain, address _sortition)
         Home(_originDomain, _sortition)
-    {}
+    {} // solhint-disable-line no-empty-blocks
 
     function nextLeafIndex() external view returns (uint256) {
         return count();

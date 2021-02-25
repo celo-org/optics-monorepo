@@ -87,7 +87,7 @@ abstract contract Common {
     enum States {ACTIVE, FAILED}
 
     uint32 public immutable originDomain;
-    bytes32 public immutable DOMAIN_HASH;
+    bytes32 public immutable domainHash;
 
     address public updater;
     States public state;
@@ -114,7 +114,7 @@ abstract contract Common {
         originDomain = _originDomain;
         updater = _updater;
         current = _current;
-        DOMAIN_HASH = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
+        domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
         state = States.ACTIVE;
     }
 
@@ -135,7 +135,7 @@ abstract contract Common {
         bytes memory _signature
     ) internal view returns (bool) {
         bytes32 _digest =
-            keccak256(abi.encodePacked(DOMAIN_HASH, _oldRoot, _newRoot));
+            keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature) == updater;
     }

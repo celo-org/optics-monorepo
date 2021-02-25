@@ -8,7 +8,7 @@ contract TestCommon is Common {
         uint32 _originDomain,
         address _updater,
         bytes32 _current
-    ) Common(_originDomain, _updater, _current) {}
+    ) Common(_originDomain, _updater, _current) {} // solhint-disable-line no-empty-blocks
 
     function testCheckSig(
         bytes32 _oldRoot,

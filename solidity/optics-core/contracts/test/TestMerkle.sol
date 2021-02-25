@@ -6,6 +6,7 @@ import "../Merkle.sol";
 contract TestMerkle is MerkleTreeManager {
     using MerkleLib for MerkleLib.Tree;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() MerkleTreeManager() {}
 
     function insert(bytes32 _node) external {
