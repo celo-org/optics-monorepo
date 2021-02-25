@@ -23,6 +23,16 @@ use optics_core::{
 
 use crate::settings::Settings;
 
+macro_rules! cancel_task {
+    ($task:ident) => {
+        #[allow(unused_must_use)]
+        {
+            $task.abort();
+            $task.await;
+        }
+    };
+}
+
 macro_rules! reset_loop {
     ($interval:ident) => {{
         $interval.tick().await;
@@ -229,17 +239,12 @@ impl Watcher {
     }
 
     async fn shutdown(&self) {
-        self.watch_tasks
-            .write()
-            .await
-            .drain()
-            .for_each(|(_, v)| v.abort());
-
-        self.sync_tasks
-            .write()
-            .await
-            .drain()
-            .for_each(|(_, v)| v.abort());
+        for (_, v) in self.watch_tasks.write().await.drain() {
+            cancel_task!(v);
+        }
+        for (_, v) in self.sync_tasks.write().await.drain() {
+            cancel_task!(v);
+        }
     }
 
     // Handle a double-update once it has been detected.
@@ -306,9 +311,10 @@ impl OpticsAgent for Watcher {
         let home_sync = HistorySync::new(self.interval_seconds, tx.clone(), self.home()).spawn();
 
         let join_result = handler.await;
+
         tracing::info!("Update handler has resolved. Cancelling all other tasks");
-        home_watcher.abort();
-        home_sync.abort();
+        cancel_task!(home_watcher);
+        cancel_task!(home_sync);
         self.shutdown().await;
 
         let res = join_result??;
