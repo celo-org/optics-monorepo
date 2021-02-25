@@ -5,14 +5,13 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.0",
     "eslint": "^7.20.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-prettier": "^3.3.1",
     "ethereum-waffle": "^3.2.2",
     "ethers": "^5.0.29",
     "hardhat": "^2.0.8",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "2.2.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.4",
+    "prettier-plugin-solidity": "^1.0.0-beta.5",
+    "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.14"
   },
   "version": "0.0.0",
@@ -26,8 +25,8 @@
     "compile": "hardhat compile && npm run prettier",
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat test",
-    "lint": "solium -d contracts/ && eslint test/",
-    "lint:fix": "solium --fix -d contracts/ && eslint --fix test/"
+    "lint": "solhint contracts/*.sol && eslint test/",
+    "lint:fix": "solhint --fix contracts/*.sol && eslint --fix test/"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
