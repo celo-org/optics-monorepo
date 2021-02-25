@@ -62,6 +62,11 @@ describe('Queue', async () => {
       expect(item).to.equal(deqed[idx]);
     });
 
+    // Multi-deq that exceeds size reverts
+    await expect(queue.dequeueMany(items.length + 1)).to.be.revertedWith(
+      'Insufficient',
+    );
+
     // Multi-deq tx to check function
     await queue.dequeueMany(items.length);
     length = await queue.length();
