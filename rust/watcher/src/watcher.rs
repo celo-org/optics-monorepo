@@ -29,6 +29,7 @@ where
     C: Common + ?Sized + 'static,
 {
     interval_seconds: u64,
+    from: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<Box<C>>,
 }
@@ -39,11 +40,13 @@ where
 {
     pub fn new(
         interval_seconds: u64,
+        from: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<Box<C>>,
     ) -> Self {
         Self {
             interval_seconds,
+            from,
             tx,
             contract,
         }
@@ -58,11 +61,16 @@ where
     fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
             let mut interval = self.interval();
-
+            let mut current_root = self.from;
             loop {
-                let update_opt = self.contract.poll_signed_update().await?;
+                let update_opt = self
+                    .contract
+                    .signed_update_by_old_root(current_root)
+                    .await?;
                 reset_loop_if!(update_opt.is_none(), interval);
                 let new_update = update_opt.unwrap();
+
+                current_root = new_update.update.new_root;
                 self.tx.send(new_update).await?;
             }
         })
@@ -75,6 +83,7 @@ where
     C: Common + ?Sized + 'static,
 {
     interval_seconds: u64,
+    from: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<Box<C>>,
 }
@@ -85,10 +94,12 @@ where
 {
     pub fn new(
         interval_seconds: u64,
+        from: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<Box<C>>,
     ) -> Self {
         Self {
+            from,
             tx,
             contract,
             interval_seconds,
@@ -105,7 +116,7 @@ where
         tokio::spawn(async move {
             let mut interval = self.interval();
 
-            let mut current_root = self.contract.current_root().await?;
+            let mut current_root = self.from;
             loop {
                 let previous_update = self
                     .contract
@@ -263,20 +274,25 @@ impl OpticsAgent for Watcher {
             let replica = self
                 .replica_by_name(name)
                 .ok_or_else(|| eyre!("No replica named {}", name))?;
+            let from = replica.current_root().await?;
 
             self.watch_tasks.write().await.insert(
                 (*name).to_owned(),
-                ContractWatcher::new(self.interval_seconds, tx.clone(), replica.clone()).spawn(),
+                ContractWatcher::new(self.interval_seconds, from, tx.clone(), replica.clone())
+                    .spawn(),
             );
             self.sync_tasks.write().await.insert(
                 (*name).to_owned(),
-                HistorySync::new(self.interval_seconds, tx.clone(), replica).spawn(),
+                HistorySync::new(self.interval_seconds, from, tx.clone(), replica).spawn(),
             );
         }
 
+        let home = self.home();
+        let from = home.current_root().await?;
+
         let home_watcher =
-            ContractWatcher::new(self.interval_seconds, tx.clone(), self.home()).spawn();
-        let home_sync = HistorySync::new(self.interval_seconds, tx.clone(), self.home()).spawn();
+            ContractWatcher::new(self.interval_seconds, from, tx.clone(), home.clone()).spawn();
+        let home_sync = HistorySync::new(self.interval_seconds, from, tx.clone(), home).spawn();
 
         let join_result = handler.await;
 

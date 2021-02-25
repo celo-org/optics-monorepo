@@ -35,7 +35,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
         self.as_ref().home.clone()
     }
 
-    /// Get a mutable reference to the replicas map
+    /// Get a reference to the replicas map
     fn replicas(&self) -> &HashMap<String, Arc<Box<dyn Replica>>> {
         &self.as_ref().replicas
     }
