@@ -10,7 +10,10 @@ use tokio::{
     time::{interval, Interval},
 };
 
-use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    reset_loop_if,
+};
 use optics_core::accumulator::{prover_sync::ProverSync, Prover};
 
 use crate::settings::Settings;
@@ -44,27 +47,6 @@ impl Processor {
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
-}
-
-macro_rules! reset_loop {
-    ($interval:ident) => {{
-        $interval.tick().await;
-        continue;
-    }};
-}
-
-macro_rules! reset_loop_if {
-    ($condition:expr, $interval:ident) => {
-        if $condition {
-            reset_loop!($interval);
-        }
-    };
-    ($condition:expr, $interval:ident, $($arg:tt)*) => {
-        if $condition {
-            tracing::info!($($arg)*);
-            reset_loop!($interval);
-        }
-    };
 }
 
 #[async_trait]
