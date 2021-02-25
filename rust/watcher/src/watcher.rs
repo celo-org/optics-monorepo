@@ -131,6 +131,7 @@ where
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
+    #[tracing::instrument]
     fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
             let mut interval = self.interval();
@@ -179,6 +180,7 @@ impl UpdateHandler {
         Self { rx, history, home }
     }
 
+    #[tracing::instrument]
     fn spawn(mut self) -> JoinHandle<Result<DoubleUpdate>> {
         tokio::spawn(async move {
             loop {
@@ -273,6 +275,7 @@ impl Watcher {
 impl OpticsAgent for Watcher {
     type Settings = Settings;
 
+    #[tracing::instrument(err)]
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
         Self: Sized,
@@ -283,10 +286,12 @@ impl OpticsAgent for Watcher {
         ))
     }
 
+    #[tracing::instrument(err)]
     async fn run(&self, _name: &str) -> Result<()> {
-        panic!("Watcher::run should not be called. Always call run_many");
+        bail!("Watcher::run should not be called. Always call run_many");
     }
 
+    #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let (tx, rx) = mpsc::channel(200);
         let handler = UpdateHandler::new(rx, Default::default(), self.home()).spawn();
