@@ -229,7 +229,17 @@ impl Watcher {
     }
 
     async fn shutdown(&self) {
-        todo!()
+        self.watch_tasks
+            .write()
+            .await
+            .drain()
+            .for_each(|(_, v)| v.abort());
+
+        self.sync_tasks
+            .write()
+            .await
+            .drain()
+            .for_each(|(_, v)| v.abort());
     }
 
     // Handle a double-update once it has been detected.
