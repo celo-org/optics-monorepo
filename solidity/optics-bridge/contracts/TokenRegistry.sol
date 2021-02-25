@@ -46,6 +46,7 @@ contract TokenRegistry is UsingOptics {
 
     function createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let clone := mload(0x40)
             mstore(
@@ -109,6 +110,7 @@ contract TokenRegistry is UsingOptics {
         }
         // Avoid returning true for non-existant contracts
         uint256 _codeSize;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             _codeSize := extcodesize(_addr)
         }

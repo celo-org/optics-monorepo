@@ -22,6 +22,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
 
     mapping(uint32 => bytes32) internal remotes;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() TokenRegistry() {}
 
     function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
@@ -46,7 +47,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
     }
 
     modifier onlyRemoteRouter(uint32 _origin, bytes32 _router) {
-        require(isRemoteRouter(_origin, _router));
+        require(isRemoteRouter(_origin, _router), "Not a remote router");
         _;
     }
 
