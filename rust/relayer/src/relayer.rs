@@ -74,7 +74,6 @@ impl Relayer {
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Relayer {
     type Settings = Settings;
-    type Output = ();
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where

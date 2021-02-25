@@ -52,7 +52,6 @@ where
 // Right now we only have one
 impl OpticsAgent for Updater<LocalWallet> {
     type Settings = Settings;
-    type Output = ();
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where

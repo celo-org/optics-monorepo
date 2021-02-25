@@ -40,7 +40,6 @@ impl Kathy {
 #[async_trait]
 impl OpticsAgent for Kathy {
     type Settings = Settings;
-    type Output = ();
 
     async fn from_settings(settings: Settings) -> Result<Self> {
         Ok(Self::new(

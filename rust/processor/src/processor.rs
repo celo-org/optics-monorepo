@@ -71,7 +71,6 @@ macro_rules! reset_loop_if {
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Processor {
     type Settings = Settings;
-    type Output = ();
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
