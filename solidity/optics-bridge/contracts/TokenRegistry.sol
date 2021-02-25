@@ -42,7 +42,7 @@ contract TokenRegistry is UsingOptics {
     }
 
     // We should be able to deploy a new token on demand
-    address tokenTemplate;
+    address internal tokenTemplate;
 
     function createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
