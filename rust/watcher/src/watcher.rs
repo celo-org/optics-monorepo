@@ -7,10 +7,7 @@ use ethers::core::types::H256;
 use futures_util::future::join_all;
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
-    sync::{
-        mpsc::{self},
-        RwLock,
-    },
+    sync::{mpsc, RwLock},
     task::JoinHandle,
     time::{interval, Interval},
 };
