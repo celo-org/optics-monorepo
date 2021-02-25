@@ -64,6 +64,27 @@ describe('Common', async () => {
     expect(await common.state()).to.equal(optics.State.FAILED);
   });
 
+  it('Does not fail contract on invalid double update proof', async () => {
+    const oldRoot = ethers.utils.formatBytes32String('old root');
+    const newRoot = ethers.utils.formatBytes32String('new root');
+
+    const { signature } = await updater.signUpdate(oldRoot, newRoot);
+
+    // Double update proof uses same roots and signatures
+    await common.doubleUpdate(
+      oldRoot,
+      [newRoot, newRoot],
+      signature,
+      signature,
+    );
+
+    // State should not be failed because double update proof does not
+    // demonstrate fraud
+    const state = await common.state();
+    expect(state).not.to.equal(optics.State.FAILED);
+    expect(state).to.equal(optics.State.ACTIVE);
+  });
+
   it('Calculates domain hashes from originDomain', async () => {
     // Compare Rust output in json file to solidity output
     for (let testCase of testCases) {
