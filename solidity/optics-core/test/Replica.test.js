@@ -1,6 +1,6 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 
 const testUtils = require('./utils');
 const { testCases } = require('../../../vectors/merkleTestCases.json');
@@ -80,6 +80,12 @@ describe('Replica', async () => {
     expect(confirmAt).to.equal(beforeTimestamp.add(optimisticSeconds));
   });
 
+  it('Returns empty update values when queue is empty', async () => {
+    const [pending, confirmAt] = await replica.nextPending();
+    expect(pending).to.equal(ethers.utils.formatBytes32String(0));
+    expect(confirmAt).to.equal(0);
+  });
+
   it('Rejects update with invalid signature', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
     await enqueueValidUpdate(firstNewRoot);
@@ -150,6 +156,7 @@ describe('Replica', async () => {
 
     await testUtils.increaseTimestampBy(provider, optimisticSeconds);
 
+    expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
     expect(await replica.current()).to.equal(newRoot);
   });
@@ -164,8 +171,13 @@ describe('Replica', async () => {
     // Increase time enough for both updates to be confirmable
     await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
+    expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
     expect(await replica.current()).to.equal(secondNewRoot);
+  });
+
+  it('Rejects confirmation attempt on empty queue', async () => {
+    await expect(replica.confirm()).to.be.revertedWith('no pending');
   });
 
   it('Rejects an early confirmation attempt', async () => {
@@ -177,6 +189,7 @@ describe('Replica', async () => {
     // the valid root has already increased the timestamp by 1.
     await testUtils.increaseTimestampBy(provider, optimisticSeconds - 2);
 
+    expect(await replica.canConfirm()).to.be.false;
     await expect(replica.confirm()).to.be.revertedWith('not time');
   });
 
@@ -320,5 +333,34 @@ describe('Replica', async () => {
     await expect(replica.process(formattedMessage)).to.be.revertedWith(
       '!destination',
     );
+  });
+
+  it('Has proveAndProcess fail if prove fails', async () => {
+    const [sender, recipient] = provider.getWallets();
+    const sequence = (await replica.lastProcessed()).add(1);
+
+    // Use 1st proof of 1st merkle vector test case
+    const testCase = testCases[0];
+    let { leaf, index, path } = testCase.proofs[0];
+
+    // Create arbitrary message (contents not important)
+    const formattedMessage = optics.formatMessage(
+      originDomain,
+      sender.address,
+      sequence,
+      ownDomain,
+      recipient.address,
+      '0x',
+    );
+
+    // Ensure root given proof and actual root don't match so that
+    // replica.prove(...) will fail
+    const actualRoot = await replica.current();
+    const proofRoot = await replica.testBranchRoot(leaf, path, index);
+    assert.notEqual(proofRoot, actualRoot);
+
+    await expect(
+      replica.proveAndProcess(formattedMessage, path, index),
+    ).to.be.revertedWith('!prove');
   });
 });

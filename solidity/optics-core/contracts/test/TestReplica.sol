@@ -42,4 +42,12 @@ contract TestReplica is ProcessingReplica {
     function setCurrentRoot(bytes32 _newRoot) external {
         current = _newRoot;
     }
+
+    function testBranchRoot(
+        bytes32 leaf,
+        bytes32[32] calldata proof,
+        uint256 index
+    ) external pure returns (bytes32) {
+        return MerkleLib.branchRoot(leaf, proof, index);
+    }
 }
