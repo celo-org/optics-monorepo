@@ -126,6 +126,24 @@ describe('Home', async () => {
       .withArgs(originDomain, currentRoot, newRoot, signature);
 
     expect(await home.current()).to.equal(newRoot);
+    expect(await home.queueContains(newRoot)).to.be.false;
+  });
+
+  it('Batch-accepts several updates', async () => {
+    const currentRoot = await home.current();
+    const newRoot1 = await enqueueMessageAndGetRoot('message1');
+    const newRoot2 = await enqueueMessageAndGetRoot('message2');
+    const newRoot3 = await enqueueMessageAndGetRoot('message3');
+
+    const { signature } = await updater.signUpdate(currentRoot, newRoot3);
+    await expect(home.update(currentRoot, newRoot3, signature))
+      .to.emit(home, 'Update')
+      .withArgs(originDomain, currentRoot, newRoot3, signature);
+
+    expect(await home.current()).to.equal(newRoot3);
+    expect(await home.queueContains(newRoot1)).to.be.false;
+    expect(await home.queueContains(newRoot2)).to.be.false;
+    expect(await home.queueContains(newRoot3)).to.be.false;
   });
 
   it('Rejects update that does not build off of current root', async () => {
