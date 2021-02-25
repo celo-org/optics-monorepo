@@ -1,37 +1,10 @@
 //! Configuration
-use config::{Config, ConfigError, Environment, File};
-use std::env;
 
-use optics_base::settings::Settings as BaseSettings;
+use optics_base::decl_settings;
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct Settings {
-    #[serde(flatten)]
-    pub(crate) base: BaseSettings,
-    pub(crate) polling_interval: u64,
-}
-
-impl AsRef<BaseSettings> for Settings {
-    fn as_ref(&self) -> &BaseSettings {
-        &self.base
+decl_settings!(
+    Settings {
+        "OPT_WATCHER",
+        polling_interval: u64,
     }
-}
-
-impl Settings {
-    /// Read settings from the config file
-    pub fn new() -> Result<Self, ConfigError> {
-        let mut s = Config::new();
-
-        s.merge(File::with_name("config/default"))?;
-
-        let env = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
-        s.merge(File::with_name(&format!("config/{}", env)).required(false))?;
-
-        // Add in settings from the environment (with a prefix of OPT_WATCHER)
-        // Eg.. `OPT_WATCHER_DEBUG=1 would set the `debug` key
-        s.merge(Environment::with_prefix("OPT_WATCHER"))?;
-
-        s.try_into()
-    }
-}
+);

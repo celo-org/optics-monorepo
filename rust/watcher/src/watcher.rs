@@ -14,7 +14,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, reset_loop_if,
+    cancel_task, decl_agent, reset_loop_if,
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, Home, TxOutcome},
@@ -182,20 +182,14 @@ impl UpdateHandler {
     }
 }
 
-/// A watcher agent
-#[derive(Debug)]
-pub struct Watcher {
-    interval_seconds: u64,
-    sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
-    watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
-    core: AgentCore,
-}
-
-impl AsRef<AgentCore> for Watcher {
-    fn as_ref(&self) -> &AgentCore {
-        &self.core
+decl_agent!(
+    /// A watcher agent
+    Watcher {
+        interval_seconds: u64,
+        sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+        watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     }
-}
+);
 
 #[allow(clippy::unit_arg)]
 impl Watcher {

@@ -12,27 +12,20 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    reset_loop_if,
+    decl_agent, reset_loop_if,
 };
 use optics_core::accumulator::{prover_sync::ProverSync, Prover};
 
 use crate::settings::Settings;
 
-/// A processor agent
-#[derive(Debug)]
-pub struct Processor {
-    interval_seconds: u64,
-    prover: Arc<RwLock<Prover>>,
-    core: AgentCore,
-}
-
-impl AsRef<AgentCore> for Processor {
-    fn as_ref(&self) -> &AgentCore {
-        &self.core
+decl_agent!(
+    /// A processor agent
+    Processor {
+        interval_seconds: u64,
+        prover: Arc<RwLock<Prover>>,
     }
-}
+);
 
-#[allow(clippy::unit_arg)]
 impl Processor {
     /// Instantiate a new processor
     pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
