@@ -177,6 +177,9 @@ describe('Replica', async () => {
   });
 
   it('Rejects confirmation attempt on empty queue', async () => {
+    const length = await replica.queueLength();
+    assert.equal(length, 0);
+
     await expect(replica.confirm()).to.be.revertedWith('no pending');
   });
 
