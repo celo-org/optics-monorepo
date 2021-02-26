@@ -47,8 +47,8 @@ impl OpticsAgent for Kathy {
     async fn from_settings(settings: Settings) -> Result<Self> {
         Ok(Self::new(
             settings.message_interval,
-            ChatGenerator::Default,
-            settings.as_ref().try_into_core().await?,
+            settings.chat_gen.into(),
+            settings.base.try_into_core().await?,
         ))
     }
 
@@ -70,10 +70,10 @@ impl OpticsAgent for Kathy {
 /// Generators for messages
 #[derive(Clone, Debug)]
 pub enum ChatGenerator {
-    Default,
     Static(String),
     OrderedList {messages: Vec<String>,counter: Arc<RwLock<AtomicUsize>>},
     Random {length: usize},
+    Default,
 }
 
 impl Default for ChatGenerator {

@@ -1,4 +1,5 @@
 message-interval = 100
+chat-gen-config = {type = "static", message = "static message" }
 
 [home]
 name = "celo"
@@ -11,4 +12,4 @@ rpc-style = "Ethereum"
 
 [[replicas]]
 # empty vector.
-# no replicas needed for updater
+# no replicas needed for kathy
