@@ -18,7 +18,6 @@ mod test {
     use super::*;
     use std::{fs::{OpenOptions}, io::Write};
 
-    #[test]
     // Outputs domain hash test cases in /vector/domainHashTestCases.json
     fn output_domain_hashes() {
         let test_cases: Vec<Value> = (1..=3)

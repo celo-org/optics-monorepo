@@ -10,7 +10,6 @@ mod test {
     use super::*;
     use std::{fs::{OpenOptions}, io::Write};
 
-    #[test]
     // Outputs combined destination and sequence test cases in /vector/
     // destinationSequenceTestCases.json
     fn output_destination_and_sequences() {
