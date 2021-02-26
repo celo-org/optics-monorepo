@@ -74,7 +74,7 @@ macro_rules! decl_settings {
         $(#[$outer:meta])*
         Settings {
             $prefix:literal,
-            $($prop:ident: $type:ty,)*
+            $($(#[$tags:meta])* $prop:ident: $type:ty,)*
         }
     ) => {
 
@@ -84,7 +84,10 @@ macro_rules! decl_settings {
         pub struct Settings {
             #[serde(flatten)]
             pub(crate) base: optics_base::settings::Settings,
-            $(pub(crate) $prop: $type,)*
+            $(
+                $(#[$tags])*
+                pub(crate) $prop: $type,
+            )*
         }
 
         impl AsRef<optics_base::settings::Settings> for Settings {
