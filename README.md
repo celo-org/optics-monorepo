@@ -17,7 +17,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
 1. Install dependencies
 
    ```bash
-   cd optics-core
+   cd solidity/optics-core
    npm i
    cd ../optics-bridge
    npm i
