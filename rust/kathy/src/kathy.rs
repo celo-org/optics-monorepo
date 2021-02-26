@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use std::{sync::{Arc, RwLock}};
 use tokio::time::{interval, Interval};
 
 use rand::{thread_rng, Rng};
@@ -52,20 +53,23 @@ impl OpticsAgent for Kathy {
         let mut interval = self.interval();
 
         loop {
-            let message = self.generator.gen_chat();
-            home.enqueue(&message).await?;
+            if let Some(message) = self.generator.gen_chat() {
+                home.enqueue(&message).await?;
+            } else {
+                return Ok(());
+            }
+
             interval.tick().await;
         }
     }
 }
 
 /// Generators for messages
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug)]
 pub enum ChatGenerator {
     Default,
     Static(String),
-    OrderedList{messages: Vec<String>},
+    OrderedList{messages: Vec<String>, counter: Arc<RwLock<usize>>},
     Random{length: usize},
 }
 
@@ -84,26 +88,36 @@ impl ChatGenerator {
             .collect()
     }
 
-    pub fn gen_chat(&self) -> Message {
+    pub fn gen_chat(&self) -> Option<Message> {
         match self {
-            ChatGenerator::Default => Default::default(),
-            ChatGenerator::Static(body) => Message {
+            ChatGenerator::Default => Some(Default::default()),
+            ChatGenerator::Static(body) => Some(Message {
                 destination: Default::default(),
                 recipient: Default::default(),
                 body: body.clone().into(),
-            },
-            ChatGenerator::OrderedList{messages} => {
-                Message {
+            }),
+            ChatGenerator::OrderedList{messages, counter} => {
+                if *counter.read().unwrap() >= messages.len() {
+                    return None;
+                }
+                
+                let msg = Message {
                     destination: Default::default(),
                     recipient: Default::default(),
-                    body: messages[0].clone().into(),
-                }
+                    body: messages[*counter.read().unwrap()].clone().into(),
+                };
+
+                // Increment counter to next message in list
+                let mut ctr = counter.write().unwrap();
+                *ctr = *ctr + 1;
+
+                Some(msg)
             },
-            ChatGenerator::Random{length} => Message {
-                destination: thread_rng().gen(),
-                recipient: H256::from_slice(Self::rand_string(length.clone()).as_bytes()),
+            ChatGenerator::Random{length} => Some(Message {
+                destination: Default::default(),
+                recipient: Default::default(),
                 body: Self::rand_string(length.clone()).into(),
-            },
+            }),
         }
     }
 }
