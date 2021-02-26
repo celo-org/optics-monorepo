@@ -1,6 +1,6 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
-const { expect, assert } = require('chai');
+const { expect } = require('chai');
 const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
 
 const {
@@ -109,7 +109,7 @@ describe('Home', async () => {
 
   it('Suggests empty update values when queue is empty', async () => {
     const length = await home.queueLength();
-    assert.equal(length, 0);
+    expect(length).to.equal(0);
 
     const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
     expect(suggestedCurrent).to.equal(ethers.utils.formatBytes32String(0));

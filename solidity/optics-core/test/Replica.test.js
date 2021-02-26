@@ -1,6 +1,6 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
-const { expect, assert } = require('chai');
+const { expect } = require('chai');
 
 const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
@@ -184,7 +184,7 @@ describe('Replica', async () => {
 
   it('Rejects confirmation attempt on empty queue', async () => {
     const length = await replica.queueLength();
-    assert.equal(length, 0);
+    expect(length).to.equal(0);
 
     await expect(replica.confirm()).to.be.revertedWith('no pending');
   });
@@ -419,7 +419,7 @@ describe('Replica', async () => {
     // Assert above message and test case have matching leaves
     const { leaf, path, index } = proveAndProcessTestCases[0];
     const messageLeaf = optics.messageToLeaf(formattedMessage);
-    assert.equal(messageLeaf, leaf);
+    expect(messageLeaf).to.equal(leaf);
 
     // Set replica's current root to match root given by proof
     const proofRoot = await replica.testBranchRoot(leaf, path, index);
@@ -455,7 +455,7 @@ describe('Replica', async () => {
     // replica.prove(...) will fail
     const actualRoot = await replica.current();
     const proofRoot = await replica.testBranchRoot(leaf, path, index);
-    assert.notEqual(proofRoot, actualRoot);
+    expect(proofRoot).to.not.equal(actualRoot);
 
     await expect(
       replica.proveAndProcess(formattedMessage, path, index),
