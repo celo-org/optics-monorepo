@@ -2,6 +2,52 @@
 
 OPTimistic Interchain Communication
 
+## Setup
+
+### Pre-commit hooks
+
+```bash
+cp pre-commit .git/hooks/pre-commit
+```
+
+Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` after commit message
+
+### Solidity
+
+1. Install dependencies
+
+   ```bash
+   cd optics-core
+   npm i
+   cd ../optics-bridge
+   npm i
+   ```
+
+2. Install jq
+
+   ```bash
+   brew install jq
+   ```
+
+   &nbsp; OR &nbsp;
+
+   ```bash
+   sudo apt-get install jq
+   ```
+
+3. Install solhint
+
+   ```bash
+   npm install -g solhint
+   // to check it is installed:
+   solhint --version
+   ```
+
+### Rust
+
+- install `rustup`
+  - [link here](https://rustup.rs/)
+
 ## Abstract
 
 We present Optics - a system for sending messages between consensus systems

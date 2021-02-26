@@ -389,7 +389,7 @@ describe('Replica', async () => {
     await replica.setMessagePending(formattedMessage);
 
     // Ensure bad handler function causes process to return false
-    let [success, _] = await replica.callStatic.process(formattedMessage);
+    let [success] = await replica.callStatic.process(formattedMessage);
     expect(success).to.be.false;
   });
 
