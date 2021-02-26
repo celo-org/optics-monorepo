@@ -1,9 +1,12 @@
 use async_trait::async_trait;
-use std::{sync::{Arc, RwLock}};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc, RwLock,
+};
 use tokio::time::{interval, Interval};
 
-use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 
 use color_eyre::Result;
 
@@ -14,6 +17,11 @@ use optics_base::{
 use optics_core::Message;
 
 use crate::settings::Settings;
+/// Chatty Kathy
+pub struct Kathy {
+    interval_seconds: u64,
+    generator: ChatGenerator,
+}
 
 decl_agent!(
     Kathy {
@@ -69,8 +77,8 @@ impl OpticsAgent for Kathy {
 pub enum ChatGenerator {
     Default,
     Static(String),
-    OrderedList{messages: Vec<String>, counter: Arc<RwLock<usize>>},
-    Random{length: usize},
+    OrderedList {messages: Vec<String>,counter: Arc<RwLock<AtomicUsize>>},
+    Random {length: usize},
 }
 
 impl Default for ChatGenerator {
@@ -96,24 +104,25 @@ impl ChatGenerator {
                 recipient: Default::default(),
                 body: body.clone().into(),
             }),
-            ChatGenerator::OrderedList{messages, counter} => {
-                if *counter.read().unwrap() >= messages.len() {
+            ChatGenerator::OrderedList { messages, counter } => {
+                if counter.read().unwrap().load(Ordering::SeqCst) >= messages.len() {
                     return None;
                 }
-                
+
                 let msg = Message {
                     destination: Default::default(),
                     recipient: Default::default(),
-                    body: messages[*counter.read().unwrap()].clone().into(),
+                    body: messages[counter.read().unwrap().load(Ordering::SeqCst)]
+                        .clone()
+                        .into(),
                 };
 
                 // Increment counter to next message in list
-                let mut ctr = counter.write().unwrap();
-                *ctr = *ctr + 1;
+                let mut _old_val = counter.write().unwrap().fetch_add(1, Ordering::SeqCst);
 
                 Some(msg)
-            },
-            ChatGenerator::Random{length} => Some(Message {
+            }
+            ChatGenerator::Random { length } => Some(Message {
                 destination: Default::default(),
                 recipient: Default::default(),
                 body: Self::rand_string(length.clone()).into(),
