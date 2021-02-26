@@ -17,11 +17,6 @@ use optics_base::{
 use optics_core::Message;
 
 use crate::settings::Settings;
-/// Chatty Kathy
-pub struct Kathy {
-    interval_seconds: u64,
-    generator: ChatGenerator,
-}
 
 decl_agent!(
     Kathy {
@@ -62,7 +57,7 @@ impl OpticsAgent for Kathy {
 
         loop {
             if let Some(message) = self.generator.gen_chat() {
-                home.enqueue(&message).await?;
+                self.home().enqueue(&message).await?;
             } else {
                 return Ok(());
             }
