@@ -1,4 +1,5 @@
 require('@nomiclabs/hardhat-waffle');
+const { assert } = require('chai');
 const ethers = require('ethers');
 const { extendEnvironment } = require('hardhat/config');
 
@@ -52,7 +53,7 @@ extendEnvironment((hre) => {
     async dispatchByDestinationAndSequence(destination, sequence) {
       const filter = this.filters.Dispatch(
         null,
-        calcDestinationAndSequence(destination, sequence),
+        destinationAndSequence(destination, sequence),
       );
 
       return await this.queryFilter(filter);
@@ -151,6 +152,9 @@ extendEnvironment((hre) => {
   };
 
   const destinationAndSequence = (destination, sequence) => {
+    assert(destination < Math.pow(2, 32) - 1);
+    assert(sequence < Math.pow(2, 32) - 1);
+
     return ethers.BigNumber.from(destination)
       .mul(ethers.BigNumber.from(2).pow(32))
       .add(ethers.BigNumber.from(sequence));

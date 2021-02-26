@@ -1,5 +1,7 @@
 // Return destination and sequence
 pub(crate) fn destination_and_sequence(destination: u32, sequence: u32) -> u64 {
+    assert!(destination < u32::MAX);
+    assert!(sequence < u32::MAX);
     ((destination as u64) << 32) | sequence as u64
 }
 
