@@ -1,9 +1,6 @@
 //! Configuration
 
-use std::sync::{
-    atomic::{AtomicUsize},
-    Arc, RwLock,
-};
+use std::sync::atomic::AtomicUsize;
 
 use optics_base::decl_settings;
 
@@ -30,7 +27,7 @@ impl Into<ChatGenerator> for ChatGenConfig {
             Self::Static{message} => ChatGenerator::Static(message),
             Self::OrderedList{messages} => ChatGenerator::OrderedList{
                 messages,
-                counter: Arc::new(RwLock::new(AtomicUsize::new(0))),
+                counter: AtomicUsize::new(0),
             },
             Self::Random{length} => ChatGenerator::Random{length},
             Self::Default => ChatGenerator::Default,

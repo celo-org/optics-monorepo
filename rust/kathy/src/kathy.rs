@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc, RwLock,
-};
+use std::sync:: atomic::{AtomicUsize, Ordering};
 use tokio::time::{interval, Interval};
 
 use rand::distributions::Alphanumeric;
@@ -68,10 +65,10 @@ impl OpticsAgent for Kathy {
 }
 
 /// Generators for messages
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum ChatGenerator {
     Static(String),
-    OrderedList {messages: Vec<String>,counter: Arc<RwLock<AtomicUsize>>},
+    OrderedList {messages: Vec<String>, counter: AtomicUsize},
     Random {length: usize},
     Default,
 }
@@ -100,20 +97,20 @@ impl ChatGenerator {
                 body: body.clone().into(),
             }),
             ChatGenerator::OrderedList { messages, counter } => {
-                if counter.read().unwrap().load(Ordering::SeqCst) >= messages.len() {
+                if counter.load(Ordering::SeqCst) >= messages.len() {
                     return None;
                 }
 
                 let msg = Message {
                     destination: Default::default(),
                     recipient: Default::default(),
-                    body: messages[counter.read().unwrap().load(Ordering::SeqCst)]
+                    body: messages[counter.load(Ordering::SeqCst)]
                         .clone()
                         .into(),
                 };
 
                 // Increment counter to next message in list
-                let mut _old_val = counter.write().unwrap().fetch_add(1, Ordering::SeqCst);
+                let mut _old_val = counter.fetch_add(1, Ordering::SeqCst);
 
                 Some(msg)
             }
