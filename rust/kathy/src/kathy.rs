@@ -1,7 +1,7 @@
 use async_trait::async_trait;
-use std::sync:: atomic::{AtomicUsize, Ordering};
-use tokio::time::{interval, Interval};
 use ethers::core::types::H256;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use tokio::time::{interval, Interval};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -16,12 +16,10 @@ use optics_core::Message;
 
 use crate::settings::Settings;
 
-decl_agent!(
-    Kathy {
-        interval_seconds: u64,
-        generator: ChatGenerator,
-    }
-);
+decl_agent!(Kathy {
+    interval_seconds: u64,
+    generator: ChatGenerator,
+});
 
 impl Kathy {
     pub fn new(interval_seconds: u64, generator: ChatGenerator, core: AgentCore) -> Self {
@@ -68,9 +66,18 @@ impl OpticsAgent for Kathy {
 /// Generators for messages
 #[derive(Debug)]
 pub enum ChatGenerator {
-    Static{destination: u32, recipient: H256, message: String},
-    OrderedList {messages: Vec<String>, counter: AtomicUsize},
-    Random {length: usize},
+    Static {
+        destination: u32,
+        recipient: H256,
+        message: String,
+    },
+    OrderedList {
+        messages: Vec<String>,
+        counter: AtomicUsize,
+    },
+    Random {
+        length: usize,
+    },
     Default,
 }
 
@@ -92,7 +99,11 @@ impl ChatGenerator {
     pub fn gen_chat(&self) -> Option<Message> {
         match self {
             ChatGenerator::Default => Some(Default::default()),
-            ChatGenerator::Static{ destination, recipient, message } => Some(Message {
+            ChatGenerator::Static {
+                destination,
+                recipient,
+                message,
+            } => Some(Message {
                 destination: destination.to_owned(),
                 recipient: recipient.to_owned(),
                 body: message.clone().into(),
@@ -105,9 +116,7 @@ impl ChatGenerator {
                 let msg = Message {
                     destination: Default::default(),
                     recipient: Default::default(),
-                    body: messages[counter.load(Ordering::SeqCst)]
-                        .clone()
-                        .into(),
+                    body: messages[counter.load(Ordering::SeqCst)].clone().into(),
                 };
 
                 // Increment counter to next message in list
@@ -118,7 +127,7 @@ impl ChatGenerator {
             ChatGenerator::Random { length } => Some(Message {
                 destination: Default::default(),
                 recipient: Default::default(),
-                body: Self::rand_string(length.clone()).into(),
+                body: Self::rand_string(*length).into(),
             }),
         }
     }
