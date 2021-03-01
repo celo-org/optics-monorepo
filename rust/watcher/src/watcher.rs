@@ -179,6 +179,7 @@ impl UpdateHandler {
                     let _ = self.home.update(&update).await;
                 }
 
+                #[allow(clippy::map_entry)]
                 if !self.history.contains_key(&old_root) {
                     self.history.insert(old_root, update.to_owned());
                     continue;

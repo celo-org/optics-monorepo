@@ -34,7 +34,7 @@ Given a message we know the following:
   - for `Transfer` actions
     - 36 - 67 To
     - 68 - 99 Amount
-  - for `Transfer` actions
+  - for `Details` actions
     - 36 - 67 Name
     - 68 - 99 Symbol
     - 100 Decimals
