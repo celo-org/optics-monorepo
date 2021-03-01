@@ -48,7 +48,6 @@ abstract contract Replica is Common, QueueManager {
         }
     }
 
-    // TODO: refactor to queue
     function update(
         bytes32 _oldRoot,
         bytes32 _newRoot,
@@ -150,7 +149,6 @@ contract ProcessingReplica is Replica {
         // fail.
         messages[_m.keccak()] = MessageStatus.Processed;
 
-        // TODO: assembly this to avoid the clone?
         bytes memory payload = _m.body().clone();
         address recipient = _m.recipientAddress();
 
@@ -179,7 +177,6 @@ contract ProcessingReplica is Replica {
             _result = _err;
         }
 
-        // (_success, _ret) = recipient.call{gas: PROCESS_GAS}(payload);
         lastProcessed = _sequence;
     }
 
