@@ -1422,6 +1422,7 @@ dependencies = [
  "color-eyre",
  "ethers",
  "lazy_static",
+ "mockall",
  "serde 1.0.123",
  "serde_json",
  "sha3",
@@ -1437,6 +1438,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "ethers",
+ "mockall",
  "optics-core",
  "serde 1.0.123",
  "serde_json",
@@ -2707,6 +2709,7 @@ dependencies = [
  "ethers",
  "futures-util",
  "log",
+ "mockall",
  "optics-base",
  "optics-core",
  "optics-test",

@@ -21,6 +21,7 @@ color-eyre = "0.5.0"
 
 [dev-dependencies]
 tokio = {version = "1.0.1", features = ["rt", "time"]}
+mockall = "0.9.1"
 
 [[example]]
 name = "toy"
