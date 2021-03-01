@@ -1,5 +1,5 @@
 message-interval = 100
-chat-gen-config = {type = "static", message = "static message" }
+chat-gen-config = { type = "static", destination = 1, recipient = "recipient", message = "static message" }
 
 [home]
 name = "celo"

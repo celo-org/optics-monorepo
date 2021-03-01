@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use std::sync:: atomic::{AtomicUsize, Ordering};
 use tokio::time::{interval, Interval};
+use ethers::core::types::H256;
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -67,7 +68,7 @@ impl OpticsAgent for Kathy {
 /// Generators for messages
 #[derive(Debug)]
 pub enum ChatGenerator {
-    Static(String),
+    Static{destination: u32, recipient: H256, message: String},
     OrderedList {messages: Vec<String>, counter: AtomicUsize},
     Random {length: usize},
     Default,
@@ -91,10 +92,10 @@ impl ChatGenerator {
     pub fn gen_chat(&self) -> Option<Message> {
         match self {
             ChatGenerator::Default => Some(Default::default()),
-            ChatGenerator::Static(body) => Some(Message {
-                destination: Default::default(),
-                recipient: Default::default(),
-                body: body.clone().into(),
+            ChatGenerator::Static{ destination, recipient, message } => Some(Message {
+                destination: destination.to_owned(),
+                recipient: recipient.to_owned(),
+                body: message.clone().into(),
             }),
             ChatGenerator::OrderedList { messages, counter } => {
                 if counter.load(Ordering::SeqCst) >= messages.len() {
@@ -110,7 +111,7 @@ impl ChatGenerator {
                 };
 
                 // Increment counter to next message in list
-                let mut _old_val = counter.fetch_add(1, Ordering::SeqCst);
+                counter.fetch_add(1, Ordering::SeqCst);
 
                 Some(msg)
             }

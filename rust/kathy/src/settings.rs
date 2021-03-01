@@ -1,15 +1,16 @@
 //! Configuration
 
 use std::sync::atomic::AtomicUsize;
-
-use optics_base::decl_settings;
+use ethers::core::types::H256;
 
 use crate::kathy::ChatGenerator;
+
+use optics_base::decl_settings;
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum ChatGenConfig {
-    Static { message: String },
+    Static { destination: u32, recipient: H256, message: String },
     OrderedList { messages: Vec<String> },
     Random { length: usize },
     #[serde(other)] Default,
@@ -24,11 +25,13 @@ impl Default for ChatGenConfig {
 impl Into<ChatGenerator> for ChatGenConfig {
     fn into(self) -> ChatGenerator {
         match self {
-            Self::Static{message} => ChatGenerator::Static(message),
-            Self::OrderedList{messages} => ChatGenerator::OrderedList{
-                messages,
-                counter: AtomicUsize::new(0),
-            },
+            Self::Static{destination, recipient, message} =>
+                ChatGenerator::Static{destination, recipient, message},
+            Self::OrderedList{messages} => 
+                ChatGenerator::OrderedList{
+                    messages,
+                    counter: AtomicUsize::new(0),
+                },
             Self::Random{length} => ChatGenerator::Random{length},
             Self::Default => ChatGenerator::Default,
         }
