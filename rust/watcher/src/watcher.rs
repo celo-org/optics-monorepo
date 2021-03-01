@@ -160,6 +160,23 @@ impl UpdateHandler {
         Self { rx, history, home }
     }
 
+    fn check_double_update (&mut self, update: &SignedUpdate) -> Result<(), DoubleUpdate> {
+        let old_root = update.update.previous_root;
+        let new_root = update.update.new_root;
+
+        if !self.history.contains_key(&old_root) {
+            self.history.insert(old_root, update.to_owned());
+            return Ok(());
+        }
+
+        let existing = self.history.get(&old_root).expect("!contains");
+        if existing.update.new_root != new_root {
+            return Err(DoubleUpdate(existing.to_owned(), update.to_owned()));
+        }
+
+        Ok(())
+    }
+
     #[tracing::instrument]
     fn spawn(mut self) -> JoinHandle<Result<DoubleUpdate>> {
         tokio::spawn(async move {
@@ -172,22 +189,14 @@ impl UpdateHandler {
 
                 let update = update.unwrap();
                 let old_root = update.update.previous_root;
-                let new_root = update.update.new_root;
 
                 if old_root == self.home.current_root().await? {
                     // It is okay if tx reverts
                     let _ = self.home.update(&update).await;
                 }
 
-                #[allow(clippy::map_entry)]
-                if !self.history.contains_key(&old_root) {
-                    self.history.insert(old_root, update.to_owned());
-                    continue;
-                }
-
-                let existing = self.history.get(&old_root).expect("!contains");
-                if existing.update.new_root != new_root {
-                    return Ok(DoubleUpdate(existing.to_owned(), update.to_owned()));
+                if let Err(double_update) = self.check_double_update(&update) {
+                    return Ok(double_update);
                 }
             }
         })
