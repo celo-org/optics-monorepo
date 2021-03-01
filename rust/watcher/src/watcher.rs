@@ -331,116 +331,12 @@ impl OpticsAgent for Watcher {
 #[cfg(test)]
 mod test {
     use ethers::core::types::H256;
-    use tokio::{sync::{mpsc, RwLock}};
-    use std::{collections::HashMap, sync::Arc};
+    use std::sync::Arc;
+    use tokio::sync::mpsc;
 
-    use optics_core::{
-        Message, Update,
-        traits::{ChainCommunicationError, Common, DoubleUpdate, Home, TxOutcome, RawCommittedMessage, CommittedMessage},
-        SignedUpdate,
-    };
-    use optics_base::{settings::ethereum::EthereumConf};
     use super::*;
-    use mockall::*;
-
-    mock! {
-        #[derive(Debug)]
-        HomeContract {}
-        
-        #[async_trait]
-        impl Home for HomeContract {
-            fn origin_domain(&self) -> u32;
-
-            fn domain_hash(&self) -> H256 {
-                domain_hash(self.origin_domain())
-            }
-
-            async fn raw_message_by_sequence(
-                &self,
-                destination: u32,
-                sequence: u32,
-            ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
-
-            async fn message_by_sequence(
-                &self,
-                destination: u32,
-                sequence: u32,
-            ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
-                self.raw_message_by_sequence(destination, sequence)
-                    .await?
-                    .map(CommittedMessage::try_from)
-                    .transpose()
-                    .map_err(Into::into)
-            }
-
-            async fn raw_message_by_leaf(
-                &self,
-                leaf: H256,
-            ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
-
-            async fn message_by_leaf(
-                &self,
-                leaf: H256,
-            ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
-                self.raw_message_by_leaf(leaf)
-                    .await?
-                    .map(CommittedMessage::try_from)
-                    .transpose()
-                    .map_err(Into::into)
-            }
-
-            async fn leaf_by_tree_index(
-                &self,
-                tree_index: usize,
-            ) -> Result<Option<H256>, ChainCommunicationError>;
-
-            async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
-
-            async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
-
-            async fn improper_update(
-                &self,
-                update: &SignedUpdate,
-            ) -> Result<TxOutcome, ChainCommunicationError>;
-
-            async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError>;
-        }
-
-        #[async_trait]
-        impl Common for HomeContract {
-            fn name(&self) -> &str;
-
-            async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError>;
-
-            async fn updater(&self) -> Result<H256, ChainCommunicationError>;
-
-            async fn state(&self) -> Result<State, ChainCommunicationError>;
-
-            async fn current_root(&self) -> Result<H256, ChainCommunicationError>;
-
-            async fn signed_update_by_old_root(
-                &self,
-                old_root: H256,
-            ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
-
-            async fn signed_update_by_new_root(
-                &self,
-                new_root: H256,
-            ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
-
-            async fn poll_signed_update(&self) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-                let current_root = self.current_root().await?;
-                self.signed_update_by_new_root(current_root).await
-            }
-
-            async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError>;
-
-            async fn double_update(
-                &self,
-                double: &DoubleUpdate,
-            ) -> Result<TxOutcome, ChainCommunicationError>;
-        }
-    }
+    use optics_base::mocks::MockHomeContract;
+    use optics_core::Update;
 
     #[test]
     fn update_handler_detects_double_update() {
@@ -453,7 +349,7 @@ mod test {
             previous_root,
             new_root,
         };
-        
+
         let double_update = Update {
             origin_domain: 1,
             previous_root,
@@ -461,10 +357,10 @@ mod test {
         };
 
         let (tx, rx) = mpsc::channel(200);
-         let handler = UpdateHandler { 
-            rx, 
-            history: Default::default(), 
-            home: Arc::new(Box::new(MockHome::new())) 
+        let handler = UpdateHandler {
+            rx,
+            history: Default::default(),
+            home: Arc::new(Box::new(MockHomeContract::new())),
         };
     }
 }
