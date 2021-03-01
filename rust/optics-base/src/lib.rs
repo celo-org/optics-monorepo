@@ -21,3 +21,6 @@ pub mod agent;
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]
 pub mod macros;
+
+#[doc(hidden)]
+pub mod mocks;
