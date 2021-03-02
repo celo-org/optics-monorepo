@@ -46,6 +46,21 @@ where
     }
 }
 
+impl Updater<LocalWallet> {
+    async fn poll_and_handle_update(&self) -> Result<()> {
+        // Check if there is an update
+        let update_opt = self.as_ref().home.produce_update().await?;
+
+        // If there is, sign it and submit it
+        if let Some(update) = update_opt {
+            let signed = self.sign_update(&update).await?;
+            self.as_ref().home.update(&signed).await?;
+        }
+
+        Ok(())
+    }
+}
+
 #[async_trait]
 // This is a bit of a kludge to make from_settings work.
 // Ideally this hould be generic across all signers.
@@ -78,16 +93,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         // Set up the polling loop.
         let mut interval = self.interval();
         loop {
-            // Check if there is an update
-            let update_opt = home.produce_update().await?;
-
-            // If there is, sign it and submit it
-            if let Some(update) = update_opt {
-                let signed = self.sign_update(&update).await?;
-                home.update(&signed).await?;
-            }
-
-            // Wait for the next tick on the interval
+            self.poll_and_handle_update().await?;
             interval.tick().await;
         }
     }
