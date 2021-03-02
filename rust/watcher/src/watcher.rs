@@ -164,6 +164,7 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
+        #[allow(clippy::map_entry)]
         if !self.history.contains_key(&old_root) {
             self.history.insert(old_root, update.to_owned());
             return Ok(());
