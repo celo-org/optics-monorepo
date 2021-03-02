@@ -1403,7 +1403,6 @@ dependencies = [
  "config",
  "ethers",
  "futures-util",
- "mockall",
  "optics-core",
  "optics-ethereum",
  "serde 1.0.123",
