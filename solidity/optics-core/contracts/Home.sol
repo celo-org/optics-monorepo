@@ -7,10 +7,10 @@ import "./Queue.sol";
 import "./Sortition.sol";
 
 /**
- * @title Home Contract
+ * @title Home
  * @author Celo Labs Inc.
- * @notice Contract responsible for managing production of the message tree and 
- * holding custody of the updater bond
+ * @notice Contract responsible for managing production of the message tree and
+ * holding custody of the updater bond.
  **/
 contract Home is MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
@@ -58,7 +58,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     }
 
     /**
-     * @notice Internal utility function that combines provided `_destination` 
+     * @notice Internal utility function that combines provided `_destination`
      * and `_sequence`.
      * @dev Both destination and sequence should be < 2^32 - 1
      * @param _destination Domain of destination chain
