@@ -337,8 +337,8 @@ mod test {
     use ethers::signers::LocalWallet;
 
     use super::*;
-    use optics_base::mocks::MockHomeContract;
     use optics_core::{traits::DoubleUpdate, Update};
+    use optics_test::mocks::MockHomeContract;
 
     #[tokio::test]
     async fn update_handler_detects_double_update() {
