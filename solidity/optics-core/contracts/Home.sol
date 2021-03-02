@@ -26,7 +26,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @notice Event emitted when new message is enqueued
      * @param leafIndex Index of message's leaf in merkle tree
      * @param destinationAndSequence Destination and destination-specific
-     * sequence combined in single field
+     * sequence combined in single field ((destination << 32) & sequence)
      * @param leaf Hash of formatted message
      * @param message Raw bytes of enqueued message
      **/
@@ -63,7 +63,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @dev Both destination and sequence should be < 2^32 - 1
      * @param _destination Domain of destination chain
      * @param _sequence Current sequence for given destination chain
-     * @return Returns combined destinationAndSequence field
+     * @return Returns (`_destination` << 32) & `_sequence`
      **/
     function destinationAndSequence(uint32 _destination, uint32 _sequence)
         internal
