@@ -3,49 +3,38 @@
 use async_trait::async_trait;
 use mockall::*;
 
-use ethers::core::types::H256;
+use ethers::core::types::{H256, U256};
 
 use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    },
-    Message, SignedUpdate, Update,
+    accumulator::prover::Proof,
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
+    SignedUpdate, StampedMessage,
 };
 
 mock! {
-    pub HomeContract {
-        // Home
-        fn _origin_domain(&self) -> u32 {}
+    pub ReplicaContract {
+        // Replica
+        fn _destination_domain(&self) -> u32 {}
 
-        fn _domain_hash(&self) -> H256 {}
+        fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
 
-        fn _raw_message_by_sequence(
+        fn _can_confirm(&self) -> Result<bool, ChainCommunicationError> {}
+
+        fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
+
+        fn _previous_root(&self) -> Result<H256, ChainCommunicationError> {}
+
+        fn _last_processed(&self) -> Result<U256, ChainCommunicationError> {}
+
+        fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
+
+        fn _process(&self, message: &StampedMessage) -> Result<TxOutcome, ChainCommunicationError> {}
+
+        fn _prove_and_process(
             &self,
-            destination: u32,
-            sequence: u32,
-        ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
-
-        fn _raw_message_by_leaf(
-            &self,
-            leaf: H256,
-        ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
-
-
-        fn _leaf_by_tree_index(
-            &self,
-            tree_index: usize,
-        ) -> Result<Option<H256>, ChainCommunicationError> {}
-
-        fn _sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {}
-
-        fn _enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {}
-
-        fn _improper_update(
-            &self,
-            update: &SignedUpdate,
+            message: &StampedMessage,
+            proof: &Proof,
         ) -> Result<TxOutcome, ChainCommunicationError> {}
-
-        fn _produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {}
 
         // Common
         fn _name(&self) -> &str {}
@@ -77,66 +66,60 @@ mock! {
     }
 }
 
-impl std::fmt::Debug for MockHomeContract {
+impl std::fmt::Debug for MockReplicaContract {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "MockHomeContract")
+        write!(f, "MockReplicaContract")
     }
 }
 
 #[async_trait]
-impl Home for MockHomeContract {
-    fn origin_domain(&self) -> u32 {
-        self._origin_domain()
+impl Replica for MockReplicaContract {
+    fn destination_domain(&self) -> u32 {
+        self._destination_domain()
     }
 
-    fn domain_hash(&self) -> H256 {
-        self._domain_hash()
+    async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
+        self._next_pending()
     }
 
-    async fn raw_message_by_sequence(
+    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError> {
+        self._can_confirm()
+    }
+
+    async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
+        self._confirm()
+    }
+
+    async fn previous_root(&self) -> Result<H256, ChainCommunicationError> {
+        self._previous_root()
+    }
+
+    async fn last_processed(&self) -> Result<U256, ChainCommunicationError> {
+        self._last_processed()
+    }
+
+    async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
+        self._prove(proof)
+    }
+
+    async fn process(
         &self,
-        destination: u32,
-        sequence: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_sequence(destination, sequence)
-    }
-
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_leaf(leaf)
-    }
-
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        self._leaf_by_tree_index(tree_index)
-    }
-
-    async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
-        self._sequences(destination)
-    }
-
-    async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
-        self._enqueue(message)
-    }
-
-    async fn improper_update(
-        &self,
-        update: &SignedUpdate,
+        message: &StampedMessage,
     ) -> Result<TxOutcome, ChainCommunicationError> {
-        self._improper_update(update)
+        self._process(message)
     }
 
-    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
-        self._produce_update()
+    async fn prove_and_process(
+        &self,
+        message: &StampedMessage,
+        proof: &Proof,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        self._prove_and_process(message, proof)
     }
 }
 
 #[async_trait]
-impl Common for MockHomeContract {
+impl Common for MockReplicaContract {
     fn name(&self) -> &str {
         self._name()
     }
