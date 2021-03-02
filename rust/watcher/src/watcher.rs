@@ -330,37 +330,78 @@ impl OpticsAgent for Watcher {
 
 #[cfg(test)]
 mod test {
-    use ethers::core::types::H256;
     use std::sync::Arc;
     use tokio::sync::mpsc;
 
+    use ethers::core::types::H256;
+    use ethers::signers::LocalWallet;
+
     use super::*;
     use optics_base::mocks::MockHomeContract;
-    use optics_core::Update;
+    use optics_core::{traits::DoubleUpdate, Update};
 
-    #[test]
-    fn update_handler_detects_double_update() {
-        let previous_root = H256::from([1; 32]);
-        let new_root = H256::from([2; 32]);
-        let fake_new_root = H256::from([3; 32]);
+    #[tokio::test]
+    async fn update_handler_detects_double_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
 
-        let existing = Update {
+        let first_root = H256::from([1; 32]);
+        let second_root = H256::from([2; 32]);
+        let third_root = H256::from([3; 32]);
+        let bad_third_root = H256::from([4; 32]);
+
+        let first_update = Update {
             origin_domain: 1,
-            previous_root,
-            new_root,
-        };
+            previous_root: first_root,
+            new_root: second_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
 
-        let double_update = Update {
+        let second_update = Update {
             origin_domain: 1,
-            previous_root,
-            new_root: fake_new_root,
-        };
+            previous_root: second_root,
+            new_root: third_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
 
-        let (tx, rx) = mpsc::channel(200);
-        let handler = UpdateHandler {
+        let bad_second_update = Update {
+            origin_domain: 1,
+            previous_root: second_root,
+            new_root: bad_third_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let (_tx, rx) = mpsc::channel(200);
+        let mut handler = UpdateHandler {
             rx,
             history: Default::default(),
             home: Arc::new(Box::new(MockHomeContract::new())),
         };
+
+        let first_update_ret = handler
+            .check_double_update(&first_update)
+            .expect("Update should have been valid");
+        assert_eq!(first_update_ret, ());
+
+        let second_update_ret = handler
+            .check_double_update(&second_update)
+            .expect("Update should have been valid");
+        assert_eq!(second_update_ret, ());
+
+        let bad_second_update_ret = handler
+            .check_double_update(&bad_second_update)
+            .expect_err("Update should have been invalid");
+        assert_eq!(
+            bad_second_update_ret,
+            DoubleUpdate(second_update, bad_second_update)
+        );
     }
 }
