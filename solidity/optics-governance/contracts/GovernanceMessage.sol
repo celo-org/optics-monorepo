@@ -11,10 +11,11 @@ library GovernanceMessage {
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
-        Invalid,        // 0
-        Call,           // 1
-        TransferOwner,  // 2
-        EnrollRouter    // 3
+        Invalid, // 0
+        Call, // 1
+        TransferOwner, // 2
+        EnrollRouter, // 3
+        Data // 4
     }
 
     modifier typeAssert(bytes29 _view, Types _t) {
@@ -31,41 +32,26 @@ library GovernanceMessage {
     */
 
     // All Types
-    function identifier(bytes29 _view)
-        internal
-        pure
-        returns (uint8)
-    {
-        return uint8(_view.index(0, 1));
+    function identifier(bytes29 _view) internal pure returns (uint8) {
+        return uint8(_view.indexUint(0, 1));
     }
 
     // All Types
-    function addr(bytes29 _view)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function addr(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(1, 32);
     }
 
     // Types.Call only
-    function data(bytes29 _view)
-        internal
-        pure
-        returns (bytes29)
-    {
-        return _view.slice(33, _view.len() - 33);
+    function data(bytes29 _view) internal view returns (bytes memory _data) {
+        _data = TypedMemView.clone(
+            _view.slice(33, _view.len() - 33, uint40(Types.Data))
+        );
     }
 
     // Types.TransferOwner & Types.EnrollRemote
-    function domain(bytes29 _view)
-        internal
-        pure
-        returns (uint32)
-    {
-        return uint32(_view.index(33, 4));
+    function domain(bytes29 _view) internal pure returns (uint32) {
+        return uint32(_view.indexUint(33, 4));
     }
-
 
     /*
         Message Type: CALL
@@ -78,7 +64,9 @@ library GovernanceMessage {
     */
 
     function isCall(bytes29 _view) internal pure returns (bool) {
-        return identifier(_view) == uint8(Types.Call) && _view.len() >= MIN_CALL_LEN;
+        return
+            identifier(_view) == uint8(Types.Call) &&
+            _view.len() >= MIN_CALL_LEN;
     }
 
     function isTypedCall(bytes29 _view) internal pure returns (bool) {
@@ -98,10 +86,12 @@ library GovernanceMessage {
 
     function formatCall(bytes32 _to, bytes memory _data)
         internal
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory _call)
     {
-        return mustBeCall(abi.encodePacked(Types.Call, _to, _data).ref(0));
+        _call = TypedMemView.clone(
+            mustBeCall(abi.encodePacked(Types.Call, _to, _data).ref(0))
+        );
     }
 
     /*
@@ -115,11 +105,14 @@ library GovernanceMessage {
     */
 
     function isTransferOwner(bytes29 _view) internal pure returns (bool) {
-        return identifier(_view) == uint8(Types.TransferOwner) && _view.len() == GOV_ACTION_LEN;
+        return
+            identifier(_view) == uint8(Types.TransferOwner) &&
+            _view.len() == GOV_ACTION_LEN;
     }
 
     function isTypedTransferOwner(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.TransferOwner && isTransferOwner(_view);
+        return
+            messageType(_view) == Types.TransferOwner && isTransferOwner(_view);
     }
 
     function tryAsTransferOwner(bytes29 _view) internal pure returns (bytes29) {
@@ -129,7 +122,11 @@ library GovernanceMessage {
         return TypedMemView.nullView();
     }
 
-    function mustBeTransferOwner(bytes29 _view) internal pure returns (bytes29) {
+    function mustBeTransferOwner(bytes29 _view)
+        internal
+        pure
+        returns (bytes29)
+    {
         return tryAsTransferOwner(_view).assertValid();
     }
 
@@ -138,7 +135,10 @@ library GovernanceMessage {
         pure
         returns (bytes29)
     {
-        return mustBeTransferOwner(abi.encodePacked(Types.TransferOwner, _owner, _domain).ref(0));
+        return
+            mustBeTransferOwner(
+                abi.encodePacked(Types.TransferOwner, _owner, _domain).ref(0)
+            );
     }
 
     /*
@@ -152,11 +152,14 @@ library GovernanceMessage {
     */
 
     function isEnrollRouter(bytes29 _view) internal pure returns (bool) {
-        return identifier(_view) == uint8(Types.EnrollRouter) && _view.len() == GOV_ACTION_LEN;
+        return
+            identifier(_view) == uint8(Types.EnrollRouter) &&
+            _view.len() == GOV_ACTION_LEN;
     }
 
     function isTypedEnrollRouter(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.EnrollRouter && isEnrollRouter(_view);
+        return
+            messageType(_view) == Types.EnrollRouter && isEnrollRouter(_view);
     }
 
     function tryAsEnrollRouter(bytes29 _view) internal pure returns (bytes29) {
@@ -175,6 +178,9 @@ library GovernanceMessage {
         pure
         returns (bytes29)
     {
-        return mustBeEnrollRouter(abi.encodePacked(Types.EnrollRouter, _router, _domain).ref(0));
+        return
+            mustBeEnrollRouter(
+                abi.encodePacked(Types.EnrollRouter, _router, _domain).ref(0)
+            );
     }
 }
