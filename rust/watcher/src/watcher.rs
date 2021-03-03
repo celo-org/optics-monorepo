@@ -387,15 +387,13 @@ mod test {
             home: Arc::new(Box::new(MockHomeContract::new())),
         };
 
-        let first_update_ret = handler
+        let _first_update_ret = handler
             .check_double_update(&first_update)
             .expect("Update should have been valid");
-        assert_eq!(first_update_ret, ());
 
-        let second_update_ret = handler
+        let _second_update_ret = handler
             .check_double_update(&second_update)
             .expect("Update should have been valid");
-        assert_eq!(second_update_ret, ());
 
         let bad_second_update_ret = handler
             .check_double_update(&bad_second_update)
