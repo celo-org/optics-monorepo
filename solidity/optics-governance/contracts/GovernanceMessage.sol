@@ -36,7 +36,7 @@ library GovernanceMessage {
         pure
         returns (uint8)
     {
-        return uint8(_view.indexUint(0, 1));
+        return uint8(_view.index(0, 1));
     }
 
     // All Types
@@ -45,7 +45,7 @@ library GovernanceMessage {
         pure
         returns (bytes32)
     {
-        return bytes32(_view.indexUint(1, 32));
+        return _view.index(1, 32);
     }
 
     // Types.Call only
@@ -54,7 +54,7 @@ library GovernanceMessage {
         pure
         returns (bytes29)
     {
-        return bytes29(_view.slice(33, _view.len() - 33));
+        return _view.slice(33, _view.len() - 33);
     }
 
     // Types.TransferOwner & Types.EnrollRemote
@@ -63,7 +63,7 @@ library GovernanceMessage {
         pure
         returns (uint32)
     {
-        return uint32(_view.indexUint(33, 4));
+        return uint32(_view.index(33, 4));
     }
 
 
