@@ -7,7 +7,7 @@ OPTimistic Interchain Communication
 ### Pre-commit hooks
 
 ```bash
-cp pre-commit .git/hooks/pre-commit
+cp pre-commit.sh .git/hooks/pre-commit
 ```
 
 Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` after commit message
@@ -20,6 +20,8 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
    cd solidity/optics-core
    npm i
    cd ../optics-bridge
+   npm i
+   cd ../optics-governance
    npm i
    ```
 

@@ -20,6 +20,9 @@ npm run lint
 cd ../optics-bridge/
 npm test
 npm run lint
+cd ../optics-governance/
+npm test
+npm run lint
 
 cd ../../rust/
 echo '+cargo test'
