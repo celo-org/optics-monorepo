@@ -78,8 +78,14 @@ where
 /// Interface for attributes shared by Home and Replica
 #[async_trait]
 pub trait Common: Sync + Send + std::fmt::Debug {
+    #[doc(hidden)]
+    fn as_any(&self) -> &dyn std::any::Any;
+
+    #[doc(hidden)]
+    fn as_mut_any(&mut self) -> &mut dyn std::any::Any;
+
     /// Return an identifier (not necessarily unique) for the chain this
-    /// contract is running on.
+    /// contract is running on
     fn name(&self) -> &str;
 
     /// Get the status of a transaction.

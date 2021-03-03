@@ -46,6 +46,14 @@ impl<M> Common for HomeContract<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
+    fn as_any(&self) -> &dyn std::any::Any {
+        unimplemented!()
+    }
+
+    fn as_mut_any(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
+
     fn name(&self) -> &str {
         &self.name
     }

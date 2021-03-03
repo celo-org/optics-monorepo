@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom};
 
 use async_trait::async_trait;
 use ethers::core::types::H256;

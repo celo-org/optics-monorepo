@@ -103,49 +103,56 @@ impl OpticsAgent for Updater<LocalWallet> {
 mod test {
     use std::{collections::HashMap, sync::Arc};
 
-    use ethers::core::{types::H256};
+    use ethers::core::types::H256;
 
     use super::*;
-    use optics_core::{Update, traits::Home};
+    use optics_core::{traits::Home, Update};
     use optics_test::mocks::MockHomeContract;
 
     #[tokio::test]
     async fn polls_and_signs_update() {
         let signer: LocalWallet =
             "1111111111111111111111111111111111111111111111111111111111111111"
-            .parse()
-            .unwrap();
-        
+                .parse()
+                .unwrap();
+
         let previous_root = H256::from([1; 32]);
         let new_root = H256::from([2; 32]);
-        
+
         let update = Update {
             origin_domain: 0,
             previous_root,
             new_root,
         };
+
         let signed_update = update.sign_with(&signer).await;
-        
+
         // *** NEED Arc<Box<MockHomeContract>> ***
-        let mut mock_home = Arc::new(Box::new(MockHomeContract::new())); 
+        let mut mock_home = MockHomeContract::new();
+
         // home.update returns created update value
         mock_home
             .expect__produce_update()
             .return_once(move || Ok(Some(update)));
         // Expect home.update to be called once
-        mock_home
-            .expect__update()
-            .times(1);
+        mock_home.expect__update().times(1);
 
-        let agent_core = AgentCore {
-            home: mock_home.clone(), // *** NEED Arc<Box<dyn Home> ***
-            replicas: HashMap::new(),
-        };
-        let updater = Updater::new(signer, 3, agent_core);
-        
-        updater.poll_and_handle_update().await
-            .expect("Should have returned Ok(())");
-        
+        let mut home: Arc<Box<dyn Home>> = Arc::new(Box::new(mock_home));
+        {
+            let agent_core = AgentCore {
+                home: home.clone(),
+                replicas: HashMap::new(),
+            };
+            let updater = Updater::new(signer, 3, agent_core);
+
+            updater
+                .poll_and_handle_update()
+                .await
+                .expect("Should have returned Ok(())");
+        }
+
+        let boxed = Arc::get_mut(&mut home).unwrap();
+        let mock_home: &mut MockHomeContract = boxed.as_mut().as_mut_any().downcast_mut().unwrap();
         // *** NEED Arc<Box<MockHomeContract>> ***
         mock_home.checkpoint();
     }
