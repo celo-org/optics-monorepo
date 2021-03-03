@@ -40,7 +40,6 @@ where
         update.sign_with(&self.signer).await
     }
 
-    #[doc(hidden)]
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }

@@ -52,7 +52,6 @@ where
         }
     }
 
-    #[doc(hidden)]
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
@@ -106,7 +105,6 @@ where
         }
     }
 
-    #[doc(hidden)]
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
@@ -337,9 +335,10 @@ mod test {
     use ethers::core::types::H256;
     use ethers::signers::LocalWallet;
 
-    use super::*;
     use optics_core::{traits::DoubleUpdate, Update};
     use optics_test::mocks::MockHomeContract;
+
+    use super::*;
 
     #[tokio::test]
     async fn update_handler_detects_double_update() {

@@ -64,7 +64,6 @@ impl Relayer {
         Ok(())
     }
 
-    #[doc(hidden)]
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }

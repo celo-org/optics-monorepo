@@ -526,7 +526,7 @@ dependencies = [
 [[package]]
 name = "ethers"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "ethers-contract",
  "ethers-core",
@@ -538,7 +538,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-contract-derive",
@@ -556,7 +556,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -573,7 +573,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-core",
@@ -586,7 +586,7 @@ dependencies = [
 [[package]]
 name = "ethers-core"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "arrayvec",
  "bytes",
@@ -610,7 +610,7 @@ dependencies = [
 [[package]]
 name = "ethers-middleware"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "async-trait",
  "ethers-contract",
@@ -632,7 +632,7 @@ dependencies = [
 [[package]]
 name = "ethers-providers"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -657,7 +657,7 @@ dependencies = [
 [[package]]
 name = "ethers-signers"
 version = "0.2.0"
-source = "git+https://github.com/gakonst/ethers-rs#c18dad6122c06dc8255d1aabce5856611b3216bb"
+source = "git+https://github.com/gakonst/ethers-rs#0c3bb7b9c111539e256a6c728181d256fb1e7501"
 dependencies = [
  "async-trait",
  "elliptic-curve 0.9.4",
@@ -912,9 +912,9 @@ checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 
 [[package]]
 name = "hex"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hmac"
