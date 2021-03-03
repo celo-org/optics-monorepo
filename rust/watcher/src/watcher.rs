@@ -345,8 +345,8 @@ mod test {
     async fn update_handler_detects_double_update() {
         let signer: LocalWallet =
             "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+            .parse()
+            .unwrap();
 
         let first_root = H256::from([1; 32]);
         let second_root = H256::from([2; 32]);
