@@ -18,7 +18,7 @@ async fn _main(settings: Settings) -> Result<()> {
 
     // Normally we would run_from_settings
     // but for an empty replica vector that would do nothing
-    kathy.run("").await?;
+    kathy.run("").await??;
 
     Ok(())
 }

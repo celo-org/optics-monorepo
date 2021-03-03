@@ -1,7 +1,6 @@
 //! Configuration
 
 use ethers::core::types::H256;
-use std::sync::atomic::AtomicUsize;
 
 use crate::kathy::ChatGenerator;
 
@@ -45,7 +44,7 @@ impl Into<ChatGenerator> for ChatGenConfig {
             },
             Self::OrderedList { messages } => ChatGenerator::OrderedList {
                 messages,
-                counter: AtomicUsize::new(0),
+                counter: 0,
             },
             Self::Random { length } => ChatGenerator::Random { length },
             Self::Default => ChatGenerator::Default,

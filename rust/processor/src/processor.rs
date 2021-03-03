@@ -138,9 +138,20 @@ impl OpticsAgent for Processor {
         ))
     }
 
-    #[tracing::instrument(err)]
-    async fn run(&self, replica: &str) -> Result<()> {
-        panic!("Do not call `Processor::run` directly")
+    fn run(&self, name: &str) -> JoinHandle<Result<()>> {
+        let home = self.home();
+        let prover = self.prover.clone();
+        let interval_seconds = self.interval_seconds;
+
+        let replica_opt = self.replica_by_name(name);
+        let name = name.to_owned();
+
+        tokio::spawn(async move {
+            let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
+            ReplicaProcessor::new(interval_seconds, replica, home, prover)
+                .spawn()
+                .await?
+        })
     }
 
     #[tracing::instrument(err)]
@@ -156,21 +167,7 @@ impl OpticsAgent for Processor {
         });
 
         // for each specified replica, spawn a joinable task
-        let mut handles = vec![];
-        for name in replicas.iter() {
-            let replica = self
-                .replica_by_name(name)
-                .ok_or_else(|| eyre!("No replica named {}", name))?;
-
-            let task = ReplicaProcessor::new(
-                self.interval_seconds,
-                replica,
-                self.home(),
-                self.prover.clone(),
-            )
-            .spawn();
-            handles.push(task);
-        }
+        let mut handles: Vec<_> = replicas.iter().map(|name| self.run(name)).collect();
 
         handles.push(sync_task);
 
@@ -180,7 +177,6 @@ impl OpticsAgent for Processor {
             cancel_task!(task);
         }
 
-        // Ok(())
         res?
     }
 }

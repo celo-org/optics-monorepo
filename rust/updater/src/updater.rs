@@ -1,17 +1,21 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
-use tokio::time::{interval, Interval};
+use tokio::{
+    task::JoinHandle,
+    time::{interval, Interval},
+};
 
 use optics_base::agent::{AgentCore, OpticsAgent};
-use optics_core::{SignedUpdate, Update};
 
 use crate::settings::Settings;
 
 /// An updater agent
 #[derive(Debug)]
 pub struct Updater<S> {
-    signer: S,
+    signer: Arc<S>,
     interval_seconds: u64,
     core: AgentCore,
 }
@@ -29,15 +33,10 @@ where
     /// Instantiate a new updater
     pub fn new(signer: S, interval_seconds: u64, core: AgentCore) -> Self {
         Self {
-            signer,
+            signer: Arc::new(signer),
             interval_seconds,
             core,
         }
-    }
-
-    /// Sign an update
-    pub async fn sign_update(&self, update: &Update) -> Result<SignedUpdate, S::Error> {
-        update.sign_with(&self.signer).await
     }
 
     fn interval(&self) -> Interval {
@@ -63,31 +62,36 @@ impl OpticsAgent for Updater<LocalWallet> {
         ))
     }
 
-    async fn run(&self, _replica: &str) -> Result<()> {
+    fn run(&self, _replica: &str) -> JoinHandle<Result<()>> {
         // First we check that we have the correct key to sign with.
         let home = self.home();
-        let expected: Address = home.updater().await?.into();
-        ensure!(
-            expected == self.signer.address(),
-            "Contract updater does not match keys. On-chain: {}. Local: {}",
-            expected,
-            self.signer.address()
-        );
-
-        // Set up the polling loop.
+        let address = self.signer.address();
         let mut interval = self.interval();
-        loop {
-            // Check if there is an update
-            let update_opt = home.produce_update().await?;
+        let signer = self.signer.clone();
 
-            // If there is, sign it and submit it
-            if let Some(update) = update_opt {
-                let signed = self.sign_update(&update).await?;
-                home.update(&signed).await?;
+        tokio::spawn(async move {
+            let expected: Address = home.updater().await?.into();
+            ensure!(
+                expected == address,
+                "Contract updater does not match keys. On-chain: {}. Local: {}",
+                expected,
+                address
+            );
+
+            // Set up the polling loop.
+            loop {
+                // Check if there is an update
+                let update_opt = home.produce_update().await?;
+
+                // If there is, sign it and submit it
+                if let Some(update) = update_opt {
+                    let signed = update.sign_with(signer.as_ref()).await?;
+                    home.update(&signed).await?;
+                }
+
+                // Wait for the next tick on the interval
+                interval.tick().await;
             }
-
-            // Wait for the next tick on the interval
-            interval.tick().await;
-        }
+        })
     }
 }

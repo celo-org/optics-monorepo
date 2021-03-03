@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use ethers::core::types::H256;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use tokio::time::{interval, Interval};
+use tokio::{
+    task::JoinHandle,
+    time::{interval, Interval},
+};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -47,23 +49,27 @@ impl OpticsAgent for Kathy {
         ))
     }
 
-    async fn run(&self, _: &str) -> Result<()> {
+    #[tracing::instrument]
+    fn run(&self, _: &str) -> JoinHandle<Result<()>> {
         let mut interval = self.interval();
+        let home = self.home();
+        let mut generator = self.generator.clone();
+        tokio::spawn(async move {
+            loop {
+                if let Some(message) = generator.gen_chat() {
+                    home.enqueue(&message).await?;
+                } else {
+                    return Ok(());
+                }
 
-        loop {
-            if let Some(message) = self.generator.gen_chat() {
-                self.home().enqueue(&message).await?;
-            } else {
-                return Ok(());
+                interval.tick().await;
             }
-
-            interval.tick().await;
-        }
+        })
     }
 }
 
 /// Generators for messages
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ChatGenerator {
     Static {
         destination: u32,
@@ -72,7 +78,7 @@ pub enum ChatGenerator {
     },
     OrderedList {
         messages: Vec<String>,
-        counter: AtomicUsize,
+        counter: usize,
     },
     Random {
         length: usize,
@@ -95,7 +101,7 @@ impl ChatGenerator {
             .collect()
     }
 
-    pub fn gen_chat(&self) -> Option<Message> {
+    pub fn gen_chat(&mut self) -> Option<Message> {
         match self {
             ChatGenerator::Default => Some(Default::default()),
             ChatGenerator::Static {
@@ -108,18 +114,18 @@ impl ChatGenerator {
                 body: message.clone().into(),
             }),
             ChatGenerator::OrderedList { messages, counter } => {
-                if counter.load(Ordering::SeqCst) >= messages.len() {
+                if *counter >= messages.len() {
                     return None;
                 }
 
                 let msg = Message {
                     destination: Default::default(),
                     recipient: Default::default(),
-                    body: messages[counter.load(Ordering::SeqCst)].clone().into(),
+                    body: messages[*counter].clone().into(),
                 };
 
                 // Increment counter to next message in list
-                counter.fetch_add(1, Ordering::SeqCst);
+                *counter += 1;
 
                 Some(msg)
             }

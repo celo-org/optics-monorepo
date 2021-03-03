@@ -269,9 +269,11 @@ impl OpticsAgent for Watcher {
         ))
     }
 
-    #[tracing::instrument(err)]
-    async fn run(&self, _name: &str) -> Result<()> {
-        bail!("Watcher::run should not be called. Always call run_many");
+    #[tracing::instrument]
+    fn run(&self, _name: &str) -> JoinHandle<Result<()>> {
+        tokio::spawn(
+            async move { bail!("Watcher::run should not be called. Always call run_many") },
+        )
     }
 
     #[tracing::instrument(err)]

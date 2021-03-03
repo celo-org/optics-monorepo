@@ -5,6 +5,7 @@ use color_eyre::{
 };
 use futures_util::future::select_all;
 use std::{collections::HashMap, sync::Arc};
+use tokio::task::JoinHandle;
 
 use crate::settings::Settings;
 use optics_core::traits::{Home, Replica};
@@ -46,14 +47,18 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Run the agent with the given home and replica
-    async fn run(&self, replica: &str) -> Result<()>;
+    fn run(&self, replica: &str) -> JoinHandle<Result<()>>;
 
     /// Run the Agent, and tag errors with the domain ID of the replica
     #[allow(clippy::unit_arg)]
-    #[tracing::instrument(err)]
-    async fn run_report_error(&self, replica: &str) -> Result<()> {
+    #[tracing::instrument]
+    fn run_report_error(&self, replica: &str) -> JoinHandle<Result<()>> {
         let m = format!("Replica named {} failed", replica);
-        self.run(replica).await.wrap_err(m)
+        let handle = self.run(replica);
+
+        let fut = async move { handle.await?.wrap_err(m) };
+
+        tokio::spawn(fut)
     }
 
     /// Run several agents by replica name
