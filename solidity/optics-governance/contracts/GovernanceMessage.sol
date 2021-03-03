@@ -13,7 +13,7 @@ library GovernanceMessage {
     enum Types {
         Invalid, // 0
         Call, // 1
-        TransferOwner, // 2
+        TransferGovernor, // 2
         EnrollRouter, // 3
         Data // 4
     }
@@ -48,7 +48,7 @@ library GovernanceMessage {
         );
     }
 
-    // Types.TransferOwner & Types.EnrollRemote
+    // Types.TransferGovernor & Types.EnrollRemote
     function domain(bytes29 _view) internal pure returns (uint32) {
         return uint32(_view.indexUint(33, 4));
     }
@@ -95,49 +95,49 @@ library GovernanceMessage {
     }
 
     /*
-        Message Type: TRANSFER OWNER
+        Message Type: TRANSFER GOVERNOR
 
-        struct TransferOwner {
+        struct TransferGovernor {
             identifier, // message ID -- 1 byte
-            addr,       // address of new owner -- 32 bytes
-            domain      // domain of new owner -- 4 bytes
+            addr,       // address of new governor -- 32 bytes
+            domain      // domain of new governor -- 4 bytes
         }
     */
 
-    function isTransferOwner(bytes29 _view) internal pure returns (bool) {
+    function isTransferGovernor(bytes29 _view) internal pure returns (bool) {
         return
-            identifier(_view) == uint8(Types.TransferOwner) &&
+            identifier(_view) == uint8(Types.TransferGovernor) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isTypedTransferOwner(bytes29 _view) internal pure returns (bool) {
+    function isTypedTransferGovernor(bytes29 _view) internal pure returns (bool) {
         return
-            messageType(_view) == Types.TransferOwner && isTransferOwner(_view);
+            messageType(_view) == Types.TransferGovernor && isTransferGovernor(_view);
     }
 
-    function tryAsTransferOwner(bytes29 _view) internal pure returns (bytes29) {
-        if (isTransferOwner(_view)) {
-            return _view.castTo(uint40(Types.TransferOwner));
+    function tryAsTransferGovernor(bytes29 _view) internal pure returns (bytes29) {
+        if (isTransferGovernor(_view)) {
+            return _view.castTo(uint40(Types.TransferGovernor));
         }
         return TypedMemView.nullView();
     }
 
-    function mustBeTransferOwner(bytes29 _view)
+    function mustBeTransferGovernor(bytes29 _view)
         internal
         pure
         returns (bytes29)
     {
-        return tryAsTransferOwner(_view).assertValid();
+        return tryAsTransferGovernor(_view).assertValid();
     }
 
-    function formatTransferOwner(bytes32 _owner, uint32 _domain)
+    function formatTransferGovernor(bytes32 _governor, uint32 _domain)
         internal
         pure
         returns (bytes29)
     {
         return
-            mustBeTransferOwner(
-                abi.encodePacked(Types.TransferOwner, _owner, _domain).ref(0)
+            mustBeTransferGovernor(
+                abi.encodePacked(Types.TransferGovernor, _governor, _domain).ref(0)
             );
     }
 

@@ -19,15 +19,22 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
 
-    uint32 ownerDomain; // domain of Owner chain -- for accepting incoming messages from Owner
-    bytes32 localOwner; // local owner address -- address(0) for non-owner chain
+    uint32 governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
+    address governor;   // the local entity empowered to call governance functions
 
     mapping(uint32 => bytes32) internal routers; //registry of domain -> remote GovernanceRouter contract address
 
-    constructor() {}
+    constructor() {
+        governor = msg.sender;
+    }
 
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
         _view.assertType(uint40(_t));
+        _;
+    }
+
+    modifier onlyGovernor() {
+        require(msg.sender == governor, "Caller is not the governor");
         _;
     }
 
@@ -35,16 +42,16 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     --- MESSAGE HANDLING ---
     */
 
-    function isOwnerRouter(uint32 _domain, bytes32 _address)
+    function isGovernorRouter(uint32 _domain, bytes32 _address)
         internal
         view
-        returns (bool _isOwnerRouter)
+        returns (bool _isGovernorRouter)
     {
-        return _domain == ownerDomain && _address == routers[_domain];
+        _isGovernorRouter = _domain == governorDomain && _address == routers[_domain];
     }
 
-    modifier onlyOwnerRouter(uint32 _domain, bytes32 _address) {
-        require(isOwnerRouter(_domain, _address));
+    modifier onlyGovernorRouter(uint32 _domain, bytes32 _address) {
+        require(isGovernorRouter(_domain, _address));
         _;
     }
 
@@ -57,7 +64,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_router != bytes32(0), "!router");
     }
 
-    function mustBeValidOwnerDomain(uint32 _domain)
+    function mustBeValidGovernorDomain(uint32 _domain)
         internal
         view
         returns (bool _isLocalDomain)
@@ -77,15 +84,15 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         external
         override
         onlyReplica
-        onlyOwnerRouter(_origin, _sender)
+        onlyGovernorRouter(_origin, _sender)
         returns (bytes memory _ret)
     {
         bytes29 _msg = _message.ref(0);
 
         if (_msg.isCall()) {
             return handleCall(_msg);
-        } else if (_msg.isTransferOwner()) {
-            return handleTransferOwner(_msg);
+        } else if (_msg.isTransferGovernor()) {
+            return handleTransferGovernor(_msg);
         } else if (_msg.isEnrollRouter()) {
             return handleEnrollRouter(_msg);
         }
@@ -106,15 +113,15 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         return hex"";
     }
 
-    function handleTransferOwner(bytes29 _msg)
+    function handleTransferGovernor(bytes29 _msg)
         internal
-        typeAssert(_msg, GovernanceMessage.Types.TransferOwner)
+        typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
         returns (bytes memory _ret)
     {
-        bytes32 _owner = _msg.addr();
+        bytes32 _governor = _msg.addr();
         uint32 _domain = _msg.domain();
 
-        _transferOwner(_owner, _domain);
+        _transferGovernor(_governor, _domain);
 
         return hex"";
     }
@@ -134,13 +141,13 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
     /*
     --- MESSAGE DISPATCHING ---
-        only called on the Owner chain
-        owner is 0x00 for all other chains
+        only called on the Governor chain
+        governor is 0x00 for all other chains
     */
 
     function callLocal(bytes32 _to, bytes memory _data)
         external
-        onlyOwner
+        onlyGovernor
         returns (bytes memory _ret)
     {
         (_ret) = _call(_to, _data);
@@ -150,7 +157,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         uint32 _destination,
         bytes32 _to,
         bytes memory _data
-    ) external onlyOwner {
+    ) external onlyGovernor {
         bytes32 _router = mustHaveRouter(_destination);
 
         home.enqueue(
@@ -160,20 +167,20 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         );
     }
 
-    function transferOwner(bytes32 _newOwner, uint32 _newDomain)
+    function transferGovernor(bytes32 _newGovernor, uint32 _newDomain)
         external
-        onlyOwner
+        onlyGovernor
     {
-        bool _isLocalDomain = _transferOwner(_newOwner, _newDomain); //transfer the owner locally
+        bool _isLocalDomain = _transferGovernor(_newGovernor, _newDomain); //transfer the governor locally
 
         if (_isLocalDomain) {
-            // if the owner domain is local, we only need to change the owner address locally
-            // no need to message remote routers; they should already have the same domain set and owner = bytes32(0)
+            // if the governor domain is local, we only need to change the governor address locally
+            // no need to message remote routers; they should already have the same domain set and governor = bytes32(0)
             return;
         }
 
-        bytes29 transferOwnerMessage =
-            GovernanceMessage.formatTransferOwner(_newOwner, _newDomain);
+        bytes29 transferGovernorMessage =
+            GovernanceMessage.formatTransferGovernor(_newGovernor, _newDomain);
 
         /*
         TODO:
@@ -182,7 +189,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         */
     }
 
-    function enrollRouter(bytes32 _router, uint32 _domain) external onlyOwner {
+    function enrollRouter(bytes32 _router, uint32 _domain) external onlyGovernor {
         _enrollRouter(_router, _domain); //enroll the router locally
 
         bytes29 enrollRouterMessage =
@@ -213,21 +220,21 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_success, "call failed");
     }
 
-    function _transferOwner(bytes32 _newOwner, uint32 _newDomain)
+    function _transferGovernor(bytes32 _newGovernor, uint32 _newDomain)
         internal
         returns (bool _isLocalDomain)
     {
-        _isLocalDomain = mustBeValidOwnerDomain(_newDomain);
+        _isLocalDomain = mustBeValidGovernorDomain(_newDomain);
 
-        if (ownerDomain != _newDomain) {
-            //Update the ownerDomain if necessary
-            ownerDomain = _newDomain;
+        if (governorDomain != _newDomain) {
+            //Update the governorDomain if necessary
+            governorDomain = _newDomain;
         }
 
-        bytes32 _owner = _isLocalDomain ? _newOwner : bytes32(0); //Owner is set to 0 if the owner is not local
-        if (localOwner != _owner) {
-            //Update the owner if necessary
-            localOwner = _owner;
+        bytes32 _governor = _isLocalDomain ? _newGovernor : bytes32(0); //Governor is set to 0 if the governor is not local
+        if (governor != _governor) {
+            //Update the governor if necessary
+            governor = _governor;
         }
     }
 
@@ -238,12 +245,12 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     /*
     --- SETUP ROUTER MAPPING ---
         convenience function so deployer can setup the router mapping for the contract locally
-        before transferring ownership to the remote router
+        before transferring governorship to the remote governor
     */
 
     function enrollRouterSetup(bytes32 _router, uint32 _domain)
         external
-        onlyOwner
+        onlyGovernor
     {
         _enrollRouter(_router, _domain); //enroll the router locally
     }
