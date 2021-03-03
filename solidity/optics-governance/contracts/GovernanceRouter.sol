@@ -32,7 +32,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function isOwnerRouter(uint32 _domain, bytes32 _address)
     internal
     view
-    returns (bool)
+    returns (bool _isOwnerRouter)
     {
         return _domain == ownerDomain && _address == routers[_domain];
     }
@@ -60,7 +60,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         override
         onlyReplica
         onlyOwnerRouter(_origin, _sender)
-        returns (bytes memory)
+        returns (bytes memory _ret)
     {
         bytes29 _msg = _message.ref(0);
 
@@ -73,13 +73,12 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         }
 
         require(false, "!valid message type");
-        return hex"";
     }
 
     function handleCall(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
-        returns (bytes memory)
+        returns (bytes memory _ret)
     {
         bytes32 _to = _msg.addr();
         bytes memory _data = _msg.data();
@@ -92,7 +91,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function handleTransferOwner(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.TransferOwner)
-        returns (bytes memory)
+        returns (bytes memory _ret)
     {
         bytes32 _owner = _msg.addr();
         uint32 _domain = _msg.domain();
@@ -105,7 +104,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function handleEnrollRouter(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.EnrollRouter)
-        returns (bytes memory)
+        returns (bytes memory _ret)
     {
         bytes32 _router = _msg.addr();
         uint32 _domain = _msg.domain();
