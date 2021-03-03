@@ -1,13 +1,10 @@
 use async_trait::async_trait;
-use color_eyre::{
-    eyre::{eyre, WrapErr},
-    Result,
-};
+use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
 
-use crate::settings::Settings;
+use crate::{cancel_task, settings::Settings};
 use optics_core::traits::{Home, Replica};
 
 /// Properties shared across all agents
@@ -65,22 +62,19 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     #[allow(clippy::unit_arg)]
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
-        let mut futs: Vec<_> = replicas
+        let handles: Vec<_> = replicas
             .iter()
             .map(|replica| self.run_report_error(replica))
             .collect();
 
-        loop {
-            // This gets the first future to resolve.
-            let (res, _, remaining) = select_all(futs).await;
-            if res.is_err() {
-                tracing::error!("Replica shut down: {:#}", res.unwrap_err());
-            }
-            futs = remaining;
-            if futs.is_empty() {
-                return Err(eyre!("All replicas have shut down"));
-            }
+        // This gets the first future to resolve.
+        let (res, _, remaining) = select_all(handles).await;
+
+        for task in remaining.into_iter() {
+            cancel_task!(task);
         }
+
+        res?
     }
 
     /// Run several agents
