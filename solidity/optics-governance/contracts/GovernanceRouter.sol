@@ -19,7 +19,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     using GovernanceMessage for bytes29;
 
     uint32 ownerDomain;     // domain of Owner chain -- for accepting incoming messages from Owner
-    bytes32 owner;          // local owner address -- address(0) for non-owner chain
+    bytes32 localOwner;     // local owner address -- address(0) for non-owner chain
 
     mapping(uint32 => bytes32) internal routers; //registry of domain -> remote GovernanceRouter contract address
 
@@ -49,6 +49,18 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     {
         _router = routers[_domain];
         require(_router != bytes32(0), "!router");
+    }
+
+    function mustBeValidOwnerDomain(uint32 _domain)
+        internal
+        view
+        returns (bool _isLocalDomain)
+    {
+        _isLocalDomain = _domain == home.originDomain;
+
+        if(!_isLocalDomain) {
+            mustHaveRouter(_domain);
+        }
     }
 
     function handle(
@@ -142,12 +154,18 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     function transferOwner(
-        bytes32 _owner,
-        uint32 _domain
+        bytes32 _newOwner,
+        uint32 _newDomain
     ) external onlyOwner {
-        _transferOwner(_owner, _domain); //transfer the owner locally
+        bool _isLocalDomain = _transferOwner(_newOwner, _newDomain); //transfer the owner locally
 
-        bytes29 transferOwnerMessage = GovernanceMessage.formatTransferOwner(_owner, _domain);
+        if(_isLocalDomain) {
+            // if the owner domain is local, we only need to change the owner address locally
+            // no need to message remote routers; they should already have the same domain set and owner = bytes32(0)
+            return;
+        }
+
+        bytes29 transferOwnerMessage = GovernanceMessage.formatTransferOwner(_newOwner, _newDomain);
 
         /*
         TODO:
@@ -191,16 +209,18 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     function _transferOwner(
-        bytes32 _owner,
-        uint32 _domain
-    ) internal {
-        _router = mustHaveRouter(_domain);
-        ownerDomain = _domain;
+        bytes32 _newOwner,
+        uint32 _newDomain
+    ) internal returns (bool _isLocalDomain){
+        _isLocalDomain = mustBeValidOwnerDomain(_newDomain);
 
-        if(_router = bytes32(address(this))) { //TODO: is this secure? good style? we want the routers[] array to have all routers, inclusive of the local one
-            owner = _owner;
-        } else if(owner != bytes32(0)){
-            owner = bytes32(0);
+        if(ownerDomain != _newDomain) { //Update the ownerDomain if necessary
+            ownerDomain = _newDomain;
+        }
+
+        bytes32 _owner = _isLocalDomain ? _newOwner : bytes32(0); //Owner is set to 0 if the owner is not local
+        if(localOwner != _owner) { //Update the owner if necessary
+            localOwner = _owner;
         }
     }
 
@@ -212,17 +232,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     /*
-    --- SETUP FUNCTIONS ---
-        convenience so deployer can setup the contract locally
+    --- SETUP ROUTER MAPPING ---
+        convenience function so deployer can setup the router mapping for the contract locally
         before transferring ownership to the remote router
     */
-
-    function transferOwnerSetup(
-        bytes32 _owner,
-        uint32 _domain
-    ) external onlyOwner {
-        _transferOwner(_owner, _domain); //transfer the owner locally
-    }
 
     function enrollRouterSetup(
         bytes32 _router,
