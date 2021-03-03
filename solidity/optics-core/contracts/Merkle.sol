@@ -6,17 +6,26 @@ pragma solidity >=0.6.11;
 
 import "hardhat/console.sol";
 
-// There is a bit of cruft in this design. The library needs the 0-hashes,
-// but can't produce them on construction. Consider: hardcode constants?
+/**
+ * @title MerkleLib
+ * @author Celo Labs Inc.
+ * @notice An incremental merkle tree modeled on the eth2 deposit contract.
+ **/
 library MerkleLib {
     uint256 internal constant TREE_DEPTH = 32;
     uint256 internal constant MAX_LEAVES = 2**TREE_DEPTH - 1;
 
+    /**
+     * @notice Struct representing incremental merkle tree. Contains current
+     * branch and the number of inserted leaves in the tree.
+     **/
     struct Tree {
         bytes32[TREE_DEPTH] branch;
         uint256 count;
     }
 
+    /// @notice Returns array of TREE_DEPTH zero hashes
+    /// @return _zeroes Array of TREE_DEPTH zero hashes
     function zeroHashes()
         internal
         pure
@@ -56,6 +65,14 @@ library MerkleLib {
         _zeroes[31] = Z_31;
     }
 
+    /**
+     * @notice Calculates and returns the merkle root for the given leaf
+     * `_item`, a merkle branch, and the index of `_item` in the tree.
+     * @param _item Merkle leaf
+     * @param _branch Merkle proof
+     * @param _index Index of `_item` in tree
+     * @return _current Calculated merkle root
+     **/
     function branchRoot(
         bytes32 _item,
         bytes32[TREE_DEPTH] memory _branch,
@@ -74,6 +91,12 @@ library MerkleLib {
         }
     }
 
+    /**
+     * @notice Calculates and returns`_tree`'s current root given array of zero
+     * hashes
+     * @param _zeroes Array of zero hashes
+     * @return _current Calculated root of `_tree`
+     **/
     function rootWithCtx(Tree storage _tree, bytes32[TREE_DEPTH] memory _zeroes)
         internal
         view
@@ -92,10 +115,16 @@ library MerkleLib {
         }
     }
 
+    /// @notice Calculates and returns`_tree`'s current root
     function root(Tree storage _tree) internal view returns (bytes32) {
         return rootWithCtx(_tree, zeroHashes());
     }
 
+    /**
+     * @notice Inserts `_node` into merkle tree
+     * @dev Reverts if tree is full
+     * @param _node Element to insert into tree
+     **/
     function insert(Tree storage _tree, bytes32 _node) internal {
         require(_tree.count < MAX_LEAVES, "merkle tree full");
 
@@ -181,6 +210,12 @@ library MerkleLib {
         hex"8448818bb4ae4562849e949e17ac16e0be16688e156b5cf15e098c627c0056a9";
 }
 
+/**
+ * @title MerkleTreeManager
+ * @author Celo Labs Inc.
+ * @notice Contract containing a merkle tree instance and view operations on
+ * the tree.
+ **/
 contract MerkleTreeManager {
     using MerkleLib for MerkleLib.Tree;
 
@@ -189,10 +224,12 @@ contract MerkleTreeManager {
     // solhint-disable-next-line no-empty-blocks
     constructor() {}
 
+    /// @notice Calculates and returns`tree`'s current root
     function root() public view returns (bytes32) {
         return tree.root();
     }
 
+    /// @notice Returns the number of inserted leaves in the tree (current index)
     function count() public view returns (uint256) {
         return tree.count;
     }

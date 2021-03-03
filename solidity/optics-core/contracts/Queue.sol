@@ -168,7 +168,8 @@ library QueueLib {
 /**
  * @title QueueManager
  * @author Celo Labs Inc.
- * @notice Library containing a queue instance and view operations on the queue.
+ * @notice Contract containing a queue instance and view operations on the
+ * queue.
  **/
 contract QueueManager {
     using QueueLib for QueueLib.Queue;
