@@ -7,7 +7,8 @@ OPTimistic Interchain Communication
 ### Pre-commit hooks
 
 ```bash
-cp pre-commit .git/hooks/pre-commit
+echo "./pre-commit.sh" >> .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
 
 Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` after commit message
