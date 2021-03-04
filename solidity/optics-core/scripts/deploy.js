@@ -9,11 +9,14 @@ task('deploy-home', 'Deploy a home.')
     undefined,
     types.string,
   )
-  .setAction(async (args) => {
+  .setAction(async (args, hre) => {
+    const { ethers, optics } = hre;
     let address = ethers.utils.getAddress(args.sortition);
     let [signer] = await ethers.getSigners();
     let home = await optics.deployHome(signer, args.domain, address);
-    console.log(home.address);
+    console.log(
+      `Deployed new Home at ${home.address} with domain ${args.domain}`,
+    );
   });
 
 task('deploy-replica', 'Deploy a replica.')
@@ -43,7 +46,8 @@ task('deploy-replica', 'Deploy a replica.')
     0,
     types.int,
   )
-  .setAction(async (args) => {
+  .setAction(async (args, hre) => {
+    const { ethers, optics } = hre;
     let updater = ethers.utils.getAddress(args.updater);
     if (!ethers.utils.isHexString(args.current, 32)) {
       throw new Error('current must be a 32-byte 0x prefixed hex string');
@@ -60,4 +64,22 @@ task('deploy-replica', 'Deploy a replica.')
       args.current,
       args.lastProcessed,
     );
+  });
+
+task('deploy-test-home', 'Deploy a home with a fake sortition for testing')
+  .addParam('domain', 'The origin chain domain ID', undefined, types.int)
+  .setAction(async (args, hre) => {
+    let { ethers } = hre;
+    let [signer] = await ethers.getSigners();
+    let signerAddress = await signer.getAddress();
+
+    console.log(`Deploying from ${signerAddress}`);
+    let Sortition = await ethers.getContractFactory('TestSortition');
+    let sortition = await Sortition.deploy(signerAddress);
+    console.log(`Deployed new TestSortition at ${sortition.address}`);
+
+    let home = await hre.run('deploy-home', {
+      domain: args.domain,
+      sortition: sortition.address,
+    });
   });

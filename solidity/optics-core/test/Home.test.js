@@ -1,7 +1,7 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
-const NoSortition = require('../artifacts/contracts/Sortition.sol/NoSortition.json');
+const TestSortition = require('../artifacts/contracts/test/TestSortition.sol/TestSortition.json');
 
 const {
   testCases,
@@ -33,7 +33,7 @@ describe('Home', async () => {
   });
 
   beforeEach(async () => {
-    const mockSortition = await deployMockContract(signer, NoSortition.abi);
+    const mockSortition = await deployMockContract(signer, TestSortition.abi);
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
 
