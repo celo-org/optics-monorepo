@@ -199,7 +199,9 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
-            home.enqueue(domains[i], routers[domains[i]], _msg);
+            if(domains[i] != uint32(0)) {
+                home.enqueue(domains[i], routers[domains[i]], _msg);
+            }
         }
     }
 
@@ -247,37 +249,26 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
             return _removeRouter(_domain);
         }
 
+        //if this domain being added (rather than modified) we must push it to domains[]
         bool _isNewDomain = routers[_domain] == bytes32(0);
 
-        routers[_domain] = _router; //add domain->router to routers mapping
+        routers[_domain] = _router;
 
         if (_isNewDomain) {
-            domains.push(_domain); //push domain to domains array
+            domains.push(_domain);
         }
     }
 
     function _removeRouter(uint32 _domain) internal {
-        delete routers[_domain]; //remove domain from routers mapping
+        delete routers[_domain];
 
-        //remove domain from domains array
+        //find the index of the domain to remove & delete it from domains[]
         for (uint256 i = 0; i < domains.length; i++) {
-            //find the index of the domain to remove
             if (domains[i] == _domain) {
-                _deleteFromDomainsAtIndex(i);
+                delete domains[i];
                 return;
             }
         }
-    }
-
-    function _deleteFromDomainsAtIndex(uint256 i) internal {
-        //if the index is not the end in the array
-        if (i < domains.length - 1) {
-            //move the last element in the array to that index
-            domains[i] = domains[domains.length - 1];
-        }
-        //delete the last element from the array
-        delete domains[domains.length - 1];
-        domains.length--;
     }
 
     /*
