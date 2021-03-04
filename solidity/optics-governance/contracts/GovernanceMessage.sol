@@ -87,9 +87,9 @@ library GovernanceMessage {
     function formatCall(bytes32 _to, bytes memory _data)
         internal
         view
-        returns (bytes memory _call)
+        returns (bytes memory _msg)
     {
-        _call = TypedMemView.clone(
+        _msg = TypedMemView.clone(
             mustBeCall(abi.encodePacked(Types.Call, _to, _data).ref(0))
         );
     }
@@ -132,13 +132,14 @@ library GovernanceMessage {
 
     function formatTransferGovernor(bytes32 _governor, uint32 _domain)
         internal
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory _msg)
     {
-        return
+        _msg = TypedMemView.clone(
             mustBeTransferGovernor(
                 abi.encodePacked(Types.TransferGovernor, _governor, _domain).ref(0)
-            );
+            )
+        );
     }
 
     /*
@@ -175,12 +176,14 @@ library GovernanceMessage {
 
     function formatEnrollRouter(bytes32 _router, uint32 _domain)
         internal
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory _msg)
     {
-        return
+        _msg = TypedMemView.clone(
             mustBeEnrollRouter(
                 abi.encodePacked(Types.EnrollRouter, _router, _domain).ref(0)
-            );
+            )
+        );
+
     }
 }

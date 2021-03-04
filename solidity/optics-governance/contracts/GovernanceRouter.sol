@@ -23,6 +23,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     address governor;   // the local entity empowered to call governance functions
 
     mapping(uint32 => bytes32) internal routers; //registry of domain -> remote GovernanceRouter contract address
+    uint32[] domains; //array of all domains registered
 
     constructor() {
         governor = msg.sender;
@@ -179,27 +180,28 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
             return;
         }
 
-        bytes29 transferGovernorMessage =
-            GovernanceMessage.formatTransferGovernor(_newGovernor, _newDomain);
+        bytes memory transferGovernorMessage = GovernanceMessage.formatTransferGovernor(_newGovernor, _newDomain);
 
-        /*
-        TODO:
-        - get [domain, address] of all of the remote GovernanceRouters
-        - home.enqueueBatch -- broadcast the same message to an array of [domain, recipient]s (not-yet-implemented ability of Optics -- used for governance specifically -- only callable by Governance Router, which should own the Home)
-        */
+        _sendToAllRemoteRouters(transferGovernorMessage);
     }
 
     function enrollRouter(bytes32 _router, uint32 _domain) external onlyGovernor {
         _enrollRouter(_router, _domain); //enroll the router locally
 
-        bytes29 enrollRouterMessage =
+        bytes memory enrollRouterMessage =
             GovernanceMessage.formatEnrollRouter(_router, _domain);
 
-        /*
-        TODO:
-        - get [domain, address] of all of the remote GovernanceRouters
-        - home.enqueueBatch -- broadcast the same message to an array of [domain, recipient]s (not-yet-implemented ability of Optics -- used for governance specifically -- only callable by Governance Router, which should own the Home)
-        */
+        _sendToAllRemoteRouters(enrollRouterMessage);
+    }
+
+    function _sendToAllRemoteRouters(bytes memory _msg) internal {
+        for (uint i=0; i<domains.length; i++) {
+            home.enqueue(
+                domains[i],
+                routers[domains[i]],
+                _msg
+            );
+        }
     }
 
     /*
@@ -239,7 +241,41 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     function _enrollRouter(bytes32 _router, uint32 _domain) internal {
-        routers[_domain] = _router; //TODO: we will overwrite any existing router; but we want the flexibility to be able to do this, I believe
+        if(_router == bytes32(0)) {
+            return _removeRouter(_domain);
+        }
+
+        bool _isNewDomain = routers[_domain] == bytes32(0);
+
+        routers[_domain] = _router; //add domain->router to routers mapping
+
+        if(_isNewDomain) {
+            domains.push(_domain); //push domain to domains array
+        }
+    }
+
+    function _removeRouter(uint32 _domain) internal {
+        delete routers[_domain]; //remove domain from routers mapping
+
+        //remove domain from domains array
+        for (uint256 i = 0; i < domains.length; i++) {
+            //find the index of the domain to remove
+            if (domains[i] == _domain) {
+                _deleteFromDomainsAtIndex(i);
+                return;
+            }
+        }
+    }
+
+    function _deleteFromDomainsAtIndex(uint256 i) internal {
+        //if the index is not the end in the array
+        if (i < domains.length - 1) {
+            //move the last element in the array to that index
+            domains[i] = domains[domains.length - 1];
+        }
+        //delete the last element from the array
+        delete domains[domains.length - 1];
+        domains.length--;
     }
 
     /*
