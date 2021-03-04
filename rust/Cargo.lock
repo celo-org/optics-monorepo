@@ -1405,6 +1405,7 @@ dependencies = [
  "futures-util",
  "optics-core",
  "optics-ethereum",
+ "optics-test",
  "serde 1.0.123",
  "serde_json",
  "thiserror",

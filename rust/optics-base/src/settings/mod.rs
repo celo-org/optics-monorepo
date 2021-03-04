@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
 use optics_core::traits::{Home, Replica};
+use crate::home::Homes;
 
 /// Ethereum configuration
 pub mod ethereum;
@@ -40,11 +41,12 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_into_home(&self) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_home(&self.name, self.domain, self.address.parse()?)
-                    .await
+                Ok(Homes::EthereumHome(
+                    conf.try_into_home(&self.name, self.domain, self.address.parse()?).await?
+                ))
             }
         }
     }
@@ -105,7 +107,7 @@ impl Settings {
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_home(&self) -> Result<Homes, Report> {
         self.home.try_into_home().await
     }
 

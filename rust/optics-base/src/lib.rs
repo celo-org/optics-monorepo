@@ -21,3 +21,8 @@ pub mod agent;
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]
 pub mod macros;
+
+/// Home type
+pub mod home;
+
+// TODO: add Replica enum
