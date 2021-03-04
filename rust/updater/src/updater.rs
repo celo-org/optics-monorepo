@@ -132,26 +132,27 @@ mod test {
 
         // home.update returns created update value
         mock_home
-            .expect__produce_update()
+            .expect_produce_update()
             .return_once(move || Ok(Some(update)));
         // Expect home.update to be called once
-        mock_home.expect__update().times(1);
+        mock_home.expect_update().returning(move |_| Ok(Default::default()));
+        mock_home.expect_update().times(1);
 
-        let mut home: Arc<Box<dyn Home>> = Arc::new(Box::new(mock_home));
-        {
-            let agent_core = AgentCore {
-                home: home.clone(),
-                replicas: HashMap::new(),
-            };
-            let updater = Updater::new(signer, 3, agent_core);
+        let home: Arc<Box<dyn Home>> = Arc::new(Box::new(mock_home));
+        
+        let agent_core = AgentCore {
+            home,
+            replicas: HashMap::new(),
+        };
+        let mut updater = Updater::new(signer, 3, agent_core);
 
-            updater
-                .poll_and_handle_update()
-                .await
-                .expect("Should have returned Ok(())");
-        }
+        updater
+            .poll_and_handle_update()
+            .await
+            .expect("Should have returned Ok(())");
 
-        let boxed = Arc::get_mut(&mut home).unwrap();
+
+        let boxed = Arc::get_mut(&mut updater.core.home).unwrap();
         let mock_home: &mut MockHomeContract = boxed.as_mut().as_mut_any().downcast_mut().unwrap();
         // *** NEED Arc<Box<MockHomeContract>> ***
         mock_home.checkpoint();
