@@ -36,12 +36,12 @@ library GovernanceMessage {
         return uint8(_view.indexUint(0, 1));
     }
 
-    // All Types
+    // Types.Call
     function addr(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(1, 32);
     }
 
-    // Types.Call only
+    // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
         _data = TypedMemView.clone(
             _view.slice(33, _view.len() - 33, uint40(Types.Data))
@@ -50,7 +50,17 @@ library GovernanceMessage {
 
     // Types.TransferGovernor & Types.EnrollRemote
     function domain(bytes29 _view) internal pure returns (uint32) {
-        return uint32(_view.indexUint(33, 4));
+        return uint32(_view.indexUint(1, 4));
+    }
+
+    // Types.EnrollRemote
+    function router(bytes29 _view) internal pure returns (bytes32) {
+        return _view.index(5, 32);
+    }
+
+    // Types.TransferGovernor
+    function governor(bytes29 _view) internal pure returns (bytes32) {
+        return _view.index(5, 32);
     }
 
     /*
@@ -99,22 +109,22 @@ library GovernanceMessage {
 
         struct TransferGovernor {
             identifier, // message ID -- 1 byte
-            addr,       // address of new governor -- 32 bytes
-            domain      // domain of new governor -- 4 bytes
+            domain,     // domain of new governor -- 4 bytes
+            addr        // address of new governor -- 32 bytes
         }
     */
 
-    function isValidTransferGovernor(bytes29 _view) internal pure returns (bool) {
+    function isValidTransferGovernor(bytes29 _view)
+        internal
+        pure
+        returns (bool)
+    {
         return
             identifier(_view) == uint8(Types.TransferGovernor) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isTransferGovernor(bytes29 _view)
-        internal
-        pure
-        returns (bool)
-    {
+    function isTransferGovernor(bytes29 _view) internal pure returns (bool) {
         return
             isValidTransferGovernor(_view) &&
             messageType(_view) == Types.TransferGovernor;
@@ -139,7 +149,7 @@ library GovernanceMessage {
         return tryAsTransferGovernor(_view).assertValid();
     }
 
-    function formatTransferGovernor(bytes32 _governor, uint32 _domain)
+    function formatTransferGovernor(uint32 _domain, bytes32 _governor)
         internal
         view
         returns (bytes memory _msg)
@@ -147,7 +157,7 @@ library GovernanceMessage {
         _msg = TypedMemView.clone(
             mustBeTransferGovernor(
                 abi
-                    .encodePacked(Types.TransferGovernor, _governor, _domain)
+                    .encodePacked(Types.TransferGovernor, _domain, _governor)
                     .ref(0)
             )
         );
@@ -158,8 +168,8 @@ library GovernanceMessage {
 
         struct EnrollRouter {
             identifier, // message ID -- 1 byte
-            addr,       // address of new router -- 32 bytes
-            domain      // domain of new router -- 4 bytes
+            domain,     // domain of new router -- 4 bytes
+            addr        // address of new router -- 32 bytes
         }
     */
 
@@ -186,14 +196,14 @@ library GovernanceMessage {
         return tryAsEnrollRouter(_view).assertValid();
     }
 
-    function formatEnrollRouter(bytes32 _router, uint32 _domain)
+    function formatEnrollRouter(uint32 _domain, bytes32 _router)
         internal
         view
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
             mustBeEnrollRouter(
-                abi.encodePacked(Types.EnrollRouter, _router, _domain).ref(0)
+                abi.encodePacked(Types.EnrollRouter, _domain, _router).ref(0)
             )
         );
     }
