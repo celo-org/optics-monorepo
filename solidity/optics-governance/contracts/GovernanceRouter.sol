@@ -19,11 +19,11 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
 
-    uint32 governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
-    address governor;   // the local entity empowered to call governance functions
+    uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
+    address public governor; // the local entity empowered to call governance functions
 
-    mapping(uint32 => bytes32) internal routers; //registry of domain -> remote GovernanceRouter contract address
-    uint32[] domains; //array of all domains registered
+    mapping(uint32 => bytes32) public routers; //registry of domain -> remote GovernanceRouter contract address
+    uint32[] public domains; //array of all domains registered
 
     constructor() {
         governor = msg.sender;
@@ -48,11 +48,13 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         view
         returns (bool _isGovernorRouter)
     {
-        _isGovernorRouter = _domain == governorDomain && _address == routers[_domain];
+        _isGovernorRouter =
+            _domain == governorDomain &&
+            _address == routers[_domain];
     }
 
     modifier onlyGovernorRouter(uint32 _domain, bytes32 _address) {
-        require(isGovernorRouter(_domain, _address));
+        require(isGovernorRouter(_domain, _address), "!governorRouter");
         _;
     }
 
@@ -180,12 +182,16 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
             return;
         }
 
-        bytes memory transferGovernorMessage = GovernanceMessage.formatTransferGovernor(_newGovernor, _newDomain);
+        bytes memory transferGovernorMessage =
+            GovernanceMessage.formatTransferGovernor(_newGovernor, _newDomain);
 
         _sendToAllRemoteRouters(transferGovernorMessage);
     }
 
-    function enrollRouter(bytes32 _router, uint32 _domain) external onlyGovernor {
+    function enrollRouter(bytes32 _router, uint32 _domain)
+        external
+        onlyGovernor
+    {
         _enrollRouter(_router, _domain); //enroll the router locally
 
         bytes memory enrollRouterMessage =
@@ -195,12 +201,8 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
-        for (uint i=0; i<domains.length; i++) {
-            home.enqueue(
-                domains[i],
-                routers[domains[i]],
-                _msg
-            );
+        for (uint256 i = 0; i < domains.length; i++) {
+            home.enqueue(domains[i], routers[domains[i]], _msg);
         }
     }
 
@@ -233,7 +235,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
             governorDomain = _newDomain;
         }
 
-        bytes32 _governor = _isLocalDomain ? _newGovernor : bytes32(0); //Governor is set to 0 if the governor is not local
+        address _governor =
+            _isLocalDomain
+                ? TypeCasts.bytes32ToAddress(_newGovernor)
+                : address(0); //Governor is 0x0 if the governor is not local
         if (governor != _governor) {
             //Update the governor if necessary
             governor = _governor;
@@ -241,7 +246,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     function _enrollRouter(bytes32 _router, uint32 _domain) internal {
-        if(_router == bytes32(0)) {
+        if (_router == bytes32(0)) {
             return _removeRouter(_domain);
         }
 
@@ -249,7 +254,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
         routers[_domain] = _router; //add domain->router to routers mapping
 
-        if(_isNewDomain) {
+        if (_isNewDomain) {
             domains.push(_domain); //push domain to domains array
         }
     }

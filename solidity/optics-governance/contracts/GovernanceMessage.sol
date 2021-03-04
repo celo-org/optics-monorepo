@@ -110,12 +110,21 @@ library GovernanceMessage {
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isTypedTransferGovernor(bytes29 _view) internal pure returns (bool) {
+    function isTypedTransferGovernor(bytes29 _view)
+        internal
+        pure
+        returns (bool)
+    {
         return
-            messageType(_view) == Types.TransferGovernor && isTransferGovernor(_view);
+            messageType(_view) == Types.TransferGovernor &&
+            isTransferGovernor(_view);
     }
 
-    function tryAsTransferGovernor(bytes29 _view) internal pure returns (bytes29) {
+    function tryAsTransferGovernor(bytes29 _view)
+        internal
+        pure
+        returns (bytes29)
+    {
         if (isTransferGovernor(_view)) {
             return _view.castTo(uint40(Types.TransferGovernor));
         }
@@ -137,7 +146,9 @@ library GovernanceMessage {
     {
         _msg = TypedMemView.clone(
             mustBeTransferGovernor(
-                abi.encodePacked(Types.TransferGovernor, _governor, _domain).ref(0)
+                abi
+                    .encodePacked(Types.TransferGovernor, _governor, _domain)
+                    .ref(0)
             )
         );
     }
@@ -184,6 +195,5 @@ library GovernanceMessage {
                 abi.encodePacked(Types.EnrollRouter, _router, _domain).ref(0)
             )
         );
-
     }
 }
