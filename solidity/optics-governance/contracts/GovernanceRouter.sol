@@ -92,12 +92,12 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     {
         bytes29 _msg = _message.ref(0);
 
-        if (_msg.isCall()) {
-            return handleCall(_msg);
-        } else if (_msg.isTransferGovernor()) {
-            return handleTransferGovernor(_msg);
-        } else if (_msg.isEnrollRouter()) {
-            return handleEnrollRouter(_msg);
+        if (_msg.isValidCall()) {
+            return handleCall(_msg.tryAsCall());
+        } else if (_msg.isValidTransferGovernor()) {
+            return handleTransferGovernor(_msg.tryAsTransferGovernor());
+        } else if (_msg.isValidEnrollRouter()) {
+            return handleEnrollRouter(_msg.tryAsEnrollRouter());
         }
 
         require(false, "!valid message type");

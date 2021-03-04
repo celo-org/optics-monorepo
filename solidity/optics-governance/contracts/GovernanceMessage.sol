@@ -63,18 +63,18 @@ library GovernanceMessage {
         }
     */
 
-    function isCall(bytes29 _view) internal pure returns (bool) {
+    function isValidCall(bytes29 _view) internal pure returns (bool) {
         return
             identifier(_view) == uint8(Types.Call) &&
             _view.len() >= MIN_CALL_LEN;
     }
 
-    function isTypedCall(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.Call && isCall(_view);
+    function isCall(bytes29 _view) internal pure returns (bool) {
+        return isValidCall(_view) && messageType(_view) == Types.Call;
     }
 
     function tryAsCall(bytes29 _view) internal pure returns (bytes29) {
-        if (isCall(_view)) {
+        if (isValidCall(_view)) {
             return _view.castTo(uint40(Types.Call));
         }
         return TypedMemView.nullView();
@@ -104,20 +104,20 @@ library GovernanceMessage {
         }
     */
 
-    function isTransferGovernor(bytes29 _view) internal pure returns (bool) {
+    function isValidTransferGovernor(bytes29 _view) internal pure returns (bool) {
         return
             identifier(_view) == uint8(Types.TransferGovernor) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isTypedTransferGovernor(bytes29 _view)
+    function isTransferGovernor(bytes29 _view)
         internal
         pure
         returns (bool)
     {
         return
-            messageType(_view) == Types.TransferGovernor &&
-            isTransferGovernor(_view);
+            isValidTransferGovernor(_view) &&
+            messageType(_view) == Types.TransferGovernor;
     }
 
     function tryAsTransferGovernor(bytes29 _view)
@@ -125,7 +125,7 @@ library GovernanceMessage {
         pure
         returns (bytes29)
     {
-        if (isTransferGovernor(_view)) {
+        if (isValidTransferGovernor(_view)) {
             return _view.castTo(uint40(Types.TransferGovernor));
         }
         return TypedMemView.nullView();
@@ -163,19 +163,20 @@ library GovernanceMessage {
         }
     */
 
-    function isEnrollRouter(bytes29 _view) internal pure returns (bool) {
+    function isValidEnrollRouter(bytes29 _view) internal pure returns (bool) {
         return
             identifier(_view) == uint8(Types.EnrollRouter) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isTypedEnrollRouter(bytes29 _view) internal pure returns (bool) {
+    function isEnrollRouter(bytes29 _view) internal pure returns (bool) {
         return
-            messageType(_view) == Types.EnrollRouter && isEnrollRouter(_view);
+            isValidEnrollRouter(_view) &&
+            messageType(_view) == Types.EnrollRouter;
     }
 
     function tryAsEnrollRouter(bytes29 _view) internal pure returns (bytes29) {
-        if (isEnrollRouter(_view)) {
+        if (isValidEnrollRouter(_view)) {
             return _view.castTo(uint40(Types.EnrollRouter));
         }
         return TypedMemView.nullView();
