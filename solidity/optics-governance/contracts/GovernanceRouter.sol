@@ -11,9 +11,6 @@ import {
 
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-//TODO: array of all domains with routers that we can loop through
-//TODO: loop through all domains, get router, send message
-
 contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
