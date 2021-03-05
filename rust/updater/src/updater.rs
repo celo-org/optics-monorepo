@@ -121,7 +121,7 @@ mod test {
     use optics_test::mocks::MockHomeContract;
 
     #[tokio::test]
-    async fn polls_and_signs_update() {
+    async fn polls_and_submits_update() {
         let signer: LocalWallet =
             "1111111111111111111111111111111111111111111111111111111111111111"
                 .parse()
@@ -135,7 +135,7 @@ mod test {
             previous_root,
             new_root,
         };
-        let signed_update = update.sign_with(&signer).await.unwrap();
+        let signed_update = update.sign_with(&signer).await.expect("!sign");
 
         let mut mock_home = MockHomeContract::new();
 

@@ -14,52 +14,52 @@ use optics_core::{
 mock! {
     pub ReplicaContract {
         // Replica
-        fn _destination_domain(&self) -> u32 {}
+        pub fn _destination_domain(&self) -> u32 {}
 
-        fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
+        pub fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
 
-        fn _can_confirm(&self) -> Result<bool, ChainCommunicationError> {}
+        pub fn _can_confirm(&self) -> Result<bool, ChainCommunicationError> {}
 
-        fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        fn _previous_root(&self) -> Result<H256, ChainCommunicationError> {}
+        pub fn _previous_root(&self) -> Result<H256, ChainCommunicationError> {}
 
-        fn _last_processed(&self) -> Result<U256, ChainCommunicationError> {}
+        pub fn _last_processed(&self) -> Result<U256, ChainCommunicationError> {}
 
-        fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        fn _process(&self, message: &StampedMessage) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _process(&self, message: &StampedMessage) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        fn _prove_and_process(
+        pub fn _prove_and_process(
             &self,
             message: &StampedMessage,
             proof: &Proof,
         ) -> Result<TxOutcome, ChainCommunicationError> {}
 
         // Common
-        fn _name(&self) -> &str {}
+        pub fn _name(&self) -> &str {}
 
-        fn _status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {}
+        pub fn _status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {}
 
-        fn _updater(&self) -> Result<H256, ChainCommunicationError> {}
+        pub fn _updater(&self) -> Result<H256, ChainCommunicationError> {}
 
-        fn _state(&self) -> Result<State, ChainCommunicationError> {}
+        pub fn _state(&self) -> Result<State, ChainCommunicationError> {}
 
-        fn _current_root(&self) -> Result<H256, ChainCommunicationError> {}
+        pub fn _current_root(&self) -> Result<H256, ChainCommunicationError> {}
 
-        fn _signed_update_by_old_root(
+        pub fn _signed_update_by_old_root(
             &self,
             old_root: H256,
         ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
 
-        fn _signed_update_by_new_root(
+        pub fn _signed_update_by_new_root(
             &self,
             new_root: H256,
         ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
 
-        fn _update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        fn _double_update(
+        pub fn _double_update(
             &self,
             double: &DoubleUpdate,
         ) -> Result<TxOutcome, ChainCommunicationError> {}

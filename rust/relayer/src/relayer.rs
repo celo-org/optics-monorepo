@@ -39,7 +39,7 @@ impl Relayer {
     }
 
     #[tracing::instrument(err)]
-    async fn poll_updates(home: Arc<Homes>, replica: Arc<Replicas>) -> Result<()> {
+    async fn poll_and_relay_update(home: Arc<Homes>, replica: Arc<Replicas>) -> Result<()> {
         // Get replica's current root
         let old_root = replica.current_root().await?;
 
@@ -99,7 +99,7 @@ impl OpticsAgent for Relayer {
 
             loop {
                 let (updated, confirmed) = tokio::join!(
-                    Self::poll_updates(home.clone(), replica.clone()),
+                    Self::poll_and_relay_update(home.clone(), replica.clone()),
                     Self::poll_confirms(replica.clone())
                 );
 
@@ -114,5 +114,85 @@ impl OpticsAgent for Relayer {
                 interval.tick().await;
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use ethers::{core::types::H256, prelude::LocalWallet};
+    use std::sync::Arc;
+
+    use super::*;
+    use optics_core::{SignedUpdate, Update};
+    use optics_test::mocks::{MockHomeContract, MockReplicaContract};
+
+    #[tokio::test]
+    async fn polls_and_relays_updates() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let first_root = H256::from([1; 32]);
+        let second_root = H256::from([2; 32]);
+
+        let signed_update = Update {
+            origin_domain: 1,
+            previous_root: first_root,
+            new_root: second_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_replica = MockReplicaContract::new();
+
+        {
+            let signed_update = signed_update.clone();
+            // home.signed_update_by_old_root(first_root) called once and 
+            // returns mock value signed_update
+            mock_home
+                .expect__signed_update_by_old_root()
+                .withf(move |r: &H256| *r == first_root)
+                .times(1)
+                .return_once(move |_| Ok(Some(signed_update)));
+        }
+        {
+            let signed_update = signed_update.clone();
+            // replica.current_root called once and returns mock value 
+            // first_root
+            mock_replica
+                .expect__current_root()
+                .times(1)
+                .returning(move || Ok(first_root));
+            // replica.update(signed_update) called once and returns
+            // mock default value
+            mock_replica
+                .expect__update()
+                .withf(move |s: &SignedUpdate| *s == signed_update)
+                .times(1)
+                .returning(|_| Ok(Default::default()));
+        }
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        Relayer::poll_and_relay_update(home.clone(), replica.clone())
+            .await
+            .expect("Should have returned Ok(())");
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        if let Homes::MockHome(home) = mock_home {
+            home.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        if let Replicas::MockReplica(replica) = mock_replica {
+            replica.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
     }
 }
