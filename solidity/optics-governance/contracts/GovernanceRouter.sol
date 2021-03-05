@@ -150,7 +150,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         onlyGovernor
         returns (bytes memory _ret)
     {
-        (_ret) = _call(_to, _data);
+        _ret = _call(_to, _data);
     }
 
     function callRemote(
