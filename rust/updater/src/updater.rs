@@ -8,7 +8,10 @@ use tokio::{
     time::{interval, Interval},
 };
 
-use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    home::Homes,
+};
 use optics_core::traits::{Common, Home};
 
 use crate::settings::Settings;
@@ -38,6 +41,18 @@ where
             interval_seconds,
             core,
         }
+    }
+
+    async fn poll_and_handle_update(home: Arc<Homes>, signer: Arc<S>) -> Result<()> {
+        // Check if there is an update
+        let update_opt = home.produce_update().await?;
+
+        // If there is, sign it and submit it
+        if let Some(update) = update_opt {
+            let signed = update.sign_with(signer.as_ref()).await.unwrap();
+            home.update(&signed).await?;
+        }
+        Ok(())
     }
 
     fn interval(&self) -> Interval {
@@ -81,18 +96,71 @@ impl OpticsAgent for Updater<LocalWallet> {
 
             // Set up the polling loop.
             loop {
-                // Check if there is an update
-                let update_opt = home.produce_update().await?;
+                let res = Self::poll_and_handle_update(home.clone(), signer.clone()).await;
 
-                // If there is, sign it and submit it
-                if let Some(update) = update_opt {
-                    let signed = update.sign_with(signer.as_ref()).await?;
-                    home.update(&signed).await?;
+                if let Err(ref e) = res {
+                    tracing::error!("Error polling and handling update: {:?}", e)
                 }
 
                 // Wait for the next tick on the interval
                 interval.tick().await;
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::sync::Arc;
+
+    use ethers::core::types::H256;
+    use optics_base::home::Homes;
+
+    use super::*;
+    use optics_core::{SignedUpdate, Update};
+    use optics_test::mocks::MockHomeContract;
+
+    #[tokio::test]
+    async fn polls_and_signs_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let previous_root = H256::from([1; 32]);
+        let new_root = H256::from([2; 32]);
+
+        let update = Update {
+            origin_domain: 0,
+            previous_root,
+            new_root,
+        };
+        let signed_update = update.sign_with(&signer).await.unwrap();
+
+        let mut mock_home = MockHomeContract::new();
+
+        // home.update returns created update value
+        mock_home
+            .expect__produce_update()
+            .return_once(move || Ok(Some(update)));
+
+        // Expect home.update to be called once
+        mock_home
+            .expect__update()
+            .withf(move |s: &SignedUpdate| *s == signed_update)
+            .times(1)
+            .returning(|_| Ok(Default::default()));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        Updater::poll_and_handle_update(home.clone(), Arc::new(signer))
+            .await
+            .expect("Should have returned Ok(())");
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        if let Homes::MockHome(home) = mock_home {
+            home.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
     }
 }

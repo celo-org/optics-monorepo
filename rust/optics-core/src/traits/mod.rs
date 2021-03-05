@@ -31,7 +31,7 @@ pub enum State {
 pub struct DoubleUpdate(pub SignedUpdate, pub SignedUpdate);
 
 /// The result of a transaction
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TxOutcome {
     /// The txid
     pub txid: H256,
