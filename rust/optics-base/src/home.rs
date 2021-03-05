@@ -18,6 +18,18 @@ pub enum Homes {
     MockHome(MockHomeContract),
 }
 
+impl From<Box<dyn Home>> for Homes {
+    fn from(home: Box<dyn Home>) -> Self {
+        Homes::EthereumHome(home)
+    }
+}
+
+impl From<MockHomeContract> for Homes {
+    fn from(mock_home: MockHomeContract) -> Self {
+        Homes::MockHome(mock_home)
+    }
+}
+
 #[async_trait]
 impl Home for Homes {
     fn origin_domain(&self) -> u32 {
