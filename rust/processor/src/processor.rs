@@ -12,17 +12,18 @@ use tokio::{
 };
 
 use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    cancel_task, decl_agent,
     home::Homes,
     replica::Replicas,
-    agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent, reset_loop_if,
+    reset_loop_if,
 };
 use optics_core::{
-    accumulator::{Prover},
+    accumulator::Prover,
     traits::{Home, Replica},
 };
 
-use crate::{settings::Settings, prover_sync::ProverSync};
+use crate::{prover_sync::ProverSync, settings::Settings};
 
 pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,

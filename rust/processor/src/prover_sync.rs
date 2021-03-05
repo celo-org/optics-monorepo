@@ -1,12 +1,12 @@
+use ethers::core::types::H256;
 use optics_base::home::Homes;
 use optics_core::{
     accumulator::{
         incremental::IncrementalMerkle,
         prover::{Prover, ProverError},
     },
-    traits::{ChainCommunicationError, Home, Common},
+    traits::{ChainCommunicationError, Common, Home},
 };
-use ethers::core::types::H256;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{

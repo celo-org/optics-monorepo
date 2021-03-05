@@ -6,8 +6,12 @@ use tokio::{
     time::{interval, Interval},
 };
 
-use optics_base::{home::Homes, replica::Replicas, agent::{AgentCore, OpticsAgent}};
-use optics_core::traits::{Replica, Common};
+use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    home::Homes,
+    replica::Replicas,
+};
+use optics_core::traits::{Common, Replica};
 
 use crate::settings::Settings;
 

@@ -13,9 +13,10 @@ use tokio::{
 };
 
 use optics_base::{
-    home::Homes,
     agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent, reset_loop_if,
+    cancel_task, decl_agent,
+    home::Homes,
+    reset_loop_if,
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},

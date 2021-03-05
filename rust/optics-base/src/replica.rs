@@ -1,13 +1,9 @@
 use async_trait::async_trait;
 use ethers::core::types::{H256, U256};
 use optics_core::{
-    StampedMessage,
     accumulator::prover::Proof,
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Replica, State,
-        TxOutcome,
-    },
-    SignedUpdate,
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
+    SignedUpdate, StampedMessage,
 };
 
 use optics_test::mocks::MockReplicaContract;
@@ -72,14 +68,15 @@ impl Replica for Replicas {
         }
     }
 
-    async fn process(&self, message: &StampedMessage)
-        -> Result<TxOutcome, ChainCommunicationError> {
-            match self {
-                Replicas::EthereumReplica(replica_contract) => replica_contract.process(message).await,
-                Replicas::MockReplica(mock_contract) => mock_contract.process(message).await,
-            }
+    async fn process(
+        &self,
+        message: &StampedMessage,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        match self {
+            Replicas::EthereumReplica(replica_contract) => replica_contract.process(message).await,
+            Replicas::MockReplica(mock_contract) => mock_contract.process(message).await,
         }
-
+    }
 }
 
 #[async_trait]
@@ -126,8 +123,10 @@ impl Common for Replicas {
         match self {
             Replicas::EthereumReplica(replica_contract) => {
                 replica_contract.signed_update_by_old_root(old_root).await
-            },
-            Replicas::MockReplica(mock_contract) => mock_contract.signed_update_by_old_root(old_root).await,
+            }
+            Replicas::MockReplica(mock_contract) => {
+                mock_contract.signed_update_by_old_root(old_root).await
+            }
         }
     }
 
@@ -138,8 +137,10 @@ impl Common for Replicas {
         match self {
             Replicas::EthereumReplica(replica_contract) => {
                 replica_contract.signed_update_by_new_root(new_root).await
-            },
-            Replicas::MockReplica(mock_contract) => mock_contract.signed_update_by_new_root(new_root).await,
+            }
+            Replicas::MockReplica(mock_contract) => {
+                mock_contract.signed_update_by_new_root(new_root).await
+            }
         }
     }
 
@@ -155,7 +156,9 @@ impl Common for Replicas {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::EthereumReplica(replica_contract) => replica_contract.double_update(double).await,
+            Replicas::EthereumReplica(replica_contract) => {
+                replica_contract.double_update(double).await
+            }
             Replicas::MockReplica(mock_contract) => mock_contract.double_update(double).await,
         }
     }

@@ -9,8 +9,8 @@
 #![warn(unused_extern_crates)]
 
 mod processor;
-mod settings;
 mod prover_sync;
+mod settings;
 
 use color_eyre::{eyre::eyre, Result};
 

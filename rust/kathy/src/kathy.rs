@@ -14,7 +14,7 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     decl_agent,
 };
-use optics_core::{Message, traits::{Home}};
+use optics_core::{traits::Home, Message};
 
 use crate::settings::Settings;
 
