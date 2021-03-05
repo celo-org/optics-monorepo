@@ -3,7 +3,6 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
-use optics_core::traits::{Home, Replica};
 use crate::{home::Homes, replica::Replicas};
 
 /// Ethereum configuration

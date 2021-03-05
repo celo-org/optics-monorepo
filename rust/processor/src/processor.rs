@@ -19,7 +19,7 @@ use optics_base::{
 };
 use optics_core::{
     accumulator::{Prover},
-    traits::{Home, Replica, Common},
+    traits::{Home, Replica},
 };
 
 use crate::{settings::Settings, prover_sync::ProverSync};

@@ -14,12 +14,11 @@ use tokio::{
 
 use optics_base::{
     home::Homes,
-    replica::Replicas,
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent, reset_loop_if,
 };
 use optics_core::{
-    traits::{ChainCommunicationError, Common, DoubleUpdate, Home, TxOutcome},
+    traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
     SignedUpdate,
 };
 
@@ -387,7 +386,7 @@ mod test {
         let mut handler = UpdateHandler {
             rx,
             history: Default::default(),
-            home: Arc::new(Box::new(MockHomeContract::new())),
+            home: Arc::new(Homes::MockHome(MockHomeContract::new())),
         };
 
         let _first_update_ret = handler

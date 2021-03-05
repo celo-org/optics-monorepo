@@ -1,20 +1,21 @@
 use async_trait::async_trait;
-use ethers::core::types::{Address, Signature, H256, U256};
+use ethers::core::types::H256;
 use optics_core::{
     traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, Replica, State,
+        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State,
         TxOutcome,
     },
     Message, SignedUpdate, Update,
 };
-use optics_ethereum::{HomeContract, ReplicaContract};
 
 use optics_test::mocks::MockHomeContract;
 
 /// Home type
 #[derive(Debug)]
 pub enum Homes {
+    /// Ethereum home contract
     EthereumHome(Box<dyn Home>),
+    /// Mock home contract
     MockHome(MockHomeContract),
 }
 

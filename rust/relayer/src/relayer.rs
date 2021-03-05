@@ -7,7 +7,7 @@ use tokio::{
 };
 
 use optics_base::{home::Homes, replica::Replicas, agent::{AgentCore, OpticsAgent}};
-use optics_core::traits::{Home, Replica, Common};
+use optics_core::traits::{Replica, Common};
 
 use crate::settings::Settings;
 
