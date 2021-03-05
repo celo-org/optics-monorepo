@@ -64,16 +64,12 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_router != bytes32(0), "!router");
     }
 
-    function mustBeValidGovernorDomain(uint32 _domain)
+    function isLocalDomain(uint32 _domain)
         internal
         view
         returns (bool _isLocalDomain)
     {
         _isLocalDomain = _domain == home.originDomain();
-
-        if (!_isLocalDomain) {
-            mustHaveRouter(_domain);
-        }
     }
 
     function handle(
@@ -118,10 +114,12 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
         returns (bytes memory _ret)
     {
-        uint32 _domain = _msg.domain();
-        bytes32 _governor = _msg.governor();
+        uint32 _newDomain = _msg.domain();
+        bytes32 _newGovernor = _msg.governor();
 
-        _transferGovernor(_domain, _governor);
+        bool _isLocalDomain = isLocalDomain(_newDomain);
+
+        _transferGovernor(_newDomain, _newGovernor, _isLocalDomain);
 
         return hex"";
     }
@@ -171,7 +169,9 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         external
         onlyGovernor
     {
-        bool _isLocalDomain = _transferGovernor(_newDomain, _newGovernor); // transfer the governor locally
+        bool _isLocalDomain = isLocalDomain(_newDomain);
+
+        _transferGovernor(_newDomain, _newGovernor, _isLocalDomain); // transfer the governor locally
 
         if (_isLocalDomain) {
             // if the governor domain is local, we only need to change the governor address locally
@@ -223,11 +223,14 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_success, "call failed");
     }
 
-    function _transferGovernor(uint32 _newDomain, bytes32 _newGovernor)
-        internal
-        returns (bool _isLocalDomain)
-    {
-        _isLocalDomain = mustBeValidGovernorDomain(_newDomain);
+    function _transferGovernor(
+        uint32 _newDomain,
+        bytes32 _newGovernor,
+        bool _isLocalDomain
+    ) internal {
+        if (!_isLocalDomain) {
+            mustHaveRouter(_newDomain);
+        }
 
         if (governorDomain != _newDomain) {
             // Update the governorDomain if necessary
