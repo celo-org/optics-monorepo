@@ -6,6 +6,7 @@ use optics_core::{
     SignedUpdate, StampedMessage,
 };
 
+use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
 
 /// Replica type
@@ -28,6 +29,16 @@ impl From<MockReplicaContract> for Replicas {
         Replicas::MockReplica(mock_replica)
     }
 }
+
+impl<M> From<EthereumReplica<M>> for Replicas 
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    fn from(replica: EthereumReplica<M>) -> Self {
+        Replicas::EthereumReplica(Box::new(replica))
+    }
+}
+
 
 #[async_trait]
 impl Replica for Replicas {

@@ -142,7 +142,7 @@ impl EthereumConf {
         let b: Box<dyn Replica> = match &self.connection {
             EthereumConnection::Http { url } => {
                 construct_http_box_contract!(
-                    ReplicaContract,
+                    EthereumReplica,
                     name,
                     domain,
                     address,
@@ -152,7 +152,7 @@ impl EthereumConf {
             }
             EthereumConnection::Ws { url } => {
                 construct_ws_box_contract!(
-                    ReplicaContract,
+                    EthereumReplica,
                     name,
                     domain,
                     address,
