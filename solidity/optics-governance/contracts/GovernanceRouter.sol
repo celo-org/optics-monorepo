@@ -19,8 +19,8 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
 
-    mapping(uint32 => bytes32) public routers; //registry of domain -> remote GovernanceRouter contract address
-    uint32[] public domains; //array of all domains registered
+    mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
+    uint32[] public domains; // array of all domains registered
 
     constructor() {
         governor = msg.sender;
@@ -171,7 +171,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         external
         onlyGovernor
     {
-        bool _isLocalDomain = _transferGovernor(_newDomain, _newGovernor); //transfer the governor locally
+        bool _isLocalDomain = _transferGovernor(_newDomain, _newGovernor); // transfer the governor locally
 
         if (_isLocalDomain) {
             // if the governor domain is local, we only need to change the governor address locally
@@ -189,7 +189,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         external
         onlyGovernor
     {
-        _enrollRouter(_domain, _router); //enroll the router locally
+        _enrollRouter(_domain, _router); // enroll the router locally
 
         bytes memory enrollRouterMessage =
             GovernanceMessage.formatEnrollRouter(_domain, _router);
@@ -230,16 +230,16 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         _isLocalDomain = mustBeValidGovernorDomain(_newDomain);
 
         if (governorDomain != _newDomain) {
-            //Update the governorDomain if necessary
+            // Update the governorDomain if necessary
             governorDomain = _newDomain;
         }
 
         address _governor =
             _isLocalDomain
                 ? TypeCasts.bytes32ToAddress(_newGovernor)
-                : address(0); //Governor is 0x0 if the governor is not local
+                : address(0); // Governor is 0x0 if the governor is not local
         if (governor != _governor) {
-            //Update the governor if necessary
+            // Update the governor if necessary
             governor = _governor;
         }
     }
@@ -249,7 +249,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
             return _removeRouter(_domain);
         }
 
-        //if this domain being added (rather than modified) we must push it to domains[]
+        // if this domain being added (rather than modified) we must push it to domains[]
         bool _isNewDomain = routers[_domain] == bytes32(0);
 
         routers[_domain] = _router;
@@ -262,7 +262,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function _removeRouter(uint32 _domain) internal {
         delete routers[_domain];
 
-        //find the index of the domain to remove & delete it from domains[]
+        // find the index of the domain to remove & delete it from domains[]
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] == _domain) {
                 delete domains[i];
@@ -281,6 +281,6 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         external
         onlyGovernor
     {
-        _enrollRouter(_domain, _router); //enroll the router locally
+        _enrollRouter(_domain, _router); // enroll the router locally
     }
 }
