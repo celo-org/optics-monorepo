@@ -39,7 +39,6 @@ module.exports = {
       url: 'http://localhost:8545',
     },
     madison: {
-      gasPrice: 1,
       chainId: 29739,
       url: `http://${MADISON_RPC_USER}:${MADISON_RPC_PASS}@${MADISON_RPC_URL}`,
       accounts: [MADISON_PRIVKEY],

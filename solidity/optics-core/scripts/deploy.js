@@ -76,6 +76,7 @@ task('deploy-test-home', 'Deploy a home with a fake sortition for testing')
     console.log(`Deploying from ${signerAddress}`);
     let Sortition = await ethers.getContractFactory('TestSortition');
     let sortition = await Sortition.deploy(signerAddress);
+    await sortition.deployed();
     console.log(`Deployed new TestSortition at ${sortition.address}`);
 
     let home = await hre.run('deploy-home', {

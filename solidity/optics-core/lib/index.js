@@ -169,7 +169,7 @@ extendEnvironment((hre) => {
     deployHome: async (signer, ...args) => {
       const factory = await ethers.getContractFactory('Home', signer);
       let contract = await factory.deploy(...args);
-      // await contract.deployed();
+      await contract.deployed();
       return new Home(contract.address, signer);
     },
     deployReplica: async (signer, ...args) => {
@@ -178,7 +178,7 @@ extendEnvironment((hre) => {
         signer,
       );
       let contract = await factory.deploy(...args);
-      // await contract.deployed();
+      await contract.deployed();
       return new Replica(contract.address, signer);
     },
   };
