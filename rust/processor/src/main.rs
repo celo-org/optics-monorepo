@@ -11,7 +11,6 @@
 mod processor;
 mod prover_sync;
 mod settings;
-mod prover_sync;
 
 use color_eyre::{eyre::eyre, Result};
 

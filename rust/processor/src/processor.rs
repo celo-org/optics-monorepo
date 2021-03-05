@@ -12,6 +12,8 @@ use tokio::{
 };
 
 use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    cancel_task, decl_agent,
     home::Homes,
     replica::Replicas,
     agent::{AgentCore, OpticsAgent},
