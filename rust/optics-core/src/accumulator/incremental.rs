@@ -1,7 +1,7 @@
 use ethers::core::types::H256;
 
 use crate::accumulator::{
-    hash_concat, merkle::merkle_root_from_branch, prover::Proof, ProverError, TREE_DEPTH,
+    hash_concat, merkle::merkle_root_from_branch, prover::{Proof, ProverError}, TREE_DEPTH,
     ZERO_HASHES,
 };
 

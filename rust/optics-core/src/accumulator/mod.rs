@@ -7,9 +7,6 @@ pub mod merkle;
 /// A wrapper around an incremental and a full merkle, with added safety and
 /// convenience. Useful for producing proofs that either may verify.
 pub mod prover;
-/// Struct responsible for syncing prover's local merkle tree and keeping
-/// it up-to-date with the Home.
-pub mod prover_sync;
 
 /// Use the prover where possible :)
 pub use prover::{Prover, ProverError};

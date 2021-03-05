@@ -1,9 +1,10 @@
-use crate::{
+use optics_base::home::Homes;
+use optics_core::{
     accumulator::{
         incremental::IncrementalMerkle,
         prover::{Prover, ProverError},
     },
-    traits::{ChainCommunicationError, Home},
+    traits::{ChainCommunicationError, Home, Common},
 };
 use ethers::core::types::H256;
 use std::{sync::Arc, time::Duration};
@@ -19,7 +20,7 @@ use tokio::{
 #[derive(Debug)]
 pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
-    home: Arc<Box<dyn Home>>,
+    home: Arc<Homes>,
     incremental: IncrementalMerkle,
     rx: Receiver<()>,
 }
@@ -51,7 +52,7 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Box<dyn Home>>, rx: Receiver<()>) -> Self {
+    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,

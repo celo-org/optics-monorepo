@@ -12,20 +12,21 @@ use tokio::{
 };
 
 use optics_base::{
+    home::Homes,
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent, reset_loop_if,
 };
 use optics_core::{
-    accumulator::{prover_sync::ProverSync, Prover},
-    traits::{Home, Replica},
+    accumulator::{Prover},
+    traits::{Home, Replica, Common},
 };
 
-use crate::settings::Settings;
+use crate::{settings::Settings, prover_sync::ProverSync};
 
 pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,
     replica: Arc<Box<dyn Replica>>,
-    home: Arc<Box<dyn Home>>,
+    home: Arc<Homes>,
     prover: Arc<RwLock<Prover>>,
 }
 
@@ -33,7 +34,7 @@ impl ReplicaProcessor {
     pub(crate) fn new(
         interval_seconds: u64,
         replica: Arc<Box<dyn Replica>>,
-        home: Arc<Box<dyn Home>>,
+        home: Arc<Homes>,
         prover: Arc<RwLock<Prover>>,
     ) -> Self {
         Self {
