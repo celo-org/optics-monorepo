@@ -42,20 +42,20 @@ impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
     pub async fn try_into_home(&self) -> Result<Homes, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(conf
-                .try_into_home(&self.name, self.domain, self.address.parse()?)
-                .await?
-                .into()),
+            ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
+                conf.try_into_home(&self.name, self.domain, self.address.parse()?)
+                    .await?,
+            )),
         }
     }
 
     /// Try to convert the chain setting into a replica contract
     pub async fn try_into_replica(&self) -> Result<Replicas, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(conf
-                .try_into_replica(&self.name, self.domain, self.address.parse()?)
-                .await?
-                .into()),
+            ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
+                conf.try_into_replica(&self.name, self.domain, self.address.parse()?)
+                    .await?,
+            )),
         }
     }
 }
