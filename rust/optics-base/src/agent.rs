@@ -4,8 +4,7 @@ use futures_util::future::select_all;
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
 
-use crate::{cancel_task, settings::Settings, home::Homes};
-use optics_core::traits::{Home, Replica};
+use crate::{cancel_task, settings::Settings, home::Homes, replica::Replicas};
 
 /// Properties shared across all agents
 #[derive(Debug)]
@@ -13,7 +12,7 @@ pub struct AgentCore {
     /// A boxed Home
     pub home: Arc<Homes>,
     /// A map of boxed Replicas
-    pub replicas: HashMap<String, Arc<Box<dyn Replica>>>,
+    pub replicas: HashMap<String, Arc<Replicas>>,
 }
 
 /// A trait for an application that runs on a replica and a reference to a
@@ -34,12 +33,12 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Get a reference to the replicas map
-    fn replicas(&self) -> &HashMap<String, Arc<Box<dyn Replica>>> {
+    fn replicas(&self) -> &HashMap<String, Arc<Replicas>> {
         &self.as_ref().replicas
     }
 
     /// Get a reference to a replica by its name
-    fn replica_by_name(&self, name: &str) -> Option<Arc<Box<dyn Replica>>> {
+    fn replica_by_name(&self, name: &str) -> Option<Arc<Replicas>> {
         self.replicas().get(name).map(Clone::clone)
     }
 

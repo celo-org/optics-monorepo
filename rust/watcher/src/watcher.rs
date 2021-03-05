@@ -13,6 +13,8 @@ use tokio::{
 };
 
 use optics_base::{
+    home::Homes,
+    replica::Replicas,
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent, reset_loop_if,
 };
@@ -31,7 +33,7 @@ where
     interval_seconds: u64,
     from: H256,
     tx: mpsc::Sender<SignedUpdate>,
-    contract: Arc<Box<C>>,
+    contract: Arc<C>,
 }
 
 impl<C> ContractWatcher<C>
@@ -42,7 +44,7 @@ where
         interval_seconds: u64,
         from: H256,
         tx: mpsc::Sender<SignedUpdate>,
-        contract: Arc<Box<C>>,
+        contract: Arc<C>,
     ) -> Self {
         Self {
             interval_seconds,
@@ -84,7 +86,7 @@ where
     interval_seconds: u64,
     from: H256,
     tx: mpsc::Sender<SignedUpdate>,
-    contract: Arc<Box<C>>,
+    contract: Arc<C>,
 }
 
 impl<C> HistorySync<C>
@@ -95,7 +97,7 @@ where
         interval_seconds: u64,
         from: H256,
         tx: mpsc::Sender<SignedUpdate>,
-        contract: Arc<Box<C>>,
+        contract: Arc<C>,
     ) -> Self {
         Self {
             from,
@@ -146,14 +148,14 @@ where
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
     history: HashMap<H256, SignedUpdate>,
-    home: Arc<Box<dyn Home>>,
+    home: Arc<Homes>,
 }
 
 impl UpdateHandler {
     pub fn new(
         rx: mpsc::Receiver<SignedUpdate>,
         history: HashMap<H256, SignedUpdate>,
-        home: Arc<Box<dyn Home>>,
+        home: Arc<Homes>,
     ) -> Self {
         Self { rx, history, home }
     }

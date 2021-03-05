@@ -9,7 +9,7 @@ use optics_core::{
 };
 use optics_ethereum::{HomeContract, ReplicaContract};
 
-use optics_test::mocks::{MockHomeContract, MockReplicaContract};
+use optics_test::mocks::MockHomeContract;
 
 /// Home type
 #[derive(Debug)]

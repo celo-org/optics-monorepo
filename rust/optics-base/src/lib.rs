@@ -25,4 +25,5 @@ pub mod macros;
 /// Home type
 pub mod home;
 
-// TODO: add Replica enum
+/// Replica type
+pub mod replica;

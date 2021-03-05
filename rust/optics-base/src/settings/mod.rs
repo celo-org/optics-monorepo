@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
 use optics_core::traits::{Home, Replica};
-use crate::home::Homes;
+use crate::{home::Homes, replica::Replicas};
 
 /// Ethereum configuration
 pub mod ethereum;
@@ -52,11 +52,12 @@ impl ChainSetup {
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self) -> Result<Box<dyn Replica>, Report> {
+    pub async fn try_into_replica(&self) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => {
-                conf.try_into_replica(&self.name, self.domain, self.address.parse()?)
-                    .await
+                Ok(Replicas::EthereumReplica(
+                    conf.try_into_replica(&self.name, self.domain, self.address.parse()?).await?
+                ))
             }
         }
     }
@@ -98,7 +99,7 @@ pub struct Settings {
 
 impl Settings {
     /// Try to get all replicas from this settings object
-    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Box<dyn Replica>>>, Report> {
+    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
         for v in self.replicas.iter() {
             result.insert(v.name.clone(), Arc::new(v.try_into_replica().await?));
