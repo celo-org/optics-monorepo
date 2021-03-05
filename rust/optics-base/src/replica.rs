@@ -54,6 +54,18 @@ impl From<Box<dyn Replica>> for Replicas {
     }
 }
 
+impl From<Box<dyn Replica>> for Replicas {
+    fn from(replica: Box<dyn Replica>) -> Self {
+        Replicas::EthereumReplica(replica)
+    }
+}
+
+impl From<MockReplicaContract> for Replicas {
+    fn from(mock_replica: MockReplicaContract) -> Self {
+        Replicas::MockReplica(mock_replica)
+    }
+}
+
 #[async_trait]
 impl Replica for Replicas {
     fn destination_domain(&self) -> u32 {
