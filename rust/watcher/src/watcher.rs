@@ -387,7 +387,7 @@ mod test {
         let mut handler = UpdateHandler {
             rx,
             history: Default::default(),
-            home: Arc::new(Homes::MockHome(MockHomeContract::new())),
+            home: Arc::new(Homes::Mock(MockHomeContract::new())),
         };
 
         let _first_update_ret = handler

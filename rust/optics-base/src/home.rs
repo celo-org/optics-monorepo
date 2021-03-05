@@ -1,9 +1,12 @@
 use async_trait::async_trait;
-use optics_ethereum::EthereumHome;
-use ethers::{core::types::H256};
-use optics_core::{Message, SignedUpdate, Update, traits::{
+use ethers::core::types::H256;
+use optics_core::{
+    traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    }};
+    },
+    Message, SignedUpdate, Update,
+};
+use optics_ethereum::EthereumHome;
 
 use optics_test::mocks::MockHomeContract;
 
@@ -11,29 +14,31 @@ use optics_test::mocks::MockHomeContract;
 #[derive(Debug)]
 pub enum Homes {
     /// Ethereum home contract
-    EthereumHome(Box<dyn Home>),
+    Ethereum(Box<dyn Home>),
     /// Mock home contract
-    MockHome(MockHomeContract),
+    Mock(MockHomeContract),
+    /// Other home variant
+    Other(Box<dyn Home>),
 }
 
-impl From<Box<dyn Home>> for Homes {
-    fn from(home: Box<dyn Home>) -> Self {
-        Homes::EthereumHome(home)
+impl<M> From<EthereumHome<M>> for Homes
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    fn from(home: EthereumHome<M>) -> Self {
+        Homes::Ethereum(Box::new(home))
     }
 }
 
 impl From<MockHomeContract> for Homes {
     fn from(mock_home: MockHomeContract) -> Self {
-        Homes::MockHome(mock_home)
+        Homes::Mock(mock_home)
     }
 }
 
-impl<M> From<EthereumHome<M>> for Homes 
-where
-    M: ethers::providers::Middleware + 'static,
-{
-    fn from(home: EthereumHome<M>) -> Self {
-        Homes::EthereumHome(Box::new(home))
+impl From<Box<dyn Home>> for Homes {
+    fn from(home: Box<dyn Home>) -> Self {
+        Homes::Other(home)
     }
 }
 
@@ -41,15 +46,17 @@ where
 impl Home for Homes {
     fn origin_domain(&self) -> u32 {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.origin_domain(),
-            Homes::MockHome(mock_home) => mock_home.origin_domain(),
+            Homes::Ethereum(home) => home.origin_domain(),
+            Homes::Mock(mock_home) => mock_home.origin_domain(),
+            Homes::Other(home) => home.origin_domain(),
         }
     }
 
     fn domain_hash(&self) -> H256 {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.domain_hash(),
-            Homes::MockHome(mock_home) => mock_home.domain_hash(),
+            Homes::Ethereum(home) => home.domain_hash(),
+            Homes::Mock(mock_home) => mock_home.domain_hash(),
+            Homes::Other(home) => home.domain_hash(),
         }
     }
 
@@ -59,16 +66,13 @@ impl Home for Homes {
         sequence: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => {
-                home_contract
-                    .raw_message_by_sequence(destination, sequence)
-                    .await
-            }
-            Homes::MockHome(mock_home) => {
+            Homes::Ethereum(home) => home.raw_message_by_sequence(destination, sequence).await,
+            Homes::Mock(mock_home) => {
                 mock_home
                     .raw_message_by_sequence(destination, sequence)
                     .await
             }
+            Homes::Other(home) => home.raw_message_by_sequence(destination, sequence).await,
         }
     }
 
@@ -77,8 +81,9 @@ impl Home for Homes {
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.raw_message_by_leaf(leaf).await,
-            Homes::MockHome(mock_home) => mock_home.raw_message_by_leaf(leaf).await,
+            Homes::Ethereum(home) => home.raw_message_by_leaf(leaf).await,
+            Homes::Mock(mock_home) => mock_home.raw_message_by_leaf(leaf).await,
+            Homes::Other(home) => home.raw_message_by_leaf(leaf).await,
         }
     }
 
@@ -87,24 +92,25 @@ impl Home for Homes {
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => {
-                home_contract.leaf_by_tree_index(tree_index).await
-            }
-            Homes::MockHome(mock_home) => mock_home.leaf_by_tree_index(tree_index).await,
+            Homes::Ethereum(home) => home.leaf_by_tree_index(tree_index).await,
+            Homes::Mock(mock_home) => mock_home.leaf_by_tree_index(tree_index).await,
+            Homes::Other(home) => home.leaf_by_tree_index(tree_index).await,
         }
     }
 
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.sequences(destination).await,
-            Homes::MockHome(mock_home) => mock_home.sequences(destination).await,
+            Homes::Ethereum(home) => home.sequences(destination).await,
+            Homes::Mock(mock_home) => mock_home.sequences(destination).await,
+            Homes::Other(home) => home.sequences(destination).await,
         }
     }
 
     async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.enqueue(message).await,
-            Homes::MockHome(mock_home) => mock_home.enqueue(message).await,
+            Homes::Ethereum(home) => home.enqueue(message).await,
+            Homes::Mock(mock_home) => mock_home.enqueue(message).await,
+            Homes::Other(home) => home.enqueue(message).await,
         }
     }
 
@@ -113,15 +119,17 @@ impl Home for Homes {
         update: &SignedUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.improper_update(update).await,
-            Homes::MockHome(mock_home) => mock_home.improper_update(update).await,
+            Homes::Ethereum(home) => home.improper_update(update).await,
+            Homes::Mock(mock_home) => mock_home.improper_update(update).await,
+            Homes::Other(home) => home.improper_update(update).await,
         }
     }
 
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.produce_update().await,
-            Homes::MockHome(mock_home) => mock_home.produce_update().await,
+            Homes::Ethereum(home) => home.produce_update().await,
+            Homes::Mock(mock_home) => mock_home.produce_update().await,
+            Homes::Other(home) => home.produce_update().await,
         }
     }
 }
@@ -130,36 +138,41 @@ impl Home for Homes {
 impl Common for Homes {
     fn name(&self) -> &str {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.name(),
-            Homes::MockHome(mock_home) => mock_home.name(),
+            Homes::Ethereum(home) => home.name(),
+            Homes::Mock(mock_home) => mock_home.name(),
+            Homes::Other(home) => home.name(),
         }
     }
 
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.status(txid).await,
-            Homes::MockHome(mock_home) => mock_home.status(txid).await,
+            Homes::Ethereum(home) => home.status(txid).await,
+            Homes::Mock(mock_home) => mock_home.status(txid).await,
+            Homes::Other(home) => home.status(txid).await,
         }
     }
 
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.updater().await,
-            Homes::MockHome(mock_home) => mock_home.updater().await,
+            Homes::Ethereum(home) => home.updater().await,
+            Homes::Mock(mock_home) => mock_home.updater().await,
+            Homes::Other(home) => home.updater().await,
         }
     }
 
     async fn state(&self) -> Result<State, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.state().await,
-            Homes::MockHome(mock_home) => mock_home.state().await,
+            Homes::Ethereum(home) => home.state().await,
+            Homes::Mock(mock_home) => mock_home.state().await,
+            Homes::Other(home) => home.state().await,
         }
     }
 
     async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.current_root().await,
-            Homes::MockHome(mock_home) => mock_home.current_root().await,
+            Homes::Ethereum(home) => home.current_root().await,
+            Homes::Mock(mock_home) => mock_home.current_root().await,
+            Homes::Other(home) => home.current_root().await,
         }
     }
 
@@ -168,10 +181,9 @@ impl Common for Homes {
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => {
-                home_contract.signed_update_by_old_root(old_root).await
-            }
-            Homes::MockHome(mock_home) => mock_home.signed_update_by_old_root(old_root).await,
+            Homes::Ethereum(home) => home.signed_update_by_old_root(old_root).await,
+            Homes::Mock(mock_home) => mock_home.signed_update_by_old_root(old_root).await,
+            Homes::Other(home) => home.signed_update_by_old_root(old_root).await,
         }
     }
 
@@ -180,17 +192,17 @@ impl Common for Homes {
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => {
-                home_contract.signed_update_by_new_root(new_root).await
-            }
-            Homes::MockHome(mock_home) => mock_home.signed_update_by_new_root(new_root).await,
+            Homes::Ethereum(home) => home.signed_update_by_new_root(new_root).await,
+            Homes::Mock(mock_home) => mock_home.signed_update_by_new_root(new_root).await,
+            Homes::Other(home) => home.signed_update_by_new_root(new_root).await,
         }
     }
 
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.update(update).await,
-            Homes::MockHome(mock_home) => mock_home.update(update).await,
+            Homes::Ethereum(home) => home.update(update).await,
+            Homes::Mock(mock_home) => mock_home.update(update).await,
+            Homes::Other(home) => home.update(update).await,
         }
     }
 
@@ -199,8 +211,9 @@ impl Common for Homes {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::EthereumHome(home_contract) => home_contract.double_update(double).await,
-            Homes::MockHome(mock_home) => mock_home.double_update(double).await,
+            Homes::Ethereum(home) => home.double_update(double).await,
+            Homes::Mock(mock_home) => mock_home.double_update(double).await,
+            Homes::Other(home) => home.double_update(double).await,
         }
     }
 }
