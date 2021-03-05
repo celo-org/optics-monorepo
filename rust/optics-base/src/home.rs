@@ -1,11 +1,9 @@
 use async_trait::async_trait;
-use ethers::core::types::H256;
-use optics_core::{
-    traits::{
+use optics_ethereum::EthereumHome;
+use ethers::{core::types::H256};
+use optics_core::{Message, SignedUpdate, Update, traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    },
-    Message, SignedUpdate, Update,
-};
+    }};
 
 use optics_test::mocks::MockHomeContract;
 
@@ -27,6 +25,15 @@ impl From<Box<dyn Home>> for Homes {
 impl From<MockHomeContract> for Homes {
     fn from(mock_home: MockHomeContract) -> Self {
         Homes::MockHome(mock_home)
+    }
+}
+
+impl<M> From<EthereumHome<M>> for Homes 
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    fn from(home: EthereumHome<M>) -> Self {
+        Homes::EthereumHome(Box::new(home))
     }
 }
 

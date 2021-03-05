@@ -13,20 +13,20 @@ use crate::utils::*;
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 #[allow(missing_docs)]
-abigen!(HomeContractInternal, "../abis/Home.abi.json");
+abigen!(EthereumHomeInternal, "../abis/Home.abi.json");
 
 /// A reference to a Home contract on some Ethereum chain
 #[derive(Debug)]
-pub struct HomeContract<M>
+pub struct EthereumHome<M>
 where
     M: ethers::providers::Middleware,
 {
-    contract: HomeContractInternal<M>,
+    contract: EthereumHomeInternal<M>,
     domain: u32,
     name: String,
 }
 
-impl<M> HomeContract<M>
+impl<M> EthereumHome<M>
 where
     M: ethers::providers::Middleware,
 {
@@ -34,7 +34,7 @@ where
     /// chain
     pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
-            contract: HomeContractInternal::new(address, provider),
+            contract: EthereumHomeInternal::new(address, provider),
             domain,
             name: name.to_owned(),
         }
@@ -42,7 +42,7 @@ where
 }
 
 #[async_trait]
-impl<M> Common for HomeContract<M>
+impl<M> Common for EthereumHome<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
@@ -175,7 +175,7 @@ where
 }
 
 #[async_trait]
-impl<M> Home for HomeContract<M>
+impl<M> Home for EthereumHome<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
