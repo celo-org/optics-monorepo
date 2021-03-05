@@ -15,7 +15,7 @@ pub enum Replicas {
     /// Ethereum replica contract
     Ethereum(Box<dyn Replica>),
     /// Mock replica contract
-    Mock(MockReplicaContract),
+    Mock(Box<MockReplicaContract>),
     /// Other replica variant
     Other(Box<dyn Replica>),
 }
@@ -30,7 +30,7 @@ where
 
 impl From<MockReplicaContract> for Replicas {
     fn from(mock_replica: MockReplicaContract) -> Self {
-        Replicas::Mock(mock_replica)
+        Replicas::Mock(Box::new(mock_replica))
     }
 }
 

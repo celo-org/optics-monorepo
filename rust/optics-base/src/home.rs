@@ -16,7 +16,7 @@ pub enum Homes {
     /// Ethereum home contract
     Ethereum(Box<dyn Home>),
     /// Mock home contract
-    Mock(MockHomeContract),
+    Mock(Box<MockHomeContract>),
     /// Other home variant
     Other(Box<dyn Home>),
 }
@@ -32,7 +32,7 @@ where
 
 impl From<MockHomeContract> for Homes {
     fn from(mock_home: MockHomeContract) -> Self {
-        Homes::Mock(mock_home)
+        Homes::Mock(Box::new(mock_home))
     }
 }
 
