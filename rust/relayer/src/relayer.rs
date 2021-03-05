@@ -55,7 +55,7 @@ impl Relayer {
     }
 
     #[tracing::instrument(err)]
-    async fn poll_confirms(replica: Arc<Replicas>) -> Result<()> {
+    async fn poll_confirm(replica: Arc<Replicas>) -> Result<()> {
         // Check for pending update that can be confirmed
         let can_confirm = replica.can_confirm().await?;
 
@@ -100,7 +100,7 @@ impl OpticsAgent for Relayer {
             loop {
                 let (updated, confirmed) = tokio::join!(
                     Self::poll_and_relay_update(home.clone(), replica.clone()),
-                    Self::poll_confirms(replica.clone())
+                    Self::poll_confirm(replica.clone())
                 );
 
                 if let Err(ref e) = updated {
@@ -150,7 +150,7 @@ mod test {
 
         {
             let signed_update = signed_update.clone();
-            // home.signed_update_by_old_root(first_root) called once and 
+            // home.signed_update_by_old_root(first_root) called once and
             // returns mock value signed_update
             mock_home
                 .expect__signed_update_by_old_root()
@@ -160,7 +160,7 @@ mod test {
         }
         {
             let signed_update = signed_update.clone();
-            // replica.current_root called once and returns mock value 
+            // replica.current_root called once and returns mock value
             // first_root
             mock_replica
                 .expect__current_root()
@@ -192,7 +192,34 @@ mod test {
         if let Replicas::MockReplica(replica) = mock_replica {
             replica.checkpoint();
         } else {
-            panic!("Home should be mock variant!");
+            panic!("Replica should be mock variant!");
+        }
+    }
+
+    #[tokio::test]
+    async fn confirms_updates() {
+        let mut mock_replica = MockReplicaContract::new();
+        // replica.can_confirm called once and returns mock true
+        mock_replica
+            .expect__can_confirm()
+            .times(1)
+            .returning(|| Ok(true));
+        // replica.confirm called once and returns mock default
+        mock_replica
+            .expect__confirm()
+            .times(1)
+            .returning(|| Ok(Default::default()));
+
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        Relayer::poll_confirm(replica.clone())
+            .await
+            .expect("Should have returned Ok(())");
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        if let Replicas::MockReplica(replica) = mock_replica {
+            replica.checkpoint();
+        } else {
+            panic!("Replica should be mock variant!");
         }
     }
 }
