@@ -182,14 +182,14 @@ mod test {
             .expect("Should have returned Ok(())");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
-        if let Homes::MockHome(home) = mock_home {
+        if let Homes::Mock(home) = mock_home {
             home.checkpoint();
         } else {
             panic!("Home should be mock variant!");
         }
 
         let mock_replica = Arc::get_mut(&mut replica).unwrap();
-        if let Replicas::MockReplica(replica) = mock_replica {
+        if let Replicas::Mock(replica) = mock_replica {
             replica.checkpoint();
         } else {
             panic!("Replica should be mock variant!");
@@ -216,7 +216,7 @@ mod test {
             .expect("Should have returned Ok(())");
 
         let mock_replica = Arc::get_mut(&mut replica).unwrap();
-        if let Replicas::MockReplica(replica) = mock_replica {
+        if let Replicas::Mock(replica) = mock_replica {
             replica.checkpoint();
         } else {
             panic!("Replica should be mock variant!");
