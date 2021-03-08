@@ -417,11 +417,7 @@ mod test {
         }
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
-        if let Homes::Mock(home) = mock_home {
-            home.checkpoint();
-        } else {
-            panic!("Home should be mock variant!");
-        }
+        mock_home.checkpoint();
     }
 
     #[tokio::test]

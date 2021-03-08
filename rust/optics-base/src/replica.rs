@@ -19,6 +19,20 @@ pub enum Replicas {
     /// Other replica variant
     Other(Box<dyn Replica>),
 }
+
+impl Replicas {
+    /// Calls checkpoint on mock variant. Should
+    /// only be used during tests.
+    #[doc(hidden)]
+    pub fn checkpoint(&mut self) {
+        if let Replicas::Mock(replica) = self {
+            replica.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+    }
+}
+
 impl<M> From<EthereumReplica<M>> for Replicas
 where
     M: ethers::providers::Middleware + 'static,

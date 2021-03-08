@@ -21,6 +21,19 @@ pub enum Homes {
     Other(Box<dyn Home>),
 }
 
+impl Homes {
+    /// Calls checkpoint on mock variant. Should
+    /// only be used during tests.
+    #[doc(hidden)]
+    pub fn checkpoint(&mut self) {
+        if let Homes::Mock(home) = self {
+            home.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+    }
+}
+
 impl<M> From<EthereumHome<M>> for Homes
 where
     M: ethers::providers::Middleware + 'static,
