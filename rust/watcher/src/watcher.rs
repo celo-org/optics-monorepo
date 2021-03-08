@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use color_eyre::{
     eyre::{bail, eyre},
-    Result,
+    Report, Result,
 };
+use thiserror::Error;
+
 use ethers::core::types::H256;
 use futures_util::future::join_all;
 use std::{collections::HashMap, sync::Arc};
@@ -16,7 +18,6 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
     home::Homes,
-    reset_loop_if,
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
@@ -25,13 +26,19 @@ use optics_core::{
 
 use crate::settings::Settings;
 
+#[derive(Debug, Error)]
+enum WatcherError {
+    #[error("Syncing finished")]
+    SyncingFinished,
+}
+
 #[derive(Debug)]
 pub struct ContractWatcher<C>
 where
     C: Common + ?Sized + 'static,
 {
     interval_seconds: u64,
-    from: H256,
+    current_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
 }
@@ -42,13 +49,13 @@ where
 {
     pub fn new(
         interval_seconds: u64,
-        from: H256,
+        current_root: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<C>,
     ) -> Self {
         Self {
             interval_seconds,
-            from,
+            current_root,
             tx,
             contract,
         }
@@ -58,21 +65,31 @@ where
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
+    async fn poll_and_send_update(&mut self) -> Result<()> {
+        let update_opt = self
+            .contract
+            .signed_update_by_old_root(self.current_root)
+            .await?;
+
+        if update_opt.is_none() {
+            return Ok(());
+        }
+
+        let new_update = update_opt.unwrap();
+        self.current_root = new_update.update.new_root;
+
+        self.tx.send(new_update).await?;
+        Ok(())
+    }
+
     #[tracing::instrument]
-    fn spawn(self) -> JoinHandle<Result<()>> {
+    fn spawn(mut self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
             let mut interval = self.interval();
-            let mut current_root = self.from;
-            loop {
-                let update_opt = self
-                    .contract
-                    .signed_update_by_old_root(current_root)
-                    .await?;
-                reset_loop_if!(update_opt.is_none(), interval);
-                let new_update = update_opt.unwrap();
 
-                current_root = new_update.update.new_root;
-                self.tx.send(new_update).await?;
+            loop {
+                self.poll_and_send_update().await?;
+                interval.tick().await;
             }
         })
     }
@@ -111,34 +128,43 @@ where
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
+    async fn update_history(&mut self) -> Result<()> {
+        let previous_update = self.contract.signed_update_by_new_root(self.from).await?;
+
+        if previous_update.is_none() {
+            // Task finished
+            return Err(Report::new(WatcherError::SyncingFinished));
+        }
+
+        // Dispatch to the handler
+        let previous_update = previous_update.unwrap();
+
+        // set up for next loop iteration
+        self.from = previous_update.update.previous_root;
+        self.tx.send(previous_update).await?;
+        if self.from.is_zero() {
+            // Task finished
+            return Err(Report::new(WatcherError::SyncingFinished));
+        }
+
+        Ok(())
+    }
+
     #[tracing::instrument]
-    fn spawn(self) -> JoinHandle<Result<()>> {
+    fn spawn(mut self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
             let mut interval = self.interval();
 
-            let mut current_root = self.from;
             loop {
-                let previous_update = self
-                    .contract
-                    .signed_update_by_new_root(current_root)
-                    .await?;
-                if previous_update.is_none() {
-                    // Task finished
+                let res = self.update_history().await;
+                if res.is_err() {
+                    // Syncing done
                     break;
                 }
 
-                // Dispatch to the handler
-                let previous_update = previous_update.unwrap();
-
-                // set up for next loop iteration
-                current_root = previous_update.update.previous_root;
-                self.tx.send(previous_update).await?;
-                if current_root.is_zero() {
-                    // Task finished
-                    break;
-                }
                 interval.tick().await;
             }
+
             Ok(())
         })
     }
