@@ -117,7 +117,7 @@ mod test {
     use optics_base::home::Homes;
 
     use super::*;
-    use optics_core::{SignedUpdate, Update};
+    use optics_core::{traits::TxOutcome, SignedUpdate, Update};
     use optics_test::mocks::MockHomeContract;
 
     #[tokio::test]
@@ -139,7 +139,7 @@ mod test {
 
         let mut mock_home = MockHomeContract::new();
 
-        // home.update returns created update value
+        // home.produce_update returns created update value
         mock_home
             .expect__produce_update()
             .return_once(move || Ok(Some(update)));
@@ -149,7 +149,39 @@ mod test {
             .expect__update()
             .withf(move |s: &SignedUpdate| *s == signed_update)
             .times(1)
-            .returning(|_| Ok(Default::default()));
+            .returning(|_| Ok(TxOutcome::default()));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        Updater::poll_and_handle_update(home.clone(), Arc::new(signer))
+            .await
+            .expect("Should have returned Ok(())");
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        if let Homes::Mock(home) = mock_home {
+            home.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+    }
+
+    #[tokio::test]
+    async fn ignores_empty_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let mut mock_home = MockHomeContract::new();
+        // home.produce_update returns Ok(None)
+        mock_home
+            .expect__produce_update()
+            .return_once(move || Ok(None));
+
+        // Expect home.update to NOT be called
+        mock_home
+            .expect__update()
+            .times(0)
+            .returning(|_| Ok(TxOutcome::default()));
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         Updater::poll_and_handle_update(home.clone(), Arc::new(signer))
