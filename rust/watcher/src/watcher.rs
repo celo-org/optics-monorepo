@@ -49,7 +49,7 @@ where
 {
     pub fn new(
         interval_seconds: u64,
-        from: H256,
+        current_root: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<C>,
     ) -> Self {
