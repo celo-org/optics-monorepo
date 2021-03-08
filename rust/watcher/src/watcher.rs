@@ -371,6 +371,60 @@ mod test {
     use super::*;
 
     #[tokio::test]
+    async fn contract_watcher_polls_and_sends_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let first_root = H256::from([1; 32]);
+        let second_root = H256::from([2; 32]);
+
+        let signed_update = Update {
+            origin_domain: 1,
+            previous_root: first_root,
+            new_root: second_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        {
+            let signed_update = signed_update.clone();
+            // home.signed_update_by_old_root called once and
+            // returns mock value signed_update when called with first_root
+            mock_home
+                .expect__signed_update_by_old_root()
+                .withf(move |r: &H256| *r == first_root)
+                .times(1)
+                .return_once(move |_| Ok(Some(signed_update)));
+        }
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let (tx, mut rx) = mpsc::channel(200);
+        {
+            let mut contract_watcher =
+                ContractWatcher::new(3, first_root, tx.clone(), home.clone());
+
+            contract_watcher
+                .poll_and_send_update()
+                .await
+                .expect("Should have received Ok(())");
+
+            assert_eq!(contract_watcher.current_root, second_root);
+            assert_eq!(rx.recv().await.unwrap(), signed_update);
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        if let Homes::Mock(home) = mock_home {
+            home.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+    }
+
+    #[tokio::test]
     async fn update_handler_detects_double_update() {
         let signer: LocalWallet =
             "1111111111111111111111111111111111111111111111111111111111111111"
