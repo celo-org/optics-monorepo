@@ -149,7 +149,12 @@ mod test {
             .expect__update()
             .withf(move |s: &SignedUpdate| *s == signed_update)
             .times(1)
-            .returning(|_| Ok(TxOutcome::default()));
+            .returning(|_| {
+                Ok(TxOutcome {
+                    txid: H256::default(),
+                    executed: true,
+                })
+            });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         Updater::poll_and_handle_update(home.clone(), Arc::new(signer))
@@ -178,10 +183,12 @@ mod test {
             .return_once(move || Ok(None));
 
         // Expect home.update to NOT be called
-        mock_home
-            .expect__update()
-            .times(0)
-            .returning(|_| Ok(TxOutcome::default()));
+        mock_home.expect__update().times(0).returning(|_| {
+            Ok(TxOutcome {
+                txid: H256::default(),
+                executed: true,
+            })
+        });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         Updater::poll_and_handle_update(home.clone(), Arc::new(signer))
