@@ -53,9 +53,12 @@ impl ReplicaProcessor {
     }
 
     async fn prove_and_process_message(&self, domain: u32) -> Result<()> {
+        // Get the last processed index and sequence
         let last_processed = self.replica.last_processed().await?;
         let sequence = last_processed.as_u32() + 1;
 
+        // Check if the Home knows of a message above that index. If not, 
+        // return early and poll again.
         let message = self.home.message_by_sequence(domain, sequence).await?;
         return_res_unit_if!(
             message.is_none(),
@@ -66,7 +69,8 @@ impl ReplicaProcessor {
 
         let message = message.unwrap();
 
-        // Lock is dropped immediately
+        // Check if we have a proof for that message. If no proof, return early 
+        // and poll again
         let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
         return_res_unit_if!(
             proof_res.is_err(),
@@ -74,6 +78,7 @@ impl ReplicaProcessor {
             message.leaf_index
         );
 
+        // If leaf in prover doesn't match retrieved message, bail
         let proof = proof_res.unwrap();
         if proof.leaf != message.message.to_leaf() {
             let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
@@ -81,6 +86,7 @@ impl ReplicaProcessor {
             color_eyre::eyre::bail!(err);
         }
 
+        // Submit the proof to the replica
         self.replica
             .prove_and_process(message.as_ref(), &proof)
             .await?;
