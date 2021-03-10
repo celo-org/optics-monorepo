@@ -123,7 +123,7 @@ mod test {
     use std::sync::Arc;
 
     use super::*;
-    use optics_core::{SignedUpdate, Update};
+    use optics_core::{traits::TxOutcome, SignedUpdate, Update};
     use optics_test::mocks::{MockHomeContract, MockReplicaContract};
 
     #[tokio::test]
@@ -172,7 +172,12 @@ mod test {
                 .expect__update()
                 .withf(move |s: &SignedUpdate| *s == signed_update)
                 .times(1)
-                .returning(|_| Ok(Default::default()));
+                .returning(|_| {
+                    Ok(TxOutcome {
+                        txid: H256::default(),
+                        executed: true,
+                    })
+                });
         }
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
@@ -205,10 +210,12 @@ mod test {
             .times(1)
             .returning(|| Ok(true));
         // replica.confirm called once and returns mock default
-        mock_replica
-            .expect__confirm()
-            .times(1)
-            .returning(|| Ok(Default::default()));
+        mock_replica.expect__confirm().times(1).returning(|| {
+            Ok(TxOutcome {
+                txid: H256::default(),
+                executed: true,
+            })
+        });
 
         let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
         Relayer::poll_confirm(replica.clone())
