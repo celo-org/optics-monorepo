@@ -8,5 +8,5 @@ pub mod replica;
 pub mod prover;
 
 pub use home::MockHomeContract;
-pub use replica::MockReplicaContract;
 pub use prover::MockProver;
+pub use replica::MockReplicaContract;

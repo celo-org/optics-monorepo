@@ -15,11 +15,12 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
     home::Homes,
+    prover::Provers,
     replica::Replicas,
     return_res_unit_if,
 };
 use optics_core::{
-    accumulator::Prover,
+    accumulator::prover::ProverTrait,
     traits::{Home, Replica},
 };
 
@@ -29,7 +30,7 @@ pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    prover: Arc<RwLock<Prover>>,
+    prover: Arc<RwLock<Provers>>,
 }
 
 impl ReplicaProcessor {
@@ -37,7 +38,7 @@ impl ReplicaProcessor {
         interval_seconds: u64,
         replica: Arc<Replicas>,
         home: Arc<Homes>,
-        prover: Arc<RwLock<Prover>>,
+        prover: Arc<RwLock<Provers>>,
     ) -> Self {
         Self {
             interval_seconds,
@@ -104,7 +105,7 @@ decl_agent!(
     /// A processor agent
     Processor {
         interval_seconds: u64,
-        prover: Arc<RwLock<Prover>>,
+        prover: Arc<RwLock<Provers>>,
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     }
 );
@@ -182,12 +183,13 @@ impl OpticsAgent for Processor {
 #[cfg(test)]
 mod test {
     use std::sync::Arc;
+    use tokio::sync::RwLock;
 
-    use ethers::core::types::H256;
+    use ethers::core::types::{H256, U256};
     use ethers::signers::LocalWallet;
 
     use optics_core::{accumulator::Prover, traits::DoubleUpdate, Update};
-    use optics_test::mocks::{MockHomeContract, MockReplicaContract};
+    use optics_test::mocks::{MockHomeContract, MockProver, MockReplicaContract};
 
     use super::*;
 
@@ -198,27 +200,54 @@ mod test {
 
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
+        let mut mock_prover = MockProver::new();
 
-        // Expect home.message_by_sequence to be called once and return
-        // mock value of Ok(None)
+        // Expect replica.last_processed to be called once and return mock
+        // value `sequence`
+        mock_replica
+            .expect__last_processed()
+            .times(1)
+            .return_once(move || Ok(U256::from(sequence - 1)));
+
+        // Expect home.raw_message_by_sequence to be called once and return
+        // mock value of Ok(None), which causes home.message_by_sequence to
+        // also return Ok(None)
         mock_home
-            .expect__message_by_sequence()
+            .expect__raw_message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
             .return_once(move |_, _| Ok(None));
 
+        // Expect prover.prove() to NOT be called (called zero times)
+        mock_prover
+            .expect__prove()
+            .times(0)
+            .return_once(move |_| Ok(Default::default()));
+
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
-        let replica_processor = ReplicaProcessor::new(3, replica, home, Default::default());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
 
-        replica_processor
-            .prove_and_process_message(domain)
-            .await
-            .expect("Should have returned Ok(())");
+        {
+            let replica_processor =
+                ReplicaProcessor::new(3, replica.clone(), home.clone(), prover.clone());
 
-        // TODO: add mock prover and assert prove never gets called
+            replica_processor
+                .prove_and_process_message(domain)
+                .await
+                .expect("Should have returned Ok(())");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        mock_replica.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
     }
 
     #[tokio::test]
-    async fn returns_early_if_prover_does_not_have_message() {}
+    async fn returns_early_if_cannot_create_proof() {}
 }
