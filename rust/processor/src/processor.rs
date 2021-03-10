@@ -51,7 +51,7 @@ impl ReplicaProcessor {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
-    async fn process_messages(&self, domain: u32) -> Result<()> {
+    async fn prove_and_process_message(&self, domain: u32) -> Result<()> {
         let last_processed = self.replica.last_processed().await?;
         let sequence = last_processed.as_u32() + 1;
 
@@ -93,7 +93,7 @@ impl ReplicaProcessor {
             let mut interval = self.interval();
 
             loop {
-                self.process_messages(domain).await?;
+                self.prove_and_process_message(domain).await?;
                 interval.tick().await;
             }
         })
@@ -182,63 +182,43 @@ impl OpticsAgent for Processor {
 #[cfg(test)]
 mod test {
     use std::sync::Arc;
-    use tokio::sync::mpsc;
 
     use ethers::core::types::H256;
     use ethers::signers::LocalWallet;
 
-    use optics_core::{traits::DoubleUpdate, Update};
-    use optics_test::mocks::MockHomeContract;
+    use optics_core::{accumulator::Prover, traits::DoubleUpdate, Update};
+    use optics_test::mocks::{MockHomeContract, MockReplicaContract};
 
     use super::*;
 
     #[tokio::test]
-    async fn contract_watcher_polls_and_sends_update() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
-
-        let first_root = H256::from([1; 32]);
-        let second_root = H256::from([2; 32]);
-
-        let signed_update = Update {
-            origin_domain: 1,
-            previous_root: first_root,
-            new_root: second_root,
-        }
-        .sign_with(&signer)
-        .await
-        .expect("!sign");
+    async fn returns_early_if_no_message() {
+        let domain = 1;
+        let sequence = 1;
 
         let mut mock_home = MockHomeContract::new();
-        {
-            let signed_update = signed_update.clone();
-            // home.signed_update_by_old_root called once and
-            // returns mock value signed_update when called with first_root
-            mock_home
-                .expect__signed_update_by_old_root()
-                .withf(move |r: &H256| *r == first_root)
-                .times(1)
-                .return_once(move |_| Ok(Some(signed_update)));
-        }
+        let mut mock_replica = MockReplicaContract::new();
+
+        // Expect home.message_by_sequence to be called once and return
+        // mock value of Ok(None)
+        mock_home
+            .expect__message_by_sequence()
+            .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
+            .times(1)
+            .return_once(move |_, _| Ok(None));
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let (tx, mut rx) = mpsc::channel(200);
-        {
-            let mut contract_watcher =
-                ContractWatcher::new(3, first_root, tx.clone(), home.clone());
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        let replica_processor = ReplicaProcessor::new(3, replica, home, Default::default());
 
-            contract_watcher
-                .poll_and_send_update()
-                .await
-                .expect("Should have received Ok(())");
+        replica_processor
+            .prove_and_process_message(domain)
+            .await
+            .expect("Should have returned Ok(())");
 
-            assert_eq!(contract_watcher.current_root, second_root);
-            assert_eq!(rx.recv().await.unwrap(), signed_update);
-        }
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
+        // TODO: add mock prover and assert prove never gets called
     }
+
+    #[tokio::test]
+    async fn returns_early_if_prover_does_not_have_message() {}
 }
