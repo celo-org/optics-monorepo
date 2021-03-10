@@ -7,7 +7,7 @@ use ethers::core::types::H256;
 
 use optics_core::{
     traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
+        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, CommittedMessage, State, TxOutcome,
     },
     Message, SignedUpdate, Update,
 };
@@ -24,6 +24,12 @@ mock! {
             destination: u32,
             sequence: u32,
         ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
+
+        pub fn _message_by_sequence(
+            &self,
+            destination: u32,
+            sequence: u32,
+        ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {}
 
         pub fn _raw_message_by_leaf(
             &self,
@@ -99,6 +105,14 @@ impl Home for MockHomeContract {
         sequence: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         self._raw_message_by_sequence(destination, sequence)
+    }
+
+    async fn message_by_sequence(
+        &self,
+        destination: u32,
+        sequence: u32,
+    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
+        self._message_by_sequence(destination, sequence)
     }
 
     async fn raw_message_by_leaf(
