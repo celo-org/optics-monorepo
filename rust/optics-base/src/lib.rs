@@ -27,3 +27,6 @@ pub mod home;
 
 /// Replica type
 pub mod replica;
+
+/// Prover type
+pub mod prover;

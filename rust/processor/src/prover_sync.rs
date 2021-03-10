@@ -1,9 +1,9 @@
 use ethers::core::types::H256;
-use optics_base::home::Homes;
+use optics_base::{home::Homes, prover::Provers};
 use optics_core::{
     accumulator::{
         incremental::IncrementalMerkle,
-        prover::{Prover, ProverError},
+        prover::{ProverError, ProverTrait},
     },
     traits::{ChainCommunicationError, Common, Home},
 };
@@ -19,7 +19,7 @@ use tokio::{
 /// Struct to sync prover.
 #[derive(Debug)]
 pub struct ProverSync {
-    prover: Arc<RwLock<Prover>>,
+    prover: Arc<RwLock<Provers>>,
     home: Arc<Homes>,
     incremental: IncrementalMerkle,
     rx: Receiver<()>,
@@ -52,7 +52,7 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, rx: Receiver<()>) -> Self {
+    pub fn new(prover: Arc<RwLock<Provers>>, home: Arc<Homes>, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,

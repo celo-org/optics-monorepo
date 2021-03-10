@@ -7,7 +7,7 @@ use ethers::core::types::H256;
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
-#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq, Default)]
 pub struct Proof {
     /// The leaf
     pub leaf: H256,
@@ -62,30 +62,45 @@ impl Default for Prover {
     }
 }
 
-impl Prover {
+/// Prover functionality
+pub trait ProverTrait {
     /// Push a leaf to the tree. Appends it to the first unoccupied slot
     ///
     /// This will fail if the underlying tree is full.
-    pub fn ingest(&mut self, element: H256) -> Result<H256, ProverError> {
+    fn ingest(&mut self, element: H256) -> Result<H256, ProverError>;
+
+    /// Return the current root hash of the tree
+    fn root(&self) -> H256;
+
+    /// Return the number of leaves that have been ingested
+    fn count(&self) -> usize;
+
+    /// Create a proof of a leaf in this tree.
+    ///
+    /// Note, if the tree ingests more leaves, the root will need to be
+    /// recalculated.
+    fn prove(&self, index: usize) -> Result<Proof, ProverError>;
+
+    /// Verify a proof against this tree's root.
+    fn verify(&self, proof: &Proof) -> Result<(), ProverError>;
+}
+
+impl ProverTrait for Prover {
+    fn ingest(&mut self, element: H256) -> Result<H256, ProverError> {
         self.count += 1;
         self.tree.push_leaf(element, TREE_DEPTH)?;
         Ok(self.tree.hash())
     }
 
-    /// Return the current root hash of the tree
-    pub fn root(&self) -> H256 {
+    fn root(&self) -> H256 {
         self.tree.hash()
     }
 
-    /// Return the number of leaves that have been ingested
-    pub fn count(&self) -> usize {
+    fn count(&self) -> usize {
         self.count
     }
 
-    /// Create a proof of a leaf in this tree.
-    ///
-    /// Note, if the tree ingests more leaves, the root will need to be recalculated.
-    pub fn prove(&self, index: usize) -> Result<Proof, ProverError> {
+    fn prove(&self, index: usize) -> Result<Proof, ProverError> {
         if index > u32::MAX as usize {
             return Err(ProverError::IndexTooHigh(index));
         }
@@ -100,8 +115,7 @@ impl Prover {
         Ok(Proof { leaf, index, path })
     }
 
-    /// Verify a proof against this tree's root.
-    pub fn verify(&self, proof: &Proof) -> Result<(), ProverError> {
+    fn verify(&self, proof: &Proof) -> Result<(), ProverError> {
         let actual = merkle_root_from_branch(proof.leaf, &proof.path, TREE_DEPTH, proof.index);
         let expected = self.root();
         if expected == actual {
@@ -121,24 +135,6 @@ where
         Self {
             count: slice.len(),
             tree: MerkleTree::create(slice, TREE_DEPTH),
-        }
-    }
-}
-
-impl std::iter::FromIterator<H256> for Prover {
-    /// Will panic if the tree fills
-    fn from_iter<I: IntoIterator<Item = H256>>(iter: I) -> Self {
-        let mut prover = Self::default();
-        prover.extend(iter);
-        prover
-    }
-}
-
-impl std::iter::Extend<H256> for Prover {
-    /// Will panic if the tree fills
-    fn extend<I: IntoIterator<Item = H256>>(&mut self, iter: I) {
-        for i in iter {
-            self.ingest(i).expect("!tree full");
         }
     }
 }
