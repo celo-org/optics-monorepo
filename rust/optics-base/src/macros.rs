@@ -24,6 +24,17 @@ macro_rules! reset_loop_if {
 }
 
 #[macro_export]
+/// Shortcut for conditionally returning with Ok(())
+macro_rules! return_res_unit_if {
+    ($condition:expr, $($arg:tt)*) => {
+        if $condition {
+            tracing::info!($($arg)*);
+            return Ok(());
+        }
+    };
+}
+
+#[macro_export]
 /// Shortcut for aborting a joinhandle and then awaiting and discarding its result
 macro_rules! cancel_task {
     ($task:ident) => {

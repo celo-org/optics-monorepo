@@ -16,7 +16,7 @@ use optics_base::{
     cancel_task, decl_agent,
     home::Homes,
     replica::Replicas,
-    reset_loop_if,
+    return_res_unit_if,
 };
 use optics_core::{
     accumulator::Prover,
@@ -51,54 +51,49 @@ impl ReplicaProcessor {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
+    async fn process_messages(&self, domain: u32) -> Result<()> {
+        let last_processed = self.replica.last_processed().await?;
+        let sequence = last_processed.as_u32() + 1;
+
+        let message = self.home.message_by_sequence(domain, sequence).await?;
+        return_res_unit_if!(
+            message.is_none(),
+            "Remote does not contain message at {}:{}",
+            domain,
+            sequence
+        );
+
+        let message = message.unwrap();
+
+        // Lock is dropped immediately
+        let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
+        return_res_unit_if!(
+            proof_res.is_err(),
+            "Prover does not contain leaf at index {}",
+            message.leaf_index
+        );
+
+        let proof = proof_res.unwrap();
+        if proof.leaf != message.message.to_leaf() {
+            let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
+            tracing::error!("{}", err);
+            color_eyre::eyre::bail!(err);
+        }
+
+        self.replica
+            .prove_and_process(message.as_ref(), &proof)
+            .await?;
+
+        Ok(())
+    }
+
     pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
             let domain = self.replica.destination_domain();
-
             let mut interval = self.interval();
 
-            // The basic structure of this loop is as follows:
-            // 1. Get the last processed index
-            // 2. Check if the Home knows of a message above that index
-            //      - If not, wait and poll again
-            // 3. Check if we have a proof for that message
-            //      - If not, wait and poll again
-            // 4. Submit the proof to the replica
             loop {
-                let last_processed = self.replica.last_processed().await?;
-                let sequence = last_processed.as_u32() + 1;
-
-                let message = self.home.message_by_sequence(domain, sequence).await?;
-                reset_loop_if!(
-                    message.is_none(),
-                    interval,
-                    "Remote does not contain message at {}:{}",
-                    domain,
-                    sequence
-                );
-
-                let message = message.unwrap();
-
-                // Lock is dropped immediately
-                let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
-                reset_loop_if!(
-                    proof_res.is_err(),
-                    interval,
-                    "Prover does not contain leaf at index {}",
-                    message.leaf_index
-                );
-
-                let proof = proof_res.unwrap();
-                if proof.leaf != message.message.to_leaf() {
-                    let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
-                    tracing::error!("{}", err);
-                    color_eyre::eyre::bail!(err);
-                }
-
-                self.replica
-                    .prove_and_process(message.as_ref(), &proof)
-                    .await?;
-
+                self.process_messages(domain).await?;
                 interval.tick().await;
             }
         })
@@ -181,5 +176,69 @@ impl OpticsAgent for Processor {
         }
 
         res?
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::sync::Arc;
+    use tokio::sync::mpsc;
+
+    use ethers::core::types::H256;
+    use ethers::signers::LocalWallet;
+
+    use optics_core::{traits::DoubleUpdate, Update};
+    use optics_test::mocks::MockHomeContract;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn contract_watcher_polls_and_sends_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let first_root = H256::from([1; 32]);
+        let second_root = H256::from([2; 32]);
+
+        let signed_update = Update {
+            origin_domain: 1,
+            previous_root: first_root,
+            new_root: second_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        {
+            let signed_update = signed_update.clone();
+            // home.signed_update_by_old_root called once and
+            // returns mock value signed_update when called with first_root
+            mock_home
+                .expect__signed_update_by_old_root()
+                .withf(move |r: &H256| *r == first_root)
+                .times(1)
+                .return_once(move |_| Ok(Some(signed_update)));
+        }
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let (tx, mut rx) = mpsc::channel(200);
+        {
+            let mut contract_watcher =
+                ContractWatcher::new(3, first_root, tx.clone(), home.clone());
+
+            contract_watcher
+                .poll_and_send_update()
+                .await
+                .expect("Should have received Ok(())");
+
+            assert_eq!(contract_watcher.current_root, second_root);
+            assert_eq!(rx.recv().await.unwrap(), signed_update);
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
     }
 }
