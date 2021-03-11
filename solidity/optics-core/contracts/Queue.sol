@@ -1,19 +1,40 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+/**
+ * @title QueueLib
+ * @author Celo Labs Inc.
+ * @notice Library containing queue struct and operations for queue used by
+ * Home and Replica.
+ **/
 library QueueLib {
+    /**
+     * @notice Queue struct
+     * @dev Internally keeps track of the `first` and `last` elements through
+     * indices and a mapping of indices to enqueued elements.
+     **/
     struct Queue {
         uint128 first;
         uint128 last;
         mapping(uint256 => bytes32) queue;
     }
 
+    /**
+     * @notice Initializes the queue
+     * @dev Empty state denoted by _q.first > q._last. Queue initialized
+     * with _q.first = 1 and _q.last = 0.
+     **/
     function init(Queue storage _q) internal {
         if (_q.first == 0) {
             _q.first = 1;
         }
     }
 
+    /**
+     * @notice Enqueues a single new element
+     * @param _item New element to be enqueued
+     * @return _last Index of newly enqueued element
+     **/
     function enqueue(Queue storage _q, bytes32 _item)
         internal
         returns (uint128 _last)
@@ -26,6 +47,11 @@ library QueueLib {
         }
     }
 
+    /**
+     * @notice Dequeues element at front of queue
+     * @dev Removes dequeued element from storage
+     * @return _item Dequeued element
+     **/
     function dequeue(Queue storage _q) internal returns (bytes32 _item) {
         uint128 _last = _q.last;
         uint128 _first = _q.first;
@@ -38,6 +64,11 @@ library QueueLib {
         _q.first = _first + 1;
     }
 
+    /**
+     * @notice Batch enqueues several elements
+     * @param _items Array of elements to be enqueued
+     * @return _last Index of last enqueued element
+     **/
     function enqueue(Queue storage _q, bytes32[] memory _items)
         internal
         returns (uint128 _last)
@@ -53,6 +84,12 @@ library QueueLib {
         _q.last = _last;
     }
 
+    /**
+     * @notice Batch dequeues `_number` elements
+     * @dev Reverts if `_number` > queue length
+     * @param _number Number of elements to dequeue
+     * @return Array of dequeued elements
+     **/
     function dequeue(Queue storage _q, uint256 _number)
         internal
         returns (bytes32[] memory)
@@ -73,7 +110,12 @@ library QueueLib {
         return _items;
     }
 
-    // NB: this is unfortunately expensive
+    /**
+     * @notice Returns true if `_item` is in the queue and false if otherwise
+     * @dev Linearly scans from _q.first to _q.last looking for `_item`
+     * @param _item Item being searched for in queue
+     * @return True if `_item` currently exists in queue, false if otherwise
+     **/
     function contains(Queue storage _q, bytes32 _item)
         internal
         view
@@ -87,19 +129,25 @@ library QueueLib {
         return false;
     }
 
+    /// @notice Returns last item in queue
+    /// @dev Returns bytes32(0) if queue empty
     function lastItem(Queue storage _q) internal view returns (bytes32) {
         return _q.queue[_q.last];
     }
 
+    /// @notice Returns element at front of queue without removing element
+    /// @dev Reverts if queue is empty
     function peek(Queue storage _q) internal view returns (bytes32 _item) {
         require(!isEmpty(_q), "Empty");
         _item = _q.queue[_q.first];
     }
 
+    /// @notice Returns true if queue is empty and false if otherwise
     function isEmpty(Queue storage _q) internal view returns (bool) {
         return _q.last < _q.first;
     }
 
+    /// @notice Returns number of elements between `_last` and `_first` (used internally)
     function _length(uint128 _last, uint128 _first)
         internal
         pure
@@ -108,6 +156,7 @@ library QueueLib {
         return uint256(_last + 1 - _first);
     }
 
+    /// @notice Returns number of elements in queue
     function length(Queue storage _q) internal view returns (uint256) {
         uint128 _last = _q.last;
         uint128 _first = _q.first;
@@ -116,6 +165,12 @@ library QueueLib {
     }
 }
 
+/**
+ * @title QueueManager
+ * @author Celo Labs Inc.
+ * @notice Contract containing a queue instance and view operations on the
+ * queue.
+ **/
 contract QueueManager {
     using QueueLib for QueueLib.Queue;
     QueueLib.Queue internal queue;
@@ -124,14 +179,17 @@ contract QueueManager {
         queue.init();
     }
 
+    /// @notice Returns number of elements in queue
     function queueLength() external view returns (uint256) {
         return queue.length();
     }
 
+    /// @notice Returns true if `_item` is in the queue and false if otherwise
     function queueContains(bytes32 _item) external view returns (bool) {
         return queue.contains(_item);
     }
 
+    /// @notice Returns last item in queue
     function queueEnd() external view returns (bytes32) {
         return queue.lastItem();
     }

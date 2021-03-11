@@ -21,3 +21,9 @@ pub mod agent;
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]
 pub mod macros;
+
+/// Home type
+pub mod home;
+
+/// Replica type
+pub mod replica;

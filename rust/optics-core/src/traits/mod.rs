@@ -27,11 +27,11 @@ pub enum State {
 }
 
 /// Returned by `check_double_update` if double update exists
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DoubleUpdate(pub SignedUpdate, pub SignedUpdate);
 
 /// The result of a transaction
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct TxOutcome {
     /// The txid
     pub txid: H256,

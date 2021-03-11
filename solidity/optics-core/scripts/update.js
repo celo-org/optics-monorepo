@@ -16,7 +16,7 @@ task('submit-update', 'Submit an update to a home or replica contract.')
     let { newRoot, oldRoot, signature } = args;
     let update = await utils.validateUpdate(newRoot, oldRoot, signature);
 
-    let signer = await ethers.getSigner();
+    let [signer] = await ethers.getSigners();
 
     // we should be able to use home for either. Consider moving this to common?
     let contract = new optics.Home(address, signer);
@@ -51,7 +51,7 @@ task('submit-double-update', 'Submit a double update to a home or replica.')
     let update1 = await utils.validateUpdate(newRoot1, oldRoot1, signature1);
     let update2 = await utils.validateUpdate(newRoot2, oldRoot2, signature2);
 
-    let signer = await ethers.getSigner();
+    let [signer] = await ethers.getSigners();
 
     let contract = new optics.Common(address, signer);
     let tx = await contract.submitDoubleUpdate(update1, update2);

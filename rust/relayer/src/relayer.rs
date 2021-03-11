@@ -1,10 +1,17 @@
 use async_trait::async_trait;
 use color_eyre::{eyre::eyre, Result};
 use std::sync::Arc;
-use tokio::time::{interval, Interval};
+use tokio::{
+    task::JoinHandle,
+    time::{interval, Interval},
+};
 
-use optics_base::agent::{AgentCore, OpticsAgent};
-use optics_core::traits::{Home, Replica};
+use optics_base::{
+    agent::{AgentCore, OpticsAgent},
+    home::Homes,
+    replica::Replicas,
+};
+use optics_core::traits::{Common, Replica};
 
 use crate::settings::Settings;
 
@@ -32,11 +39,7 @@ impl Relayer {
     }
 
     #[tracing::instrument(err)]
-    async fn poll_updates(
-        &self,
-        home: Arc<Box<dyn Home>>,
-        replica: Arc<Box<dyn Replica>>,
-    ) -> Result<()> {
+    async fn poll_updates(home: Arc<Homes>, replica: Arc<Replicas>) -> Result<()> {
         // Get replica's current root
         let old_root = replica.current_root().await?;
 
@@ -52,7 +55,7 @@ impl Relayer {
     }
 
     #[tracing::instrument(err)]
-    async fn poll_confirms(&self, replica: Arc<Box<dyn Replica>>) -> Result<()> {
+    async fn poll_confirms(replica: Arc<Replicas>) -> Result<()> {
         // Check for pending update that can be confirmed
         let can_confirm = replica.can_confirm().await?;
 
@@ -64,7 +67,6 @@ impl Relayer {
         Ok(())
     }
 
-    #[doc(hidden)]
     fn interval(&self) -> Interval {
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
@@ -85,28 +87,32 @@ impl OpticsAgent for Relayer {
         ))
     }
 
-    #[tracing::instrument(err)]
-    async fn run(&self, replica: &str) -> Result<()> {
-        let replica = self
-            .replica_by_name(replica)
-            .ok_or_else(|| eyre!("No replica named {}", replica))?;
-
+    #[tracing::instrument]
+    fn run(&self, name: &str) -> JoinHandle<Result<()>> {
+        let replica_opt = self.replica_by_name(name);
+        let home = self.home();
         let mut interval = self.interval();
-        loop {
-            let (updated, confirmed) = tokio::join!(
-                self.poll_updates(self.home(), replica.clone()),
-                self.poll_confirms(replica.clone())
-            );
+        let name = name.to_owned();
 
-            if let Err(ref e) = updated {
-                tracing::error!("Error polling updates: {:?}", e)
+        tokio::spawn(async move {
+            let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
+
+            loop {
+                let (updated, confirmed) = tokio::join!(
+                    Self::poll_updates(home.clone(), replica.clone()),
+                    Self::poll_confirms(replica.clone())
+                );
+
+                if let Err(ref e) = updated {
+                    tracing::error!("Error polling updates: {:?}", e)
+                }
+                if let Err(ref e) = confirmed {
+                    tracing::error!("Error polling confirms: {:?}", e)
+                }
+                updated?;
+                confirmed?;
+                interval.tick().await;
             }
-            if let Err(ref e) = confirmed {
-                tracing::error!("Error polling confirms: {:?}", e)
-            }
-            updated?;
-            confirmed?;
-            interval.tick().await;
-        }
+        })
     }
 }

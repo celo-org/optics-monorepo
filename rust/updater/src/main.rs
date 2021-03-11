@@ -20,7 +20,7 @@ use crate::{settings::Settings, updater::Updater};
 async fn _main(settings: Settings) -> Result<()> {
     let updater = Updater::<LocalWallet>::from_settings(settings).await?;
 
-    updater.run("").await?;
+    updater.run("").await??;
 
     Ok(())
 }

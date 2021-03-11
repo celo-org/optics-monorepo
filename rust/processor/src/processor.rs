@@ -4,25 +4,113 @@ use color_eyre::{
     Result,
 };
 use futures_util::future::select_all;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::{oneshot::channel, RwLock},
+    task::JoinHandle,
     time::{interval, Interval},
 };
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    decl_agent, reset_loop_if,
+    cancel_task, decl_agent,
+    home::Homes,
+    replica::Replicas,
+    reset_loop_if,
 };
-use optics_core::accumulator::{prover_sync::ProverSync, Prover};
+use optics_core::{
+    accumulator::Prover,
+    traits::{Home, Replica},
+};
 
-use crate::settings::Settings;
+use crate::{prover_sync::ProverSync, settings::Settings};
+
+pub(crate) struct ReplicaProcessor {
+    interval_seconds: u64,
+    replica: Arc<Replicas>,
+    home: Arc<Homes>,
+    prover: Arc<RwLock<Prover>>,
+}
+
+impl ReplicaProcessor {
+    pub(crate) fn new(
+        interval_seconds: u64,
+        replica: Arc<Replicas>,
+        home: Arc<Homes>,
+        prover: Arc<RwLock<Prover>>,
+    ) -> Self {
+        Self {
+            interval_seconds,
+            replica,
+            home,
+            prover,
+        }
+    }
+
+    fn interval(&self) -> Interval {
+        interval(std::time::Duration::from_secs(self.interval_seconds))
+    }
+
+    pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
+        tokio::spawn(async move {
+            let domain = self.replica.destination_domain();
+
+            let mut interval = self.interval();
+
+            // The basic structure of this loop is as follows:
+            // 1. Get the last processed index
+            // 2. Check if the Home knows of a message above that index
+            //      - If not, wait and poll again
+            // 3. Check if we have a proof for that message
+            //      - If not, wait and poll again
+            // 4. Submit the proof to the replica
+            loop {
+                let last_processed = self.replica.last_processed().await?;
+                let sequence = last_processed.as_u32() + 1;
+
+                let message = self.home.message_by_sequence(domain, sequence).await?;
+                reset_loop_if!(
+                    message.is_none(),
+                    interval,
+                    "Remote does not contain message at {}:{}",
+                    domain,
+                    sequence
+                );
+
+                let message = message.unwrap();
+
+                // Lock is dropped immediately
+                let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
+                reset_loop_if!(
+                    proof_res.is_err(),
+                    interval,
+                    "Prover does not contain leaf at index {}",
+                    message.leaf_index
+                );
+
+                let proof = proof_res.unwrap();
+                if proof.leaf != message.message.to_leaf() {
+                    let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
+                    tracing::error!("{}", err);
+                    color_eyre::eyre::bail!(err);
+                }
+
+                self.replica
+                    .prove_and_process(message.as_ref(), &proof)
+                    .await?;
+
+                interval.tick().await;
+            }
+        })
+    }
+}
 
 decl_agent!(
     /// A processor agent
     Processor {
         interval_seconds: u64,
         prover: Arc<RwLock<Prover>>,
+        replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     }
 );
 
@@ -33,12 +121,8 @@ impl Processor {
             interval_seconds,
             prover: Default::default(),
             core,
+            replica_tasks: Default::default(),
         }
-    }
-
-    #[doc(hidden)]
-    fn interval(&self) -> Interval {
-        interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 }
 
@@ -57,93 +141,45 @@ impl OpticsAgent for Processor {
         ))
     }
 
-    #[tracing::instrument(err)]
-    async fn run(&self, replica: &str) -> Result<()> {
-        let replica = self
-            .replica_by_name(replica)
-            .ok_or_else(|| eyre!("No replica named {}", replica))?;
-        let domain = replica.destination_domain();
+    fn run(&self, name: &str) -> JoinHandle<Result<()>> {
+        let home = self.home();
+        let prover = self.prover.clone();
+        let interval_seconds = self.interval_seconds;
 
-        let mut interval = self.interval();
+        let replica_opt = self.replica_by_name(name);
+        let name = name.to_owned();
 
-        // The basic structure of this loop is as follows:
-        // 1. Get the last processed index
-        // 2. Check if the Home knows of a message above that index
-        //      - If not, wait and poll again
-        // 3. Check if we have a proof for that message
-        //      - If not, wait and poll again
-        // 4. Submit the proof to the replica
-        loop {
-            let last_processed = replica.last_processed().await?;
-            let sequence = last_processed.as_u32() + 1;
-
-            let message = self.home().message_by_sequence(domain, sequence).await?;
-            reset_loop_if!(
-                message.is_none(),
-                interval,
-                "Remote does not contain message at {}:{}",
-                domain,
-                sequence
-            );
-
-            let message = message.unwrap();
-
-            // Lock is dropped immediately
-            let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
-            reset_loop_if!(
-                proof_res.is_err(),
-                interval,
-                "Prover does not contain leaf at index {}",
-                message.leaf_index
-            );
-
-            let proof = proof_res.unwrap();
-            if proof.leaf != message.message.to_leaf() {
-                let err = format!("Leaf in prover does not match retrieved message. Index: {}. Retrieved: {}. Local: {}.", message.leaf_index, message.message.to_leaf(), proof.leaf);
-                tracing::error!("{}", err);
-                color_eyre::eyre::bail!(err);
-            }
-
-            replica.prove_and_process(message.as_ref(), &proof).await?;
-
-            interval.tick().await;
-        }
+        tokio::spawn(async move {
+            let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
+            ReplicaProcessor::new(interval_seconds, replica, home, prover)
+                .spawn()
+                .await?
+        })
     }
 
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
-        // let replicas: Vec<_> = replicas
-        //     .iter()
-        //     .filter_map(|name| self.replica_by_name(name))
-        //     .collect();
+        let (_tx, rx) = channel();
 
-        let (tx, rx) = channel();
-
+        let interval_seconds = self.interval_seconds;
         let sync = ProverSync::new(self.prover.clone(), self.home(), rx);
-        let sync_task = tokio::spawn(sync.poll_updates(self.interval_seconds));
+        let sync_task = tokio::spawn(async move {
+            sync.poll_updates(interval_seconds)
+                .await
+                .wrap_err("ProverSync task has shut down")
+        });
 
-        let mut futs: Vec<_> = replicas
-            .iter()
-            .map(|replica| self.run_report_error(replica))
-            .collect();
+        // for each specified replica, spawn a joinable task
+        let mut handles: Vec<_> = replicas.iter().map(|name| self.run(name)).collect();
 
-        loop {
-            // This gets the first future to resolve.
-            let (res, _, remaining) = select_all(futs).await;
-            if res.is_err() {
-                tracing::error!("Replica shut down: {:#}", res.unwrap_err());
-            }
-            futs = remaining;
+        handles.push(sync_task);
 
-            // TODO: this is only checked when one of the replicas fails. We should fix that.
-            if tx.is_closed() {
-                return sync_task.await?.wrap_err("ProverSync task has shut down");
-            }
-            if futs.is_empty() {
-                // We don't care if the remote is dropped, as we are shutting down anyway
-                let _ = tx.send(());
-                return Err(eyre!("All replicas have shut down"));
-            }
+        // The first time a task fails we cancel all other tasks
+        let (res, _, remaining) = select_all(handles).await;
+        for task in remaining {
+            cancel_task!(task);
         }
+
+        res?
     }
 }

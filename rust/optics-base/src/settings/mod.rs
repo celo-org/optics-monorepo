@@ -3,7 +3,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
-use optics_core::traits::{Home, Replica};
+use crate::{home::Homes, replica::Replicas};
 
 /// Ethereum configuration
 pub mod ethereum;
@@ -40,22 +40,22 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_into_home(&self) -> Result<Homes, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => {
+            ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 conf.try_into_home(&self.name, self.domain, self.address.parse()?)
-                    .await
-            }
+                    .await?,
+            )),
         }
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self) -> Result<Box<dyn Replica>, Report> {
+    pub async fn try_into_replica(&self) -> Result<Replicas, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => {
+            ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
                 conf.try_into_replica(&self.name, self.domain, self.address.parse()?)
-                    .await
-            }
+                    .await?,
+            )),
         }
     }
 }
@@ -96,7 +96,7 @@ pub struct Settings {
 
 impl Settings {
     /// Try to get all replicas from this settings object
-    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Box<dyn Replica>>>, Report> {
+    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
         for v in self.replicas.iter() {
             result.insert(v.name.clone(), Arc::new(v.try_into_replica().await?));
@@ -105,7 +105,7 @@ impl Settings {
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self) -> Result<Box<dyn Home>, Report> {
+    pub async fn try_home(&self) -> Result<Homes, Report> {
         self.home.try_into_home().await
     }
 

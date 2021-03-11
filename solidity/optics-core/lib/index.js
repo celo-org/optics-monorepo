@@ -1,12 +1,12 @@
 require('@nomiclabs/hardhat-waffle');
 const { assert } = require('chai');
-const ethers = require('ethers');
 const { extendEnvironment } = require('hardhat/config');
 
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/ProcessingReplica.abi.json');
 
 extendEnvironment((hre) => {
+  let { ethers } = hre;
   const State = {
     ACTIVE: 0,
     FAILED: 1,
@@ -112,11 +112,6 @@ extendEnvironment((hre) => {
     }
   }
 
-  const getHomeFactory = async (...args) =>
-    ethers.getContractFactory('Home', ...args);
-  const getReplicaFactory = async (...args) =>
-    ethers.getContractFactory('ProcessingReplica', ...args);
-
   const formatMessage = (
     originDomain,
     senderAddr,
@@ -171,15 +166,18 @@ extendEnvironment((hre) => {
     messageToLeaf,
     ethersAddressToBytes32,
     destinationAndSequence,
-    getHomeFactory,
-    getReplicaFactory,
     deployHome: async (signer, ...args) => {
-      let contract = await (await getHomeFactory(signer)).deploy(...args);
+      const factory = await ethers.getContractFactory('Home', signer);
+      let contract = await factory.deploy(...args);
       await contract.deployed();
       return new Home(contract.address, signer);
     },
     deployReplica: async (signer, ...args) => {
-      let contract = await (await getReplicaFactory(signer)).deploy(...args);
+      const factory = await ethers.getContractFactory(
+        'ProcessingReplica',
+        signer,
+      );
+      let contract = await factory.deploy(...args);
       await contract.deployed();
       return new Replica(contract.address, signer);
     },

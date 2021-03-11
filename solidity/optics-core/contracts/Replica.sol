@@ -7,12 +7,21 @@ import "./Merkle.sol";
 import "./Queue.sol";
 import {OpticsHandlerI} from "./UsingOptics.sol";
 
+/**
+ * @title Replica
+ * @author Celo Labs Inc.
+ * @notice Contract responsible tracking root updates on home.
+ **/
 abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
 
+    /// @notice Domain of replica's native chain
     uint32 public immutable ownDomain;
+
+    /// @notice Number of seconds to wait before enqueued root becomes confirmable
     uint256 public optimisticSeconds;
 
+    /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
     constructor(
@@ -27,16 +36,24 @@ abstract contract Replica is Common, QueueManager {
         current = _current;
     }
 
+    /// @notice Sets contract state to FAILED
     function fail() internal override {
         _setFailed();
     }
 
-    /// Hook for tasks
+    /// @notice Hook called before confirming root
     function _beforeConfirm() internal virtual;
 
-    /// Hook for tasks
+    /// @notice Hook called before enqueuing update's root
     function _beforeUpdate() internal virtual;
 
+    /**
+     * @notice Called by external agent. Returns next pending root to be
+     * confirmed and its confirmation time. If queue is empty, returns null
+     * values.
+     * @return _pending Pending (unconfirmed) root
+     * @return _confirmAt Pending root's confirmation time
+     **/
     function nextPending()
         external
         view
@@ -48,6 +65,15 @@ abstract contract Replica is Common, QueueManager {
         }
     }
 
+    /**
+     * @notice Called by external agent. Enqueues signed update's new root,
+     * marks root's allowable confirmation time, and emits an `Update` event.
+     * @dev Reverts if update doesn't build off queue's last root or replica's
+     * current root if queue is empty. Also reverts if signature is invalid.
+     * @param _oldRoot Old merkle root
+     * @param _newRoot New merkle root
+     * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
+     **/
     function update(
         bytes32 _oldRoot,
         bytes32 _newRoot,
@@ -68,11 +94,21 @@ abstract contract Replica is Common, QueueManager {
         emit Update(originDomain, _oldRoot, _newRoot, _signature);
     }
 
+    /**
+     * @notice Called by external agent. Returns true if there is a confirmable
+     * root in the queue and false if otherwise.
+     **/
     function canConfirm() external view returns (bool) {
         return
             queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()];
     }
 
+    /**
+     * @notice Called by external agent. Confirms as many confirmable roots in
+     * queue as possible, updating replica's current root to be the last
+     * confirmed root.
+     * @dev Reverts if queue started as empty (i.e. no roots to confirm)
+     **/
     function confirm() external notFailed {
         require(queue.length() != 0, "no pending");
 
@@ -96,21 +132,32 @@ abstract contract Replica is Common, QueueManager {
     }
 }
 
+/**
+ * @title ProcessingReplica
+ * @author Celo Labs Inc.
+ * @notice Contract responsible for dispatching messages on home to end
+ * recipients. Inherits home root tracking capabilities from `Replica`.
+ **/
 contract ProcessingReplica is Replica {
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    // minimum gas for message processing
+    /// @notice Minimum gas for message processing
     uint256 public constant PROCESS_GAS = 500000;
-    // reserved gas (to ensure tx completes in case message processing runs out)
+    /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
     uint256 public constant RESERVE_GAS = 10000;
 
     bytes32 public previous; // to smooth over witness invalidation
+
+    /// @notice Index of last processed message's leaf in home's merkle tree
     uint256 public lastProcessed;
-    mapping(bytes32 => MessageStatus) public messages;
+
+    /// @notice Status of message
     enum MessageStatus {None, Pending, Processed}
+    /// @notice Mapping of message leaves to MessageStatus
+    mapping(bytes32 => MessageStatus) public messages;
 
     constructor(
         uint32 _originDomain,
@@ -123,6 +170,7 @@ contract ProcessingReplica is Replica {
         lastProcessed = _lastProcessed;
     }
 
+    /// @notice Sets `previous` to `current` root before updating `current`
     function _beforeConfirm() internal override {
         previous = current;
     }
@@ -130,6 +178,21 @@ contract ProcessingReplica is Replica {
     // solhint-disable-next-line no-empty-blocks
     function _beforeUpdate() internal override {}
 
+    /**
+     * @notice Given formatted message, attempts to dispatch message payload to
+     * end recipient.
+     * @dev Requires recipient to have implemented `handle` method (refer to
+     * UsingOptics.sol). Reverts if formatted message's destination domain
+     * doesn't match replica's own domain, if message is out of order (skips
+     * one or more sequence numbers), if message has not been proven (doesn't
+     * have MessageStatus.Pending), or if not enough gas is provided for
+     * dispatch transaction.
+     * @param _message Formatted message (refer to Common.sol Message library)
+     * @return _success True if dispatch transaction succeeded (false if
+     * otherwise)
+     * @return _result Response returned by recipient's `handle` method on
+     * success. Error if dispatch transaction failed.
+     **/
     function process(bytes memory _message)
         public
         returns (bool _success, bytes memory _result)
@@ -180,6 +243,16 @@ contract ProcessingReplica is Replica {
         lastProcessed = _sequence;
     }
 
+    /**
+     * @notice Attempts to prove the validity of message given its leaf, the
+     * merkle proof of inclusion for the leaf, and the index of the leaf.
+     * @dev Reverts if message's MessageStatus != None (i.e. if message was
+     * already proven or processed)
+     * @param leaf Leaf of message to prove
+     * @param proof Merkle proof of inclusion for leaf
+     * @param index Index of leaf in home's merkle tree
+     * @return Returns true if proof was valid and `prove` call succeeded
+     **/
     function prove(
         bytes32 leaf,
         bytes32[32] calldata proof,
@@ -198,6 +271,15 @@ contract ProcessingReplica is Replica {
         return false;
     }
 
+    /**
+     * @notice First attempts to prove the validity of provided formatted
+     * `message`. If the message is successfully proven, then tries to process
+     * message.
+     * @dev Reverts if `prove` call returns false
+     * @param message Formatted message (refer to Common.sol Message library)
+     * @param proof Merkle proof of inclusion for message's leaf
+     * @param index Index of leaf in home's merkle tree
+     **/
     function proveAndProcess(
         bytes memory message,
         bytes32[32] calldata proof,

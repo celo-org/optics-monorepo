@@ -31,7 +31,7 @@ task('prove', 'Prove a message inclusion to a replica')
       throw new Error('newRoot must be a 0x prefixed hex string');
     }
 
-    let signer = await ethers.getSigner();
+    let [signer] = await ethers.getSigners();
     let replica = new optics.Replica(address, signer);
 
     // preflight
@@ -68,7 +68,7 @@ task('process', 'Process a message that has been proven to a replica')
       throw new Error('newRoot must be a 0x prefixed hex string');
     }
 
-    let signer = await ethers.getSigner();
+    let [signer] = await ethers.getSigners();
     let replica = new optics.Replica(address, signer);
 
     try {
@@ -111,7 +111,7 @@ task('prove-and-process', 'Prove and process a message')
       throw new Error('message must be a 0x prefixed hex string');
     }
 
-    let signer = await ethers.getSigner();
+    let [signer] = await ethers.getSigners();
     let replica = new optics.Replica(address, signer);
 
     try {

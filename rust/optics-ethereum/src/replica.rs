@@ -11,22 +11,22 @@ use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 #[allow(missing_docs)]
 abigen!(
-    ReplicaContractInternal,
+    EthereumReplicaInternal,
     "../abis/ProcessingReplica.abi.json"
 );
 
 /// A struct that provides access to an Ethereum replica contract
 #[derive(Debug)]
-pub struct ReplicaContract<M>
+pub struct EthereumReplica<M>
 where
     M: ethers::providers::Middleware,
 {
-    contract: ReplicaContractInternal<M>,
+    contract: EthereumReplicaInternal<M>,
     domain: u32,
     name: String,
 }
 
-impl<M> ReplicaContract<M>
+impl<M> EthereumReplica<M>
 where
     M: ethers::providers::Middleware,
 {
@@ -34,7 +34,7 @@ where
     /// chain
     pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
-            contract: ReplicaContractInternal::new(address, provider),
+            contract: EthereumReplicaInternal::new(address, provider),
             domain,
             name: name.to_owned(),
         }
@@ -42,7 +42,7 @@ where
 }
 
 #[async_trait]
-impl<M> Common for ReplicaContract<M>
+impl<M> Common for EthereumReplica<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
@@ -175,7 +175,7 @@ where
 }
 
 #[async_trait]
-impl<M> Replica for ReplicaContract<M>
+impl<M> Replica for EthereumReplica<M>
 where
     M: ethers::providers::Middleware + 'static,
 {

@@ -16,4 +16,4 @@ mod replica;
 mod utils;
 
 #[cfg(not(doctest))]
-pub use crate::{home::HomeContract, replica::ReplicaContract};
+pub use crate::{home::EthereumHome, replica::EthereumReplica};

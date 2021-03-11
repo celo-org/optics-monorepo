@@ -21,3 +21,7 @@ tracing-subscriber = "0.2.15"
 
 optics-core = { path = "../optics-core" }
 optics-base = { path = "../optics-base" }
+
+[dev-dependencies]
+mockall = "0.9.1"
+optics-test = { path = "../optics-test" }

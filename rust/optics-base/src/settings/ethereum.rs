@@ -116,7 +116,7 @@ impl EthereumConf {
         let b: Box<dyn Home> = match &self.connection {
             EthereumConnection::Http { url } => {
                 construct_http_box_contract!(
-                    HomeContract,
+                    EthereumHome,
                     name,
                     domain,
                     address,
@@ -125,7 +125,7 @@ impl EthereumConf {
                 )
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(HomeContract, name, domain, address, url, self.signer())
+                construct_ws_box_contract!(EthereumHome, name, domain, address, url, self.signer())
             }
         };
         Ok(b)
@@ -142,7 +142,7 @@ impl EthereumConf {
         let b: Box<dyn Replica> = match &self.connection {
             EthereumConnection::Http { url } => {
                 construct_http_box_contract!(
-                    ReplicaContract,
+                    EthereumReplica,
                     name,
                     domain,
                     address,
@@ -152,7 +152,7 @@ impl EthereumConf {
             }
             EthereumConnection::Ws { url } => {
                 construct_ws_box_contract!(
-                    ReplicaContract,
+                    EthereumReplica,
                     name,
                     domain,
                     address,
