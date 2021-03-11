@@ -6,16 +6,16 @@ import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenInterface} from "../interfaces/BridgeTokenInterface.sol";
 
+import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 import {
-    TypeCasts,
-    OpticsHandlerI
-} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
+    MessageRecipientInterface
+} from "@celo-org/optics-sol/interfaces/MessageReceipientInterface.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-contract BridgeRouter is OpticsHandlerI, TokenRegistry {
+contract BridgeRouter is MessageRecipientInterface, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;

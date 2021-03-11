@@ -6,14 +6,6 @@ import "./Home.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-interface OpticsHandlerI {
-    function handle(
-        uint32 origin,
-        bytes32 sender,
-        bytes memory message
-    ) external returns (bytes memory);
-}
-
 abstract contract UsingOptics is Ownable {
     mapping(address => uint32) public replicas;
     Home public home;
