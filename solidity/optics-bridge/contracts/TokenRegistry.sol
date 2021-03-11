@@ -2,7 +2,8 @@
 pragma solidity >=0.6.11;
 
 import {BridgeMessage} from "./BridgeMessage.sol";
-import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
+import {BridgeToken} from "./BridgeToken.sol";
+import {BridgeTokenInterface} from "../interfaces/BridgeTokenInterface.sol";
 
 import {
     UsingOptics,
@@ -86,8 +87,12 @@ contract TokenRegistry is UsingOptics {
         _;
     }
 
-    function downcast(IERC20 _token) internal pure returns (BridgeTokenI) {
-        return BridgeTokenI(address(_token));
+    function downcast(IERC20 _token)
+        internal
+        pure
+        returns (BridgeTokenInterface)
+    {
+        return BridgeTokenInterface(address(_token));
     }
 
     function tokenIdFor(address _token)
@@ -135,7 +140,7 @@ contract TokenRegistry is UsingOptics {
         _token = createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
-        BridgeTokenI(_token).setDetails(_idHash, _idHash, 18);
+        BridgeTokenInterface(_token).setDetails(_idHash, _idHash, 18);
 
         reprToCanonical[_token].domain = _tokenId.domain();
         reprToCanonical[_token].id = _tokenId.id();

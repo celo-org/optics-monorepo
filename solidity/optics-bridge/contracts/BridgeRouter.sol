@@ -3,7 +3,8 @@ pragma solidity >=0.6.11;
 
 import {BridgeMessage} from "./BridgeMessage.sol";
 import {TokenRegistry} from "./TokenRegistry.sol";
-import {BridgeTokenI, BridgeToken} from "./BridgeToken.sol";
+import {BridgeToken} from "./BridgeToken.sol";
+import {BridgeTokenInterface} from "../interfaces/BridgeTokenInterface.sol";
 
 import {
     TypeCasts,
@@ -139,7 +140,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
 
     function updateDetails(address _token, uint32 _destination) external {
         bytes32 _remote = mustHaveRemote(_destination);
-        BridgeTokenI _tok = BridgeTokenI(_token);
+        BridgeTokenInterface _tok = BridgeTokenInterface(_token);
 
         TokenId memory _tokId = tokenIdFor(_token);
         bytes29 _tokenId =
