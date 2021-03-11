@@ -4,7 +4,7 @@ pragma solidity >=0.6.11;
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import "./Sortition.sol";
+import "../interfaces/SortitionInterface.sol";
 
 /**
  * @title Home
@@ -20,7 +20,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     mapping(uint32 => uint32) public sequences;
 
     // TODO: removing sortition?
-    ISortition internal sortition;
+    SortitionInterface internal sortition;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -47,8 +47,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         QueueManager()
         Common(_originDomain, address(0), bytes32(0))
     {
-        sortition = ISortition(_sortition);
-        updater = ISortition(_sortition).current();
+        sortition = SortitionInterface(_sortition);
+        updater = SortitionInterface(_sortition).current();
     }
 
     /// @notice Sets contract state to FAILED and slashes updater
