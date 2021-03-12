@@ -149,7 +149,7 @@ library GovernanceMessage {
         return tryAsTransferGovernor(_view).assertValid();
     }
 
-    function formatTransferGovernor(uint32 _domain, address _governor)
+    function formatTransferGovernor(uint32 _domain, bytes32 _governor)
         internal
         view
         returns (bytes memory _msg)
