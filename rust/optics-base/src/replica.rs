@@ -122,6 +122,18 @@ impl Replica for Replicas {
             Replicas::Other(replica) => replica.process(message).await,
         }
     }
+
+    async fn prove_and_process(
+        &self,
+        message: &StampedMessage,
+        proof: &Proof,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        match self {
+            Replicas::Ethereum(replica) => replica.prove_and_process(message, proof).await,
+            Replicas::Mock(mock_replica) => mock_replica.prove_and_process(message, proof).await,
+            Replicas::Other(replica) => replica.prove_and_process(message, proof).await,
+        }
+    }
 }
 
 #[async_trait]

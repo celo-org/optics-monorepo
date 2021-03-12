@@ -57,7 +57,7 @@ impl ReplicaProcessor {
         let last_processed = self.replica.last_processed().await?;
         let sequence = last_processed.as_u32() + 1;
 
-        // Check if the Home knows of a message above that index. If not, 
+        // Check if the Home knows of a message above that index. If not,
         // return early and poll again.
         let message = self.home.message_by_sequence(domain, sequence).await?;
         return_res_unit_if!(
@@ -69,7 +69,7 @@ impl ReplicaProcessor {
 
         let message = message.unwrap();
 
-        // Check if we have a proof for that message. If no proof, return early 
+        // Check if we have a proof for that message. If no proof, return early
         // and poll again
         let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
         return_res_unit_if!(
@@ -188,13 +188,17 @@ impl OpticsAgent for Processor {
 
 #[cfg(test)]
 mod test {
-    use std::{sync::Arc, convert::TryFrom};
+    use std::sync::Arc;
     use tokio::sync::RwLock;
 
-    use ethers::{core::types::{H256, U256}};
-    use ethers::signers::LocalWallet;
+    use ethers::core::types::{H256, U256};
 
-    use optics_core::{OpticsError, Update, accumulator::{Prover, ProverError}, traits::{DoubleUpdate, RawCommittedMessage, CommittedMessage}};
+    use optics_core::{
+        accumulator::TREE_DEPTH,
+        accumulator::{prover::Proof, ProverError},
+        traits::{CommittedMessage, TxOutcome},
+        StampedMessage,
+    };
     use optics_test::mocks::{MockHomeContract, MockProver, MockReplicaContract};
 
     use super::*;
@@ -215,11 +219,11 @@ mod test {
             .times(1)
             .return_once(move || Ok(U256::from(sequence - 1)));
 
-        // Expect home.raw_message_by_sequence to be called once and return
+        // Expect home.message_by_sequence to be called once and return
         // mock value of Ok(None), which causes home.message_by_sequence to
         // also return Ok(None)
         mock_home
-            .expect__raw_message_by_sequence()
+            .expect__message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
             .return_once(move |_, _| Ok(None));
@@ -258,37 +262,220 @@ mod test {
     async fn returns_early_if_error_creating_proof() {
         let domain = 1;
         let sequence = 1;
-        let raw_message = RawCommittedMessage::default();
-        // let message = CommittedMessage::try_from(raw_message);
+        let message = CommittedMessage {
+            leaf_index: sequence,
+            message: StampedMessage {
+                origin: 0,
+                sender: H256::zero(),
+                destination: domain,
+                recipient: H256::from([1; 32]),
+                sequence,
+                body: String::from("message").into_bytes(),
+            },
+        };
 
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
         let mut mock_prover = MockProver::new();
-        
-        let raw_message_clone = raw_message.clone();
+
+        // Expect replica.last_processed to be called once and return mock
+        // value `sequence`
+        mock_replica
+            .expect__last_processed()
+            .times(1)
+            .return_once(move || Ok(U256::from(sequence - 1)));
+
+        // Expect home.message_by_sequence to be called once and return
+        // mock value of Ok(Some(`message`))
+        mock_home
+            .expect__message_by_sequence()
+            .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
+            .times(1)
+            .return_once(move |_, _| Ok(Some(message)));
+
+        // Expect prover.prove() to be called once and have it return mock
+        // value of error to cause early return
+        mock_prover
+            .expect__prove()
+            .times(1)
+            .return_once(move |_| Err(ProverError::IndexTooHigh(10)));
+
+        // Expect replica.prove_and_process() to NOT be called since error
+        // creating proof (called zero times)
+        mock_replica
+            .expect__prove_and_process()
+            .times(0)
+            .return_once(move |_, _| {
+                Ok(TxOutcome {
+                    txid: H256::zero(),
+                    executed: false,
+                })
+            });
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+
         {
-            // Expect replica.last_processed to be called once and return mock
-            // value `sequence`
-            mock_replica
-                .expect__last_processed()
-                .times(1)
-                .return_once(move || Ok(U256::from(sequence - 1)));
+            let replica_processor =
+                ReplicaProcessor::new(3, replica.clone(), home.clone(), prover.clone());
 
-            // Expect home.raw_message_by_sequence to be called once and return
-            // mock value of Ok(Some(`raw_message`))
-            mock_home
-                .expect__raw_message_by_sequence()
-                .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
-                .times(1)
-                .return_once(move |_, _| Ok(Some(raw_message_clone)));
-
-            // Expect prover.prove() to be called once and have it return mock
-            // value of error to cause early return
-            mock_prover
-                .expect__prove()
-                .times(1)
-                .return_once(move |_| Err(ProverError::IndexTooHigh(10)));
+            replica_processor
+                .prove_and_process_message(domain)
+                .await
+                .expect("Should have returned Ok(())");
         }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        mock_replica.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn bails_when_created_proof_does_not_match_tree() {
+        let domain = 1;
+        let sequence = 1;
+        let message = CommittedMessage {
+            leaf_index: sequence,
+            message: StampedMessage {
+                origin: 0,
+                sender: H256::zero(),
+                destination: domain,
+                recipient: H256::from([1; 32]),
+                sequence,
+                body: String::from("message").into_bytes(),
+            },
+        };
+
+        // Default proof does NOT match above message
+        let proof = Proof::default();
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_replica = MockReplicaContract::new();
+        let mut mock_prover = MockProver::new();
+
+        // Expect replica.last_processed to be called once and return mock
+        // value `sequence`
+        mock_replica
+            .expect__last_processed()
+            .times(1)
+            .return_once(move || Ok(U256::from(sequence - 1)));
+
+        // Expect home.message_by_sequence to be called once and return
+        // mock value of Ok(Some(`message`))
+        mock_home
+            .expect__message_by_sequence()
+            .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
+            .times(1)
+            .return_once(move |_, _| Ok(Some(message)));
+
+        // Expect prover.prove() to be called once and have it return mock
+        // value of `proof`
+        mock_prover
+            .expect__prove()
+            .times(1)
+            .return_once(move |_| Ok(proof));
+
+        // Expect replica.prove_and_process() to NOT be called since error
+        // created proof doesn't match tree and causes bail
+        mock_replica
+            .expect__prove_and_process()
+            .times(0)
+            .return_once(move |_, _| {
+                Ok(TxOutcome {
+                    txid: H256::zero(),
+                    executed: false,
+                })
+            });
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+
+        {
+            let replica_processor =
+                ReplicaProcessor::new(3, replica.clone(), home.clone(), prover.clone());
+
+            replica_processor
+                .prove_and_process_message(domain)
+                .await
+                .expect_err("Should have returned error about proof not matching tree");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        mock_replica.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn proves_and_processes_valid_message() {
+        let domain = 1;
+        let sequence = 1;
+        let message = CommittedMessage {
+            leaf_index: sequence,
+            message: StampedMessage {
+                origin: 0,
+                sender: H256::zero(),
+                destination: domain,
+                recipient: H256::from([1; 32]),
+                sequence,
+                body: String::from("message").into_bytes(),
+            },
+        };
+
+        // proof.leaf == message.message.to_leaf()
+        let proof = Proof {
+            leaf: message.message.to_leaf(),
+            index: sequence as usize,
+            path: [H256::zero(); TREE_DEPTH],
+        };
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_replica = MockReplicaContract::new();
+        let mut mock_prover = MockProver::new();
+
+        // Expect replica.last_processed to be called once and return mock
+        // value `sequence`
+        mock_replica
+            .expect__last_processed()
+            .times(1)
+            .return_once(move || Ok(U256::from(sequence - 1)));
+
+        // Expect home.message_by_sequence to be called once and return
+        // mock value of Ok(Some(`message`))
+        mock_home
+            .expect__message_by_sequence()
+            .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
+            .times(1)
+            .return_once(move |_, _| Ok(Some(message)));
+
+        // Expect prover.prove() to be called once and have it return mock
+        // value of `proof`
+        mock_prover
+            .expect__prove()
+            .times(1)
+            .return_once(move |_| Ok(proof));
+
+        // Expect replica.prove_and_process() to be called once (reaches end of prove_and_process_message call)
+        mock_replica
+            .expect__prove_and_process()
+            .times(1)
+            .return_once(move |_, _| {
+                Ok(TxOutcome {
+                    txid: H256::zero(),
+                    executed: false,
+                })
+            });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());

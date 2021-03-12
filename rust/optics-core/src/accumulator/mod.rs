@@ -15,7 +15,8 @@ use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use sha3::{Digest, Keccak256};
 
-const TREE_DEPTH: usize = 32;
+/// Merkle tree depth
+pub const TREE_DEPTH: usize = 32;
 const EMPTY_SLICE: &[H256] = &[];
 
 pub(super) fn hash(preimage: impl AsRef<[u8]>) -> H256 {

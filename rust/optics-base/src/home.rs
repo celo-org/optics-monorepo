@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use ethers::core::types::H256;
 use optics_core::{
     traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
+        ChainCommunicationError, CommittedMessage, Common, DoubleUpdate, Home, RawCommittedMessage,
+        State, TxOutcome,
     },
     Message, SignedUpdate, Update,
 };
@@ -86,6 +87,18 @@ impl Home for Homes {
                     .await
             }
             Homes::Other(home) => home.raw_message_by_sequence(destination, sequence).await,
+        }
+    }
+
+    async fn message_by_sequence(
+        &self,
+        destination: u32,
+        sequence: u32,
+    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
+        match self {
+            Homes::Ethereum(home) => home.message_by_sequence(destination, sequence).await,
+            Homes::Mock(mock_home) => mock_home.message_by_sequence(destination, sequence).await,
+            Homes::Other(home) => home.message_by_sequence(destination, sequence).await,
         }
     }
 
