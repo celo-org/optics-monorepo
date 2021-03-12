@@ -22,8 +22,20 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
 
+    event TransferGovernor(
+        uint32 previousGovernorDomain,
+        uint32 newGovernorDomain,
+        address indexed previousGovernor,
+        address indexed newGovernor
+    );
+
     constructor() {
-        governor = msg.sender;
+        address _governor = msg.sender;
+
+        uint32 _localDomain = localDomain();
+        bool _isLocalDomain = true;
+
+        _transferGovernor(_localDomain, _governor, _isLocalDomain);
     }
 
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
@@ -64,12 +76,16 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_router != bytes32(0), "!router");
     }
 
+    function localDomain() internal view returns (uint32 _localDomain) {
+        _localDomain = home.originDomain();
+    }
+
     function isLocalDomain(uint32 _domain)
         internal
         view
         returns (bool _isLocalDomain)
     {
-        _isLocalDomain = _domain == home.originDomain();
+        _isLocalDomain = _domain == localDomain();
     }
 
     function handle(
@@ -115,7 +131,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         returns (bytes memory _ret)
     {
         uint32 _newDomain = _msg.domain();
-        bytes32 _newGovernor = _msg.governor();
+        address _newGovernor = TypeCasts.bytes32ToAddress(_msg.governor());
 
         bool _isLocalDomain = isLocalDomain(_newDomain);
 
@@ -165,7 +181,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         );
     }
 
-    function transferGovernor(uint32 _newDomain, bytes32 _newGovernor)
+    function transferGovernor(uint32 _newDomain, address _newGovernor)
         external
         onlyGovernor
     {
@@ -225,26 +241,21 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
     function _transferGovernor(
         uint32 _newDomain,
-        bytes32 _newGovernor,
+        address _newGovernor,
         bool _isLocalDomain
     ) internal {
+        // require that the governor domain has a valid router
         if (!_isLocalDomain) {
             mustHaveRouter(_newDomain);
         }
 
-        if (governorDomain != _newDomain) {
-            // Update the governorDomain if necessary
-            governorDomain = _newDomain;
-        }
+        // Governor is 0x0 unless the governor is local
+        address _governor = _isLocalDomain ? _newGovernor : address(0);
 
-        address _governor =
-            _isLocalDomain
-                ? TypeCasts.bytes32ToAddress(_newGovernor)
-                : address(0); // Governor is 0x0 if the governor is not local
-        if (governor != _governor) {
-            // Update the governor if necessary
-            governor = _governor;
-        }
+        emit TransferGovernor(governorDomain, _newDomain, governor, _governor);
+
+        governorDomain = _newDomain;
+        governor = _governor;
     }
 
     function _enrollRouter(uint32 _domain, bytes32 _router) internal {
