@@ -188,6 +188,7 @@ impl OpticsAgent for Processor {
 
 #[cfg(test)]
 mod test {
+    use mockall::*;
     use std::sync::Arc;
     use tokio::sync::RwLock;
 
@@ -211,12 +212,14 @@ mod test {
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
         let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
 
         // Expect replica.last_processed to be called once and return mock
         // value `sequence`
         mock_replica
             .expect__last_processed()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move || Ok(U256::from(sequence - 1)));
 
         // Expect home.message_by_sequence to be called once and return
@@ -226,6 +229,7 @@ mod test {
             .expect__message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_, _| Ok(None));
 
         // Expect prover.prove() to NOT be called (called zero times)
@@ -277,12 +281,14 @@ mod test {
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
         let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
 
         // Expect replica.last_processed to be called once and return mock
         // value `sequence`
         mock_replica
             .expect__last_processed()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move || Ok(U256::from(sequence - 1)));
 
         // Expect home.message_by_sequence to be called once and return
@@ -291,6 +297,7 @@ mod test {
             .expect__message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_, _| Ok(Some(message)));
 
         // Expect prover.prove() to be called once and have it return mock
@@ -298,6 +305,7 @@ mod test {
         mock_prover
             .expect__prove()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_| Err(ProverError::IndexTooHigh(10)));
 
         // Expect replica.prove_and_process() to NOT be called since error
@@ -358,12 +366,14 @@ mod test {
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
         let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
 
         // Expect replica.last_processed to be called once and return mock
         // value `sequence`
         mock_replica
             .expect__last_processed()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move || Ok(U256::from(sequence - 1)));
 
         // Expect home.message_by_sequence to be called once and return
@@ -372,6 +382,7 @@ mod test {
             .expect__message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_, _| Ok(Some(message)));
 
         // Expect prover.prove() to be called once and have it return mock
@@ -379,6 +390,7 @@ mod test {
         mock_prover
             .expect__prove()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_| Ok(proof));
 
         // Expect replica.prove_and_process() to NOT be called since error
@@ -443,12 +455,14 @@ mod test {
         let mut mock_home = MockHomeContract::new();
         let mut mock_replica = MockReplicaContract::new();
         let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
 
         // Expect replica.last_processed to be called once and return mock
         // value `sequence`
         mock_replica
             .expect__last_processed()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move || Ok(U256::from(sequence - 1)));
 
         // Expect home.message_by_sequence to be called once and return
@@ -457,6 +471,7 @@ mod test {
             .expect__message_by_sequence()
             .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_, _| Ok(Some(message)));
 
         // Expect prover.prove() to be called once and have it return mock
@@ -464,12 +479,14 @@ mod test {
         mock_prover
             .expect__prove()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_| Ok(proof));
 
         // Expect replica.prove_and_process() to be called once (reaches end of prove_and_process_message call)
         mock_replica
             .expect__prove_and_process()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_, _| {
                 Ok(TxOutcome {
                     txid: H256::zero(),

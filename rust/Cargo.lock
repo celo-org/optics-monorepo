@@ -1673,6 +1673,7 @@ dependencies = [
  "ethers",
  "futures-util",
  "log",
+ "mockall",
  "optics-base",
  "optics-core",
  "optics-test",
