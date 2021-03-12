@@ -28,6 +28,11 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         address indexed previousGovernor,
         address indexed newGovernor
     );
+    event ChangeRouter(
+        uint32 indexed domain,
+        bytes32 previousRouter,
+        bytes32 newRouter
+    );
 
     constructor() {
         address _governor = msg.sender;
@@ -258,22 +263,28 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         governor = _governor;
     }
 
-    function _enrollRouter(uint32 _domain, bytes32 _router) internal {
-        if (_router == bytes32(0)) {
-            return _removeRouter(_domain);
+    function _enrollRouter(uint32 _domain, bytes32 _newRouter) internal {
+        bytes32 _previousRouter = routers[_domain];
+
+        emit ChangeRouter(_domain, _previousRouter, _newRouter);
+
+        if (_newRouter == bytes32(0)) {
+            _removeDomain(_domain);
+            return;
         }
 
-        // if this domain being added (rather than modified) we must push it to domains[]
-        bool _isNewDomain = routers[_domain] == bytes32(0);
-
-        routers[_domain] = _router;
-
-        if (_isNewDomain) {
-            domains.push(_domain);
+        if (_previousRouter == bytes32(0)) {
+            _addDomain(_domain);
         }
+
+        routers[_domain] = _newRouter;
     }
 
-    function _removeRouter(uint32 _domain) internal {
+    function _addDomain(uint32 _domain) internal {
+        domains.push(_domain);
+    }
+
+    function _removeDomain(uint32 _domain) internal {
         delete routers[_domain];
 
         // find the index of the domain to remove & delete it from domains[]
