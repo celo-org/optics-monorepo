@@ -174,3 +174,95 @@ impl ProverSync {
         Ok(leaves)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::sync::Arc;
+    use tokio::sync::{
+        oneshot::{channel, error::TryRecvError, Receiver},
+        RwLock,
+    };
+
+    use ethers::signers::LocalWallet;
+    use ethers::{
+        core::types::{H256, U256},
+        prelude::signer,
+    };
+
+    use optics_core::{
+        accumulator::TREE_DEPTH,
+        accumulator::{incremental::IncrementalMerkle, prover::Proof, ProverError},
+        traits::{CommittedMessage, TxOutcome},
+        SignedUpdate, StampedMessage, Update,
+    };
+    use optics_test::mocks::{MockHomeContract, MockProver};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn it_does_nothing_if_no_new_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        // Two roots contained in prover tree
+        let previous_root = H256::from([0; 32]);
+        let local_root = H256::from([1; 32]);
+
+        let local_root_signed_update = Update {
+            origin_domain: 1,
+            previous_root,
+            new_root: local_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_prover = MockProver::new();
+
+        // Expect prover.root to be called once and return mock value
+        // `local_root`
+        mock_prover
+            .expect__root()
+            .times(1)
+            .return_once(move || local_root);
+
+        // Expect home.signed_update_by_new_root to be called once and return
+        // mock value `local_root` (no new update for prover_sync)
+        mock_home
+            .expect__signed_update_by_old_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .return_once(move |_| Ok(None));
+
+        // Expect home.signed_update_by_new_root to be called once and return
+        // some mock update value (only called on no new update path)
+        mock_home
+            .expect__signed_update_by_new_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .return_once(move |_| Ok(Some(local_root_signed_update)));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+        let (tx, rx) = channel();
+
+        {
+            let prover_sync = ProverSync::new(prover.clone(), home.clone(), rx);
+            drop(tx);
+
+            prover_sync
+                .poll_updates(1)
+                .await
+                .expect("Should have returned Ok(())");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+}
