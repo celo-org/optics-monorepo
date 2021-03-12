@@ -177,6 +177,7 @@ impl ProverSync {
 
 #[cfg(test)]
 mod test {
+    use mockall::*;
     use std::sync::Arc;
     use tokio::sync::{
         oneshot::{channel, error::TryRecvError, Receiver},
@@ -190,14 +191,25 @@ mod test {
     };
 
     use optics_core::{
-        accumulator::TREE_DEPTH,
-        accumulator::{incremental::IncrementalMerkle, prover::Proof, ProverError},
+        accumulator::{incremental::IncrementalMerkle, TREE_DEPTH},
+        accumulator::{prover::Proof, ProverError},
         traits::{CommittedMessage, TxOutcome},
         SignedUpdate, StampedMessage, Update,
     };
     use optics_test::mocks::{MockHomeContract, MockProver};
 
     use super::*;
+
+    fn generate_new_incremental_root(
+        mut incremental: IncrementalMerkle,
+        leaves: Vec<H256>,
+    ) -> H256 {
+        for leaf in leaves {
+            incremental.ingest(leaf);
+        }
+
+        incremental.root()
+    }
 
     #[tokio::test]
     async fn it_does_nothing_if_no_new_update() {
@@ -206,7 +218,7 @@ mod test {
                 .parse()
                 .unwrap();
 
-        // Two roots contained in prover tree
+        // Two mock roots contained in prover tree
         let previous_root = H256::from([0; 32]);
         let local_root = H256::from([1; 32]);
 
@@ -221,20 +233,24 @@ mod test {
 
         let mut mock_home = MockHomeContract::new();
         let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
 
         // Expect prover.root to be called once and return mock value
         // `local_root`
         mock_prover
             .expect__root()
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move || local_root);
 
-        // Expect home.signed_update_by_new_root to be called once and return
-        // mock value `local_root` (no new update for prover_sync)
+        // Expect home.signed_update_by_new_root to be called once with
+        // argument local_root and return and return mock value Ok(None) (no
+        // new update for prover_sync)
         mock_home
             .expect__signed_update_by_old_root()
             .withf(move |r: &H256| *r == local_root)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_| Ok(None));
 
         // Expect home.signed_update_by_new_root to be called once and return
@@ -243,7 +259,164 @@ mod test {
             .expect__signed_update_by_new_root()
             .withf(move |r: &H256| *r == local_root)
             .times(1)
+            .in_sequence(&mut test_sequence)
             .return_once(move |_| Ok(Some(local_root_signed_update)));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+        let (tx, rx) = channel();
+
+        {
+            let prover_sync = ProverSync::new(prover.clone(), home.clone(), rx);
+            drop(tx);
+
+            prover_sync
+                .poll_updates(1)
+                .await
+                .expect("Should have returned Ok(())");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn returns_error_if_local_root_invalid() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let local_root = H256::from([1; 32]);
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
+
+        // Expect prover.root to be called once and return mock value
+        // `local_root`
+        mock_prover
+            .expect__root()
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move || local_root);
+
+        // Expect home.signed_update_by_new_root to be called once with
+        // argument local_root and return and return mock value Ok(None) (no
+        // new update for prover_sync)
+        mock_home
+            .expect__signed_update_by_old_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(None));
+
+        // Expect home.signed_update_by_new_root to be called once with
+        // argument `local_root` and return mock value of Ok(None), meaning
+        // that local root doesn't exist on chain (invalid local root)
+        mock_home
+            .expect__signed_update_by_new_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(None));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+        let (tx, rx) = channel();
+
+        {
+            let prover_sync = ProverSync::new(prover.clone(), home.clone(), rx);
+            drop(tx);
+
+            prover_sync
+                .poll_updates(1)
+                .await
+                .expect_err("Should have returned InvalidLocalRoot error");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn updates_local_tree_and_root() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let incremental = IncrementalMerkle::default();
+
+        let local_root = incremental.root();
+        let first_new_leaf = H256::from([2; 32]);
+        let second_new_leaf = H256::from([3; 32]);
+        let expected_new_root =
+            generate_new_incremental_root(incremental, vec![first_new_leaf, second_new_leaf]);
+
+        // Signed update from local_root --> second_new_root
+        let signed_update = Update {
+            origin_domain: 1,
+            previous_root: local_root,
+            new_root: expected_new_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
+
+        // Expect prover.root to be called once and return mock value
+        // `local_root`
+        mock_prover
+            .expect__root()
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move || local_root);
+
+        // Expect home.signed_update_by_new_root to be called once with
+        // argument local_root and return and return mock value `signed_update`,
+        // which brings root from `local_root` to `expected_new_root`
+        mock_home
+            .expect__signed_update_by_old_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(Some(signed_update)));
+
+        // Have first home.leaf_by_tree_index call to return `first_new_leaf`
+        mock_home
+            .expect__leaf_by_tree_index()
+            .withf(move |i: &usize| *i == 0)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(Some(first_new_leaf)));
+
+        // Have second home.leaf_by_tree_index call to return
+        // `second_new_leaf`
+        mock_home
+            .expect__leaf_by_tree_index()
+            .withf(move |i: &usize| *i == 1)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(Some(second_new_leaf)));
+
+        // Expect second prover.root to be called again in update_prover_tree
+        // but have now it return the `expected_new_root` after ingesting in
+        // the incremental merkle and updating the actual prover tree
+        mock_prover
+            .expect__root()
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move || expected_new_root);
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
         let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));

@@ -23,5 +23,6 @@ optics-core = { path = "../optics-core" }
 optics-base = { path = "../optics-base" }
 
 [dev-dependencies]
+mockall = "0.9.1"            
 tokio-test = "0.4.0"
 optics-test = { path = "../optics-test" }
