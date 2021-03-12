@@ -188,13 +188,13 @@ impl OpticsAgent for Processor {
 
 #[cfg(test)]
 mod test {
-    use std::sync::Arc;
+    use std::{sync::Arc, convert::TryFrom};
     use tokio::sync::RwLock;
 
-    use ethers::core::types::{H256, U256};
+    use ethers::{core::types::{H256, U256}};
     use ethers::signers::LocalWallet;
 
-    use optics_core::{accumulator::Prover, traits::DoubleUpdate, Update};
+    use optics_core::{OpticsError, Update, accumulator::{Prover, ProverError}, traits::{DoubleUpdate, RawCommittedMessage, CommittedMessage}};
     use optics_test::mocks::{MockHomeContract, MockProver, MockReplicaContract};
 
     use super::*;
@@ -255,5 +255,62 @@ mod test {
     }
 
     #[tokio::test]
-    async fn returns_early_if_cannot_create_proof() {}
+    async fn returns_early_if_error_creating_proof() {
+        let domain = 1;
+        let sequence = 1;
+        let raw_message = RawCommittedMessage::default();
+        // let message = CommittedMessage::try_from(raw_message);
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_replica = MockReplicaContract::new();
+        let mut mock_prover = MockProver::new();
+        
+        let raw_message_clone = raw_message.clone();
+        {
+            // Expect replica.last_processed to be called once and return mock
+            // value `sequence`
+            mock_replica
+                .expect__last_processed()
+                .times(1)
+                .return_once(move || Ok(U256::from(sequence - 1)));
+
+            // Expect home.raw_message_by_sequence to be called once and return
+            // mock value of Ok(Some(`raw_message`))
+            mock_home
+                .expect__raw_message_by_sequence()
+                .withf(move |d: &u32, s: &u32| *d == domain && *s == sequence)
+                .times(1)
+                .return_once(move |_, _| Ok(Some(raw_message_clone)));
+
+            // Expect prover.prove() to be called once and have it return mock
+            // value of error to cause early return
+            mock_prover
+                .expect__prove()
+                .times(1)
+                .return_once(move |_| Err(ProverError::IndexTooHigh(10)));
+        }
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut replica: Arc<Replicas> = Arc::new(mock_replica.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+
+        {
+            let replica_processor =
+                ReplicaProcessor::new(3, replica.clone(), home.clone(), prover.clone());
+
+            replica_processor
+                .prove_and_process_message(domain)
+                .await
+                .expect("Should have returned Ok(())");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mock_replica = Arc::get_mut(&mut replica).unwrap();
+        mock_replica.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
 }
