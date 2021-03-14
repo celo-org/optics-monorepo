@@ -332,10 +332,19 @@ mod test {
             let prover_sync = ProverSync::new(prover.clone(), home.clone(), rx);
             drop(tx);
 
-            prover_sync
+            let err = prover_sync
                 .poll_updates(1)
                 .await
                 .expect_err("Should have returned InvalidLocalRoot error");
+
+            if let ProverSyncError::InvalidLocalRoot {
+                local_root: err_root,
+            } = err
+            {
+                assert_eq!(local_root, err_root);
+            } else {
+                panic!("ProverSyncError should be InvalidLocalRoot variant!")
+            }
         }
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
@@ -360,7 +369,8 @@ mod test {
         let expected_new_root =
             generate_new_incremental_root(incremental, vec![first_new_leaf, second_new_leaf]);
 
-        // Signed update from local_root --> second_new_root
+        // Signed update from local_root --> root with first and second new
+        // leaves
         let signed_update = Update {
             origin_domain: 1,
             previous_root: local_root,
@@ -383,8 +393,8 @@ mod test {
             .return_once(move || local_root);
 
         // Expect home.signed_update_by_new_root to be called once with
-        // argument local_root and return and return mock value `signed_update`,
-        // which brings root from `local_root` to `expected_new_root`
+        // argument local_root and return mock value `signed_update`,
+        // which signs transition from `local_root` to `expected_new_root`
         mock_home
             .expect__signed_update_by_old_root()
             .withf(move |r: &H256| *r == local_root)
@@ -392,7 +402,8 @@ mod test {
             .in_sequence(&mut test_sequence)
             .return_once(move |_| Ok(Some(signed_update)));
 
-        // Have first home.leaf_by_tree_index call to return `first_new_leaf`
+        // After prover_sync tries to update its tree, have first
+        // home.leaf_by_tree_index call to return `first_new_leaf`
         mock_home
             .expect__leaf_by_tree_index()
             .withf(move |i: &usize| *i == 0)
@@ -430,6 +441,103 @@ mod test {
                 .poll_updates(1)
                 .await
                 .expect("Should have returned Ok(())");
+        }
+
+        let mock_home = Arc::get_mut(&mut home).unwrap();
+        mock_home.checkpoint();
+
+        let mut mock_prover = Arc::get_mut(&mut prover).unwrap().write().await;
+        mock_prover.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn returns_error_for_mismatched_tree() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let incremental = IncrementalMerkle::default();
+        let local_root = incremental.root();
+        let new_leaf = H256::from([1; 32]);
+        let local_updated_root = generate_new_incremental_root(incremental, vec![new_leaf]);
+
+        // Mock root that prover_sync's incremental should match but doesn't
+        let non_matching_actual_root = H256::from([2; 32]);
+
+        // Signed update from local_root --> root with `new_leaf`
+        let signed_update = Update {
+            origin_domain: 1,
+            previous_root: local_root,
+            new_root: non_matching_actual_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let mut mock_home = MockHomeContract::new();
+        let mut mock_prover = MockProver::new();
+        let mut test_sequence = Sequence::new();
+
+        // Expect prover.root to be called once and return mock value
+        // `local_root`
+        mock_prover
+            .expect__root()
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move || local_root);
+
+        // Expect home.signed_update_by_new_root to be called once with
+        // argument local_root and return mock value `signed_update`
+        mock_home
+            .expect__signed_update_by_old_root()
+            .withf(move |r: &H256| *r == local_root)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(Some(signed_update)));
+
+        // After prover_sync tries to update its tree, have first
+        // home.leaf_by_tree_index call to return `new_leaf`
+        mock_home
+            .expect__leaf_by_tree_index()
+            .withf(move |i: &usize| *i == 0)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(Some(new_leaf)));
+
+        // Have second home.leaf_by_tree_index call to return Ok(None). Prover
+        // sync will then check and see that new root doesn't match
+        // incremental's root and return MismatchedRoots error
+        mock_home
+            .expect__leaf_by_tree_index()
+            .withf(move |i: &usize| *i == 1)
+            .times(1)
+            .in_sequence(&mut test_sequence)
+            .return_once(move |_| Ok(None));
+
+        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut prover: Arc<RwLock<Provers>> = Arc::new(RwLock::new(mock_prover.into()));
+        let (tx, rx) = channel();
+
+        {
+            let prover_sync = ProverSync::new(prover.clone(), home.clone(), rx);
+            drop(tx);
+
+            let err = prover_sync
+                .poll_updates(1)
+                .await
+                .expect_err("Should have returned MismatchedRoots error");
+
+            if let ProverSyncError::MismatchedRoots {
+                local_root,
+                new_root,
+            } = err
+            {
+                assert_eq!(local_updated_root, local_root);
+                assert_eq!(non_matching_actual_root, new_root);
+            } else {
+                panic!("ProverSyncError should be MismatchedRoots variant!")
+            }
         }
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
