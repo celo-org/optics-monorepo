@@ -122,10 +122,17 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory _ret)
     {
-        bytes32 _to = _msg.addr();
-        bytes memory _data = _msg.data();
+        bytes32 _to;
+        bytes memory _data;
 
-        _call(_to, _data);
+        // Loop through all calls in _msg and dispatch
+        while (_msg.len() != 0) {
+            _to = _msg.addr();
+            _data = _msg.data();
+
+            _call(_to, _data);
+            _msg = _msg.nextCall();
+        }
 
         return hex"";
     }
@@ -201,7 +208,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         }
 
         bytes memory transferGovernorMessage =
-            GovernanceMessage.formatTransferGovernor(_newDomain, TypeCasts.addressToBytes32(_newGovernor));
+            GovernanceMessage.formatTransferGovernor(
+                _newDomain,
+                TypeCasts.addressToBytes32(_newGovernor)
+            );
 
         _sendToAllRemoteRouters(transferGovernorMessage);
     }

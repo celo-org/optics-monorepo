@@ -7,7 +7,7 @@ library GovernanceMessage {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
-    uint256 private constant MIN_CALL_LEN = 33;
+    uint256 private constant CALL_PREFIX_LEN = 65;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -42,9 +42,18 @@ library GovernanceMessage {
     }
 
     // Types.Call
+    function dataLen(bytes29 _view) internal pure returns (uint256) {
+        return uint256(_view.index(33, 32));
+    }
+
+    // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
         _data = TypedMemView.clone(
-            _view.slice(33, _view.len() - 33, uint40(Types.Data))
+            _view.slice(
+                CALL_PREFIX_LEN,
+                _view.len() - CALL_PREFIX_LEN,
+                uint40(Types.Data)
+            )
         );
     }
 
@@ -69,6 +78,7 @@ library GovernanceMessage {
         struct Call {
             identifier, // message ID -- 1 byte
             addr,       // address to call -- 32 bytes
+            dataLen,    // call data length -- 32 bytes,
             data        // call data -- 0+ bytes (length unknown)
         }
     */
@@ -76,7 +86,7 @@ library GovernanceMessage {
     function isValidCall(bytes29 _view) internal pure returns (bool) {
         return
             identifier(_view) == uint8(Types.Call) &&
-            _view.len() >= MIN_CALL_LEN;
+            _view.len() >= CALL_PREFIX_LEN;
     }
 
     function isCall(bytes29 _view) internal pure returns (bool) {
@@ -100,8 +110,27 @@ library GovernanceMessage {
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
-            mustBeCall(abi.encodePacked(Types.Call, _to, _data).ref(0))
+            mustBeCall(
+                abi.encodePacked(Types.Call, _data.length, _to, _data).ref(0)
+            )
         );
+    }
+
+    function nextCall(bytes29 _view)
+        public
+        view
+        typeAssert(_view, GovernanceMessage.Types.Call)
+        returns (bytes29)
+    {
+        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
+        return
+            mustBeCall(
+                _view.slice(
+                    lastCallLen,
+                    _view.len() - lastCallLen,
+                    uint40(Types.Call)
+                )
+            );
     }
 
     /*
