@@ -6,5 +6,6 @@ decl_settings!(
         "OPT_UPDATER",
         updater: EthereumSigner,
         polling_interval: u64,
+        update_pause: u64,
     }
 );
