@@ -16,11 +16,19 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
 
+    /*
+    --- STATE ---
+    */
+
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
+
+    /*
+    --- EVENTS ---
+    */
 
     event TransferGovernor(
         uint32 previousGovernorDomain,
@@ -34,6 +42,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         bytes32 newRouter
     );
 
+    /*
+    --- CONSTRUCTOR ---
+    */
+
     constructor() {
         address _governor = msg.sender;
 
@@ -42,6 +54,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
         _transferGovernor(_localDomain, _governor, _isLocalDomain);
     }
+
+    /*
+    --- FUNCTION MODIFIERS ---
+    */
 
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
         _view.assertType(uint40(_t));
@@ -53,33 +69,14 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         _;
     }
 
-    /*
-    --- MESSAGE HANDLING ---
-    */
-
-    function isGovernorRouter(uint32 _domain, bytes32 _address)
-        internal
-        view
-        returns (bool _isGovernorRouter)
-    {
-        _isGovernorRouter =
-            _domain == governorDomain &&
-            _address == routers[_domain];
-    }
-
     modifier onlyGovernorRouter(uint32 _domain, bytes32 _address) {
         require(isGovernorRouter(_domain, _address), "!governorRouter");
         _;
     }
 
-    function mustHaveRouter(uint32 _domain)
-        internal
-        view
-        returns (bytes32 _router)
-    {
-        _router = routers[_domain];
-        require(_router != bytes32(0), "!router");
-    }
+    /*
+    --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
+    */
 
     function localDomain() internal view returns (uint32 _localDomain) {
         _localDomain = home.originDomain();
@@ -92,6 +89,34 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     {
         _isLocalDomain = _domain == localDomain();
     }
+
+    function isGovernorRouter(uint32 _domain, bytes32 _address)
+        internal
+        view
+        returns (bool _isGovernorRouter)
+    {
+        _isGovernorRouter =
+        _domain == governorDomain &&
+        _address == routers[_domain];
+    }
+
+    function mustHaveRouter(uint32 _domain)
+        internal
+        view
+        returns (bytes32 _router)
+    {
+        _router = routers[_domain];
+        require(_router != bytes32(0), "!router");
+    }
+
+    /*
+    --- MESSAGE HANDLING ---
+        for all non-Governor chains to handle messages
+        sent from the Governor chain via Optics
+        --
+        Governor chain should never receive messages,
+        because non-Governor chains are not able to send them
+    */
 
     function handle(
         uint32 _origin,
@@ -160,8 +185,11 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
     /*
     --- MESSAGE DISPATCHING ---
-        only called on the Governor chain
-        governor is 0x00 for all other chains
+        for the Governor chain to send messages
+        to other chains via Optics
+        --
+        functionality not accessible on non-Governor chains
+        (governor is set to 0x0 on non-Governor chains)
     */
 
     function callLocal(bytes32 _to, bytes memory _data)
@@ -227,9 +255,9 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     /*
-    --- INTERNAL FUNCTIONS ---
-        perform the actions locally
-        called when handling AND dispatching messages
+    --- ACTIONS IMPLEMENTATION ---
+        implementations of local state changes
+        performed when handling AND dispatching messages
     */
 
     function _call(bytes32 _to, bytes memory _data)
@@ -297,7 +325,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     }
 
     /*
-    --- SETUP ROUTER MAPPING ---
+    --- EXTERNAL HELPER FOR CONTRACT SETUP ---
         convenience function so deployer can setup the router mapping for the contract locally
         before transferring governorship to the remote governor
     */
