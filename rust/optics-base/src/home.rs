@@ -127,6 +127,14 @@ impl Home for Homes {
         }
     }
 
+    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        match self {
+            Homes::Ethereum(home) => home.queue_contains(root).await,
+            Homes::Mock(mock_home) => mock_home.queue_contains(root).await,
+            Homes::Other(home) => home.queue_contains(root).await,
+        }
+    }
+
     async fn improper_update(
         &self,
         update: &SignedUpdate,

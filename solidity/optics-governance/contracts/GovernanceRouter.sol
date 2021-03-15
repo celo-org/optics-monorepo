@@ -201,7 +201,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         }
 
         bytes memory transferGovernorMessage =
-            GovernanceMessage.formatTransferGovernor(_newDomain, TypeCasts.addressToBytes32(_newGovernor));
+            GovernanceMessage.formatTransferGovernor(
+                _newDomain,
+                TypeCasts.addressToBytes32(_newGovernor)
+            );
 
         _sendToAllRemoteRouters(transferGovernorMessage);
     }

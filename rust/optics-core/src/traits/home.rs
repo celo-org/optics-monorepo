@@ -117,6 +117,9 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// Queue a message.
     async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
 
+    /// Check if queue contains root.
+    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError>;
+
     /// Submit an improper update for slashing
     async fn improper_update(
         &self,

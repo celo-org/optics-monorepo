@@ -40,6 +40,8 @@ mock! {
 
         pub fn _enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {}
 
+        pub fn _queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {}
+
         pub fn _improper_update(
             &self,
             update: &SignedUpdate,
@@ -121,6 +123,10 @@ impl Home for MockHomeContract {
 
     async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         self._enqueue(message)
+    }
+
+    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        self._queue_contains(root)
     }
 
     async fn improper_update(
