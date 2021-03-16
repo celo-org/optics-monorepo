@@ -49,11 +49,7 @@ library GovernanceMessage {
     // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
         _data = TypedMemView.clone(
-            _view.slice(
-                CALL_PREFIX_LEN,
-                _view.len() - CALL_PREFIX_LEN,
-                uint40(Types.Data)
-            )
+            _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
         );
     }
 
@@ -111,7 +107,7 @@ library GovernanceMessage {
     {
         _msg = TypedMemView.clone(
             mustBeCall(
-                abi.encodePacked(Types.Call, _data.length, _to, _data).ref(0)
+                abi.encodePacked(Types.Call, _to, _data.length, _data).ref(0)
             )
         );
     }

@@ -122,16 +122,15 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory _ret)
     {
-        bytes32 _to;
-        bytes memory _data;
+        bytes29 _msgPtr = _msg;
 
         // Loop through all calls in _msg and dispatch
-        while (_msg.len() != 0) {
-            _to = _msg.addr();
-            _data = _msg.data();
+        while (_msgPtr.len() > 0) {
+            bytes32 _to = _msgPtr.addr();
+            bytes memory _data = _msgPtr.data();
 
             _call(_to, _data);
-            _msg = _msg.nextCall();
+            _msgPtr = _msgPtr.nextCall();
         }
 
         return hex"";
