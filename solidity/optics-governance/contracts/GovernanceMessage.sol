@@ -42,7 +42,7 @@ library GovernanceMessage {
     }
 
     // Types.Call
-    function addr(bytes29 _view) internal pure returns (bytes32) {
+    function to(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(0, 32);
     }
 

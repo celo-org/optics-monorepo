@@ -128,7 +128,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
 
         // Loop through all calls in _msg and dispatch
         while (_msgPtr.len() > 0) {
-            bytes32 _to = _msgPtr.addr();
+            bytes32 _to = _msgPtr.to();
             bytes memory _data = _msgPtr.data();
 
             _call(_to, _data);
