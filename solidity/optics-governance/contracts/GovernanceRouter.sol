@@ -123,16 +123,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory _ret)
     {
-        bytes29 _msgPtr =
-            _msg.slice(1, _msg.len() - 1, uint40(GovernanceMessage.Types.Call));
-
-        // Loop through all calls in _msg and dispatch
-        while (_msgPtr.len() > 0) {
-            bytes32 _to = _msgPtr.to();
-            bytes memory _data = _msgPtr.data();
-
-            _call(_to, _data);
-            _msgPtr = _msgPtr.nextCall();
+        GovernanceMessage.Call[] memory _calls =
+            GovernanceMessage.messageToCalls(_msg);
+        for (uint256 i = 0; i < _calls.length; i++) {
+            _dispatchCall(_calls[i]);
         }
 
         return hex"";
@@ -175,15 +169,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function callLocal(GovernanceMessage.Call[] calldata calls)
         external
         onlyGovernor
-        returns (bytes memory _ret)
     {
-        bytes29[] memory _retValues = new bytes29[](calls.length);
-
         for (uint256 i = 0; i < calls.length; i++) {
-            _retValues[i] = _call(calls[i].to, calls[i].data).ref(0);
+            _dispatchCall(calls[i]);
         }
-
-        _ret = TypedMemView.join(_retValues);
     }
 
     function callRemote(
@@ -245,14 +234,14 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         called when handling AND dispatching messages
     */
 
-    function _call(bytes32 _to, bytes memory _data)
+    function _dispatchCall(GovernanceMessage.Call memory _call)
         internal
         returns (bytes memory _ret)
     {
-        address _toContract = TypeCasts.bytes32ToAddress(_to);
+        address _toContract = TypeCasts.bytes32ToAddress(_call.to);
 
         bool _success;
-        (_success, _ret) = _toContract.call(_data);
+        (_success, _ret) = _toContract.call(_call.data);
 
         require(_success, "call failed");
     }

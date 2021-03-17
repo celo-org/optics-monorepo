@@ -104,34 +104,42 @@ library GovernanceMessage {
         return tryAsCall(_view).assertValid();
     }
 
-    function formatCall(bytes32 _to, bytes memory _data)
+    function messageToCalls(bytes29 _msg)
         internal
         view
-        returns (bytes memory _msg)
+        returns (Call[] memory _calls)
     {
-        _msg = TypedMemView.clone(
-            abi.encodePacked(_to, _data.length, _data).ref(0)
-        );
+        // Skip 1 byte identifier
+        bytes29 _msgPtr =
+            _msg.slice(1, _msg.len() - 1, uint40(GovernanceMessage.Types.Call));
+
+        uint256 counter = 0;
+        while (_msgPtr.len() > 0) {
+            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
+
+            _msgPtr = nextCall(_msgPtr);
+            counter++;
+        }
     }
 
-    function formatCalls(Call[] memory calls)
+    function formatCalls(Call[] memory _calls)
         internal
         view
         returns (bytes memory _msg)
     {
-        bytes29[] memory _encodedCalls = new bytes29[](calls.length + 1);
+        bytes29[] memory _encodedCalls = new bytes29[](_calls.length + 1);
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
 
-        for (uint256 i = 0; i < calls.length; i++) {
-            Call memory _call = calls[i];
+        for (uint256 i = 0; i < _calls.length; i++) {
+            Call memory _call = _calls[i];
             bytes29 _callMsg =
                 abi.encodePacked(_call.to, _call.data.length, _call.data).ref(
                     0
                 );
 
-            _encodedCalls[i] = _callMsg;
+            _encodedCalls[i + 1] = _callMsg;
         }
 
         _msg = TypedMemView.join(_encodedCalls);
