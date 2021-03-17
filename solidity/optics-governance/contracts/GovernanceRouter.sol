@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
+pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -122,7 +123,8 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory _ret)
     {
-        bytes29 _msgPtr = _msg;
+        bytes29 _msgPtr =
+            _msg.slice(1, _msg.len() - 1, uint40(GovernanceMessage.Types.Call));
 
         // Loop through all calls in _msg and dispatch
         while (_msgPtr.len() > 0) {
@@ -170,26 +172,28 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         governor is 0x00 for all other chains
     */
 
-    function callLocal(bytes32 _to, bytes memory _data)
+    function callLocal(GovernanceMessage.Call[] calldata calls)
         external
         onlyGovernor
         returns (bytes memory _ret)
     {
-        _ret = _call(_to, _data);
+        bytes29[] memory _retValues = new bytes29[](calls.length);
+
+        for (uint256 i = 0; i < calls.length; i++) {
+            _retValues[i] = _call(calls[i].to, calls[i].data).ref(0);
+        }
+
+        _ret = TypedMemView.join(_retValues);
     }
 
     function callRemote(
         uint32 _destination,
-        bytes32 _to,
-        bytes memory _data
+        GovernanceMessage.Call[] calldata calls
     ) external onlyGovernor {
         bytes32 _router = mustHaveRouter(_destination);
+        bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        home.enqueue(
-            _destination,
-            _router,
-            GovernanceMessage.formatCall(_to, _data)
-        );
+        home.enqueue(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)

@@ -7,7 +7,7 @@ library GovernanceMessage {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
-    uint256 private constant CALL_PREFIX_LEN = 65;
+    uint256 private constant CALL_PREFIX_LEN = 64;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -16,6 +16,11 @@ library GovernanceMessage {
         TransferGovernor, // 2
         EnrollRouter, // 3
         Data // 4
+    }
+
+    struct Call {
+        bytes32 to;
+        bytes data;
     }
 
     modifier typeAssert(bytes29 _view, Types _t) {
@@ -38,12 +43,12 @@ library GovernanceMessage {
 
     // Types.Call
     function addr(bytes29 _view) internal pure returns (bytes32) {
-        return _view.index(1, 32);
+        return _view.index(0, 32);
     }
 
     // Types.Call
     function dataLen(bytes29 _view) internal pure returns (uint256) {
-        return uint256(_view.index(33, 32));
+        return uint256(_view.index(32, 32));
     }
 
     // Types.Call
@@ -72,7 +77,6 @@ library GovernanceMessage {
         Message Type: CALL
 
         struct Call {
-            identifier, // message ID -- 1 byte
             addr,       // address to call -- 32 bytes
             dataLen,    // call data length -- 32 bytes,
             data        // call data -- 0+ bytes (length unknown)
@@ -96,7 +100,7 @@ library GovernanceMessage {
         return TypedMemView.nullView();
     }
 
-    function mustBeCall(bytes29 _view) internal pure returns (bytes29) {
+    function mustBeCalls(bytes29 _view) internal pure returns (bytes29) {
         return tryAsCall(_view).assertValid();
     }
 
@@ -106,26 +110,45 @@ library GovernanceMessage {
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
-            mustBeCall(
-                abi.encodePacked(Types.Call, _to, _data.length, _data).ref(0)
-            )
+            abi.encodePacked(_to, _data.length, _data).ref(0)
         );
+    }
+
+    function formatCalls(Call[] memory calls)
+        internal
+        view
+        returns (bytes memory _msg)
+    {
+        bytes29[] memory _encodedCalls = new bytes29[](calls.length + 1);
+
+        // Add Types.Call identifier
+        _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
+
+        for (uint256 i = 0; i < calls.length; i++) {
+            Call memory _call = calls[i];
+            bytes29 _callMsg =
+                abi.encodePacked(_call.to, _call.data.length, _call.data).ref(
+                    0
+                );
+
+            _encodedCalls[i] = _callMsg;
+        }
+
+        _msg = TypedMemView.join(_encodedCalls);
     }
 
     function nextCall(bytes29 _view)
         public
-        view
+        pure
         typeAssert(_view, GovernanceMessage.Types.Call)
         returns (bytes29)
     {
         uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
         return
-            mustBeCall(
-                _view.slice(
-                    lastCallLen,
-                    _view.len() - lastCallLen,
-                    uint40(Types.Call)
-                )
+            _view.slice(
+                lastCallLen,
+                _view.len() - lastCallLen,
+                uint40(Types.Call)
             );
     }
 
