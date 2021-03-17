@@ -104,7 +104,7 @@ library GovernanceMessage {
         return tryAsCall(_view).assertValid();
     }
 
-    function messageToCalls(bytes29 _msg)
+    function getCalls(bytes29 _msg)
         internal
         view
         returns (Call[] memory _calls)
