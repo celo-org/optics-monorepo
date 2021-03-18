@@ -110,8 +110,7 @@ library GovernanceMessage {
         returns (Call[] memory _calls)
     {
         // Skip 1 byte identifier
-        bytes29 _msgPtr =
-            _msg.slice(1, _msg.len() - 1, uint40(GovernanceMessage.Types.Call));
+        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
@@ -148,7 +147,7 @@ library GovernanceMessage {
     function nextCall(bytes29 _view)
         public
         pure
-        typeAssert(_view, GovernanceMessage.Types.Call)
+        typeAssert(_view, Types.Call)
         returns (bytes29)
     {
         uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
