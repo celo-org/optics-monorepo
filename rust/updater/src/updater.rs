@@ -3,6 +3,7 @@ use std::{sync::Arc, time::Duration};
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
+use futures_util::future::join;
 use rocksdb::DB;
 use tokio::{
     sync::RwLock,
