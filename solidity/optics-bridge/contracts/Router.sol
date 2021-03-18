@@ -130,7 +130,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
             BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
 
-        home.enqueue(
+        usingOptics.homeEnqueue(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
@@ -152,7 +152,7 @@ contract BridgeRouter is OpticsHandlerI, TokenRegistry {
                 _tok.decimals()
             );
 
-        home.enqueue(
+        usingOptics.homeEnqueue(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)

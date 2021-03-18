@@ -30,7 +30,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 //
 // Note that native tokens should NEVER be represented in these lookup tables.
 
-contract TokenRegistry is UsingOptics {
+contract TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -41,8 +41,20 @@ contract TokenRegistry is UsingOptics {
         bytes32 id;
     }
 
+    UsingOptics public usingOptics;
+
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
+
+    modifier onlyOwner() {
+        require(usingOptics.isOwner(msg.sender), "!owner");
+        _;
+    }
+
+    modifier onlyReplica() {
+        require(usingOptics.isReplica(msg.sender), "!replica");
+        _;
+    }
 
     function createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
@@ -97,7 +109,7 @@ contract TokenRegistry is UsingOptics {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = home.originDomain();
+            _id.domain = usingOptics.originDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
@@ -148,7 +160,7 @@ contract TokenRegistry is UsingOptics {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == home.originDomain()) {
+        if (_tokenId.domain() == usingOptics.originDomain()) {
             return IERC20(_tokenId.evmId());
         }
 

@@ -12,7 +12,7 @@ import {
 
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is OpticsHandlerI, UsingOptics {
+contract GovernanceRouter is OpticsHandlerI {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
@@ -20,17 +20,22 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     /*
     --- STATE ---
     */
+    UsingOptics public usingOptics;
 
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
+    
+    modifier onlyReplica() {
+        require(usingOptics.isReplica(msg.sender), "!replica");
+        _;
+    }
 
     /*
     --- EVENTS ---
     */
-
     event TransferGovernor(
         uint32 previousGovernorDomain,
         uint32 newGovernorDomain,
@@ -110,6 +115,18 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         require(_router != bytes32(0), "!router");
     }
 
+    function localDomain() internal view returns (uint32 _localDomain) {
+        _localDomain = usingOptics.originDomain();
+    }
+
+    function isLocalDomain(uint32 _domain)
+        internal
+        view
+        returns (bool _isLocalDomain)
+    {
+        _isLocalDomain = _domain == localDomain();
+    }
+
     /*
     --- MESSAGE HANDLING ---
         for all non-Governor chains to handle messages
@@ -118,7 +135,6 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         Governor chain should never receive messages,
         because non-Governor chains are not able to send them
     */
-
     function handle(
         uint32 _origin,
         bytes32 _sender,
@@ -209,7 +225,11 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        home.enqueue(_destination, _router, _msg);
+        usingOptics.homeEnqueue(
+            _destination,
+            _router,
+            GovernanceMessage.formatCall(_to, _data)
+        );
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -250,7 +270,7 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                home.enqueue(domains[i], routers[domains[i]], _msg);
+                usingOptics.homeEnqueue(domains[i], routers[domains[i]], _msg);
             }
         }
     }
