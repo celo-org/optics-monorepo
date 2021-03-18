@@ -3,6 +3,7 @@ use std::{sync::Arc, time::Duration};
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
+use futures_util::future::join;
 use tokio::{
     task::JoinHandle,
     time::{interval, Interval},
@@ -50,25 +51,29 @@ where
         signer: Arc<S>,
         update_pause: u64,
     ) -> Result<()> {
-        let mut pause = interval(Duration::from_secs(update_pause));
-
         // Check if there is an update
         let update_opt = home.produce_update().await?;
 
-        // If there is, pause, sign, and update
         if let Some(update) = update_opt {
-            pause.tick().await;
+            interval(Duration::from_secs(update_pause)).tick().await;
 
-            let in_queue = home.queue_contains(update.new_root).await?;
-            let current_root = home.current_root().await?;
+            let (in_queue, current_root) = tokio::join!(
+                home.queue_contains(update.new_root), 
+                home.current_root()
+            );
 
-            // After pause, only submit update if new root still in queue and
-            // old root still current
+            let in_queue = in_queue?;
+            let current_root = current_root?;
+
             if in_queue && current_root == update.previous_root {
                 let signed = update.sign_with(signer.as_ref()).await.unwrap();
-                home.update(&signed).await?;
+
+                if let Err(ref e) = home.update(&signed).await {
+                    tracing::error!("Error submitting update to home: {:?}", e)
+                }
             }
         }
+
         Ok(())
     }
 
