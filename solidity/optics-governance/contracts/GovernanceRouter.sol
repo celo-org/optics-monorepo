@@ -27,11 +27,6 @@ contract GovernanceRouter is OpticsHandlerI {
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
-    
-    modifier onlyReplica() {
-        require(usingOptics.isReplica(msg.sender), "!replica");
-        _;
-    }
 
     /*
     --- EVENTS ---
@@ -64,6 +59,11 @@ contract GovernanceRouter is OpticsHandlerI {
     /*
     --- FUNCTION MODIFIERS ---
     */
+    modifier onlyReplica() {
+        require(usingOptics.isReplica(msg.sender), "!replica");
+        _;
+    }
+    
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
@@ -86,26 +86,14 @@ contract GovernanceRouter is OpticsHandlerI {
         usingOptics = UsingOptics(_usingOptics);
     }
 
-    function localDomain() internal view returns (uint32 _localDomain) {
-        _localDomain = home.originDomain();
-    }
-
-    function isLocalDomain(uint32 _domain)
-        internal
-        view
-        returns (bool _isLocalDomain)
-    {
-        _isLocalDomain = _domain == localDomain();
-    }
-
     function isGovernorRouter(uint32 _domain, bytes32 _address)
         internal
         view
         returns (bool _isGovernorRouter)
     {
         _isGovernorRouter =
-        _domain == governorDomain &&
-        _address == routers[_domain];
+            _domain == governorDomain &&
+            _address == routers[_domain];
     }
 
     function mustHaveRouter(uint32 _domain)
@@ -227,11 +215,7 @@ contract GovernanceRouter is OpticsHandlerI {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        usingOptics.homeEnqueue(
-            _destination,
-            _router,
-            GovernanceMessage.formatCall(_to, _data)
-        );
+        usingOptics.homeEnqueue(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
