@@ -21,13 +21,13 @@ abstract contract UsingOptics is Ownable {
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
 
+    function isOwner(address _owner) public view returns (bool) {
+        return _owner == owner();
+    }
+
     modifier onlyReplica() {
         require(isReplica(msg.sender), "!replica");
         _;
-    }
-
-    function isOwner(address _owner) public view returns (bool) {
-        return _owner == owner();
     }
 
     function isReplica(address _replica) public view returns (bool) {

@@ -9,6 +9,7 @@ import {
     TypeCasts
 } from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -30,7 +31,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 //
 // Note that native tokens should NEVER be represented in these lookup tables.
 
-contract TokenRegistry {
+contract TokenRegistry is Ownable {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -45,11 +46,6 @@ contract TokenRegistry {
 
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
-
-    modifier onlyOwner() {
-        require(usingOptics.isOwner(msg.sender), "!owner");
-        _;
-    }
 
     modifier onlyReplica() {
         require(usingOptics.isReplica(msg.sender), "!replica");
@@ -87,6 +83,10 @@ contract TokenRegistry {
 
     constructor() {
         tokenTemplate = address(new BridgeToken());
+    }
+
+    function setUsingOptics(address _usingOptics) public onlyOwner {
+        usingOptics = UsingOptics(_usingOptics);
     }
 
     function setTemplate(address _newTemplate) external onlyOwner {

@@ -64,7 +64,6 @@ contract GovernanceRouter is OpticsHandlerI {
     /*
     --- FUNCTION MODIFIERS ---
     */
-
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
@@ -83,6 +82,9 @@ contract GovernanceRouter is OpticsHandlerI {
     /*
     --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
     */
+    function setUsingOptics(address _usingOptics) public onlyGovernor {
+        usingOptics = UsingOptics(_usingOptics);
+    }
 
     function localDomain() internal view returns (uint32 _localDomain) {
         _localDomain = home.originDomain();
