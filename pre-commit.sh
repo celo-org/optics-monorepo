@@ -14,17 +14,21 @@ abort()
 trap 'abort' 0
 
 set -e
-cd solidity/optics-core/
-npm test
-npm run lint
-cd ../optics-bridge/
-npm test
-npm run lint
-cd ../optics-governance/
-npm test
-npm run lint
+git update-index -q --refresh
+if ! git diff-index --quiet HEAD -- ./solidity; then
+    cd solidity/optics-core
+    npm test
+    npm run lint
+    cd ../optics-bridge
+    npm test
+    npm run lint
+    cd ../optics-governance
+    npm test
+    npm run lint
+    cd ../..
+fi
 
-cd ../../rust/
+cd ./rust
 echo '+cargo test'
 cargo test
 echo '+cargo clippy -- -D warnings'
