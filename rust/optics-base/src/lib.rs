@@ -22,8 +22,14 @@ pub mod agent;
 #[macro_use]
 pub mod macros;
 
+/// Struct responsible for polling chain API for history of
+pub mod history_sync;
+pub use history_sync::HistorySync;
+
 /// Home type
 pub mod home;
+pub use home::Homes;
 
 /// Replica type
 pub mod replica;
+pub use replica::Replicas;
