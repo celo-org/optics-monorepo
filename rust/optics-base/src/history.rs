@@ -1,15 +1,19 @@
-use color_eyre::{Report, Result};
+use color_eyre::{eyre::bail, Report, Result};
 use thiserror::Error;
 
 use ethers::core::types::H256;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::mpsc,
     task::JoinHandle,
     time::{interval, Interval},
 };
 
-use optics_core::{traits::Common, SignedUpdate};
+use crate::Homes;
+use optics_core::{
+    traits::{Common, DoubleUpdate},
+    SignedUpdate,
+};
 
 #[derive(Debug, Error)]
 enum HistorySyncError {
@@ -52,8 +56,7 @@ where
         interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
-    /// Polls for signed update by new root and sends it through channel
-    pub async fn update_history(&mut self) -> Result<()> {
+    async fn update_history(&mut self) -> Result<()> {
         let previous_update = self
             .contract
             .signed_update_by_new_root(self.current_root)
@@ -96,6 +99,77 @@ where
             }
 
             Ok(())
+        })
+    }
+}
+
+/// Struct responsible for receiving and handling updates sent
+/// through channel
+#[derive(Debug)]
+pub struct UpdateHandler {
+    rx: mpsc::Receiver<SignedUpdate>,
+    history: HashMap<H256, SignedUpdate>,
+    home: Arc<Homes>,
+}
+
+impl UpdateHandler {
+    /// Instantiates a new UpdateHandler
+    pub fn new(
+        rx: mpsc::Receiver<SignedUpdate>,
+        history: HashMap<H256, SignedUpdate>,
+        home: Arc<Homes>,
+    ) -> Self {
+        Self { rx, history, home }
+    }
+
+    /// Checks if received update is double update and updates history
+    pub fn check_double_and_update_history(
+        &mut self,
+        update: &SignedUpdate,
+    ) -> Result<(), DoubleUpdate> {
+        let old_root = update.update.previous_root;
+        let new_root = update.update.new_root;
+
+        #[allow(clippy::map_entry)]
+        if !self.history.contains_key(&old_root) {
+            self.history.insert(old_root, update.to_owned());
+            return Ok(());
+        }
+
+        let existing = self.history.get(&old_root).expect("!contains");
+        if existing.update.new_root != new_root {
+            return Err(DoubleUpdate(existing.to_owned(), update.to_owned()));
+        }
+
+        Ok(())
+    }
+
+    /// Spawns UpdateHandler loop. Note that if fraudulent update
+    /// received from replica, two conflicting updates between home and
+    /// replica will show up in history and be flagged as double update.
+    #[tracing::instrument]
+    pub fn spawn(mut self) -> JoinHandle<Result<DoubleUpdate>> {
+        tokio::spawn(async move {
+            loop {
+                let update = self.rx.recv().await;
+                // channel is closed
+                if update.is_none() {
+                    bail!("Channel closed.")
+                }
+
+                let update = update.unwrap();
+                let old_root = update.update.previous_root;
+
+                if old_root == self.home.current_root().await? {
+                    // It is okay if tx reverts
+                    let _ = self.home.update(&update).await;
+                }
+
+                // Check for double update and update history
+                if let Err(double_update) = self.check_double_and_update_history(&update) {
+                    return Ok(double_update);
+                }
+            }
         })
     }
 }
@@ -191,5 +265,68 @@ mod test {
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();
+    }
+
+    #[tokio::test]
+    async fn update_handler_detects_double_update() {
+        let signer: LocalWallet =
+            "1111111111111111111111111111111111111111111111111111111111111111"
+                .parse()
+                .unwrap();
+
+        let first_root = H256::from([1; 32]);
+        let second_root = H256::from([2; 32]);
+        let third_root = H256::from([3; 32]);
+        let bad_third_root = H256::from([4; 32]);
+
+        let first_update = Update {
+            origin_domain: 1,
+            previous_root: first_root,
+            new_root: second_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let second_update = Update {
+            origin_domain: 1,
+            previous_root: second_root,
+            new_root: third_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let bad_second_update = Update {
+            origin_domain: 1,
+            previous_root: second_root,
+            new_root: bad_third_root,
+        }
+        .sign_with(&signer)
+        .await
+        .expect("!sign");
+
+        let (_tx, rx) = mpsc::channel(200);
+        let mut handler = UpdateHandler {
+            rx,
+            history: Default::default(),
+            home: Arc::new(MockHomeContract::new().into()),
+        };
+
+        let _first_update_ret = handler
+            .check_double_and_update_history(&first_update)
+            .expect("Update should have been valid");
+
+        let _second_update_ret = handler
+            .check_double_and_update_history(&second_update)
+            .expect("Update should have been valid");
+
+        let bad_second_update_ret = handler
+            .check_double_and_update_history(&bad_second_update)
+            .expect_err("Update should have been invalid");
+        assert_eq!(
+            bad_second_update_ret,
+            DoubleUpdate(second_update, bad_second_update)
+        );
     }
 }

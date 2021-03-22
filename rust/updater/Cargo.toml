@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
-config = "0.10"
+config = "0.11.0"
 serde = "1.0.120"
 serde_json = { version = "1.0.61", default-features = false }
 log = "0.4.13"

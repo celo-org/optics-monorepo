@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
@@ -8,11 +8,15 @@ use tokio::{
     time::{interval, Interval},
 };
 
+use ethers::core::types::H256;
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     Homes,
 };
-use optics_core::traits::{Common, Home};
+use optics_core::{
+    traits::{Common, Home},
+    SignedUpdate,
+};
 
 use crate::settings::Settings;
 
@@ -20,6 +24,7 @@ use crate::settings::Settings;
 #[derive(Debug)]
 pub struct Updater<S> {
     signer: Arc<S>,
+    history: HashMap<H256, SignedUpdate>,
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
@@ -39,6 +44,7 @@ where
     pub fn new(signer: S, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
+            history: Default::default(),
             interval_seconds,
             update_pause,
             core,

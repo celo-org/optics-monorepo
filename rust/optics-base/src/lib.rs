@@ -22,9 +22,10 @@ pub mod agent;
 #[macro_use]
 pub mod macros;
 
-/// Struct responsible for polling chain API for history of
-pub mod history_sync;
-pub use history_sync::HistorySync;
+/// Contains HistorySync and UpdateHandler.
+/// Two structs responsible for polling updates and
+/// checking for double or fraudulent updates
+pub mod history;
 
 /// Home type
 pub mod home;

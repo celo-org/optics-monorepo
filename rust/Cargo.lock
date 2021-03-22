@@ -311,6 +311,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b1b9d958c2b1368a663f05538fc1b5975adce1e19f435acceae987aceeeb369"
+dependencies = [
+ "lazy_static",
+ "nom",
+ "rust-ini",
+ "serde 1.0.123",
+ "serde-hjson",
+ "serde_json",
+ "toml",
+ "yaml-rust",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1100,7 +1116,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "log",
@@ -1400,7 +1416,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "optics-core",
@@ -1450,7 +1466,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "mockall",
@@ -1468,7 +1484,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.11.0",
  "ethers",
  "futures-util",
  "log",
@@ -1669,7 +1685,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "log",
@@ -1829,7 +1845,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "log",
@@ -2708,7 +2724,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
- "config",
+ "config 0.10.1",
  "ethers",
  "futures-util",
  "log",
