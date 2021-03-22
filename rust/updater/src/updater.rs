@@ -1,20 +1,29 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+    time::Duration,
+};
 
 use async_trait::async_trait;
-use color_eyre::{eyre::ensure, Result};
+use color_eyre::{
+    eyre::{bail, ensure},
+    Result,
+};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
 use tokio::{
-    task::JoinHandle,
+    sync::{mpsc, RwLock as TokioRwLock},
+    task::{JoinError, JoinHandle},
     time::{interval, Interval},
 };
 
 use ethers::core::types::H256;
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
+    history::{HistorySync, UpdateHandler},
     Homes,
 };
 use optics_core::{
-    traits::{Common, Home},
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Home},
     SignedUpdate,
 };
 
@@ -28,6 +37,18 @@ pub struct Updater<S> {
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum UpdaterError {
+    /// Updater sees double update during sync
+    #[error("Double update found during sync!")]
+    DoubleUpdateSync { double_update: DoubleUpdate },
+    /// Updater receives ChainCommunicationError from chain API
+    #[error(transparent)]
+    ChainCommunicationError(#[from] ChainCommunicationError),
+    #[error(transparent)]
+    JoinError(#[from] JoinError),
 }
 
 impl<S> AsRef<AgentCore> for Updater<S> {
@@ -51,9 +72,33 @@ where
         }
     }
 
+    pub async fn build_history(
+        home: Arc<Homes>,
+    ) -> Result<HashMap<H256, SignedUpdate>, UpdaterError> {
+        let (tx, rx) = mpsc::channel(200);
+        let history = Arc::new(RwLock::new(HashMap::new()));
+        let from = home.current_root().await?;
+
+        let handler = UpdateHandler::new(rx, history.clone(), home.clone()).spawn();
+        let home_sync = HistorySync::new(0, from, tx.clone(), home.clone()).spawn(); // TODO: can we use interval of 0 seconds?
+
+        // Wait for sync to finish
+        let _ = home_sync.await;
+        drop(tx);
+
+        // If double update was found during sync, return error and bail
+        let handler_res = handler.await?;
+        if let Ok(double_update) = handler_res {
+            return Err(UpdaterError::DoubleUpdateSync { double_update });
+        }
+
+        Ok(Arc::try_unwrap(history).unwrap().into_inner().unwrap())
+    }
+
     async fn poll_and_handle_update(
         home: Arc<Homes>,
         signer: Arc<S>,
+        history: Arc<TokioRwLock<HashMap<H256, SignedUpdate>>>,
         update_pause: u64,
     ) -> Result<Option<JoinHandle<()>>> {
         // Check if there is an update
@@ -64,17 +109,30 @@ where
             return Ok(Some(tokio::spawn(async move {
                 interval(Duration::from_secs(update_pause)).tick().await;
 
-                let res = tokio::join!(home.queue_contains(update.new_root), home.current_root());
+                let (in_queue, current_root) =
+                    tokio::join!(home.queue_contains(update.new_root), home.current_root());
 
-                if let (Ok(in_queue), Ok(current_root)) = res {
-                    if in_queue && current_root == update.previous_root {
-                        let signed = update.sign_with(signer.as_ref()).await.unwrap();
+                let in_queue = in_queue.unwrap();
+                let current_root = current_root.unwrap();
 
-                        if let Err(ref e) = home.update(&signed).await {
-                            tracing::error!("Error submitting update to home: {:?}", e)
-                        }
+                #[allow(clippy::map_entry)]
+                let old_root = update.previous_root;
+                if !history.read().await.contains_key(&old_root)
+                    && in_queue
+                    && current_root == old_root
+                {
+                    let signed = update.sign_with(signer.as_ref()).await.unwrap();
+
+                    if let Err(ref e) = home.update(&signed).await {
+                        tracing::error!("Error submitting update to home: {:?}", e)
                     }
+                    history.write().await.insert(old_root, signed);
                 }
+
+                // let existing = history_write.get(&old_root).expect("!contains");
+                // if existing.update.new_root != new_root {
+                //     return Err(DoubleUpdate(existing.to_owned(), update.to_owned()));
+                // }
             })));
         }
 
@@ -105,36 +163,50 @@ impl OpticsAgent for Updater<LocalWallet> {
         ))
     }
 
-    fn run(&self, _replica: &str) -> JoinHandle<Result<()>> {
-        // First we check that we have the correct key to sign with.
+    #[tracing::instrument]
+    fn run(&self, _name: &str) -> JoinHandle<Result<()>> {
+        tokio::spawn(
+            async move { bail!("Updater::run should not be called. Always call run_many") },
+        )
+    }
+
+    async fn run_many(&self, _replica: &[&str]) -> Result<()> {
         let home = self.home();
+        let history = Arc::new(TokioRwLock::new(Self::build_history(home).await?));
+
+        let home = self.home().clone();
         let address = self.signer.address();
         let mut interval = self.interval();
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
 
-        tokio::spawn(async move {
-            let expected: Address = home.updater().await?.into();
-            ensure!(
-                expected == address,
-                "Contract updater does not match keys. On-chain: {}. Local: {}",
-                expected,
-                address
-            );
+        // tokio::spawn(async move {
+        let expected: Address = home.updater().await?.into();
+        ensure!(
+            expected == address,
+            "Contract updater does not match keys. On-chain: {}. Local: {}",
+            expected,
+            address
+        );
 
-            // Set up the polling loop.
-            loop {
-                let res =
-                    Self::poll_and_handle_update(home.clone(), signer.clone(), update_pause).await;
+        // Set up the polling loop.
+        loop {
+            let res = Self::poll_and_handle_update(
+                home.clone(),
+                signer.clone(),
+                history.clone(),
+                update_pause,
+            )
+            .await;
 
-                if let Err(ref e) = res {
-                    tracing::error!("Error polling and handling update: {:?}", e)
-                }
-
-                // Wait for the next tick on the interval
-                interval.tick().await;
+            if let Err(ref e) = res {
+                tracing::error!("Error polling and handling update: {:?}", e)
             }
-        })
+
+            // Wait for the next tick on the interval
+            interval.tick().await;
+        }
+        // })
     }
 }
 
@@ -171,7 +243,7 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
+        Updater::poll_and_handle_update(home.clone(), Arc::new(signer), Default::default(), 1)
             .await
             .expect("Should have returned Ok(())");
 
@@ -230,10 +302,11 @@ mod test {
             });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
-            .await
-            .expect("poll_and_handle_update returned error")
-            .expect("poll_and_handle_update should have returned Some(JoinHandle)");
+        let handle =
+            Updater::poll_and_handle_update(home.clone(), Arc::new(signer), Default::default(), 1)
+                .await
+                .expect("poll_and_handle_update returned error")
+                .expect("poll_and_handle_update should have returned Some(JoinHandle)");
 
         handle
             .await
@@ -290,10 +363,11 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
-            .await
-            .expect("poll_and_handle_update returned error")
-            .expect("poll_and_handle_update should have returned Some(JoinHandle)");
+        let handle =
+            Updater::poll_and_handle_update(home.clone(), Arc::new(signer), Default::default(), 1)
+                .await
+                .expect("poll_and_handle_update returned error")
+                .expect("poll_and_handle_update should have returned Some(JoinHandle)");
 
         handle
             .await

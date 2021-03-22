@@ -2,7 +2,10 @@ use color_eyre::{eyre::bail, Report, Result};
 use thiserror::Error;
 
 use ethers::core::types::H256;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 use tokio::{
     sync::mpsc,
     task::JoinHandle,
@@ -108,7 +111,7 @@ where
 #[derive(Debug)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    history: HashMap<H256, SignedUpdate>,
+    history: Arc<RwLock<HashMap<H256, SignedUpdate>>>,
     home: Arc<Homes>,
 }
 
@@ -116,7 +119,7 @@ impl UpdateHandler {
     /// Instantiates a new UpdateHandler
     pub fn new(
         rx: mpsc::Receiver<SignedUpdate>,
-        history: HashMap<H256, SignedUpdate>,
+        history: Arc<RwLock<HashMap<H256, SignedUpdate>>>,
         home: Arc<Homes>,
     ) -> Self {
         Self { rx, history, home }
@@ -130,13 +133,15 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
+        let mut history_write = self.history.write().unwrap();
+
         #[allow(clippy::map_entry)]
-        if !self.history.contains_key(&old_root) {
-            self.history.insert(old_root, update.to_owned());
+        if !history_write.contains_key(&old_root) {
+            history_write.insert(old_root, update.to_owned());
             return Ok(());
         }
 
-        let existing = self.history.get(&old_root).expect("!contains");
+        let existing = history_write.get(&old_root).expect("!contains");
         if existing.update.new_root != new_root {
             return Err(DoubleUpdate(existing.to_owned(), update.to_owned()));
         }
