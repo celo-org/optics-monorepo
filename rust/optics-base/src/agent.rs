@@ -4,7 +4,7 @@ use futures_util::future::select_all;
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
 
-use crate::{cancel_task, home::Homes, replica::Replicas, settings::Settings};
+use crate::{cancel_task, settings::Settings, Homes, Replicas};
 
 /// Properties shared across all agents
 #[derive(Debug)]

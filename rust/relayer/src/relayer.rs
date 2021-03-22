@@ -8,8 +8,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    home::Homes,
-    replica::Replicas,
+    Homes, Replicas,
 };
 use optics_core::traits::{Common, Replica};
 

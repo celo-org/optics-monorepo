@@ -1,5 +1,5 @@
 use ethers::core::types::H256;
-use optics_base::home::Homes;
+use optics_base::Homes;
 use optics_core::{
     accumulator::{
         incremental::IncrementalMerkle,

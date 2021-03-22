@@ -3,7 +3,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
-use crate::{home::Homes, replica::Replicas};
+use crate::{Homes, Replicas};
 
 /// Ethereum configuration
 pub mod ethereum;

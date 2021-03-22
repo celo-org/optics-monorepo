@@ -10,7 +10,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    home::Homes,
+    Homes,
 };
 use optics_core::traits::{Common, Home};
 
@@ -58,21 +58,17 @@ where
             return Ok(Some(tokio::spawn(async move {
                 interval(Duration::from_secs(update_pause)).tick().await;
 
-                let res = tokio::join!(
-                    home.queue_contains(update.new_root), 
-                    home.current_root()
-                );
+                let res = tokio::join!(home.queue_contains(update.new_root), home.current_root());
 
                 if let (Ok(in_queue), Ok(current_root)) = res {
                     if in_queue && current_root == update.previous_root {
                         let signed = update.sign_with(signer.as_ref()).await.unwrap();
-        
+
                         if let Err(ref e) = home.update(&signed).await {
                             tracing::error!("Error submitting update to home: {:?}", e)
                         }
                     }
                 }
-
             })));
         }
 
@@ -141,7 +137,7 @@ mod test {
     use std::sync::Arc;
 
     use ethers::core::types::H256;
-    use optics_base::home::Homes;
+    use optics_base::Homes;
 
     use super::*;
     use optics_core::{traits::TxOutcome, SignedUpdate, Update};
@@ -232,8 +228,10 @@ mod test {
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
-            
-        handle.await.expect("poll_and_handle_update join handle errored on await");
+
+        handle
+            .await
+            .expect("poll_and_handle_update join handle errored on await");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();
@@ -290,8 +288,10 @@ mod test {
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
-            
-        handle.await.expect("poll_and_handle_update join handle errored on await");
+
+        handle
+            .await
+            .expect("poll_and_handle_update join handle errored on await");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();

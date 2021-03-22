@@ -13,10 +13,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent,
-    home::Homes,
-    replica::Replicas,
-    reset_loop_if,
+    cancel_task, decl_agent, reset_loop_if, Homes, Replicas,
 };
 use optics_core::{
     accumulator::Prover,
