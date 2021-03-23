@@ -252,12 +252,7 @@ where
     }
 
     async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
-        Ok(self
-            .contract
-            .queue_contains(root.into())
-            .call()
-            .await?
-            .into())
+        Ok(self.contract.queue_contains(root.into()).call().await?)
     }
 
     #[tracing::instrument(err)]

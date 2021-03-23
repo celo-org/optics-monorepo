@@ -26,6 +26,7 @@ use ethers::{
     },
     signers::Signer,
 };
+use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use std::convert::TryFrom;
 
@@ -192,7 +193,7 @@ impl StampedMessage {
 }
 
 /// An Optics update message
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Update {
     /// The origin chain
     pub origin_domain: u32,
@@ -246,7 +247,7 @@ impl Update {
 }
 
 /// A Signed Optics Update
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SignedUpdate {
     /// The update
     pub update: Update,

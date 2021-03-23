@@ -3,7 +3,9 @@ use std::{sync::Arc, time::Duration};
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
+use rocksdb::{Options, DB};
 use tokio::{
+    sync::RwLock,
     task::JoinHandle,
     time::{interval, Interval},
 };
@@ -20,6 +22,7 @@ use crate::settings::Settings;
 #[derive(Debug)]
 pub struct Updater<S> {
     signer: Arc<S>,
+    db_path: &'static str,
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
@@ -39,6 +42,7 @@ where
     pub fn new(signer: S, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
+            db_path: "db_path",
             interval_seconds,
             update_pause,
             core,
@@ -48,6 +52,7 @@ where
     async fn poll_and_handle_update(
         home: Arc<Homes>,
         signer: Arc<S>,
+        db: Arc<RwLock<DB>>,
         update_pause: u64,
     ) -> Result<Option<JoinHandle<()>>> {
         // Check if there is an update
@@ -56,23 +61,45 @@ where
         // If update exists, spawn task to wait, recheck, and submit update
         if let Some(update) = update_opt {
             return Ok(Some(tokio::spawn(async move {
+                // Wait `update_pause` seconds
                 interval(Duration::from_secs(update_pause)).tick().await;
 
-                let res = tokio::join!(
-                    home.queue_contains(update.new_root), 
-                    home.current_root()
-                );
+                // Poll chain API to see if queue still contains new root
+                // and old root still equals home's current root
+                let (in_queue, current_root) =
+                    tokio::join!(home.queue_contains(update.new_root), home.current_root());
 
-                if let (Ok(in_queue), Ok(current_root)) = res {
-                    if in_queue && current_root == update.previous_root {
+                if in_queue.is_err() || current_root.is_err() {
+                    return;
+                }
+
+                let in_queue = in_queue.unwrap();
+                let current_root = current_root.unwrap();
+                let old_root = update.previous_root;
+
+                if in_queue && current_root == old_root {
+                    // If update still valid and doesn't conflict with local
+                    // history of signed updates, sign and submit update. Note
+                    // that because we write-acquire RwLock, only one thread
+                    // can check and enter the below `if` block at a time,
+                    // protecting from races between threads.
+                    let db_write = db.write().await;
+                    if let Ok(None) = db_write.get(old_root) {
                         let signed = update.sign_with(signer.as_ref()).await.unwrap();
-        
-                        if let Err(ref e) = home.update(&signed).await {
-                            tracing::error!("Error submitting update to home: {:?}", e)
+
+                        // If successfully submitted update, record in db
+                        match home.update(&signed).await {
+                            Ok(_) => {
+                                db_write
+                                    .put(old_root, bincode::serialize(&signed).unwrap())
+                                    .expect("Failed to write signed update to disk");
+                            }
+                            Err(ref e) => {
+                                tracing::error!("Error submitting update to home: {:?}", e)
+                            }
                         }
                     }
                 }
-
             })));
         }
 
@@ -111,6 +138,12 @@ impl OpticsAgent for Updater<LocalWallet> {
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
 
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = Arc::new(RwLock::new(
+            DB::open(&opts, self.db_path).expect("Couldn't open db path"),
+        ));
+
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
             ensure!(
@@ -122,8 +155,13 @@ impl OpticsAgent for Updater<LocalWallet> {
 
             // Set up the polling loop.
             loop {
-                let res =
-                    Self::poll_and_handle_update(home.clone(), signer.clone(), update_pause).await;
+                let res = Self::poll_and_handle_update(
+                    home.clone(),
+                    signer.clone(),
+                    db.clone(),
+                    update_pause,
+                )
+                .await;
 
                 if let Err(ref e) = res {
                     tracing::error!("Error polling and handling update: {:?}", e)
@@ -138,7 +176,9 @@ impl OpticsAgent for Updater<LocalWallet> {
 
 #[cfg(test)]
 mod test {
+    use rocksdb::{Options, DB};
     use std::sync::Arc;
+    use tokio::sync::RwLock;
 
     use ethers::core::types::H256;
     use optics_base::home::Homes;
@@ -169,9 +209,18 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = Arc::new(RwLock::new(
+            DB::open(&opts, "mock_db_1").expect("Failed to open db"),
+        ));
+
+        Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
             .expect("Should have returned Ok(())");
+
+        let _ = DB::destroy(&Options::default(), "mock_db_1");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();
@@ -228,12 +277,23 @@ mod test {
             });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = Arc::new(RwLock::new(
+            DB::open(&opts, "mock_db_2").expect("Failed to open db"),
+        ));
+
+        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
-            
-        handle.await.expect("poll_and_handle_update join handle errored on await");
+
+        handle
+            .await
+            .expect("poll_and_handle_update join handle errored on await");
+
+        let _ = DB::destroy(&Options::default(), "mock_db_2");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();
@@ -286,12 +346,23 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), 1)
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = Arc::new(RwLock::new(
+            DB::open(&opts, "mock_db_3").expect("Failed to open db"),
+        ));
+
+        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
-            
-        handle.await.expect("poll_and_handle_update join handle errored on await");
+
+        handle
+            .await
+            .expect("poll_and_handle_update join handle errored on await");
+
+        let _ = DB::destroy(&Options::default(), "mock_db_3");
 
         let mock_home = Arc::get_mut(&mut home).unwrap();
         mock_home.checkpoint();
