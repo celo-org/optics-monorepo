@@ -56,7 +56,7 @@ contract TokenRegistry is Ownable {
     // If the token is native, this MUST be address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
 
-    constructor(address _usingOptics) {
+    constructor(address _usingOptics) Ownable() {
         tokenTemplate = address(new BridgeToken());
         setUsingOptics(_usingOptics);
     }
