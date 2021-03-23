@@ -1642,6 +1642,7 @@ name = "optics-updater"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "bincode",
  "color-eyre",
  "config 0.11.0",
  "ethers",
