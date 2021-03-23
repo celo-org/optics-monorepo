@@ -15,14 +15,22 @@ trap 'abort' 0
 
 set -e
 git update-index -q --refresh
-if ! git diff-index --quiet HEAD -- ./solidity; then
+if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
     cd solidity/optics-core
     npm test
     npm run lint
-    cd ../optics-bridge
+    cd ../..
+fi
+
+if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
+    cd solidity/optics-bridge
     npm test
     npm run lint
-    cd ../optics-governance
+    cd ../..
+fi
+
+if ! git diff-index --quiet HEAD -- ./solidity/optics-governance; then
+    cd solidity/optics-governance
     npm test
     npm run lint
     cd ../..
