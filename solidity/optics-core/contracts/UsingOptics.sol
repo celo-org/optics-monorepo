@@ -50,7 +50,7 @@ abstract contract UsingOptics is Ownable {
         return home.originDomain();
     }
 
-    function homeEnqueue(
+    function enqueueHome(
         uint32 _destination,
         bytes32 _recipient,
         bytes memory _body

@@ -47,8 +47,27 @@ contract TokenRegistry is Ownable {
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
 
+    // Map the local address to the token ID.
+    mapping(address => TokenId) internal reprToCanonical;
+
+    // Map the hash of the tightly-packed token ID to the address
+    // of the local representation.
+    //
+    // If the token is native, this MUST be address(0).
+    mapping(bytes32 => address) internal canonicalToRepr;
+
+    constructor(address _usingOptics) Ownable() {
+        tokenTemplate = address(new BridgeToken());
+        setUsingOptics(_usingOptics);
+    }
+
     modifier onlyReplica() {
         require(usingOptics.isReplica(msg.sender), "!replica");
+        _;
+    }
+
+    modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
+        _view.assertType(uint40(_t));
         _;
     }
 
@@ -70,32 +89,12 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    // lookup tables for tokens.
-
-    // Map the local address to the token ID.
-    mapping(address => TokenId) internal reprToCanonical;
-
-    // Map the hash of the tightly-packed token ID to the address
-    // of the local representation.
-    //
-    // If the token is native, this MUST be address(0).
-    mapping(bytes32 => address) internal canonicalToRepr;
-
-    constructor() {
-        tokenTemplate = address(new BridgeToken());
-    }
-
     function setUsingOptics(address _usingOptics) public onlyOwner {
         usingOptics = UsingOptics(_usingOptics);
     }
 
     function setTemplate(address _newTemplate) external onlyOwner {
         tokenTemplate = _newTemplate;
-    }
-
-    modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
-        _view.assertType(uint40(_t));
-        _;
     }
 
     function downcast(IERC20 _token) internal pure returns (BridgeTokenI) {
