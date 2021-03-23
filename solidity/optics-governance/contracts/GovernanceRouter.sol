@@ -46,14 +46,15 @@ contract GovernanceRouter is OpticsHandlerI {
     /*
     --- CONSTRUCTOR ---
     */
-
-    constructor() {
+    constructor(address _usingOptics) {
         address _governor = msg.sender;
 
         uint32 _localDomain = localDomain();
         bool _isLocalDomain = true;
 
         _transferGovernor(_localDomain, _governor, _isLocalDomain);
+
+        setUsingOptics(_usingOptics);
     }
 
     /*
@@ -63,7 +64,7 @@ contract GovernanceRouter is OpticsHandlerI {
         require(usingOptics.isReplica(msg.sender), "!replica");
         _;
     }
-    
+
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
@@ -215,7 +216,7 @@ contract GovernanceRouter is OpticsHandlerI {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        usingOptics.homeEnqueue(_destination, _router, _msg);
+        usingOptics.enqueueHome(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -256,7 +257,7 @@ contract GovernanceRouter is OpticsHandlerI {
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                usingOptics.homeEnqueue(domains[i], routers[domains[i]], _msg);
+                usingOptics.enqueueHome(domains[i], routers[domains[i]], _msg);
             }
         }
     }
