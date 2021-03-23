@@ -31,8 +31,6 @@
   "author": "Anna Carroll",
   "license": "MIT OR Apache-2.0",
   "dependencies": {
-    "@celo-org/optics-sol": "file:../optics-core",
-    "@openzeppelin/contracts": "^3.4.0",
-    "@summa-tx/memview-sol": "^1.1.1"
+    "@openzeppelin/contracts": "^3.4.0"
   }
 }
