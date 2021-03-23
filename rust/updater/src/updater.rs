@@ -158,6 +158,12 @@ impl OpticsAgent for Updater<LocalWallet> {
         let signer = self.signer.clone();
         let db = Arc::new(RwLock::new(db::from_path(self.db_path.clone())));
 
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = Arc::new(RwLock::new(
+            DB::open(&opts, self.db_path).expect("Couldn't open db path"),
+        ));
+
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
             ensure!(
@@ -190,6 +196,7 @@ impl OpticsAgent for Updater<LocalWallet> {
 
 #[cfg(test)]
 mod test {
+    use rocksdb::{Options, DB};
     use std::sync::Arc;
     use tokio::sync::RwLock;
 
