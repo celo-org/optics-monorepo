@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -38,10 +39,7 @@ contract UpgradeBeaconProxy {
         payable
     {
         // Validate the Upgrade Beacon is a contract
-        require(
-            Address.isContract(_upgradeBeacon),
-            "beacon !contract"
-        );
+        require(Address.isContract(_upgradeBeacon), "beacon !contract");
 
         // set the Upgrade Beacon
         upgradeBeacon = _upgradeBeacon;

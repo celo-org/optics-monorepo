@@ -2,16 +2,54 @@
 
 pragma solidity >=0.6.11;
 
-//TODO: do private functions have the whole function selector thingy gas usage??
+import "@openzeppelin/contracts/utils/Address.sol";
 
+/**
+ * @title UpgradeBeacon
+ *
+ * @notice
+ * This contract stores the address of an implementation contract
+ * and allows the controller to change the implementation address
+ *
+ * This implementation combines the gas savings of having no function selectors
+ * found in 0age's implementation:
+ * https://github.com/dharma-eng/dharma-smart-wallet/blob/master/contracts/proxies/smart-wallet/UpgradeBeaconProxyV1.sol
+ * With the added niceties of a safety check that each implementation is a contract
+ * and an Upgrade event emitted each time the implementation is changed
+ * found in OpenZeppelin's implementation:
+ * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/beacon/BeaconProxy.sol
+ */
 contract UpgradeBeacon {
     // The implementation address is held in storage slot zero.
     address private implementation;
+    //The controller is capable of modifying the implementation address
     address private immutable controller;
 
-    constructor(address _controller, address _initialImplementation) payable {
+    // Upgrade event is emitted each time the implementation address is set
+    // (including deployment)
+    event Upgrade(address indexed implementation);
+
+    /**
+     * @notice Validate that the initial implementation is a contract,
+     * then store it in the contract.
+     * Validate that the controller is also a contract,
+     * Then store it immutably in this contract.
+     *
+     * Note: it is opinionated to force the controller to be a contract address;
+     * theoretically an EOA could hold permissions to Upgrade the implementation
+     * however, given the sensitive nature of this role - it can change
+     * the implementation of any Proxy contract pointing to this Beacon -
+     * we require that the contoller is at least a multisig contract
+     *
+     * @param _initialImplementation - Address of the initial implementation contract
+     * @param _controller - Address of the controller to be stored immutably in the contract
+     */
+    constructor(address _initialImplementation, address _controller) payable {
+        _setImplementation(_initialImplementation);
+
+        require(Address.isContract(_controller), "controller !contract");
+
         controller = _controller;
-        implementation = _initialImplementation;
     }
 
     /**
@@ -29,15 +67,34 @@ contract UpgradeBeacon {
                 return(0, 32)
             }
         } else {
-            // Set implementation - put first word in calldata in storage slot zero.
+            // Load new implementation from the first word of the calldata
+            address _newImplementation;
             assembly {
-                sstore(0, calldataload(0))
+                _newImplementation := calldataload(0)
             }
+
+            _setImplementation(_newImplementation);
         }
     }
 
-    //TODO: do we need to have a receive here???
-    //    receive () external payable {
-    //        _fallback();
-    //    }
+    /**
+     * @notice Perform checks on the new implementation address
+     * then upgrade the stored implementation.
+     *
+     * @param _newImplementation - Address of the new implementation contract which will replace the old one
+     */
+    function _setImplementation(address _newImplementation) private {
+        // Require that the new implementation is different from the current one
+        require(implementation != _newImplementation, "!upgrade");
+
+        // Require that the new implementation is a contract
+        require(
+            Address.isContract(_newImplementation),
+            "implementation !contract"
+        );
+
+        implementation = _newImplementation;
+
+        emit Upgrade(_newImplementation);
+    }
 }
