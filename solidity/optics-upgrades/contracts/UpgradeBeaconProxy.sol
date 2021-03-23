@@ -1,64 +1,82 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.6.11;
 
-/**
- * @title UpgradeBeaconProxyV1
- * @author 0age
- * @notice This contract delegates all logic, including initialization, to an
- * implementation contract specified by a hard-coded "upgrade beacon" contract.
- * Note that this implementation can be reduced in size by stripping out the
- * metadata hash, or even more significantly by using a minimal upgrade beacon
- * proxy implemented using raw EVM opcodes.
- */
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
-
-From OpenZeppelin Proxy.sol:
- * @dev This abstract contract provides a fallback function that delegates all calls to another contract using the EVM
- * instruction `delegatecall`. We refer to the second contract as the _implementation_ behind the proxy, and it has to
- * be specified by overriding the virtual {_implementation} function.
+ * @title UpgradeBeaconProxy
  *
- * Additionally, delegation to the implementation can be triggered manually through the {_fallback} function, or to a
- * different contract through the {_delegate} function.
+ * @notice
+ * This contract delegates all logic, including initialization, to an implementation contract.
+ * The implementation contract is stored within the Upgrade Beacon contract;
+ * the implementation contract can be changed by performing an upgrade on the Upgrade Beacon contract.
+ * The Upgrade Beacon contract for this Proxy is immutably specified at deployment.
  *
- * The success and return data of the delegated call will be returned back to the caller of the proxy.
+ * This implementation combines the gas savings of keeping the UpgradeBeacon address outside of contract storage
+ * found in 0age's implementation:
+ * https://github.com/dharma-eng/dharma-smart-wallet/blob/master/contracts/proxies/smart-wallet/UpgradeBeaconProxyV1.sol
+ * With the added safety checks that the UpgradeBeacon and implementation are contracts at time of deployment
+ * found in OpenZeppelin's implementation:
+ * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/beacon/BeaconProxy.sol
  */
-contract UpgradeBeaconProxyV1 {
-    //TODO: upgrade beacon address should be an immutable constant set at deployment
-    // TODO: we should perform the validation checks that OpenZeppelin performs on their Beacon Proxy at deployment
-    // Set upgrade beacon address as a constant (i.e. not in contract storage).
+contract UpgradeBeaconProxy {
+    // Upgrade Beacon address is immutable (therefore not kept in contract storage)
     address private immutable upgradeBeacon;
 
     /**
-     * @notice
-     * Perform initialization via delegatecall to the
-     * implementation set on the upgrade beacon, supplying initialization calldata
-     * as a constructor argument. The deployment will revert and pass along the
-     * revert reason in the event that this initialization delegatecall reverts.
-     * @param _initializationCalldata Calldata to supply when performing the
-     * initialization delegatecall.
+     * @notice Validate that the Upgrade Beacon is a contract, then set its
+     * address immutably within this contract.
+     * Validate that the implementation is also a contract,
+     * Then call the initialization function defined at the implementation.
+     * The deployment will revert and pass along the
+     * revert reason if the initialization function reverts.
+     *
+     * @param _upgradeBeacon - Address of the Upgrade Beacon to be stored immutably in the contract
+     * @param _initializationCalldata - Calldata supplied when calling the initialization function
      */
     constructor(address _upgradeBeacon, bytes memory _initializationCalldata)
         payable
     {
+        // Validate the Upgrade Beacon is a contract
+        require(
+            Address.isContract(_upgradeBeacon),
+            "beacon !contract"
+        );
+
+        // set the Upgrade Beacon
         upgradeBeacon = _upgradeBeacon;
 
-        //TODO: everything below is calling the initialization function on the implementation -- doesn't feel necessary or logically clean
-        // Get the current implementation address from the upgrade beacon.
-        (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
+        // Validate the implementation is a contract
+        address implementation = _implementation(_upgradeBeacon);
 
-        // Revert and pass along revert message if call to upgrade beacon reverts.
-        require(ok, string(returnData));
+        require(
+            Address.isContract(implementation),
+            "beacon implementation !contract"
+        );
 
-        // Set the implementation to the address returned from the upgrade beacon.
-        address implementation = abi.decode(returnData, (address));
+        // Call the initialization function on the implementation
+        if (_initializationCalldata.length > 0) {
+            _initialize(implementation, _initializationCalldata);
+        }
+    }
 
+    /**
+     * @notice Call the initialization function on the implementation
+     * Used at deployment to initialize the proxy
+     * based on the logic for initialization defined at the implementation
+     *
+     * @param implementation - Contract to which the initalization is delegated
+     * @param _initializationCalldata - Calldata supplied when calling the initialization function
+     */
+    function _initialize(
+        address implementation,
+        bytes memory _initializationCalldata
+    ) private {
         // Delegatecall into the implementation, supplying initialization calldata.
-        (bool okTwo, ) = implementation.delegatecall(_initializationCalldata);
+        (bool ok, ) = implementation.delegatecall(_initializationCalldata);
 
         // Revert and include revert data if delegatecall to implementation reverts.
-        if (!okTwo) {
+        if (!ok) {
             assembly {
                 returndatacopy(0, 0, returndatasize())
                 revert(0, returndatasize())
@@ -67,38 +85,52 @@ contract UpgradeBeaconProxyV1 {
     }
 
     /**
-     * @dev Runs calls with data - no other public functions are declared on the contract, so fallback is always hit
+     * @notice Forwards all calls with data to _fallback()
+     * No public functions are declared on the contract, so all calls hit fallback
      */
     fallback() external payable {
         _fallback();
     }
 
     /**
-     * @dev Runs for calls with no data
+     * @notice Forwards all calls with no data to _fallback()
      */
     receive() external payable {
         _fallback();
     }
 
     /**
-     * @dev Delegates calls to the implementation returned by the Upgrade Beacon
+     * @notice Delegates function calls to the implementation contract returned by the Upgrade Beacon
      */
-    function _fallback() internal {
+    function _fallback() private {
         _delegate(_implementation());
     }
 
     /**
-
-     TODO: documentation
-     * @notice Private view function to get the current implementation from the
-     * upgrade beacon. This is accomplished via a staticcall to the beacon with no
-     * data, and the beacon will return an abi-encoded implementation address.
-     * @return implementation Address of the implementation.
+     * @notice Call the Upgrade Beacon to get the current implementation contract address
+     *
+     * @return implementation - Address of the current implementation.
      */
     function _implementation() private view returns (address implementation) {
-        //TODO: update how we get _UPGRADE_BEACON address if we are setting it at deployment
+        return _implementation(upgradeBeacon);
+    }
+
+    /**
+     * @notice Call the Upgrade Beacon to get the current implementation contract address
+     *
+     * Note: we pass in the _upgradeBeacon so we can also use this function at
+     * deployment, when the upgradeBeacon variable hasn't been set yet.
+     *
+     * @param _upgradeBeacon - Address of the UpgradeBeacon storing the current implementation
+     * @return implementation - Address of the current implementation.
+     */
+    function _implementation(address _upgradeBeacon)
+        private
+        view
+        returns (address implementation)
+    {
         // Get the current implementation address from the upgrade beacon.
-        (bool ok, bytes memory returnData) = upgradeBeacon.staticcall(""); //TODO: at upgrade beacon we are calling with no data because there is only one fallback function that behaves differently for admin vs. caller
+        (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
 
         // Revert and pass along revert message if call to upgrade beacon reverts.
         require(ok, string(returnData));
@@ -108,15 +140,14 @@ contract UpgradeBeaconProxyV1 {
     }
 
     /**
-     * @notice
-
-     TODO: documentation
-     Private function that delegates execution to an implementation
-     * contract. This is a low level function that doesn't return to its internal
+     * @notice Delegate function execution to the implementation contract
+     *
+     * This is a low level function that doesn't return to its internal
      * call site. It will return whatever is returned by the implementation to the
      * external caller, reverting and returning the revert data if implementation
      * reverts.
-     * @param implementation Address to delegate.
+     *
+     * @param implementation - Address to which the function execution is delegated
      */
     function _delegate(address implementation) private {
         assembly {
