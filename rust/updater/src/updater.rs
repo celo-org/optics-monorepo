@@ -161,7 +161,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         let mut opts = Options::default();
         opts.create_if_missing(true);
         let db = Arc::new(RwLock::new(
-            DB::open(&opts, self.db_path).expect("Couldn't open db path"),
+            DB::open(&opts, self.db_path.clone()).expect("Couldn't open db path"),
         ));
 
         tokio::spawn(async move {
