@@ -1,5 +1,6 @@
 require('hardhat-gas-reporter');
 require('solidity-coverage');
+require('@nomiclabs/hardhat-waffle');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
