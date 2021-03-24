@@ -4,7 +4,7 @@ use color_eyre::{
     Result,
 };
 use futures_util::future::select_all;
-use rocksdb::DB;
+use rocksdb::{Options, DB};
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::{oneshot::channel, RwLock},
@@ -168,7 +168,11 @@ impl OpticsAgent for Processor {
         let (_tx, rx) = channel();
         let interval_seconds = self.interval_seconds;
 
-        let sync = ProverSync::new(self.prover.clone(), self.home(), self.db.clone(), rx);
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+        let db = DB::open(&opts, "db_path").expect("Failed to open db path");
+
+        let sync = ProverSync::new(self.prover.clone(), self.home(), db, rx);
         let sync_task = tokio::spawn(async move {
             sync.poll_updates(interval_seconds)
                 .await
