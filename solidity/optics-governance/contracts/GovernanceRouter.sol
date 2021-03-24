@@ -22,9 +22,9 @@ contract GovernanceRouter is OpticsHandlerI {
     */
     UsingOptics public usingOptics;
 
+    uint32 immutable localDomain;
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
-    uint32 immutable localDomain;
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
@@ -48,17 +48,17 @@ contract GovernanceRouter is OpticsHandlerI {
     --- CONSTRUCTOR ---
     */
     constructor(address _usingOptics) {
-        address _governor = msg.sender;
+        setUsingOptics(_usingOptics);
 
         // immutable state variables cannot be accessed within the constructor, so we set this variable for use
         // in _transferGovernor
         uint32 _localDomain = usingOptics.originDomain();
-        localDomain = _localDomain;
+        address _governor = msg.sender;
         bool _isLocalDomain = true;
 
-        _transferGovernor(_localDomain, _governor, _isLocalDomain);
+        localDomain = _localDomain;
 
-        setUsingOptics(_usingOptics);
+        _transferGovernor(_localDomain, _governor, _isLocalDomain);
     }
 
     /*
