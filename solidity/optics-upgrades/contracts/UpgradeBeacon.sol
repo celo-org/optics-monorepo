@@ -35,19 +35,11 @@ contract UpgradeBeacon {
      * Validate that the controller is also a contract,
      * Then store it immutably in this contract.
      *
-     * Note: it is opinionated to force the controller to be a contract address;
-     * theoretically an EOA could hold permissions to Upgrade the implementation
-     * however, given the sensitive nature of this role - it can change
-     * the implementation of any Proxy contract pointing to this Beacon -
-     * we require that the contoller is at least a multisig contract
-     *
      * @param _initialImplementation - Address of the initial implementation contract
      * @param _controller - Address of the controller to be stored immutably in the contract
      */
     constructor(address _initialImplementation, address _controller) payable {
         _setImplementation(_initialImplementation);
-
-        require(Address.isContract(_controller), "controller !contract");
 
         controller = _controller;
     }
