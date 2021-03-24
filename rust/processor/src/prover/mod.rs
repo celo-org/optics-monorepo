@@ -13,7 +13,7 @@ use optics_core::accumulator::{
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
 /// elements.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
