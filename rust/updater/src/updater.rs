@@ -22,7 +22,7 @@ use crate::settings::Settings;
 #[derive(Debug)]
 pub struct Updater<S> {
     signer: Arc<S>,
-    db_path: &'static str,
+    db_path: String,
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
@@ -39,10 +39,16 @@ where
     S: Signer + 'static,
 {
     /// Instantiate a new updater
-    pub fn new(signer: S, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
+    pub fn new(
+        signer: S,
+        db_path: String,
+        interval_seconds: u64,
+        update_pause: u64,
+        core: AgentCore,
+    ) -> Self {
         Self {
             signer: Arc::new(signer),
-            db_path: "db_path",
+            db_path,
             interval_seconds,
             update_pause,
             core,
@@ -124,6 +130,7 @@ impl OpticsAgent for Updater<LocalWallet> {
     {
         Ok(Self::new(
             settings.updater.try_into_wallet()?,
+            settings.db_path.clone(),
             settings.polling_interval,
             settings.update_pause,
             settings.as_ref().try_into_core().await?,
@@ -141,7 +148,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         let mut opts = Options::default();
         opts.create_if_missing(true);
         let db = Arc::new(RwLock::new(
-            DB::open(&opts, self.db_path).expect("Couldn't open db path"),
+            DB::open(&opts, self.db_path.clone()).expect("Couldn't open db path"),
         ));
 
         tokio::spawn(async move {
