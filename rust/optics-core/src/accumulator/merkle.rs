@@ -1,7 +1,6 @@
 use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
-use serde::{Serialize, Deserialize};
 
 use crate::accumulator::{hash_concat, EMPTY_SLICE, TREE_DEPTH, ZERO_HASHES};
 
@@ -25,7 +24,7 @@ lazy_static! {
 ///
 /// Efficiently represents a Merkle tree of fixed depth where only the first N
 /// indices are populated by non-zero leaves (perfect for the deposit contract tree).
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum MerkleTree {
     /// Leaf node with the hash of its content.
     Leaf(H256),
