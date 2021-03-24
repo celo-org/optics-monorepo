@@ -1,4 +1,5 @@
 polling_interval = 100
+db_path = "db_path"
 
 [tracing]
 level = "debug"

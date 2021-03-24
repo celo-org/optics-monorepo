@@ -4,6 +4,8 @@ use crate::accumulator::{
 };
 
 use ethers::core::types::H256;
+use rocksdb::DB;
+use std::convert::TryInto;
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
@@ -63,6 +65,24 @@ impl Default for Prover {
 }
 
 impl Prover {
+    /// Given rocksdb handle `db` containing merkle tree leaves,
+    /// instantiates new prover and fills prover's merkle tree
+    pub fn from_disk(db: &DB) -> Self {
+        let mut prover = Self::default();
+        let mut key: usize = 0;
+
+        // Ingest leaves loaded from disk until db stops returning leaves
+        while let Ok(Some(leaf)) = db.get(key.to_ne_bytes()) {
+            let leaf: [u8; 32] = leaf
+                .try_into()
+                .expect("Failed to convert on-disk leaf to [u8; 32]");
+            prover.ingest(leaf.into()).expect("!tree full");
+            key += 1;
+        }
+
+        prover
+    }
+
     /// Push a leaf to the tree. Appends it to the first unoccupied slot
     ///
     /// This will fail if the underlying tree is full.

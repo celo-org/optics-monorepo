@@ -23,7 +23,7 @@ pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Homes>,
     incremental: IncrementalMerkle,
-    db: DB,
+    db: Arc<DB>,
     rx: Receiver<()>,
 }
 
@@ -54,7 +54,12 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
+    pub fn new(
+        prover: Arc<RwLock<Prover>>,
+        home: Arc<Homes>,
+        db: Arc<DB>,
+        rx: Receiver<()>,
+    ) -> Self {
         Self {
             prover,
             home,
