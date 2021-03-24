@@ -7,6 +7,7 @@ use optics_core::{
     },
     traits::{ChainCommunicationError, Common, Home},
 };
+use rocksdb::DB;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{
@@ -22,6 +23,7 @@ pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Homes>,
     incremental: IncrementalMerkle,
+    db: DB,
     rx: Receiver<()>,
 }
 
@@ -52,11 +54,12 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, rx: Receiver<()>) -> Self {
+    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,
             incremental: IncrementalMerkle::default(),
+            db,
             rx,
         }
     }
@@ -121,8 +124,21 @@ impl ProverSync {
             return Ok(());
         }
 
-        prover.extend(leaves.into_iter());
+        // Save current index of prover tree before updating tree
+        let mut index = prover.count();
+
+        // Extend in-memory tree
+        let leaves = leaves.into_iter();
+        prover.extend(leaves.clone());
         assert_eq!(new_root, prover.root());
+
+        // If in-memory extension succeeded, write kv pairs to disk
+        for leaf in leaves {
+            self.db
+                .put(index.to_ne_bytes(), leaf)
+                .expect("Failed to write new leaf to disk");
+            index += 1;
+        }
 
         Ok(())
     }

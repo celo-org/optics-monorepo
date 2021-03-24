@@ -4,7 +4,6 @@ use crate::accumulator::{
 };
 
 use ethers::core::types::H256;
-use serde::{Serialize, Deserialize};
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
@@ -20,7 +19,7 @@ pub struct Proof {
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
 /// elements.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
