@@ -53,11 +53,10 @@ contract GovernanceRouter is OpticsHandlerI {
         // immutable state variables cannot be accessed within the constructor, so we set this variable for use
         // in _transferGovernor
         uint32 _localDomain = usingOptics.originDomain();
-        address _governor = msg.sender;
-        bool _isLocalDomain = true;
-
         localDomain = _localDomain;
 
+        address _governor = msg.sender;
+        bool _isLocalDomain = true;
         _transferGovernor(_localDomain, _governor, _isLocalDomain);
     }
 
