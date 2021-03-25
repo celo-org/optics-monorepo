@@ -383,7 +383,7 @@ mod test {
 
     use optics_base::utils;
     use optics_core::{traits::DoubleUpdate, Update};
-    use optics_test::mocks::MockHomeContract;
+    use optics_test::{mocks::MockHomeContract, test_utils};
 
     use super::*;
 
@@ -519,67 +519,69 @@ mod test {
 
     #[tokio::test]
     async fn update_handler_detects_double_update() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
 
-        let first_root = H256::from([1; 32]);
-        let second_root = H256::from([2; 32]);
-        let third_root = H256::from([3; 32]);
-        let bad_third_root = H256::from([4; 32]);
+            let first_root = H256::from([1; 32]);
+            let second_root = H256::from([2; 32]);
+            let third_root = H256::from([3; 32]);
+            let bad_third_root = H256::from([4; 32]);
 
-        let first_update = Update {
-            origin_domain: 1,
-            previous_root: first_root,
-            new_root: second_root,
-        }
-        .sign_with(&signer)
+            let first_update = Update {
+                origin_domain: 1,
+                previous_root: first_root,
+                new_root: second_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            let second_update = Update {
+                origin_domain: 1,
+                previous_root: second_root,
+                new_root: third_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            let bad_second_update = Update {
+                origin_domain: 1,
+                previous_root: second_root,
+                new_root: bad_third_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            {
+                let (_tx, rx) = mpsc::channel(200);
+                let mut handler = UpdateHandler {
+                    rx,
+                    db: Arc::new(db),
+                    home: Arc::new(MockHomeContract::new().into()),
+                };
+
+                let _first_update_ret = handler
+                    .check_double_update(&first_update)
+                    .expect("Update should have been valid");
+
+                let _second_update_ret = handler
+                    .check_double_update(&second_update)
+                    .expect("Update should have been valid");
+
+                let bad_second_update_ret = handler
+                    .check_double_update(&bad_second_update)
+                    .expect_err("Update should have been invalid");
+                assert_eq!(
+                    bad_second_update_ret,
+                    DoubleUpdate(second_update, bad_second_update)
+                );
+            }
+        })
         .await
-        .expect("!sign");
-
-        let second_update = Update {
-            origin_domain: 1,
-            previous_root: second_root,
-            new_root: third_root,
-        }
-        .sign_with(&signer)
-        .await
-        .expect("!sign");
-
-        let bad_second_update = Update {
-            origin_domain: 1,
-            previous_root: second_root,
-            new_root: bad_third_root,
-        }
-        .sign_with(&signer)
-        .await
-        .expect("!sign");
-
-        {
-            let (_tx, rx) = mpsc::channel(200);
-            let mut handler = UpdateHandler {
-                rx,
-                db: Arc::new(utils::open_db(String::from("mock_db"))),
-                home: Arc::new(MockHomeContract::new().into()),
-            };
-
-            let _first_update_ret = handler
-                .check_double_update(&first_update)
-                .expect("Update should have been valid");
-
-            let _second_update_ret = handler
-                .check_double_update(&second_update)
-                .expect("Update should have been valid");
-
-            let bad_second_update_ret = handler
-                .check_double_update(&bad_second_update)
-                .expect_err("Update should have been invalid");
-            assert_eq!(
-                bad_second_update_ret,
-                DoubleUpdate(second_update, bad_second_update)
-            );
-        }
-        let _ = DB::destroy(&Options::default(), "mock_db");
     }
 }
