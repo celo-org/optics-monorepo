@@ -25,9 +25,6 @@ pub mod utils;
 #[macro_use]
 pub mod macros;
 
-/// Utility functions
-pub mod utils;
-
 /// Home type
 pub mod home;
 
