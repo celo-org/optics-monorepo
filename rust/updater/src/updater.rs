@@ -101,6 +101,11 @@ where
                         // If successfully submitted update, record in db
                         match home.update(&signed).await {
                             Ok(_) => {
+                                let mut signed_bytes = Vec::new();
+                                signed
+                                    .write_to(&mut signed_bytes)
+                                    .expect("Failed to write signed update to buffer");
+
                                 db_write
                                     .put(old_root, signed.to_vec())
                                     .expect("Failed to write signed update to disk");
