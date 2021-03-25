@@ -2846,6 +2846,7 @@ name = "watcher"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "bincode",
  "color-eyre",
  "config 0.10.1",
  "ethers",
@@ -2854,6 +2855,7 @@ dependencies = [
  "optics-base",
  "optics-core",
  "optics-test",
+ "rocksdb",
  "serde 1.0.123",
  "serde_json",
  "thiserror",

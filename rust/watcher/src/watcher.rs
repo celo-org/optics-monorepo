@@ -7,6 +7,7 @@ use thiserror::Error;
 
 use ethers::core::types::H256;
 use futures_util::future::join_all;
+use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::{mpsc, RwLock},
@@ -18,6 +19,7 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
     home::Homes,
+    utils,
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
@@ -176,32 +178,39 @@ where
 #[derive(Debug)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    history: HashMap<H256, SignedUpdate>,
+    db: Arc<DB>,
     home: Arc<Homes>,
 }
 
 impl UpdateHandler {
-    pub fn new(
-        rx: mpsc::Receiver<SignedUpdate>,
-        history: HashMap<H256, SignedUpdate>,
-        home: Arc<Homes>,
-    ) -> Self {
-        Self { rx, history, home }
+    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: Arc<DB>, home: Arc<Homes>) -> Self {
+        Self { rx, db, home }
     }
 
     fn check_double_update(&mut self, update: &SignedUpdate) -> Result<(), DoubleUpdate> {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        #[allow(clippy::map_entry)]
-        if !self.history.contains_key(&old_root) {
-            self.history.insert(old_root, update.to_owned());
-            return Ok(());
-        }
+        let existing = self
+            .db
+            .get(old_root)
+            .expect("Error fetching update from db");
 
-        let existing = self.history.get(&old_root).expect("!contains");
-        if existing.update.new_root != new_root {
-            return Err(DoubleUpdate(existing.to_owned(), update.to_owned()));
+        match existing {
+            Some(existing_bytes) => {
+                let existing: SignedUpdate = bincode::deserialize(existing_bytes.as_ref())
+                    .expect("Failed to deserialize existing update");
+
+                if existing.update.new_root != new_root {
+                    return Err(DoubleUpdate(existing, update.to_owned()));
+                }
+            }
+            None => {
+                self.db
+                    .put(old_root, bincode::serialize(update).unwrap())
+                    .expect("Failed to insert new update into db");
+                return Ok(());
+            }
         }
 
         Ok(())
@@ -237,6 +246,7 @@ decl_agent!(
     /// A watcher agent
     Watcher {
         interval_seconds: u64,
+        db: Arc<DB>,
         sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
         watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     }
@@ -245,9 +255,10 @@ decl_agent!(
 #[allow(clippy::unit_arg)]
 impl Watcher {
     /// Instantiate a new watcher.
-    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
+    pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
         Self {
             interval_seconds,
+            db: Arc::new(utils::open_db(db_path)),
             core,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),
@@ -296,6 +307,7 @@ impl OpticsAgent for Watcher {
     {
         Ok(Self::new(
             settings.polling_interval,
+            settings.db_path.clone(),
             settings.as_ref().try_into_core().await?,
         ))
     }
@@ -310,7 +322,7 @@ impl OpticsAgent for Watcher {
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let (tx, rx) = mpsc::channel(200);
-        let handler = UpdateHandler::new(rx, Default::default(), self.home()).spawn();
+        let handler = UpdateHandler::new(rx, self.db.clone(), self.home()).spawn();
 
         for name in replicas.iter() {
             let replica = self
@@ -367,7 +379,9 @@ mod test {
 
     use ethers::core::types::H256;
     use ethers::signers::LocalWallet;
+    use rocksdb::{Options, DB};
 
+    use optics_base::utils;
     use optics_core::{traits::DoubleUpdate, Update};
     use optics_test::mocks::MockHomeContract;
 
@@ -542,27 +556,30 @@ mod test {
         .await
         .expect("!sign");
 
-        let (_tx, rx) = mpsc::channel(200);
-        let mut handler = UpdateHandler {
-            rx,
-            history: Default::default(),
-            home: Arc::new(MockHomeContract::new().into()),
-        };
+        {
+            let (_tx, rx) = mpsc::channel(200);
+            let mut handler = UpdateHandler {
+                rx,
+                db: Arc::new(utils::open_db(String::from("mock_db"))),
+                home: Arc::new(MockHomeContract::new().into()),
+            };
 
-        let _first_update_ret = handler
-            .check_double_update(&first_update)
-            .expect("Update should have been valid");
+            let _first_update_ret = handler
+                .check_double_update(&first_update)
+                .expect("Update should have been valid");
 
-        let _second_update_ret = handler
-            .check_double_update(&second_update)
-            .expect("Update should have been valid");
+            let _second_update_ret = handler
+                .check_double_update(&second_update)
+                .expect("Update should have been valid");
 
-        let bad_second_update_ret = handler
-            .check_double_update(&bad_second_update)
-            .expect_err("Update should have been invalid");
-        assert_eq!(
-            bad_second_update_ret,
-            DoubleUpdate(second_update, bad_second_update)
-        );
+            let bad_second_update_ret = handler
+                .check_double_update(&bad_second_update)
+                .expect_err("Update should have been invalid");
+            assert_eq!(
+                bad_second_update_ret,
+                DoubleUpdate(second_update, bad_second_update)
+            );
+        }
+        let _ = DB::destroy(&Options::default(), "mock_db");
     }
 }
