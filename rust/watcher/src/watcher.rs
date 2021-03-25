@@ -23,7 +23,7 @@ use optics_base::{
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
-    SignedUpdate,
+    Decode, Encode, SignedUpdate,
 };
 
 use crate::settings::Settings;
@@ -198,16 +198,21 @@ impl UpdateHandler {
 
         match existing {
             Some(existing_bytes) => {
-                let existing: SignedUpdate = bincode::deserialize(existing_bytes.as_ref())
-                    .expect("Failed to deserialize existing update");
+                let existing = SignedUpdate::read_from(&mut &existing_bytes[..])
+                    .expect("Failed to deserialize signed update bytes");
 
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
+                let mut update_bytes = Vec::new();
+                update
+                    .write_to(&mut update_bytes)
+                    .expect("Failed to write update to buffer");
+
                 self.db
-                    .put(old_root, bincode::serialize(update).unwrap())
+                    .put(old_root, update_bytes)
                     .expect("Failed to insert new update into db");
                 return Ok(());
             }
@@ -379,9 +384,7 @@ mod test {
 
     use ethers::core::types::H256;
     use ethers::signers::LocalWallet;
-    use rocksdb::{Options, DB};
 
-    use optics_base::utils;
     use optics_core::{traits::DoubleUpdate, Update};
     use optics_test::{mocks::MockHomeContract, test_utils};
 
