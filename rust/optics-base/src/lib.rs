@@ -17,6 +17,9 @@ pub mod settings;
 /// Base trait for an agent
 pub mod agent;
 
+/// Utility functions
+pub mod utils;
+
 #[doc(hidden)]
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]

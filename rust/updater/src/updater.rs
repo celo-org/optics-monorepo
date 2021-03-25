@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
-use rocksdb::{Options, DB};
+use rocksdb::DB;
 use tokio::{
     sync::RwLock,
     task::JoinHandle,
@@ -13,6 +13,7 @@ use tokio::{
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     home::Homes,
+    utils,
 };
 use optics_core::traits::{Common, Home};
 
@@ -144,12 +145,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         let mut interval = self.interval();
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        let db = Arc::new(RwLock::new(
-            DB::open(&opts, self.db_path.clone()).expect("Couldn't open db path"),
-        ));
+        let db = Arc::new(RwLock::new(utils::open_db(self.db_path.clone())));
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
@@ -216,12 +212,7 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        let db = Arc::new(RwLock::new(
-            DB::open(&opts, "mock_db_1").expect("Failed to open db"),
-        ));
+        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_1"))));
 
         Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
@@ -284,12 +275,7 @@ mod test {
             });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        let db = Arc::new(RwLock::new(
-            DB::open(&opts, "mock_db_2").expect("Failed to open db"),
-        ));
+        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_2"))));
 
         let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
@@ -353,12 +339,7 @@ mod test {
         });
 
         let mut home: Arc<Homes> = Arc::new(mock_home.into());
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        let db = Arc::new(RwLock::new(
-            DB::open(&opts, "mock_db_3").expect("Failed to open db"),
-        ));
+        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_3"))));
 
         let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
             .await
