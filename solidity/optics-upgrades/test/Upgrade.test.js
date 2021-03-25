@@ -74,13 +74,12 @@ describe('Upgrade', async () => {
   });
 
   it('Upgrades without problem', async () => {
-    //TODO: get upgrade working
-    const transaction = {
+    const upgradeTransaction = {
       to: upgradeBeacon.address,
-      data: implementation2.address,
+      data: ethers.utils.hexZeroPad(implementation2.address, 32),
     };
 
-    await signer.sendTransaction(transaction);
+    await signer.sendTransaction(upgradeTransaction);
   });
 
   it('Post-Upgrade returns version 2', async () => {
