@@ -190,7 +190,6 @@ impl OpticsAgent for Updater<LocalWallet> {
 
 #[cfg(test)]
 mod test {
-    use rocksdb::{Options, DB};
     use std::sync::Arc;
     use tokio::sync::RwLock;
 
