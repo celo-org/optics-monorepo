@@ -4,18 +4,18 @@ pragma solidity >=0.6.11;
 import {BridgeMessage} from "./BridgeMessage.sol";
 import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {BridgeTokenInterface} from "../interfaces/BridgeTokenInterface.sol";
+import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
 import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 import {
-    MessageRecipientInterface
-} from "@celo-org/optics-sol/interfaces/MessageReceipientInterface.sol";
+    MessageRecipientI
+} from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-contract BridgeRouter is MessageRecipientInterface, TokenRegistry {
+contract BridgeRouter is MessageRecipientI, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -140,7 +140,7 @@ contract BridgeRouter is MessageRecipientInterface, TokenRegistry {
 
     function updateDetails(address _token, uint32 _destination) external {
         bytes32 _remote = mustHaveRemote(_destination);
-        BridgeTokenInterface _tok = BridgeTokenInterface(_token);
+        BridgeTokenI _tok = BridgeTokenI(_token);
 
         TokenId memory _tokId = tokenIdFor(_token);
         bytes29 _tokenId =

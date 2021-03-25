@@ -5,9 +5,7 @@ import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import {
-    MessageRecipientInterface
-} from "../interfaces/MessageReceipientInterface.sol";
+import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
 
 /**
  * @title Replica
@@ -229,7 +227,7 @@ contract ProcessingReplica is Replica {
         // transparently return.
 
         try
-            MessageRecipientInterface(recipient).handle{gas: PROCESS_GAS}(
+            MessageRecipientI(recipient).handle{gas: PROCESS_GAS}(
                 _m.origin(),
                 _m.sender(),
                 payload
