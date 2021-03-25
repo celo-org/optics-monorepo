@@ -72,7 +72,7 @@ impl Prover {
         let mut key: usize = 0;
 
         // Ingest leaves loaded from disk until db stops returning leaves
-        while let Ok(Some(leaf)) = db.get(key.to_ne_bytes()) {
+        while let Ok(Some(leaf)) = db.get(key.to_be_bytes()) {
             let leaf: [u8; 32] = leaf
                 .try_into()
                 .expect("Failed to convert on-disk leaf to [u8; 32]");

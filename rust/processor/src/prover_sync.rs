@@ -140,7 +140,7 @@ impl ProverSync {
         // If in-memory extension succeeded, write kv pairs to disk
         for leaf in leaves {
             self.db
-                .put(index.to_ne_bytes(), leaf)
+                .put(index.to_be_bytes(), leaf)
                 .expect("Failed to write new leaf to disk");
             index += 1;
         }
