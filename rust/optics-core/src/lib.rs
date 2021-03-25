@@ -215,6 +215,29 @@ impl Encode for Update {
     }
 }
 
+impl Decode for Update {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let mut origin_domain = [0u8; 4];
+        reader.read_exact(&mut origin_domain)?;
+
+        let mut previous_root = H256::zero();
+        reader.read_exact(previous_root.as_mut())?;
+
+        let mut new_root = H256::zero();
+        reader.read_exact(new_root.as_mut())?;
+
+        Ok(Self {
+            origin_domain: u32::from_be_bytes(origin_domain),
+            previous_root,
+            new_root,
+        })
+    }
+}
+
 impl Update {
     fn signing_hash(&self) -> H256 {
         // sign:
@@ -264,6 +287,18 @@ impl Encode for SignedUpdate {
         written += self.update.write_to(writer)?;
         written += self.signature.write_to(writer)?;
         Ok(written)
+    }
+}
+
+impl Decode for SignedUpdate {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let update = Update::read_from(reader)?;
+        let signature = Signature::read_from(reader)?;
+        Ok(Self { update, signature })
     }
 }
 

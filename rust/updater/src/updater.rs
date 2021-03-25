@@ -15,7 +15,10 @@ use optics_base::{
     home::Homes,
     utils,
 };
-use optics_core::traits::{Common, Home};
+use optics_core::{
+    traits::{Common, Home},
+    Encode,
+};
 
 use crate::settings::Settings;
 
@@ -97,8 +100,13 @@ where
                         // If successfully submitted update, record in db
                         match home.update(&signed).await {
                             Ok(_) => {
+                                let mut signed_bytes = Vec::new();
+                                signed
+                                    .write_to(&mut signed_bytes)
+                                    .expect("Failed to write signed update to buffer");
+
                                 db_write
-                                    .put(old_root, bincode::serialize(&signed).unwrap())
+                                    .put(old_root, signed_bytes)
                                     .expect("Failed to write signed update to disk");
                             }
                             Err(ref e) => {
