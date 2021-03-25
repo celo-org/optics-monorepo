@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
 use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
-use rocksdb::{Options, DB};
+use rocksdb::DB;
 use futures_util::future::join;
 use tokio::{
     sync::RwLock,
@@ -150,12 +150,6 @@ impl OpticsAgent for Updater<LocalWallet> {
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
         let db = Arc::new(RwLock::new(utils::open_db(self.db_path.clone())));
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        let db = Arc::new(RwLock::new(
-            DB::open(&opts, self.db_path.clone()).expect("Couldn't open db path"),
-        ));
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
