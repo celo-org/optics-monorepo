@@ -187,7 +187,6 @@ impl OpticsAgent for Updater<LocalWallet> {
 
 #[cfg(test)]
 mod test {
-    use rocksdb::{Options, DB};
     use std::sync::Arc;
     use tokio::sync::RwLock;
 
@@ -196,171 +195,184 @@ mod test {
 
     use super::*;
     use optics_core::{traits::TxOutcome, SignedUpdate, Update};
-    use optics_test::mocks::MockHomeContract;
+    use optics_test::{mocks::MockHomeContract, test_utils};
 
     #[tokio::test]
     async fn ignores_empty_update() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
 
-        let mut mock_home = MockHomeContract::new();
-        // home.produce_update returns Ok(None)
-        mock_home
-            .expect__produce_update()
-            .return_once(move || Ok(None));
+            let mut mock_home = MockHomeContract::new();
+            // home.produce_update returns Ok(None)
+            mock_home
+                .expect__produce_update()
+                .times(1)
+                .return_once(move || Ok(None));
 
-        // Expect home.update to NOT be called
-        mock_home.expect__update().times(0).returning(|_| {
-            Ok(TxOutcome {
-                txid: H256::default(),
-                executed: true,
-            })
-        });
-
-        let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_1"))));
-
-        Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
-            .await
-            .expect("Should have returned Ok(())");
-
-        let _ = DB::destroy(&Options::default(), "mock_db_1");
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
-    }
-
-    #[tokio::test]
-    async fn polls_and_submits_update() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
-
-        let previous_root = H256::from([1; 32]);
-        let new_root = H256::from([2; 32]);
-
-        let update = Update {
-            origin_domain: 0,
-            previous_root,
-            new_root,
-        };
-        let signed_update = update.sign_with(&signer).await.expect("!sign");
-
-        let mut mock_home = MockHomeContract::new();
-
-        // home.produce_update called once and returns created update value
-        mock_home
-            .expect__produce_update()
-            .times(1)
-            .return_once(move || Ok(Some(update)));
-
-        // home.queue_contains called once and returns Ok(true)
-        mock_home
-            .expect__queue_contains()
-            .withf(move |r: &H256| *r == new_root)
-            .times(1)
-            .return_once(move |_| Ok(true));
-
-        // home.current_root called once and returns Ok(previous_root)
-        mock_home
-            .expect__current_root()
-            .times(1)
-            .return_once(move || Ok(previous_root));
-
-        // Expect home.update to be called once
-        mock_home
-            .expect__update()
-            .withf(move |s: &SignedUpdate| *s == signed_update)
-            .times(1)
-            .returning(|_| {
+            // Expect home.update to NOT be called
+            mock_home.expect__update().times(0).returning(|_| {
                 Ok(TxOutcome {
                     txid: H256::default(),
                     executed: true,
                 })
             });
 
-        let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_2"))));
+            let mut home: Arc<Homes> = Arc::new(mock_home.into());
+            Updater::poll_and_handle_update(
+                home.clone(),
+                Arc::new(signer),
+                Arc::new(RwLock::new(db)),
+                1,
+            )
+            .await
+            .expect("Should have returned Ok(())");
 
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
+            let mock_home = Arc::get_mut(&mut home).unwrap();
+            mock_home.checkpoint();
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn polls_and_submits_update() {
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
+
+            let previous_root = H256::from([1; 32]);
+            let new_root = H256::from([2; 32]);
+
+            let update = Update {
+                origin_domain: 0,
+                previous_root,
+                new_root,
+            };
+            let signed_update = update.sign_with(&signer).await.expect("!sign");
+
+            let mut mock_home = MockHomeContract::new();
+
+            // home.produce_update called once and returns created update value
+            mock_home
+                .expect__produce_update()
+                .times(1)
+                .return_once(move || Ok(Some(update)));
+
+            // home.queue_contains called once and returns Ok(true)
+            mock_home
+                .expect__queue_contains()
+                .withf(move |r: &H256| *r == new_root)
+                .times(1)
+                .return_once(move |_| Ok(true));
+
+            // home.current_root called once and returns Ok(previous_root)
+            mock_home
+                .expect__current_root()
+                .times(1)
+                .return_once(move || Ok(previous_root));
+
+            // Expect home.update to be called once
+            mock_home
+                .expect__update()
+                .withf(move |s: &SignedUpdate| *s == signed_update)
+                .times(1)
+                .returning(|_| {
+                    Ok(TxOutcome {
+                        txid: H256::default(),
+                        executed: true,
+                    })
+                });
+
+            let mut home: Arc<Homes> = Arc::new(mock_home.into());
+            let handle = Updater::poll_and_handle_update(
+                home.clone(),
+                Arc::new(signer),
+                Arc::new(RwLock::new(db)),
+                1,
+            )
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
 
-        handle
-            .await
-            .expect("poll_and_handle_update join handle errored on await");
+            handle
+                .await
+                .expect("poll_and_handle_update join handle errored on await");
 
-        let _ = DB::destroy(&Options::default(), "mock_db_2");
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
+            let mock_home = Arc::get_mut(&mut home).unwrap();
+            mock_home.checkpoint();
+        })
+        .await
     }
 
     #[tokio::test]
     async fn does_not_submit_update_after_bad_reorg() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
 
-        let previous_root = H256::from([1; 32]);
-        let new_root = H256::from([2; 32]);
+            let previous_root = H256::from([1; 32]);
+            let new_root = H256::from([2; 32]);
 
-        let update = Update {
-            origin_domain: 0,
-            previous_root,
-            new_root,
-        };
+            let update = Update {
+                origin_domain: 0,
+                previous_root,
+                new_root,
+            };
 
-        let mut mock_home = MockHomeContract::new();
+            let mut mock_home = MockHomeContract::new();
 
-        // home.produce_update called once and returns created update value
-        mock_home
-            .expect__produce_update()
-            .times(1)
-            .return_once(move || Ok(Some(update)));
+            // home.produce_update called once and returns created update value
+            mock_home
+                .expect__produce_update()
+                .times(1)
+                .return_once(move || Ok(Some(update)));
 
-        // home.queue_contains called once but returns false (reorg removed new
-        // root from history)
-        mock_home
-            .expect__queue_contains()
-            .withf(move |r: &H256| *r == new_root)
-            .times(1)
-            .return_once(move |_| Ok(false));
+            // home.queue_contains called once but returns false (reorg removed new
+            // root from history)
+            mock_home
+                .expect__queue_contains()
+                .withf(move |r: &H256| *r == new_root)
+                .times(1)
+                .return_once(move |_| Ok(false));
 
-        // home.current_root called once and returns Ok(previous_root)
-        mock_home
-            .expect__current_root()
-            .times(1)
-            .return_once(move || Ok(previous_root));
+            // home.current_root called once and returns Ok(previous_root)
+            mock_home
+                .expect__current_root()
+                .times(1)
+                .return_once(move || Ok(previous_root));
 
-        // Expect home.update NOT to be called
-        mock_home.expect__update().times(0).returning(|_| {
-            Ok(TxOutcome {
-                txid: H256::default(),
-                executed: true,
-            })
-        });
+            // Expect home.update NOT to be called
+            mock_home.expect__update().times(0).returning(|_| {
+                Ok(TxOutcome {
+                    txid: H256::default(),
+                    executed: true,
+                })
+            });
 
-        let mut home: Arc<Homes> = Arc::new(mock_home.into());
-        let db = Arc::new(RwLock::new(utils::open_db(String::from("mock_db_3"))));
-
-        let handle = Updater::poll_and_handle_update(home.clone(), Arc::new(signer), db, 1)
+            let mut home: Arc<Homes> = Arc::new(mock_home.into());
+            let handle = Updater::poll_and_handle_update(
+                home.clone(),
+                Arc::new(signer),
+                Arc::new(RwLock::new(db)),
+                1,
+            )
             .await
             .expect("poll_and_handle_update returned error")
             .expect("poll_and_handle_update should have returned Some(JoinHandle)");
 
-        handle
-            .await
-            .expect("poll_and_handle_update join handle errored on await");
+            handle
+                .await
+                .expect("poll_and_handle_update join handle errored on await");
 
-        let _ = DB::destroy(&Options::default(), "mock_db_3");
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
+            let mock_home = Arc::get_mut(&mut home).unwrap();
+            mock_home.checkpoint();
+        })
+        .await
     }
 }
