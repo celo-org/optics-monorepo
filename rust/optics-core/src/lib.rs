@@ -17,6 +17,9 @@ pub mod models;
 /// Async Traits for Homes & Replicas for use in applications
 pub mod traits;
 
+/// Testing utilities
+pub mod test_utils;
+
 mod utils;
 
 use ethers::{

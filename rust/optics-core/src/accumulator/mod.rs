@@ -4,18 +4,12 @@ pub mod incremental;
 /// A full incremental merkle. Suitable for running off-chain.
 pub mod merkle;
 
-/// A wrapper around an incremental and a full merkle, with added safety and
-/// convenience. Useful for producing proofs that either may verify.
-pub mod prover;
-
-/// Use the prover where possible :)
-pub use prover::{Prover, ProverError};
-
 use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use sha3::{Digest, Keccak256};
 
-const TREE_DEPTH: usize = 32;
+/// Tree depth
+pub const TREE_DEPTH: usize = 32;
 const EMPTY_SLICE: &[H256] = &[];
 
 pub(super) fn hash(preimage: impl AsRef<[u8]>) -> H256 {

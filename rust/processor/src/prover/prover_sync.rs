@@ -1,10 +1,8 @@
+use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
-use optics_base::home::Homes;
+use optics_base::{home::Homes, utils};
 use optics_core::{
-    accumulator::{
-        incremental::IncrementalMerkle,
-        prover::{Prover, ProverError},
-    },
+    accumulator::incremental::IncrementalMerkle,
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
@@ -139,8 +137,10 @@ impl ProverSync {
 
         // If in-memory extension succeeded, write kv pairs to disk
         for leaf in leaves {
+            let key = utils::db_key_from_leaf_index(index);
+
             self.db
-                .put(index.to_be_bytes(), leaf)
+                .put(key, leaf)
                 .expect("Failed to write new leaf to disk");
             index += 1;
         }

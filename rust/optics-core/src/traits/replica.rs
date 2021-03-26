@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use ethers::core::types::{H256, U256};
 
 use crate::{
-    accumulator::prover::Proof,
+    accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, TxOutcome},
     StampedMessage,
 };

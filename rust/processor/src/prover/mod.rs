@@ -1,27 +1,20 @@
-use crate::accumulator::{
-    merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError},
-    TREE_DEPTH,
-};
+/// Struct responsible for syncing Prover
+pub mod prover_sync;
+pub use prover_sync::ProverSync;
 
 use ethers::core::types::H256;
 use rocksdb::DB;
 use std::convert::TryInto;
 
-/// A merkle proof object. The leaf, its path to the root, and its index in the
-/// tree.
-#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
-pub struct Proof {
-    /// The leaf
-    pub leaf: H256,
-    /// The index
-    pub index: usize,
-    /// The merkle branch
-    pub path: [H256; TREE_DEPTH],
-}
+use optics_base::utils;
+use optics_core::accumulator::{
+    merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
+    TREE_DEPTH,
+};
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
 /// elements.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
@@ -46,6 +39,7 @@ pub enum ProverError {
     MerkleTreeError(#[from] MerkleTreeError),
     /// Failed proof verification
     #[error("Proof verification failed. Root is {expected}, produced is {actual}")]
+    #[allow(dead_code)]
     VerificationFailed {
         /// The expected root (this tree's current root)
         expected: H256,
@@ -69,15 +63,15 @@ impl Prover {
     /// instantiates new prover and fills prover's merkle tree
     pub fn from_disk(db: &DB) -> Self {
         let mut prover = Self::default();
-        let mut key: usize = 0;
+        let mut index: usize = 0;
 
         // Ingest leaves loaded from disk until db stops returning leaves
-        while let Ok(Some(leaf)) = db.get(key.to_be_bytes()) {
+        while let Ok(Some(leaf)) = db.get(utils::db_key_from_leaf_index(index)) {
             let leaf: [u8; 32] = leaf
                 .try_into()
                 .expect("Failed to convert on-disk leaf to [u8; 32]");
             prover.ingest(leaf.into()).expect("!tree full");
-            key += 1;
+            index += 1;
         }
 
         prover
@@ -121,6 +115,7 @@ impl Prover {
     }
 
     /// Verify a proof against this tree's root.
+    #[allow(dead_code)]
     pub fn verify(&self, proof: &Proof) -> Result<(), ProverError> {
         let actual = merkle_root_from_branch(proof.leaf, &proof.path, TREE_DEPTH, proof.index);
         let expected = self.root();
@@ -164,37 +159,14 @@ impl std::iter::Extend<H256> for Prover {
 }
 
 #[cfg(test)]
-pub(crate) mod test {
+mod test {
     use super::*;
     use ethers::utils::hash_message;
-    use std::fs::File;
-    use std::io::Read;
-
-    #[derive(serde::Deserialize, serde::Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub(crate) struct TestCase {
-        pub(crate) test_name: String,
-        pub(crate) leaves: Vec<String>,
-        pub(crate) proofs: Vec<Proof>,
-        pub(crate) expected_root: H256,
-    }
-
-    #[derive(serde::Deserialize, serde::Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub(crate) struct TestJson {
-        pub(crate) test_cases: Vec<TestCase>,
-    }
-
-    pub(crate) fn load_test_json() -> TestJson {
-        let mut file = File::open("../../vectors/merkleTestCases.json").unwrap();
-        let mut data = String::new();
-        file.read_to_string(&mut data).unwrap();
-        serde_json::from_str(&data).unwrap()
-    }
+    use optics_core::test_utils;
 
     #[test]
     fn it_produces_and_verifies_proofs() {
-        let test_json = load_test_json();
+        let test_json = test_utils::load_merkle_test_json();
         let test_cases = test_json.test_cases;
 
         for test_case in test_cases.iter() {

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use color_eyre::{
-    eyre::{eyre, Context},
+    eyre::{eyre, WrapErr},
     Result,
 };
 use futures_util::future::select_all;
@@ -19,12 +19,12 @@ use optics_base::{
     replica::Replicas,
     reset_loop_if, utils,
 };
-use optics_core::{
-    accumulator::Prover,
-    traits::{Home, Replica},
-};
+use optics_core::traits::{Home, Replica};
 
-use crate::{prover_sync::ProverSync, settings::Settings};
+use crate::{
+    prover::{Prover, ProverSync},
+    settings::Settings,
+};
 
 pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,
