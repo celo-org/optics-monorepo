@@ -87,11 +87,7 @@ contract TokenRegistry is UsingOptics {
         _;
     }
 
-    function downcast(IERC20 _token)
-        internal
-        pure
-        returns (BridgeTokenI)
-    {
+    function downcast(IERC20 _token) internal pure returns (BridgeTokenI) {
         return BridgeTokenI(address(_token));
     }
 

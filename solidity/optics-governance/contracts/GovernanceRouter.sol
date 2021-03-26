@@ -4,14 +4,17 @@ pragma solidity >=0.6.11;
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 import {
-    OpticsHandlerI,
     UsingOptics,
     TypeCasts
 } from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
+import {
+    MessageRecipientI
+} from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
+
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is OpticsHandlerI, UsingOptics {
+contract GovernanceRouter is MessageRecipientI, UsingOptics {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
@@ -201,7 +204,10 @@ contract GovernanceRouter is OpticsHandlerI, UsingOptics {
         }
 
         bytes memory transferGovernorMessage =
-            GovernanceMessage.formatTransferGovernor(_newDomain, TypeCasts.addressToBytes32(_newGovernor));
+            GovernanceMessage.formatTransferGovernor(
+                _newDomain,
+                TypeCasts.addressToBytes32(_newGovernor)
+            );
 
         _sendToAllRemoteRouters(transferGovernorMessage);
     }
