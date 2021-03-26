@@ -22,7 +22,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 contract UpgradeBeacon {
     // The implementation address is held in storage slot zero.
     address private implementation;
-    //The controller is capable of modifying the implementation address
+    // The controller is capable of modifying the implementation address
     address private immutable controller;
 
     // Upgrade event is emitted each time the implementation address is set

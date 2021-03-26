@@ -17,7 +17,7 @@ describe('Upgrade', async () => {
     const signerArray = await ethers.getSigners();
     signer = signerArray[0];
 
-    //SETUP CONTRACT SUITE
+    // SETUP CONTRACT SUITE
 
     // Deploy Implementation 1
     const MysteryMathV1 = await ethers.getContractFactory('MysteryMathV1');
@@ -29,12 +29,12 @@ describe('Upgrade', async () => {
     implementation2 = await MysteryMathV2.deploy();
     await implementation2.deployed();
 
-    //#later Deploy Controller
+    // #later Deploy Controller
     controller = {
       address: signer.address,
     };
 
-    //Deploy UpgradeBeacon
+    // Deploy UpgradeBeacon
     const UpgradeBeacon = await ethers.getContractFactory('UpgradeBeacon');
     upgradeBeacon = await UpgradeBeacon.deploy(
       implementation1.address,
@@ -42,19 +42,19 @@ describe('Upgrade', async () => {
     );
     await upgradeBeacon.deployed();
 
-    //Deploy Proxy Contract (upgradeBeacon = UpgradeBeacon)
+    // Deploy Proxy Contract (upgradeBeacon = UpgradeBeacon)
     const Proxy = await ethers.getContractFactory('UpgradeBeaconProxy');
     proxyContract = await Proxy.deploy(upgradeBeacon.address, '0x');
     await proxyContract.deployed();
 
-    //instantiate proxy with Proxy Contract address + Implementation interface
+    // instantiate proxy with Proxy Contract address + Implementation interface
     proxy = new ethers.Contract(
       proxyContract.address,
       MysteryMathV1.interface,
       signer,
     );
 
-    //Set state of proxy
+    // Set state of proxy
     await proxy.setState(stateVar);
   });
 
