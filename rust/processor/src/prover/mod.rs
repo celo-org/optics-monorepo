@@ -4,7 +4,7 @@ pub use prover_sync::ProverSync;
 
 use ethers::core::types::H256;
 use rocksdb::DB;
-use std::convert::TryInto;
+use std::{convert::TryInto, ops::Deref};
 
 use optics_base::utils;
 use optics_core::accumulator::{
@@ -63,15 +63,16 @@ impl Prover {
     /// instantiates new prover and fills prover's merkle tree
     pub fn from_disk(db: &DB) -> Self {
         let mut prover = Self::default();
-        let mut index: usize = 0;
 
-        // Ingest leaves loaded from disk until db stops returning leaves
-        while let Ok(Some(leaf)) = db.get(utils::db_key_from_leaf_index(index)) {
+        // Ingest all leaves in db into prover tree
+        let db_iter = db.prefix_iterator(utils::LEAF_DB_PREFIX);
+        for (_, leaf) in db_iter {
             let leaf: [u8; 32] = leaf
+                .deref()
                 .try_into()
                 .expect("Failed to convert on-disk leaf to [u8; 32]");
+
             prover.ingest(leaf.into()).expect("!tree full");
-            index += 1;
         }
 
         prover
