@@ -13,7 +13,16 @@ abstract contract UsingOptics is Ownable {
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
 
-    function isReplica(address _replica) internal view returns (bool) {
+    function isOwner(address _owner) public view returns (bool) {
+        return _owner == owner();
+    }
+
+    modifier onlyReplica() {
+        require(isReplica(msg.sender), "!replica");
+        _;
+    }
+
+    function isReplica(address _replica) public view returns (bool) {
         return replicas[_replica] != 0;
     }
 
@@ -29,9 +38,16 @@ abstract contract UsingOptics is Ownable {
         home = Home(_home);
     }
 
-    modifier onlyReplica() {
-        require(isReplica(msg.sender), "!replica");
-        _;
+    function originDomain() public view returns (uint32) {
+        return home.originDomain();
+    }
+
+    function enqueueHome(
+        uint32 _destination,
+        bytes32 _recipient,
+        bytes memory _body
+    ) public {
+        home.enqueue(_destination, _recipient, _body);
     }
 }
 

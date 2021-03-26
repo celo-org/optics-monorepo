@@ -251,6 +251,15 @@ where
             .into())
     }
 
+    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .queue_contains(root.into())
+            .call()
+            .await?
+            .into())
+    }
+
     #[tracing::instrument(err)]
     async fn improper_update(
         &self,

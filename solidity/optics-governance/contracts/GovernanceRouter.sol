@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
+pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -14,10 +15,15 @@ import {
 
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is MessageRecipientI, UsingOptics {
+contract GovernanceRouter is MessageRecipientI {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
+
+    /*
+    --- STATE ---
+    */
+    UsingOptics public usingOptics;
 
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
@@ -25,6 +31,9 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
 
+    /*
+    --- EVENTS ---
+    */
     event TransferGovernor(
         uint32 previousGovernorDomain,
         uint32 newGovernorDomain,
@@ -37,13 +46,26 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
         bytes32 newRouter
     );
 
-    constructor() {
+    /*
+    --- CONSTRUCTOR ---
+    */
+    constructor(address _usingOptics) {
         address _governor = msg.sender;
 
         uint32 _localDomain = localDomain();
         bool _isLocalDomain = true;
 
         _transferGovernor(_localDomain, _governor, _isLocalDomain);
+
+        setUsingOptics(_usingOptics);
+    }
+
+    /*
+    --- FUNCTION MODIFIERS ---
+    */
+    modifier onlyReplica() {
+        require(usingOptics.isReplica(msg.sender), "!replica");
+        _;
     }
 
     modifier typeAssert(bytes29 _view, GovernanceMessage.Types _t) {
@@ -56,9 +78,17 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
         _;
     }
 
+    modifier onlyGovernorRouter(uint32 _domain, bytes32 _address) {
+        require(isGovernorRouter(_domain, _address), "!governorRouter");
+        _;
+    }
+
     /*
-    --- MESSAGE HANDLING ---
+    --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
     */
+    function setUsingOptics(address _usingOptics) public onlyGovernor {
+        usingOptics = UsingOptics(_usingOptics);
+    }
 
     function isGovernorRouter(uint32 _domain, bytes32 _address)
         internal
@@ -68,11 +98,6 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
         _isGovernorRouter =
             _domain == governorDomain &&
             _address == routers[_domain];
-    }
-
-    modifier onlyGovernorRouter(uint32 _domain, bytes32 _address) {
-        require(isGovernorRouter(_domain, _address), "!governorRouter");
-        _;
     }
 
     function mustHaveRouter(uint32 _domain)
@@ -85,7 +110,7 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
     }
 
     function localDomain() internal view returns (uint32 _localDomain) {
-        _localDomain = home.originDomain();
+        _localDomain = usingOptics.originDomain();
     }
 
     function isLocalDomain(uint32 _domain)
@@ -96,6 +121,14 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
         _isLocalDomain = _domain == localDomain();
     }
 
+    /*
+    --- MESSAGE HANDLING ---
+        for all non-Governor chains to handle messages
+        sent from the Governor chain via Optics
+        --
+        Governor chain should never receive messages,
+        because non-Governor chains are not able to send them
+    */
     function handle(
         uint32 _origin,
         bytes32 _sender,
@@ -125,10 +158,10 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory _ret)
     {
-        bytes32 _to = _msg.addr();
-        bytes memory _data = _msg.data();
-
-        _call(_to, _data);
+        GovernanceMessage.Call[] memory _calls = _msg.getCalls();
+        for (uint256 i = 0; i < _calls.length; i++) {
+            _dispatchCall(_calls[i]);
+        }
 
         return hex"";
     }
@@ -163,30 +196,30 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
 
     /*
     --- MESSAGE DISPATCHING ---
-        only called on the Governor chain
-        governor is 0x00 for all other chains
+        for the Governor chain to send messages
+        to other chains via Optics
+        --
+        functionality not accessible on non-Governor chains
+        (governor is set to 0x0 on non-Governor chains)
     */
 
-    function callLocal(bytes32 _to, bytes memory _data)
+    function callLocal(GovernanceMessage.Call[] calldata calls)
         external
         onlyGovernor
-        returns (bytes memory _ret)
     {
-        _ret = _call(_to, _data);
+        for (uint256 i = 0; i < calls.length; i++) {
+            _dispatchCall(calls[i]);
+        }
     }
 
     function callRemote(
         uint32 _destination,
-        bytes32 _to,
-        bytes memory _data
+        GovernanceMessage.Call[] calldata calls
     ) external onlyGovernor {
         bytes32 _router = mustHaveRouter(_destination);
+        bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        home.enqueue(
-            _destination,
-            _router,
-            GovernanceMessage.formatCall(_to, _data)
-        );
+        usingOptics.enqueueHome(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -227,25 +260,25 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                home.enqueue(domains[i], routers[domains[i]], _msg);
+                usingOptics.enqueueHome(domains[i], routers[domains[i]], _msg);
             }
         }
     }
 
     /*
-    --- INTERNAL FUNCTIONS ---
-        perform the actions locally
-        called when handling AND dispatching messages
+    --- ACTIONS IMPLEMENTATION ---
+        implementations of local state changes
+        performed when handling AND dispatching messages
     */
 
-    function _call(bytes32 _to, bytes memory _data)
+    function _dispatchCall(GovernanceMessage.Call memory _call)
         internal
         returns (bytes memory _ret)
     {
-        address _toContract = TypeCasts.bytes32ToAddress(_to);
+        address _toContract = TypeCasts.bytes32ToAddress(_call.to);
 
         bool _success;
-        (_success, _ret) = _toContract.call(_data);
+        (_success, _ret) = _toContract.call(_call.data);
 
         require(_success, "call failed");
     }
@@ -303,7 +336,7 @@ contract GovernanceRouter is MessageRecipientI, UsingOptics {
     }
 
     /*
-    --- SETUP ROUTER MAPPING ---
+    --- EXTERNAL HELPER FOR CONTRACT SETUP ---
         convenience function so deployer can setup the router mapping for the contract locally
         before transferring governorship to the remote governor
     */
