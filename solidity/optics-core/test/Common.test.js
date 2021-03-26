@@ -3,7 +3,7 @@ const { provider } = waffle;
 const { expect } = require('chai');
 
 const { testCases } = require('../../../vectors/domainHashTestCases.json');
-
+const { deployProxyWithImplementation } = require('./proxyUtils');
 const originDomain = 1000;
 
 describe('Common', async () => {
@@ -17,13 +17,11 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const CommonFactory = await ethers.getContractFactory('TestCommon');
-    common = await CommonFactory.deploy(
+    const { contracts } = await deployProxyWithImplementation('TestCommon', [
       originDomain,
-      updater.signer.address,
-      initialRoot,
-    );
-    await common.deployed();
+    ]);
+
+    common = contracts.proxyWithImplementation;
   });
 
   it('Accepts updater signature', async () => {

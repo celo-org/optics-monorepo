@@ -25,6 +25,7 @@ contract TestSortition is SortitionI {
         return updater;
     }
 
+    // solhint-disable-next-line no-unused-vars
     function slash(address payable _reporter) external override {
         require(msg.sender == home, "!home");
         emit Slashed();

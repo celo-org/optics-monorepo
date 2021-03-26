@@ -175,10 +175,6 @@ contract QueueManager {
     using QueueLib for QueueLib.Queue;
     QueueLib.Queue internal queue;
 
-    constructor() {
-        queue.init();
-    }
-
     /// @notice Returns number of elements in queue
     function queueLength() external view returns (uint256) {
         return queue.length();

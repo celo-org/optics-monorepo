@@ -221,9 +221,6 @@ contract MerkleTreeManager {
 
     MerkleLib.Tree public tree;
 
-    // solhint-disable-next-line no-empty-blocks
-    constructor() {}
-
     /// @notice Calculates and returns`tree`'s current root
     function root() public view returns (bytes32) {
         return tree.root();
