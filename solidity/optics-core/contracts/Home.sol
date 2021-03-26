@@ -40,15 +40,18 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Event emitted when improper update detected
     event ImproperUpdate();
 
-    // TODO: removing sortition?
-    constructor(uint32 _originDomain, address _sortition)
-        payable
-        MerkleTreeManager()
-        QueueManager()
-        Common(_originDomain, address(0), bytes32(0))
-    {
-        sortition = SortitionI(_sortition);
-        updater = SortitionI(_sortition).current();
+    // solhint-disable-next-line no-empty-blocks
+    constructor(uint32 _originDomain) payable Common(_originDomain) {}
+
+    function initialize(address _sortition) public {
+        require(updater == address(0), "updater already initialized");
+        require(current == bytes32(0), "current root not zero");
+
+        queue.init();
+
+        sortition = ISortition(_sortition);
+        updater = ISortition(_sortition).current();
+        state = States.ACTIVE;
     }
 
     /// @notice Sets contract state to FAILED and slashes updater

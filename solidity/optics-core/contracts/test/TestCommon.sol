@@ -4,11 +4,7 @@ pragma solidity >=0.6.11;
 import "../Common.sol";
 
 contract TestCommon is Common {
-    constructor(
-        uint32 _originDomain,
-        address _updater,
-        bytes32 _current
-    ) Common(_originDomain, _updater, _current) {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _originDomain) Common(_originDomain) {} // solhint-disable-line no-empty-blocks
 
     function testCheckSig(
         bytes32 _oldRoot,

@@ -24,16 +24,26 @@ abstract contract Replica is Common, QueueManager {
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
-    constructor(
-        uint32 _originDomain,
-        uint32 _ownDomain,
-        address _updater,
-        uint256 _optimisticSeconds,
-        bytes32 _current
-    ) Common(_originDomain, _updater, _current) QueueManager() {
+    constructor(uint32 _originDomain, uint32 _ownDomain) Common(_originDomain) {
         ownDomain = _ownDomain;
-        optimisticSeconds = _optimisticSeconds;
+    }
+
+    //TODO: fix - util function for tests currently doesn't work if there are multiple initialize functions
+    function init(
+        address _updater,
+        bytes32 _current,
+        uint256 _optimisticSeconds
+    ) public {
+        require(updater == address(0), "updater already initialized");
+        require(current == bytes32(0), "current root not zero");
+        require(optimisticSeconds == 0, "optimSecs already initialized");
+
+        queue.init();
+
+        updater = _updater;
         current = _current;
+        optimisticSeconds = _optimisticSeconds;
+        state = States.ACTIVE;
     }
 
     /// @notice Sets contract state to FAILED
@@ -159,14 +169,17 @@ contract ProcessingReplica is Replica {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    constructor(
-        uint32 _originDomain,
-        uint32 _ownDomain,
+    constructor(uint32 _originDomain, uint32 _ownDomain)
+        Replica(_originDomain, _ownDomain)
+    {} // solhint-disable-line no-empty-blocks
+
+    function initialize(
         address _updater,
+        bytes32 _current,
         uint256 _optimisticSeconds,
-        bytes32 _start,
         uint256 _lastProcessed
-    ) Replica(_originDomain, _ownDomain, _updater, _optimisticSeconds, _start) {
+    ) public {
+        init(_updater, _current, _optimisticSeconds);
         lastProcessed = _lastProcessed;
     }
 

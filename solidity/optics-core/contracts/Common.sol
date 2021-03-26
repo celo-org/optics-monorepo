@@ -122,7 +122,7 @@ library Message {
  * @notice Shared utilities between Home and Replica.
  **/
 abstract contract Common {
-    enum States {ACTIVE, FAILED}
+    enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
     uint32 public immutable originDomain;
@@ -166,16 +166,9 @@ abstract contract Common {
         bytes _signature2
     );
 
-    constructor(
-        uint32 _originDomain,
-        address _updater,
-        bytes32 _current
-    ) {
+    constructor(uint32 _originDomain) {
         originDomain = _originDomain;
-        updater = _updater;
-        current = _current;
         domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
-        state = States.ACTIVE;
     }
 
     /// @notice Called when a double update or fraudulent update is detected

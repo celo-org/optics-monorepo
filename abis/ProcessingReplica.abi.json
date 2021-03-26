@@ -10,26 +10,6 @@
         "internalType": "uint32",
         "name": "_ownDomain",
         "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "_updater",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_optimisticSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_start",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_lastProcessed",
-        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -212,6 +192,57 @@
       }
     ],
     "name": "doubleUpdate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_updater",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_current",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_optimisticSeconds",
+        "type": "uint256"
+      }
+    ],
+    "name": "init",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_updater",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_current",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_optimisticSeconds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_lastProcessed",
+        "type": "uint256"
+      }
+    ],
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
