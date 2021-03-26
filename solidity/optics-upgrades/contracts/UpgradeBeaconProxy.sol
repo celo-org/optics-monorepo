@@ -110,7 +110,7 @@ contract UpgradeBeaconProxy {
      * @return implementation - Address of the current implementation.
      */
     function _implementation() private view returns (address implementation) {
-        return _implementation(upgradeBeacon);
+        implementation = _implementation(upgradeBeacon);
     }
 
     /**
