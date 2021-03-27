@@ -14,10 +14,10 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent,
+    cancel_task, db, decl_agent,
     home::Homes,
     replica::Replicas,
-    reset_loop_if, utils,
+    reset_loop_if,
 };
 use optics_core::traits::{Home, Replica};
 
@@ -119,7 +119,7 @@ decl_agent!(
 impl Processor {
     /// Instantiate a new processor
     pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
-        let db = utils::open_db(db_path);
+        let db = db::from_path(db_path);
 
         Self {
             interval_seconds,

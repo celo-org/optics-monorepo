@@ -1,12 +1,12 @@
 use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
-use optics_base::{home::Homes, utils};
+use optics_base::{db::UsingPersistence, home::Homes};
 use optics_core::{
     accumulator::incremental::IncrementalMerkle,
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
-use std::{sync::Arc, time::Duration};
+use std::{convert::TryInto, sync::Arc, time::Duration};
 use tokio::{
     sync::{
         oneshot::{error::TryRecvError, Receiver},
@@ -23,6 +23,26 @@ pub struct ProverSync {
     incremental: IncrementalMerkle,
     db: Arc<DB>,
     rx: Receiver<()>,
+}
+
+impl UsingPersistence<usize, H256> for ProverSync {
+    const KEY_PREFIX: &'static [u8] = "index_".as_bytes();
+
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
+
+    fn serialize_value(value: H256) -> Vec<u8> {
+        value.as_bytes().into()
+    }
+
+    fn deserialize_value(bytes: Vec<u8>) -> H256 {
+        let leaf: [u8; 32] = bytes
+            .try_into()
+            .expect("Failed to convert on-disk leaf to [u8; 32]");
+
+        leaf.into()
+    }
 }
 
 /// ProverSync errors
@@ -137,11 +157,7 @@ impl ProverSync {
 
         // If in-memory extension succeeded, write kv pairs to disk
         for leaf in leaves {
-            let key = utils::db_key_from_leaf_index(index);
-
-            self.db
-                .put(key, leaf)
-                .expect("Failed to write new leaf to disk");
+            Self::db_put(&self.db, index, leaf).unwrap();
             index += 1;
         }
 

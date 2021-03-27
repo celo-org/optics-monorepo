@@ -4,9 +4,9 @@ pub use prover_sync::ProverSync;
 
 use ethers::core::types::H256;
 use rocksdb::DB;
-use std::{convert::TryInto, ops::Deref};
+use std::convert::TryInto;
 
-use optics_base::utils;
+use optics_base::db::UsingPersistence;
 use optics_core::accumulator::{
     merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
     TREE_DEPTH,
@@ -18,6 +18,26 @@ use optics_core::accumulator::{
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
+}
+
+impl UsingPersistence<usize, H256> for Prover {
+    const KEY_PREFIX: &'static [u8] = "index_".as_bytes();
+
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
+
+    fn serialize_value(value: H256) -> Vec<u8> {
+        value.as_bytes().into()
+    }
+
+    fn deserialize_value(bytes: Vec<u8>) -> H256 {
+        let leaf: [u8; 32] = bytes
+            .try_into()
+            .expect("Failed to convert on-disk leaf to [u8; 32]");
+
+        leaf.into()
+    }
 }
 
 /// Prover Errors
@@ -65,14 +85,11 @@ impl Prover {
         let mut prover = Self::default();
 
         // Ingest all leaves in db into prover tree
-        let db_iter = db.prefix_iterator(utils::LEAF_DB_PREFIX);
+        let db_iter = db.prefix_iterator(Self::KEY_PREFIX);
         for (_, leaf) in db_iter {
-            let leaf: [u8; 32] = leaf
-                .deref()
-                .try_into()
-                .expect("Failed to convert on-disk leaf to [u8; 32]");
-
-            prover.ingest(leaf.into()).expect("!tree full");
+            prover
+                .ingest(Self::deserialize_value(leaf.into()))
+                .expect("!tree full");
         }
 
         prover
