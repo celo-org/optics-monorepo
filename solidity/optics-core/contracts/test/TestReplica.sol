@@ -8,9 +8,7 @@ contract TestReplica is ProcessingReplica {
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    constructor(uint32 _originDomain, uint32 _ownDomain)
-        ProcessingReplica(_originDomain, _ownDomain)
-    {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _originDomain) ProcessingReplica(_originDomain) {} // solhint-disable-line no-empty-blocks
 
     function setFailed() public {
         _setFailed();

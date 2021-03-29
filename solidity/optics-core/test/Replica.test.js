@@ -44,8 +44,9 @@ describe('Replica', async () => {
   beforeEach(async () => {
     const { contracts } = await deployProxyWithImplementation(
       'TestReplica',
-      [originDomain, ownDomain],
+      [originDomain],
       [
+        ownDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
