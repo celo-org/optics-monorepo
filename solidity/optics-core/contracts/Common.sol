@@ -171,6 +171,13 @@ abstract contract Common {
         domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
     }
 
+    function initialize(address _updater) public virtual {
+        require(updater == address(0), "updater already initialized");
+
+        updater = _updater;
+        state = States.ACTIVE;
+    }
+
     /// @notice Called when a double update or fraudulent update is detected
     function fail() internal virtual;
 
