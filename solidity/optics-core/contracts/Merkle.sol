@@ -7,6 +7,28 @@ pragma solidity >=0.6.11;
 import "hardhat/console.sol";
 
 /**
+ * @title MerkleTreeManager
+ * @author Celo Labs Inc.
+ * @notice Contract containing a merkle tree instance and view operations on
+ * the tree.
+ **/
+contract MerkleTreeManager {
+    using MerkleLib for MerkleLib.Tree;
+
+    MerkleLib.Tree public tree;
+
+    /// @notice Calculates and returns`tree`'s current root
+    function root() public view returns (bytes32) {
+        return tree.root();
+    }
+
+    /// @notice Returns the number of inserted leaves in the tree (current index)
+    function count() public view returns (uint256) {
+        return tree.count;
+    }
+}
+
+/**
  * @title MerkleLib
  * @author Celo Labs Inc.
  * @notice An incremental merkle tree modeled on the eth2 deposit contract.
@@ -208,26 +230,4 @@ library MerkleLib {
         hex"93237c50ba75ee485f4c22adf2f741400bdf8d6a9cc7df7ecae576221665d735";
     bytes32 internal constant Z_31 =
         hex"8448818bb4ae4562849e949e17ac16e0be16688e156b5cf15e098c627c0056a9";
-}
-
-/**
- * @title MerkleTreeManager
- * @author Celo Labs Inc.
- * @notice Contract containing a merkle tree instance and view operations on
- * the tree.
- **/
-contract MerkleTreeManager {
-    using MerkleLib for MerkleLib.Tree;
-
-    MerkleLib.Tree public tree;
-
-    /// @notice Calculates and returns`tree`'s current root
-    function root() public view returns (bytes32) {
-        return tree.root();
-    }
-
-    /// @notice Returns the number of inserted leaves in the tree (current index)
-    function count() public view returns (uint256) {
-        return tree.count;
-    }
 }
