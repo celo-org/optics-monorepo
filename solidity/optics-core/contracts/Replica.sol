@@ -16,7 +16,7 @@ abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
 
     /// @notice Domain of replica's native chain
-    uint32 public immutable ownDomain;
+    uint32 public ownDomain;
 
     /// @notice Number of seconds to wait before enqueued root becomes confirmable
     uint256 public optimisticSeconds;
@@ -24,21 +24,23 @@ abstract contract Replica is Common, QueueManager {
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
-    constructor(uint32 _originDomain, uint32 _ownDomain) Common(_originDomain) {
-        ownDomain = _ownDomain;
-    }
+    constructor(uint32 _originDomain) Common(_originDomain) {}
 
     //TODO: fix - util function for tests currently doesn't work if there are multiple initialize functions
     function init(
+        uint32 _ownDomain,
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds
     ) public {
+        require(ownDomain == 0, "ownDomain already initialized");
         require(updater == address(0), "updater already initialized");
         require(current == bytes32(0), "current root not zero");
         require(optimisticSeconds == 0, "optimSecs already initialized");
 
         queue.init();
+
+        ownDomain = _ownDomain;
 
         updater = _updater;
         current = _current;
@@ -169,17 +171,16 @@ contract ProcessingReplica is Replica {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    constructor(uint32 _originDomain, uint32 _ownDomain)
-        Replica(_originDomain, _ownDomain)
-    {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _originDomain) Replica(_originDomain) {} // solhint-disable-line no-empty-blocks
 
     function initialize(
+        uint32 _ownDomain,
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
         uint256 _lastProcessed
     ) public {
-        init(_updater, _current, _optimisticSeconds);
+        init(_ownDomain, _updater, _current, _optimisticSeconds);
         lastProcessed = _lastProcessed;
     }
 
