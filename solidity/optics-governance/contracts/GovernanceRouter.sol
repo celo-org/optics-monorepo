@@ -50,14 +50,12 @@ contract GovernanceRouter is MessageRecipientI {
     --- CONSTRUCTOR ---
     */
     constructor(address _usingOptics) {
-        address _governor = msg.sender;
+        setUsingOptics(_usingOptics);
 
+        address _governor = msg.sender;
         uint32 _localDomain = localDomain();
         bool _isLocalDomain = true;
-
         _transferGovernor(_localDomain, _governor, _isLocalDomain);
-
-        setUsingOptics(_usingOptics);
     }
 
     /*
