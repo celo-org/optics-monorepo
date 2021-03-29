@@ -3,9 +3,9 @@
 //! This crate contains core primitives, traits, and types for Optics
 //! implementations.
 
-#![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
+#![forbid(unsafe_code)]
 #![forbid(where_clauses_object_safety)]
 
 /// Accumulator management
