@@ -1,7 +1,7 @@
 const { types, task } = require('hardhat/config');
 const utils = require('./utils.js');
 
-task('deploy-home', 'Deploy a home.')
+task('deploy-upgradable-home', 'Deploy an upgradable home.')
   .addParam('domain', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'sortition',
@@ -11,15 +11,21 @@ task('deploy-home', 'Deploy a home.')
   )
   .setAction(async (args, hre) => {
     const { ethers, optics } = hre;
-    let address = ethers.utils.getAddress(args.sortition);
-    let [signer] = await ethers.getSigners();
-    let home = await optics.deployHome(signer, args.domain, address);
+    let sortition = ethers.utils.getAddress(args.sortition);
+    let objects = await optics.deployProxyWithImplementation(
+      'Home',
+      [args.domain],
+      [sortition],
+    );
     console.log(
-      `Deployed new Home at ${home.address} with domain ${args.domain}`,
+      `Deployed Home at ${objects.implementation.address} with domain ${args.domain}.\n`,
+      `Deployed Controller at ${objects.controller.address}.\n`,
+      `Deployed UpgradeBeacon at ${objects.upgradeBeacon.address}.\n`,
+      `Deployed Proxy at ${objects.proxy.address}.\n`,
     );
   });
 
-task('deploy-replica', 'Deploy a replica.')
+task('deploy-upgradable-replica', 'Deploy an upgradable replica.')
   .addParam('origin', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'destination',
@@ -28,22 +34,16 @@ task('deploy-replica', 'Deploy a replica.')
     types.int,
   )
   .addParam('updater', 'The address of the updater', undefined, types.string)
-  .addOptionalParam(
-    'wait',
-    'The optimistic wait period in seconds',
-    60 * 60 * 2, // 2 hours
-    types.int,
-  )
-  .addOptionalParam(
+  .addParam(
     'current',
     'The current root to init with',
     `0x${'00'.repeat(32)}`,
     types.string,
   )
-  .addOptionalParam(
-    'lastProcessed',
-    'The last processed message sequence',
-    0,
+  .addParam(
+    'wait',
+    'The optimistic wait period in seconds',
+    60 * 60 * 2, // 2 hours
     types.int,
   )
   .setAction(async (args, hre) => {
@@ -53,16 +53,17 @@ task('deploy-replica', 'Deploy a replica.')
       throw new Error('current must be a 32-byte 0x prefixed hex string');
     }
 
-    let [signer] = await ethers.getSigners();
+    let objects = await optics.deployProxyWithImplementation(
+      'ProcessingReplica',
+      [args.origin],
+      [args.destination, updater, args.current, args.wait],
+    );
 
-    await optics.deployReplica(
-      signer,
-      args.origin,
-      args.destination,
-      updater,
-      args.wait,
-      args.current,
-      args.lastProcessed,
+    console.log(
+      `Deployed Replica at ${objects.implementation.address} with domain ${args.destination}.\n`,
+      `Deployed Controller at ${objects.controller.address}.\n`,
+      `Deployed UpgradeBeacon at ${objects.upgradeBeacon.address}.\n`,
+      `Deployed Proxy at ${objects.proxy.address}.\n`,
     );
   });
 

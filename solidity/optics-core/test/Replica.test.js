@@ -2,7 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 
-const { deployProxyWithImplementation } = require('./proxyUtils');
+const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 

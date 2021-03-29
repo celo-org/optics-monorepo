@@ -3,7 +3,7 @@ const { provider } = waffle;
 const { expect } = require('chai');
 
 const { testCases } = require('../../../vectors/domainHashTestCases.json');
-const { deployProxyWithImplementation } = require('./proxyUtils');
+const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 const originDomain = 1000;
 
 describe('Common', async () => {

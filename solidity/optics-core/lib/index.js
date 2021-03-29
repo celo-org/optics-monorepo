@@ -2,6 +2,7 @@ require('@nomiclabs/hardhat-waffle');
 const { assert } = require('chai');
 const { extendEnvironment } = require('hardhat/config');
 
+const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/Replica.abi.json');
 
@@ -167,17 +168,6 @@ extendEnvironment((hre) => {
     messageToLeaf,
     ethersAddressToBytes32,
     destinationAndSequence,
-    deployHome: async (signer, ...args) => {
-      const factory = await ethers.getContractFactory('Home', signer);
-      let contract = await factory.deploy(...args);
-      await contract.deployed();
-      return new Home(contract.address, signer);
-    },
-    deployReplica: async (signer, ...args) => {
-      const factory = await ethers.getContractFactory('Replica', signer);
-      let contract = await factory.deploy(...args);
-      await contract.deployed();
-      return new Replica(contract.address, signer);
-    },
+    deployProxyWithImplementation,
   };
 });

@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const {
   deployProxyWithImplementation,
   upgradeToImplementation,
-} = require('./proxyUtils');
+} = require('../lib/proxyUtils');
 
 describe('Upgrade', async () => {
   let proxy, signer, upgradeBeacon;
