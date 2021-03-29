@@ -3,12 +3,12 @@ pragma solidity >=0.6.11;
 
 import "../Replica.sol";
 
-contract TestReplica is ProcessingReplica {
+contract TestReplica is Replica {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    constructor(uint32 _originDomain) ProcessingReplica(_originDomain) {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _originDomain) Replica(_originDomain) {} // solhint-disable-line no-empty-blocks
 
     function setFailed() public {
         _setFailed();
