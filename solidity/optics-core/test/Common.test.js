@@ -17,9 +17,11 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await deployProxyWithImplementation('TestCommon', [
-      originDomain,
-    ]);
+    const { contracts } = await deployProxyWithImplementation(
+      'TestCommon',
+      [originDomain],
+      [updater.signer.address],
+    );
 
     common = contracts.proxyWithImplementation;
   });
