@@ -7,13 +7,13 @@ const { deployProxyWithImplementation } = require('./proxyUtils');
 const originDomain = 1000;
 
 describe('Common', async () => {
-  let common, signer, fakeSigner, updater, fakeUpdater, initialRoot;
+  let common, signer, fakeSigner, updater, fakeUpdater;
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, originDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
-    initialRoot = ethers.utils.formatBytes32String('initial root');
+    // initialRoot = ethers.utils.formatBytes32String('initial root');
   });
 
   beforeEach(async () => {
