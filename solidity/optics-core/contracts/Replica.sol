@@ -6,7 +6,7 @@ import "./Common.sol";
 import "./Message.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
+import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
 
 /**
  * @title Replica
@@ -243,7 +243,7 @@ contract ProcessingReplica is Replica {
         // transparently return.
 
         try
-            MessageRecipientI(recipient).handle{gas: PROCESS_GAS}(
+            IMessageRecipient(recipient).handle{gas: PROCESS_GAS}(
                 _m.origin(),
                 _m.sender(),
                 payload

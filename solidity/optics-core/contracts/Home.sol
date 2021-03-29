@@ -5,7 +5,7 @@ import "./Common.sol";
 import "./Message.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import "../interfaces/SortitionI.sol";
+import "../interfaces/ISortition.sol";
 
 /**
  * @title Home
@@ -21,7 +21,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     mapping(uint32 => uint32) public sequences;
 
     // TODO: removing sortition?
-    SortitionI internal sortition;
+    ISortition internal sortition;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -48,8 +48,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         require(current == bytes32(0), "current root not zero");
         require(updater == address(0), "updater already initialized");
 
-        sortition = SortitionI(_sortition);
-        updater = SortitionI(_sortition).current();
+        sortition = ISortition(_sortition);
+        updater = ISortition(_sortition).current();
 
         queue.init();
         state = States.ACTIVE;
