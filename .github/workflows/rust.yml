@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
     - name: Run tests
       run: cd rust && cargo test --verbose
 
@@ -35,7 +36,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
     - name: Clippy
       run: cd rust && cargo clippy -- -D warnings
     - name: Lint
-      run: cd rust && cargo fmt -- --check
+      run: cargo fmt -- --check
