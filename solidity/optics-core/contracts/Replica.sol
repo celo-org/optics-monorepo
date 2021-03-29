@@ -3,6 +3,7 @@ pragma solidity >=0.6.11;
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import "./Common.sol";
+import "./Message.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
 import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
@@ -24,6 +25,7 @@ abstract contract Replica is Common, QueueManager {
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) Common(_originDomain) {}
 
     function initialize(

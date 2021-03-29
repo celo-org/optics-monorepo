@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "../Common.sol";
+import "../Message.sol";
 
 contract TestMessage {
     using Message for bytes29;

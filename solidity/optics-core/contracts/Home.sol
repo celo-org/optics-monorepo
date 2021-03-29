@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "./Common.sol";
+import "./Message.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
 import "../interfaces/SortitionI.sol";
