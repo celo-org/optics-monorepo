@@ -52,6 +52,7 @@ describe('Replica', async () => {
         optimisticSeconds,
         initialLastProcessed,
       ],
+      'initialize(uint32, address, bytes32, uint256, uint256)',
     );
 
     replica = contracts.proxyWithImplementation;

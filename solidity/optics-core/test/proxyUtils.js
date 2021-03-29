@@ -2,6 +2,7 @@ async function deployProxyWithImplementation(
   implementationName,
   deployArgs = [],
   initializeArgs = [],
+  initializeIdentifier = 'initialize',
 ) {
   // #later Deploy Controller
   const signerArray = await ethers.getSigners();
@@ -27,7 +28,7 @@ async function deployProxyWithImplementation(
     initializeData = '0x';
   } else {
     const initializeFunction = Implementation.interface.getFunction(
-      'initialize',
+      initializeIdentifier,
     );
     initializeData = Implementation.interface.encodeFunctionData(
       initializeFunction,

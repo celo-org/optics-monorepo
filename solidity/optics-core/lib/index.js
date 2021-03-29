@@ -8,8 +8,9 @@ const ReplicaAbi = require('../../../abis/ProcessingReplica.abi.json');
 extendEnvironment((hre) => {
   let { ethers } = hre;
   const State = {
-    ACTIVE: 0,
-    FAILED: 1,
+    UNINITIALIZED: 0,
+    ACTIVE: 1,
+    FAILED: 2,
   };
 
   const MessageStatus = {
