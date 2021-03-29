@@ -1,0 +1,50 @@
+name: Solidity
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test Optics-Core
+        run: cd solidity/optics-core && npm test
+
+      - name: Test Optics-Bridge
+        run: cd solidity/optics-bridge && npm test
+
+      - name: Test Optics-Governance
+        run: cd solidity/optics-governance && npm test
+
+      - name: Test Optics-Upgrades
+        run: cd solidity/optics-upgrades && npm test
+
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Lint Optics-Core
+        run: cd solidity/optics-core && npm run lint
+
+      - name: Lint Optics-Bridge
+        run: cd solidity/optics-bridge && npm run lint
+
+      - name: Lint Optics-Governance
+        run: cd solidity/optics-governance && npm lint
+
+      - name: Lint Optics-Upgrades
+        run: cd solidity/optics-upgrades && npm lint
