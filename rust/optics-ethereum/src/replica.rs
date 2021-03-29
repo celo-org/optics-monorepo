@@ -14,8 +14,8 @@ abigen!(
     EthereumReplicaInternal,
     "../abis/Replica.abi.json",
      methods {
-        initialize(address) as initialize_common,
-        initialize(uint32, address, bytes32, uint256, uint256) as initialize,
+        initialize(address) as initialize_common;
+        initialize(uint32, address, bytes32, uint256, uint256) as initialize;
      },
 );
 

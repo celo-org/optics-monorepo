@@ -13,7 +13,6 @@ describe('Common', async () => {
     [signer, fakeSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, originDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
-    // initialRoot = ethers.utils.formatBytes32String('initial root');
   });
 
   beforeEach(async () => {
