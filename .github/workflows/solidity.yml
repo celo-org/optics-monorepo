@@ -22,13 +22,13 @@ jobs:
         run: cd solidity/optics-core && npm test
 
       - name: Test Optics-Bridge
-        run: cd solidity/optics-bridge && npm test
+        run: cd ../optics-bridge && npm test
 
       - name: Test Optics-Governance
-        run: cd solidity/optics-governance && npm test
+        run: cd ../optics-governance && npm test
 
       - name: Test Optics-Upgrades
-        run: cd solidity/optics-upgrades && npm test
+        run: cd ../optics-upgrades && npm test
 
   lint:
 
@@ -41,10 +41,10 @@ jobs:
         run: cd solidity/optics-core && npm run lint
 
       - name: Lint Optics-Bridge
-        run: cd solidity/optics-bridge && npm run lint
+        run: cd ../optics-bridge && npm run lint
 
       - name: Lint Optics-Governance
-        run: cd solidity/optics-governance && npm lint
+        run: cd ../optics-governance && npm lint
 
       - name: Lint Optics-Upgrades
-        run: cd solidity/optics-upgrades && npm lint
+        run: cd ../optics-upgrades && npm lint
