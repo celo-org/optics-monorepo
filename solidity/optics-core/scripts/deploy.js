@@ -54,7 +54,7 @@ task('deploy-upgradable-replica', 'Deploy an upgradable replica.')
     }
 
     let objects = await optics.deployProxyWithImplementation(
-      'ProcessingReplica',
+      'Replica',
       [args.origin],
       [args.destination, updater, args.current, args.wait],
     );

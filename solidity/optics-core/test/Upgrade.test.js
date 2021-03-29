@@ -1,9 +1,5 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
-const {
-  deployProxyWithImplementation,
-  upgradeToImplementation,
-} = require('../lib/proxyUtils');
 
 describe('Upgrade', async () => {
   let proxy, signer, upgradeBeacon;
@@ -16,7 +12,9 @@ describe('Upgrade', async () => {
     signer = signerArray[0];
 
     // SETUP CONTRACT SUITE
-    const { contracts } = await deployProxyWithImplementation('MysteryMathV1');
+    const { contracts } = await optics.deployProxyWithImplementation(
+      'MysteryMathV1',
+    );
 
     proxy = contracts.proxyWithImplementation;
     upgradeBeacon = contracts.upgradeBeacon;
@@ -42,7 +40,11 @@ describe('Upgrade', async () => {
 
   it('Upgrades without problem', async () => {
     // Deploy Implementation 2
-    await upgradeToImplementation(upgradeBeacon, signer, 'MysteryMathV2');
+    await optics.upgradeToImplementation(
+      upgradeBeacon,
+      signer,
+      'MysteryMathV2',
+    );
   });
 
   it('Post-Upgrade returns version 2', async () => {

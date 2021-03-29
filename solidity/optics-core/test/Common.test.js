@@ -3,7 +3,6 @@ const { provider } = waffle;
 const { expect } = require('chai');
 
 const { testCases } = require('../../../vectors/domainHashTestCases.json');
-const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 const originDomain = 1000;
 
 describe('Common', async () => {
@@ -16,7 +15,7 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await deployProxyWithImplementation(
+    const { contracts } = await optics.deployProxyWithImplementation(
       'TestCommon',
       [originDomain],
       [updater.signer.address],

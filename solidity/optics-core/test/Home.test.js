@@ -2,7 +2,6 @@ const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const TestSortition = require('../artifacts/contracts/test/TestSortition.sol/TestSortition.json');
-const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 
 const {
   testCases,
@@ -38,7 +37,7 @@ describe('Home', async () => {
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
 
-    const { contracts } = await deployProxyWithImplementation(
+    const { contracts } = await optics.deployProxyWithImplementation(
       'TestHome',
       [originDomain],
       [mockSortition.address],

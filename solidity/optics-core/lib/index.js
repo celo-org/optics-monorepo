@@ -2,7 +2,10 @@ require('@nomiclabs/hardhat-waffle');
 const { assert } = require('chai');
 const { extendEnvironment } = require('hardhat/config');
 
-const { deployProxyWithImplementation } = require('../lib/proxyUtils');
+const {
+  deployProxyWithImplementation,
+  upgradeToImplementation,
+} = require('../lib/proxyUtils');
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/Replica.abi.json');
 
@@ -169,5 +172,6 @@ extendEnvironment((hre) => {
     ethersAddressToBytes32,
     destinationAndSequence,
     deployProxyWithImplementation,
+    upgradeToImplementation,
   };
 });

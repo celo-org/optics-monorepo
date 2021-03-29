@@ -2,7 +2,6 @@ const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 
-const { deployProxyWithImplementation } = require('../lib/proxyUtils');
 const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
@@ -42,7 +41,7 @@ describe('Replica', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await deployProxyWithImplementation(
+    const { contracts } = await optics.deployProxyWithImplementation(
       'TestReplica',
       [originDomain],
       [
