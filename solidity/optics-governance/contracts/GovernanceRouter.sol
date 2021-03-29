@@ -52,19 +52,26 @@ contract GovernanceRouter is MessageRecipientI {
     */
     constructor(uint32 _localDomain) {
         localDomain = _localDomain;
-
     }
 
-    function initialize(address _usingOptics) {
-        require(governorDomain == 0 && governor == address(0), "governor already initialized");
+    function initialize(address _usingOptics) public {
+        // initialize governor
+        require(
+            governorDomain == 0 && governor == address(0),
+            "governor already initialized"
+        );
 
         address _governor = msg.sender;
         bool _isLocalDomain = true;
         _transferGovernor(localDomain, _governor, _isLocalDomain);
 
-        require(_usingOptics.originDomain() == localDomain, "usingOptics incompatible domain");
-
+        // initialize UsingOptics
         setUsingOptics(_usingOptics);
+
+        require(
+            usingOptics.originDomain() == localDomain,
+            "usingOptics incompatible domain"
+        );
     }
 
     /*
