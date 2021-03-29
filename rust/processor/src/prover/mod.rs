@@ -4,7 +4,6 @@ pub use prover_sync::ProverSync;
 
 use ethers::core::types::H256;
 use rocksdb::DB;
-use std::convert::TryInto;
 
 use optics_base::db::UsingPersistence;
 use optics_core::accumulator::{
@@ -25,18 +24,6 @@ impl UsingPersistence<usize, H256> for Prover {
 
     fn key_to_bytes(key: usize) -> Vec<u8> {
         key.to_be_bytes().into()
-    }
-
-    fn serialize_value(value: H256) -> Vec<u8> {
-        value.as_bytes().into()
-    }
-
-    fn deserialize_value(bytes: Vec<u8>) -> H256 {
-        let leaf: [u8; 32] = bytes
-            .try_into()
-            .expect("Failed to convert on-disk leaf to [u8; 32]");
-
-        leaf.into()
     }
 }
 
@@ -87,9 +74,9 @@ impl Prover {
         // Ingest all leaves in db into prover tree
         let db_iter = db.prefix_iterator(Self::KEY_PREFIX);
         for (_, leaf) in db_iter {
-            prover
-                .ingest(Self::deserialize_value(leaf.into()))
-                .expect("!tree full");
+            // Safe to use potentially-panicking method `from_slice` as we
+            // assume that an invalid value implies DB corruption
+            prover.ingest(H256::from_slice(&leaf)).expect("!tree full");
         }
 
         prover

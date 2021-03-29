@@ -6,7 +6,7 @@ use optics_core::{
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
-use std::{convert::TryInto, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{
         oneshot::{error::TryRecvError, Receiver},
@@ -30,18 +30,6 @@ impl UsingPersistence<usize, H256> for ProverSync {
 
     fn key_to_bytes(key: usize) -> Vec<u8> {
         key.to_be_bytes().into()
-    }
-
-    fn serialize_value(value: H256) -> Vec<u8> {
-        value.as_bytes().into()
-    }
-
-    fn deserialize_value(bytes: Vec<u8>) -> H256 {
-        let leaf: [u8; 32] = bytes
-            .try_into()
-            .expect("Failed to convert on-disk leaf to [u8; 32]");
-
-        leaf.into()
     }
 }
 

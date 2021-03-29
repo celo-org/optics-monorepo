@@ -18,7 +18,7 @@ use optics_base::{
 };
 use optics_core::{
     traits::{Common, Home},
-    Decode, Encode, SignedUpdate,
+    SignedUpdate,
 };
 
 use crate::settings::Settings;
@@ -44,14 +44,6 @@ impl<S> UsingPersistence<H256, SignedUpdate> for Updater<S> {
 
     fn key_to_bytes(key: H256) -> Vec<u8> {
         key.as_bytes().to_owned()
-    }
-
-    fn serialize_value(value: SignedUpdate) -> Vec<u8> {
-        value.to_vec()
-    }
-
-    fn deserialize_value(bytes: Vec<u8>) -> SignedUpdate {
-        SignedUpdate::read_from(&mut &bytes[..]).expect("Failed to deserialize bytes into db value")
     }
 }
 
