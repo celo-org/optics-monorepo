@@ -60,6 +60,8 @@ abstract contract Replica is Common, QueueManager {
 
         ownDomain = _ownDomain;
 
+        ownDomain = _ownDomain;
+
         updater = _updater;
         current = _current;
         optimisticSeconds = _optimisticSeconds;
