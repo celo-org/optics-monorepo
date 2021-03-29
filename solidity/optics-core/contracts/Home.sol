@@ -43,14 +43,14 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
-    function initialize(address _sortition) public {
-        require(updater == address(0), "updater already initialized");
+    function initialize(address _sortition) public override {
         require(current == bytes32(0), "current root not zero");
-
-        queue.init();
+        require(updater == address(0), "updater already initialized");
 
         sortition = SortitionI(_sortition);
         updater = SortitionI(_sortition).current();
+
+        queue.init();
         state = States.ACTIVE;
     }
 

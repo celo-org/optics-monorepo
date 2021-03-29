@@ -212,9 +212,27 @@
         "internalType": "uint256",
         "name": "_optimisticSeconds",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_lastProcessed",
+        "type": "uint256"
       }
     ],
-    "name": "init",
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_updater",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -239,11 +257,6 @@
       {
         "internalType": "uint256",
         "name": "_optimisticSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_lastProcessed",
         "type": "uint256"
       }
     ],

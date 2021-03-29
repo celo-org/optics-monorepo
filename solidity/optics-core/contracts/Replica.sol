@@ -26,8 +26,7 @@ abstract contract Replica is Common, QueueManager {
 
     constructor(uint32 _originDomain) Common(_originDomain) {}
 
-    //TODO: fix - util function for tests currently doesn't work if there are multiple initialize functions
-    function init(
+    function initialize(
         uint32 _ownDomain,
         address _updater,
         bytes32 _current,
@@ -180,7 +179,8 @@ contract ProcessingReplica is Replica {
         uint256 _optimisticSeconds,
         uint256 _lastProcessed
     ) public {
-        init(_ownDomain, _updater, _current, _optimisticSeconds);
+        initialize(_ownDomain, _updater, _current, _optimisticSeconds);
+
         lastProcessed = _lastProcessed;
     }
 
