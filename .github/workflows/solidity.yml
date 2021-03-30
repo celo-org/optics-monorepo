@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Test Optics-Core
+        working-directory: ./solidity/optics-core
+        run: ./scripts/update_abis.sh
+#         run: npm i && npm test
+
       - name: Test Optics-Bridge
         working-directory: ./solidity/optics-bridge
         run: npm i && npm test
@@ -28,10 +33,6 @@ jobs:
 
       - name: Test Optics-Upgrades
         working-directory: ./solidity/optics-upgrades
-        run: npm i && npm test
-
-      - name: Test Optics-Core
-        working-directory: ./solidity/optics-core
         run: npm i && npm test
 
   lint:
