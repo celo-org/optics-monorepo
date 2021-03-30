@@ -20,12 +20,7 @@ jobs:
 
       - name: Test Optics-Core
         working-directory: ./solidity/optics-core
-        run: |
-          ls -la
-          scripts/update_abis.sh
-          cd scripts
-          ls -la
-#         run: npm i && npm test
+        run: npm i && npm test
 
       - name: Test Optics-Bridge
         working-directory: ./solidity/optics-bridge
