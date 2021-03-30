@@ -51,8 +51,8 @@ jobs:
 
       - name: Lint Optics-Governance
         working-directory: ./solidity/optics-governance
-        run: npm i && npm lint
+        run: npm i && npm run lint
 
       - name: Lint Optics-Upgrades
         working-directory: ./solidity/optics-upgrades
-        run: npm i && npm lint
+        run: npm i && npm run lint
