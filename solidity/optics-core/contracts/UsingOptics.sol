@@ -53,6 +53,14 @@ abstract contract UsingOptics is Ownable {
         home = Home(_home);
     }
 
+    function setWatcherPermission(
+        address _watcher,
+        uint32 _domain,
+        bool _access
+    ) public onlyOwner {
+        watchers[_watcher][_domain] = _access;
+    }
+
     function originDomain() public view returns (uint32) {
         return home.originDomain();
     }
