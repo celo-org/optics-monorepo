@@ -70,24 +70,3 @@ jobs:
 
       - name: Lint
         run: npm run lint
-
-  optics-upgrades:
-
-    runs-on: ubuntu-latest
-
-    defaults:
-        run:
-          working-directory: ./solidity/optics-upgrades
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install
-        run: npm i
-
-      - name: Test
-        run: npm test
-
-      - name: Lint
-        run: npm run lint
-
