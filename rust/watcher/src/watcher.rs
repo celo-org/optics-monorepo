@@ -17,13 +17,13 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent,
+    cancel_task, db, decl_agent,
     home::Homes,
-    utils,
+    persistence::UsingPersistence,
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
-    Decode, Encode, SignedUpdate,
+    SignedUpdate,
 };
 
 use crate::settings::Settings;
@@ -182,6 +182,14 @@ pub struct UpdateHandler {
     home: Arc<Homes>,
 }
 
+impl UsingPersistence<H256, SignedUpdate> for UpdateHandler {
+    const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
+
+    fn key_to_bytes(key: H256) -> Vec<u8> {
+        key.as_bytes().to_owned()
+    }
+}
+
 impl UpdateHandler {
     pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: Arc<DB>, home: Arc<Homes>) -> Self {
         Self { rx, db, home }
@@ -191,30 +199,14 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        let existing = self
-            .db
-            .get(old_root)
-            .expect("Error fetching update from db");
-
-        match existing {
-            Some(existing_bytes) => {
-                let existing = SignedUpdate::read_from(&mut &existing_bytes[..])
-                    .expect("Failed to deserialize signed update bytes");
-
+        match Self::db_get(&self.db, old_root).expect("!db_get") {
+            Some(existing) => {
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                let mut update_bytes = Vec::new();
-                update
-                    .write_to(&mut update_bytes)
-                    .expect("Failed to write update to buffer");
-
-                self.db
-                    .put(old_root, update_bytes)
-                    .expect("Failed to insert new update into db");
-                return Ok(());
+                Self::db_put(&self.db, old_root, update.to_owned()).expect("!db_put");
             }
         }
 
@@ -263,7 +255,7 @@ impl Watcher {
     pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
         Self {
             interval_seconds,
-            db: Arc::new(utils::open_db(db_path)),
+            db: Arc::new(db::from_path(db_path)),
             core,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),

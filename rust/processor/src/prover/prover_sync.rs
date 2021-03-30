@@ -145,7 +145,7 @@ impl ProverSync {
 
         // If in-memory extension succeeded, write kv pairs to disk
         for leaf in leaves {
-            Self::db_put(&self.db, index, leaf).unwrap();
+            Self::db_put(&self.db, index, leaf).expect("!db_put");
             index += 1;
         }
 

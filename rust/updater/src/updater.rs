@@ -109,8 +109,7 @@ where
                         // If successfully submitted update, record in db
                         match home.update(&signed).await {
                             Ok(_) => {
-                                Self::db_put(&db_write, old_root, signed)
-                                    .expect("Failed to write signed update to disk");
+                                Self::db_put(&db_write, old_root, signed).expect("!db_put");
                             }
                             Err(ref e) => {
                                 tracing::error!("Error submitting update to home: {:?}", e)

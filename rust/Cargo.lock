@@ -1518,7 +1518,6 @@ dependencies = [
  "color-eyre",
  "ethers",
  "lazy_static",
- "rocksdb",
  "serde 1.0.123",
  "serde_json",
  "sha3",
