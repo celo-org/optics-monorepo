@@ -49,7 +49,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         sortition = SortitionI(_sortition);
         updater = SortitionI(_sortition).current();
 
-        queue.init();
+        queue.initialize();
         state = States.ACTIVE;
     }
 

@@ -55,7 +55,7 @@ contract TestQueue is QueueManager {
         }
     }
 
-    function initAgain() external {
-        queue.init();
+    function initializeAgain() external {
+        queue.initialize();
     }
 }

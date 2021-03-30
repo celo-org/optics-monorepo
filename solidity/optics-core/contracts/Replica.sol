@@ -56,7 +56,7 @@ abstract contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        queue.init();
+        queue.initialize();
 
         ownDomain = _ownDomain;
 
