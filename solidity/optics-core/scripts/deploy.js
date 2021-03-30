@@ -49,24 +49,32 @@ task('deploy-upgradable-replica', 'Deploy an upgradable replica.')
     60 * 60 * 2, // 2 hours
     types.int,
   )
+  .addParam(
+    'lastProcessed',
+    'Index of last processed message',
+    undefined,
+    types.int,
+  )
   .setAction(async (args, hre) => {
     const { ethers, optics } = hre;
-    let updater = ethers.utils.getAddress(args.updater);
-    if (!ethers.utils.isHexString(args.current, 32)) {
+    const { origin, destination, updater, current, wait, lastProcessed } = args;
+    const updaterAddr = ethers.utils.getAddress(updater);
+    if (!ethers.utils.isHexString(current, 32)) {
       throw new Error('current must be a 32-byte 0x prefixed hex string');
     }
 
-    let objects = await optics.deployProxyWithImplementation(
+    const { contracts } = await optics.deployProxyWithImplementation(
       'Replica',
-      [args.origin],
-      [args.destination, updater, args.current, args.wait],
+      [origin],
+      [destination, updaterAddr, current, wait, lastProcessed],
     );
 
+    const { implementation, controller, upgradeBeacon, proxy } = contracts;
     console.log(
-      `Deployed Replica at ${objects.implementation.address} with domain ${args.destination}.\n`,
-      `Deployed Controller at ${objects.controller.address}.\n`,
-      `Deployed UpgradeBeacon at ${objects.upgradeBeacon.address}.\n`,
-      `Deployed Proxy at ${objects.proxy.address}.\n`,
+      `Deployed Replica at ${implementation.address} with domain ${destination}.\n`,
+      `Deployed Controller at ${controller.address}.\n`,
+      `Deployed UpgradeBeacon at ${upgradeBeacon.address}.\n`,
+      `Deployed Proxy at ${proxy.address}.\n`,
     );
   });
 
