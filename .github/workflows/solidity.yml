@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Test Optics-Core
-        run: cd solidity/optics-core && npm test
+        run: cd solidity/optics-core && npm i && npm test
 
       - name: Test Optics-Bridge
         run: cd ../optics-bridge && npm test
