@@ -11,48 +11,83 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  optics-core:
 
     runs-on: ubuntu-latest
+
+    defaults:
+        run:
+          working-directory: ./solidity/optics-core
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Test Optics-Core
-        working-directory: ./solidity/optics-core
-        run: npm i && npm test
+      - name: Install
+        run: npm i
 
-      - name: Test Optics-Bridge
-        working-directory: ./solidity/optics-bridge
-        run: npm i && npm test
+      - name: Test
+        run: npm test
 
-      - name: Test Optics-Governance
-        working-directory: ./solidity/optics-governance
-        run: npm i && npm test
+      - name: Lint
+        run: npm run lint
 
-      - name: Test Optics-Upgrades
-        working-directory: ./solidity/optics-upgrades
-        run: npm i && npm test
-
-  lint:
+  optics-bridge:
 
     runs-on: ubuntu-latest
+
+    defaults:
+        run:
+          working-directory: ./solidity/optics-bridge
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Lint Optics-Core
-        working-directory: ./solidity/optics-core
-        run: npm i && npm run lint
+      - name: Install
+        run: npm i
 
-      - name: Lint Optics-Bridge
-        working-directory: ./solidity/optics-bridge
-        run: npm i && npm run lint
+      - name: Test
+        run: npm test
 
-      - name: Lint Optics-Governance
-        working-directory: ./solidity/optics-governance
-        run: npm i && npm run lint
+      - name: Lint
+        run: npm run lint
 
-      - name: Lint Optics-Upgrades
-        working-directory: ./solidity/optics-upgrades
-        run: npm i && npm run lint
+  optics-governance:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+        run:
+          working-directory: ./solidity/optics-governance
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: npm i
+
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+  optics-upgrades:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+        run:
+          working-directory: ./solidity/optics-upgrades
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: npm i
+
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
