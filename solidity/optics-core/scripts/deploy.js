@@ -11,17 +11,20 @@ task('deploy-upgradable-home', 'Deploy an upgradable home.')
   )
   .setAction(async (args, hre) => {
     const { ethers, optics } = hre;
-    let sortition = ethers.utils.getAddress(args.sortition);
-    let objects = await optics.deployProxyWithImplementation(
+    const { domain, sortition } = args;
+    const sortitionAddr = ethers.utils.getAddress(sortition);
+    const { contracts } = await optics.deployProxyWithImplementation(
       'Home',
-      [args.domain],
-      [sortition],
+      [domain],
+      [sortitionAddr],
     );
+
+    const { implementation, controller, upgradeBeacon, proxy } = contracts;
     console.log(
-      `Deployed Home at ${objects.implementation.address} with domain ${args.domain}.\n`,
-      `Deployed Controller at ${objects.controller.address}.\n`,
-      `Deployed UpgradeBeacon at ${objects.upgradeBeacon.address}.\n`,
-      `Deployed Proxy at ${objects.proxy.address}.\n`,
+      `Deployed Home at ${implementation.address} with domain ${domain}.\n`,
+      `Deployed Controller at ${controller.address}.\n`,
+      `Deployed UpgradeBeacon at ${upgradeBeacon.address}.\n`,
+      `Deployed Proxy at ${proxy.address}.\n`,
     );
   });
 

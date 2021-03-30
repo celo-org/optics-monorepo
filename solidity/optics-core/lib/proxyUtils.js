@@ -56,12 +56,6 @@ async function deployProxyWithImplementation(
       proxy,
       proxyWithImplementation,
     },
-    factories: {
-      Implementation,
-      Controller: null, //TODO: add later
-      UpgradeBeacon,
-      Proxy,
-    },
   };
 }
 
