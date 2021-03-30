@@ -2,8 +2,9 @@
 pragma solidity >=0.6.11;
 
 import {SortitionI} from "../interfaces/SortitionI.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract UpdaterManager is SortitionI {
+contract UpdaterManager is SortitionI, Ownable {
     address internal updater;
     address internal home;
 
@@ -17,7 +18,7 @@ contract UpdaterManager is SortitionI {
         home = _home;
     }
 
-    function setUpdater(address _updater) external {
+    function setUpdater(address _updater) external onlyOwner {
         updater = _updater;
     }
 
