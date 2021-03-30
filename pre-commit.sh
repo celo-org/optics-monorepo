@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Stash uncommitted changes
+STASH_NAME="pre-commit-$(date +%s)"
+git stash save -q --keep-index $STASH_NAME
+
 abort()
 {
     echo >&2 '
@@ -61,3 +65,8 @@ echo >&2 '
 *** DONE *** 
 ************
 '
+
+STASHES=$(git stash list)
+if [[ $STASHES == "$STASH_NAME" ]]; then
+  git stash pop -q
+fi
