@@ -1,9 +1,9 @@
 use futures_util::FutureExt;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use std::{future::Future, panic};
+
 use rocksdb::{Options, DB};
-use std::future::Future;
-use std::panic;
 
 pub fn setup_db(db_path: String) -> DB {
     let mut opts = Options::default();

@@ -36,6 +36,18 @@ pub enum MerkleTree {
     Zero(usize),
 }
 
+/// A merkle proof object. The leaf, its path to the root, and its index in the
+/// tree.
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
+pub struct Proof {
+    /// The leaf
+    pub leaf: H256,
+    /// The index
+    pub index: usize,
+    /// The merkle branch
+    pub path: [H256; TREE_DEPTH],
+}
+
 /// Error type for merkle tree ops.
 #[derive(Debug, PartialEq, Clone, Error)]
 pub enum MerkleTreeError {
@@ -215,12 +227,7 @@ pub fn verify_merkle_proof(
 }
 
 /// Compute a root hash from a leaf and a Merkle proof.
-pub(crate) fn merkle_root_from_branch(
-    leaf: H256,
-    branch: &[H256],
-    depth: usize,
-    index: usize,
-) -> H256 {
+pub fn merkle_root_from_branch(leaf: H256, branch: &[H256], depth: usize, index: usize) -> H256 {
     assert_eq!(branch.len(), depth, "proof length should equal depth");
 
     let mut current = leaf;

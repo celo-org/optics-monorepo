@@ -3,9 +3,9 @@
 //! This crate contains core primitives, traits, and types for Optics
 //! implementations.
 
-#![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
+#![forbid(unsafe_code)]
 #![forbid(where_clauses_object_safety)]
 
 /// Accumulator management
@@ -17,7 +17,15 @@ pub mod models;
 /// Async Traits for Homes & Replicas for use in applications
 pub mod traits;
 
+/// Traits for canonical binary representations
+pub mod encode;
+
+/// Testing utilities
+pub mod test_utils;
+
 mod utils;
+
+pub use encode::{Decode, Encode};
 
 use ethers::{
     core::{
@@ -28,7 +36,6 @@ use ethers::{
 };
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
-use std::convert::TryFrom;
 
 use crate::utils::*;
 
@@ -56,55 +63,6 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
-}
-
-/// Simple trait for types with a canonical encoding
-pub trait Encode {
-    /// Write the canonical encoding to the writer
-    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
-    where
-        W: std::io::Write;
-
-    /// Serialize to a vec
-    fn to_vec(&self) -> Vec<u8> {
-        let mut buf = vec![];
-        self.write_to(&mut buf).expect("!alloc");
-        buf
-    }
-}
-
-/// Simple trait for types with a canonical encoding
-pub trait Decode {
-    /// Try to read from some source
-    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
-    where
-        R: std::io::Read,
-        Self: Sized;
-}
-
-impl Encode for Signature {
-    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
-    where
-        W: std::io::Write,
-    {
-        writer.write_all(&self.to_vec())?;
-        Ok(65)
-    }
-}
-
-impl Decode for Signature {
-    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
-    where
-        R: std::io::Read,
-    {
-        let mut buf = [0u8; 65];
-        let len = reader.read(&mut buf)?;
-        if len != 65 {
-            Err(SignatureError::InvalidLength(len).into())
-        } else {
-            Ok(Self::try_from(buf.as_ref())?)
-        }
-    }
 }
 
 /// A full Optics message between chains

@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
-use ethers::{prelude::LocalWallet, signers::Signer, types::Address};
+use ethers::{core::types::H256, prelude::LocalWallet, signers::Signer, types::Address};
 use rocksdb::DB;
 use tokio::{
     sync::RwLock,
@@ -12,12 +12,13 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
+    db,
+    db::UsingPersistence,
     home::Homes,
-    utils,
 };
 use optics_core::{
     traits::{Common, Home},
-    Encode,
+    SignedUpdate,
 };
 
 use crate::settings::Settings;
@@ -35,6 +36,14 @@ pub struct Updater<S> {
 impl<S> AsRef<AgentCore> for Updater<S> {
     fn as_ref(&self) -> &AgentCore {
         &self.core
+    }
+}
+
+impl<S> UsingPersistence<H256, SignedUpdate> for Updater<S> {
+    const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
+
+    fn key_to_bytes(key: H256) -> Vec<u8> {
+        key.as_bytes().to_owned()
     }
 }
 
@@ -94,14 +103,13 @@ where
                     // can check and enter the below `if` block at a time,
                     // protecting from races between threads.
                     let db_write = db.write().await;
-                    if let Ok(None) = db_write.get(old_root) {
+                    if let Ok(None) = Self::db_get(&db_write, old_root) {
                         let signed = update.sign_with(signer.as_ref()).await.unwrap();
 
                         // If successfully submitted update, record in db
                         match home.update(&signed).await {
                             Ok(_) => {
-                                db_write
-                                    .put(old_root, signed.to_vec())
+                                Self::db_put(&db_write, old_root, signed)
                                     .expect("Failed to write signed update to disk");
                             }
                             Err(ref e) => {
@@ -148,7 +156,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         let mut interval = self.interval();
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
-        let db = Arc::new(RwLock::new(utils::open_db(self.db_path.clone())));
+        let db = Arc::new(RwLock::new(db::from_path(self.db_path.clone())));
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();

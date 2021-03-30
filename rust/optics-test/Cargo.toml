@@ -16,7 +16,7 @@ futures-util = "0.3.12"
 color-eyre = "0.5.0"
 mockall = "0.9.1"
 rand = "0.8.3"
-rocksdb = "0.15.0"
+rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
 optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../optics-ethereum"}

@@ -6,7 +6,7 @@ use mockall::*;
 use ethers::core::types::{H256, U256};
 
 use optics_core::{
-    accumulator::prover::Proof,
+    accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
     SignedUpdate, StampedMessage,
 };

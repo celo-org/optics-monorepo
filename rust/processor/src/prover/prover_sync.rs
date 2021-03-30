@@ -1,12 +1,11 @@
+use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
-use optics_base::home::Homes;
+use optics_base::{db::UsingPersistence, home::Homes};
 use optics_core::{
-    accumulator::{
-        incremental::IncrementalMerkle,
-        prover::{Prover, ProverError},
-    },
+    accumulator::incremental::IncrementalMerkle,
     traits::{ChainCommunicationError, Common, Home},
 };
+use rocksdb::DB;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{
@@ -22,7 +21,16 @@ pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     home: Arc<Homes>,
     incremental: IncrementalMerkle,
+    db: Arc<DB>,
     rx: Receiver<()>,
+}
+
+impl UsingPersistence<usize, H256> for ProverSync {
+    const KEY_PREFIX: &'static [u8] = "index_".as_bytes();
+
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
 }
 
 /// ProverSync errors
@@ -52,11 +60,17 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, rx: Receiver<()>) -> Self {
+    pub fn new(
+        prover: Arc<RwLock<Prover>>,
+        home: Arc<Homes>,
+        db: Arc<DB>,
+        rx: Receiver<()>,
+    ) -> Self {
         Self {
             prover,
             home,
             incremental: IncrementalMerkle::default(),
+            db,
             rx,
         }
     }
@@ -121,8 +135,19 @@ impl ProverSync {
             return Ok(());
         }
 
-        prover.extend(leaves.into_iter());
+        // Save current index of prover tree before updating tree
+        let mut index = prover.count();
+
+        // Extend in-memory tree
+        let leaves = leaves.into_iter();
+        prover.extend(leaves.clone());
         assert_eq!(new_root, prover.root());
+
+        // If in-memory extension succeeded, write kv pairs to disk
+        for leaf in leaves {
+            Self::db_put(&self.db, index, leaf).unwrap();
+            index += 1;
+        }
 
         Ok(())
     }

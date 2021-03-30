@@ -1,9 +1,10 @@
 use async_trait::async_trait;
 use color_eyre::{
-    eyre::{eyre, Context},
+    eyre::{eyre, WrapErr},
     Result,
 };
 use futures_util::future::select_all;
+use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::{oneshot::channel, RwLock},
@@ -13,17 +14,17 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, decl_agent,
+    cancel_task, db, decl_agent,
     home::Homes,
     replica::Replicas,
     reset_loop_if,
 };
-use optics_core::{
-    accumulator::Prover,
-    traits::{Home, Replica},
-};
+use optics_core::traits::{Home, Replica};
 
-use crate::{prover_sync::ProverSync, settings::Settings};
+use crate::{
+    prover::{Prover, ProverSync},
+    settings::Settings,
+};
 
 pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,
@@ -111,17 +112,21 @@ decl_agent!(
         interval_seconds: u64,
         prover: Arc<RwLock<Prover>>,
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+        db: Arc<DB>,
     }
 );
 
 impl Processor {
     /// Instantiate a new processor
-    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
+    pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
+        let db = db::from_path(db_path);
+
         Self {
             interval_seconds,
-            prover: Default::default(),
+            prover: Arc::new(RwLock::new(Prover::from_disk(&db))),
             core,
             replica_tasks: Default::default(),
+            db: Arc::new(db),
         }
     }
 }
@@ -137,6 +142,7 @@ impl OpticsAgent for Processor {
     {
         Ok(Self::new(
             settings.polling_interval,
+            settings.db_path.clone(),
             settings.as_ref().try_into_core().await?,
         ))
     }
@@ -160,9 +166,9 @@ impl OpticsAgent for Processor {
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let (_tx, rx) = channel();
-
         let interval_seconds = self.interval_seconds;
-        let sync = ProverSync::new(self.prover.clone(), self.home(), rx);
+
+        let sync = ProverSync::new(self.prover.clone(), self.home(), self.db.clone(), rx);
         let sync_task = tokio::spawn(async move {
             sync.poll_updates(interval_seconds)
                 .await

@@ -18,6 +18,10 @@ color-eyre = "0.5.0"
 tracing = "0.1.22"
 tracing-futures = "0.2.4"
 tracing-subscriber = "0.2.15"
+rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
 optics-core = { path = "../optics-core" }
 optics-base = { path = "../optics-base" }
+
+[dev-dependencies]
+optics-test = { path = "../optics-test" }

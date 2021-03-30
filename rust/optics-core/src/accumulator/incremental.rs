@@ -2,8 +2,7 @@ use ethers::core::types::H256;
 
 use crate::accumulator::{
     hash_concat,
-    merkle::merkle_root_from_branch,
-    prover::{Proof, ProverError},
+    merkle::{merkle_root_from_branch, Proof},
     TREE_DEPTH, ZERO_HASHES,
 };
 
@@ -69,23 +68,15 @@ impl IncrementalMerkle {
         &self.branch
     }
 
-    /// Calculate the root of a branch given the index
+    /// Calculate the root of a branch for incremental given the index
     pub fn branch_root(item: H256, branch: [H256; TREE_DEPTH], index: usize) -> H256 {
         merkle_root_from_branch(item, &branch, 32, index)
     }
 
-    /// Verify a merkle proof of inclusion
-    pub fn verify(&self, proof: &Proof) -> Result<(), ProverError> {
+    /// Verify a incremental merkle proof of inclusion
+    pub fn verify(&self, proof: &Proof) -> bool {
         let computed = IncrementalMerkle::branch_root(proof.leaf, proof.path, proof.index);
-
-        if computed != self.root() {
-            return Err(ProverError::VerificationFailed {
-                actual: computed,
-                expected: self.root(),
-            });
-        }
-
-        Ok(())
+        computed == self.root()
     }
 }
 
@@ -94,11 +85,11 @@ mod test {
     use ethers::utils::hash_message;
 
     use super::*;
-    use crate::accumulator::prover::test;
+    use crate::test_utils;
 
     #[test]
     fn it_computes_branch_roots() {
-        let test_json = test::load_test_json();
+        let test_json = test_utils::load_merkle_test_json();
         let test_cases = test_json.test_cases;
 
         for test_case in test_cases.iter() {
@@ -119,7 +110,7 @@ mod test {
 
             for n in 0..test_case.leaves.len() {
                 // check that the tree can verify the proof for this leaf
-                tree.verify(&test_case.proofs[n]).unwrap();
+                assert!(tree.verify(&test_case.proofs[n]));
             }
         }
     }
