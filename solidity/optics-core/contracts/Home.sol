@@ -44,8 +44,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
     function initialize(address _sortition) public override {
-        require(current == bytes32(0), "current root not zero");
-        require(updater == address(0), "updater already initialized");
+        require(state == States.UNINITIALIZED, "already initialized");
 
         sortition = SortitionI(_sortition);
         updater = SortitionI(_sortition).current();

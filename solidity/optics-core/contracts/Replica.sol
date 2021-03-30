@@ -54,10 +54,7 @@ abstract contract Replica is Common, QueueManager {
         uint256 _optimisticSeconds,
         uint256 _lastProcessed
     ) public {
-        require(ownDomain == 0, "ownDomain already initialized");
-        require(updater == address(0), "updater already initialized");
-        require(current == bytes32(0), "current root not zero");
-        require(optimisticSeconds == 0, "optimSecs already initialized");
+        require(state == States.UNINITIALIZED, "already initialized");
 
         queue.init();
 
@@ -67,6 +64,7 @@ abstract contract Replica is Common, QueueManager {
         current = _current;
         optimisticSeconds = _optimisticSeconds;
         lastProcessed = _lastProcessed;
+
         state = States.ACTIVE;
     }
 

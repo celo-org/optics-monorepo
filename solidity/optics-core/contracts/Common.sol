@@ -172,7 +172,7 @@ abstract contract Common {
     }
 
     function initialize(address _updater) public virtual {
-        require(updater == address(0), "updater already initialized");
+        require(state == States.UNINITIALIZED, "already initialized");
 
         updater = _updater;
         state = States.ACTIVE;
