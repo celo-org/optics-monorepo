@@ -66,7 +66,4 @@ echo >&2 '
 ************
 '
 
-STASHES=$(git stash list)
-if [[ $STASHES == "$STASH_NAME" ]]; then
-  git stash pop -q
-fi
+git stash apply stash^{/$STASH_NAME}
