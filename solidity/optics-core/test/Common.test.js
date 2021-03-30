@@ -3,27 +3,26 @@ const { provider } = waffle;
 const { expect } = require('chai');
 
 const { testCases } = require('../../../vectors/domainHashTestCases.json');
-
+const { deployProxyWithImplementation } = require('./proxyUtils');
 const originDomain = 1000;
 
 describe('Common', async () => {
-  let common, signer, fakeSigner, updater, fakeUpdater, initialRoot;
+  let common, signer, fakeSigner, updater, fakeUpdater;
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, originDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
-    initialRoot = ethers.utils.formatBytes32String('initial root');
   });
 
   beforeEach(async () => {
-    const CommonFactory = await ethers.getContractFactory('TestCommon');
-    common = await CommonFactory.deploy(
-      originDomain,
-      updater.signer.address,
-      initialRoot,
+    const { contracts } = await deployProxyWithImplementation(
+      'TestCommon',
+      [originDomain],
+      [updater.signer.address],
     );
-    await common.deployed();
+
+    common = contracts.proxyWithImplementation;
   });
 
   it('Accepts updater signature', async () => {

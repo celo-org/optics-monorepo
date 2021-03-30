@@ -24,7 +24,7 @@ library QueueLib {
      * @dev Empty state denoted by _q.first > q._last. Queue initialized
      * with _q.first = 1 and _q.last = 0.
      **/
-    function init(Queue storage _q) internal {
+    function initialize(Queue storage _q) internal {
         if (_q.first == 0) {
             _q.first = 1;
         }
@@ -174,10 +174,6 @@ library QueueLib {
 contract QueueManager {
     using QueueLib for QueueLib.Queue;
     QueueLib.Queue internal queue;
-
-    constructor() {
-        queue.init();
-    }
 
     /// @notice Returns number of elements in queue
     function queueLength() external view returns (uint256) {

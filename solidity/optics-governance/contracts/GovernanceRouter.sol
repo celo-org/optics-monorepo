@@ -50,17 +50,28 @@ contract GovernanceRouter is MessageRecipientI {
     /*
     --- CONSTRUCTOR ---
     */
-    constructor(address _usingOptics) {
-        setUsingOptics(_usingOptics);
-
-        // immutable state variables cannot be accessed within the constructor, so we set this variable for use
-        // in _transferGovernor
-        uint32 _localDomain = usingOptics.originDomain();
+    constructor(uint32 _localDomain) {
         localDomain = _localDomain;
+    }
+
+    function initialize(address _usingOptics) public {
+        // initialize governor
+        require(
+            governorDomain == 0 && governor == address(0),
+            "governor already initialized"
+        );
 
         address _governor = msg.sender;
         bool _isLocalDomain = true;
-        _transferGovernor(_localDomain, _governor, _isLocalDomain);
+        _transferGovernor(localDomain, _governor, _isLocalDomain);
+
+        // initialize UsingOptics
+        setUsingOptics(_usingOptics);
+
+        require(
+            usingOptics.originDomain() == localDomain,
+            "usingOptics incompatible domain"
+        );
     }
 
     /*

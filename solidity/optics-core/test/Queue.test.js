@@ -18,7 +18,7 @@ describe('Queue', async () => {
 
   it('should function as a queue', async () => {
     // we put this here for coverage to check that init properly does nothing
-    queue.initAgain();
+    queue.initializeAgain();
 
     const items = Array.from(new Array(10).keys()).map((i) => bytes32(i));
 

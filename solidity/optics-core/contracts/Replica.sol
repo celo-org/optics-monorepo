@@ -10,42 +10,68 @@ import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
 /**
  * @title Replica
  * @author Celo Labs Inc.
- * @notice Contract responsible tracking root updates on home.
- **/
+ * @notice Contract responsible for tracking root updates on home,
+ * and dispatching messages on Replica to end recipients.
+ */
 abstract contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
+    using MerkleLib for MerkleLib.Tree;
+    using TypedMemView for bytes;
+    using TypedMemView for bytes29;
+    using Message for bytes29;
 
     /// @notice Domain of replica's native chain
-    uint32 public immutable ownDomain;
+    uint32 public ownDomain;
+
+    /// @notice Minimum gas for message processing
+    uint256 public constant PROCESS_GAS = 500000;
+    /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
+    uint256 public constant RESERVE_GAS = 10000;
 
     /// @notice Number of seconds to wait before enqueued root becomes confirmable
     uint256 public optimisticSeconds;
 
+    /// @notice Index of last processed message's leaf in home's merkle tree
+    uint256 public lastProcessed;
+
+    bytes32 public previous; // to smooth over witness invalidation
+
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
-    constructor(
-        uint32 _originDomain,
+    /// @notice Status of message
+    enum MessageStatus {None, Pending, Processed}
+
+    /// @notice Mapping of message leaves to MessageStatus
+    mapping(bytes32 => MessageStatus) public messages;
+
+    constructor(uint32 _originDomain) Common(_originDomain) {} // solhint-disable-line no-empty-blocks
+
+    function initialize(
         uint32 _ownDomain,
         address _updater,
+        bytes32 _current,
         uint256 _optimisticSeconds,
-        bytes32 _current
-    ) Common(_originDomain, _updater, _current) QueueManager() {
+        uint256 _lastProcessed
+    ) public {
+        require(state == States.UNINITIALIZED, "already initialized");
+
+        queue.initialize();
+
         ownDomain = _ownDomain;
-        optimisticSeconds = _optimisticSeconds;
+
+        updater = _updater;
         current = _current;
+        optimisticSeconds = _optimisticSeconds;
+        lastProcessed = _lastProcessed;
+
+        state = States.ACTIVE;
     }
 
     /// @notice Sets contract state to FAILED
     function fail() internal override {
         _setFailed();
     }
-
-    /// @notice Hook called before confirming root
-    function _beforeConfirm() internal virtual;
-
-    /// @notice Hook called before enqueuing update's root
-    function _beforeUpdate() internal virtual;
 
     /**
      * @notice Called by external agent. Returns next pending root to be
@@ -130,53 +156,14 @@ abstract contract Replica is Common, QueueManager {
 
         current = _pending;
     }
-}
-
-/**
- * @title ProcessingReplica
- * @author Celo Labs Inc.
- * @notice Contract responsible for dispatching messages on home to end
- * recipients. Inherits home root tracking capabilities from `Replica`.
- **/
-contract ProcessingReplica is Replica {
-    using MerkleLib for MerkleLib.Tree;
-    using TypedMemView for bytes;
-    using TypedMemView for bytes29;
-    using Message for bytes29;
-
-    /// @notice Minimum gas for message processing
-    uint256 public constant PROCESS_GAS = 500000;
-    /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
-    uint256 public constant RESERVE_GAS = 10000;
-
-    bytes32 public previous; // to smooth over witness invalidation
-
-    /// @notice Index of last processed message's leaf in home's merkle tree
-    uint256 public lastProcessed;
-
-    /// @notice Status of message
-    enum MessageStatus {None, Pending, Processed}
-    /// @notice Mapping of message leaves to MessageStatus
-    mapping(bytes32 => MessageStatus) public messages;
-
-    constructor(
-        uint32 _originDomain,
-        uint32 _ownDomain,
-        address _updater,
-        uint256 _optimisticSeconds,
-        bytes32 _start,
-        uint256 _lastProcessed
-    ) Replica(_originDomain, _ownDomain, _updater, _optimisticSeconds, _start) {
-        lastProcessed = _lastProcessed;
-    }
 
     /// @notice Sets `previous` to `current` root before updating `current`
-    function _beforeConfirm() internal override {
+    function _beforeConfirm() internal {
         previous = current;
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _beforeUpdate() internal override {}
+    function _beforeUpdate() internal {}
 
     /**
      * @notice Given formatted message, attempts to dispatch message payload to

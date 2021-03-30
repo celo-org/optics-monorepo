@@ -2,6 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 
+const { deployProxyWithImplementation } = require('./proxyUtils');
 const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
@@ -41,16 +42,20 @@ describe('Replica', async () => {
   });
 
   beforeEach(async () => {
-    const Replica = await ethers.getContractFactory('TestReplica');
-    replica = await Replica.deploy(
-      originDomain,
-      ownDomain,
-      updater.signer.address,
-      optimisticSeconds,
-      initialCurrentRoot,
-      initialLastProcessed,
+    const { contracts } = await deployProxyWithImplementation(
+      'TestReplica',
+      [originDomain],
+      [
+        ownDomain,
+        updater.signer.address,
+        initialCurrentRoot,
+        optimisticSeconds,
+        initialLastProcessed,
+      ],
+      'initialize(uint32, address, bytes32, uint256, uint256)',
     );
-    await replica.deployed();
+
+    replica = contracts.proxyWithImplementation;
   });
 
   it('Halts on fail', async () => {

@@ -3,13 +3,14 @@ const { assert } = require('chai');
 const { extendEnvironment } = require('hardhat/config');
 
 const HomeAbi = require('../../../abis/Home.abi.json');
-const ReplicaAbi = require('../../../abis/ProcessingReplica.abi.json');
+const ReplicaAbi = require('../../../abis/Replica.abi.json');
 
 extendEnvironment((hre) => {
   let { ethers } = hre;
   const State = {
-    ACTIVE: 0,
-    FAILED: 1,
+    UNINITIALIZED: 0,
+    ACTIVE: 1,
+    FAILED: 2,
   };
 
   const MessageStatus = {
@@ -173,10 +174,7 @@ extendEnvironment((hre) => {
       return new Home(contract.address, signer);
     },
     deployReplica: async (signer, ...args) => {
-      const factory = await ethers.getContractFactory(
-        'ProcessingReplica',
-        signer,
-      );
+      const factory = await ethers.getContractFactory('Replica', signer);
       let contract = await factory.deploy(...args);
       await contract.deployed();
       return new Replica(contract.address, signer);
