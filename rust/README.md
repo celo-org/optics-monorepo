@@ -25,7 +25,7 @@
   - install: `cargo install cargo-tree`
   - invoke: `cargo tree`
 - clippy
-  - search the codebase for a large number of lints and bad patters
+  - search the codebase for a large number of lints and bad patterns
   - install: `rustup component add clippy`
   - invoke: `cargo clippy`
 - expand
