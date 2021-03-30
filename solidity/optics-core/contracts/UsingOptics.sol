@@ -3,12 +3,16 @@ pragma solidity >=0.6.11;
 
 import "./Home.sol";
 
+import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 abstract contract UsingOptics is Ownable {
-    mapping(address => uint32) public replicas;
+    mapping(address => uint32) public replicaToDomain;
+    mapping(uint32 => address) public domainToReplica;
     Home public home;
+
+    mapping(address => mapping(uint32 => bool)) watchers;
 
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
@@ -23,15 +27,26 @@ abstract contract UsingOptics is Ownable {
     }
 
     function isReplica(address _replica) public view returns (bool) {
-        return replicas[_replica] != 0;
+        return replicaToDomain[_replica] != 0;
     }
 
-    function enrollReplica(uint32 _domain, address _replica) public onlyOwner {
-        replicas[_replica] = _domain;
+    function ownerEnrollReplica(address _replica, uint32 _domain)
+        public
+        onlyOwner
+    {
+        unenrollReplica(_replica);
+        replicaToDomain[_replica] = _domain;
+        domainToReplica[_domain] = _replica;
     }
 
-    function unenrollReplica(address _replica) public onlyOwner {
-        replicas[_replica] = 0;
+    function ownerUnenrollReplica(address _replica) public onlyOwner {
+        unenrollReplica(_replica);
+    }
+
+    function unenrollReplica(address _replica) internal {
+        uint32 _currentDomain = replicaToDomain[_replica];
+        domainToReplica[_currentDomain] = address(0);
+        replicaToDomain[_replica] = 0;
     }
 
     function setHome(address _home) public onlyOwner {
@@ -48,6 +63,36 @@ abstract contract UsingOptics is Ownable {
         bytes memory _body
     ) public {
         home.enqueue(_destination, _recipient, _body);
+    }
+
+    function checkWatcherSig(
+        address _watcher,
+        uint32 _domain,
+        address _replica,
+        address _updater,
+        bytes memory _signature
+    ) internal view returns (bool) {
+        require(watchers[_watcher][_domain], "!watcher permission");
+
+        bytes32 _digest =
+            keccak256(abi.encodePacked(_domain, _replica, _updater));
+        _digest = ECDSA.toEthSignedMessageHash(_digest);
+        return ECDSA.recover(_digest, _signature) == _watcher;
+    }
+
+    function unenrollReplica(
+        address _watcher,
+        uint32 _domain,
+        address _replica,
+        address _updater,
+        bytes memory _signature
+    ) external {
+        if (
+            replicaToDomain[_replica] == _domain &&
+            checkWatcherSig(_watcher, _domain, _replica, _updater, _signature)
+        ) {
+            unenrollReplica(_replica);
+        }
     }
 }
 
