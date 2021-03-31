@@ -15,7 +15,7 @@ contract UpdaterManager is Ownable {
         this.setHome(_home);
     }
 
-    // TODO: think about visibility
+    // TODO: think about visibility;
     function setHome(address _home) external onlyOwner {
         home = _home;
     }
@@ -24,7 +24,7 @@ contract UpdaterManager is Ownable {
         updater = _updater;
     }
 
-    function current() external view returns (address) {
+    function currentUpdater() external view returns (address) {
         return updater;
     }
 
