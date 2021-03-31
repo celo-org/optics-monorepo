@@ -15,13 +15,13 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await optics.deployProxyWithImplementation(
+    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
       'TestCommon',
       [originDomain],
       [updater.signer.address],
     );
 
-    common = contracts.proxyWithImplementation;
+          common = contracts.proxyWithImplementation;
   });
 
   it('Accepts updater signature', async () => {
