@@ -17,7 +17,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task,
+    cancel_task, db,
     home::Homes,
     persistence::UsingPersistence,
 };
@@ -245,6 +245,7 @@ pub struct Watcher<S> {
     interval_seconds: u64,
     sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+    db: Arc<DB>,
     core: AgentCore,
 }
 
@@ -260,7 +261,7 @@ where
     S: Signer + 'static,
 {
     /// Instantiate a new watcher.
-    pub fn new(signer: S, interval_seconds: u64, core: AgentCore) -> Self {
+    pub fn new(signer: S, interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
             interval_seconds,
