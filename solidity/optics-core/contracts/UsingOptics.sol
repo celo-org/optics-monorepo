@@ -109,7 +109,6 @@ contract UsingOptics is Ownable {
 
     function recoverWatcherFromSig(
         uint32 _domain,
-        address _replica,
         address _updater,
         bytes memory _signature
     ) internal view returns (address) {
