@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "./Home.sol";
+import "./Replica.sol";
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -97,6 +98,7 @@ abstract contract UsingOptics is Ownable {
     ) external {
         if (
             replicaToDomain[_replica] == _domain &&
+            Replica(_replica).updater() == _updater &&
             checkWatcherSig(_watcher, _domain, _replica, _updater, _signature)
         ) {
             unenrollReplica(_replica);
