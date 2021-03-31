@@ -232,7 +232,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_sortition",
+        "name": "_updater",
         "type": "address"
       }
     ],
