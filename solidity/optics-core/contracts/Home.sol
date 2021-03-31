@@ -51,7 +51,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Sets contract state to FAILED and slashes updater
     function fail() internal override {
         _setFailed();
-        slash(msg.sender);
+        this.slash(msg.sender);
     }
 
     /**
