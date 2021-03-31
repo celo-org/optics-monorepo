@@ -4,13 +4,12 @@ pragma solidity >=0.6.11;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract UpdaterManager is Ownable {
-    /// @notice Address of bonded updater
-    address public updater;
+    address internal updater;
     address internal home;
 
     event Slashed();
 
-    constructor(address _updater, address _home) payable {
+    constructor(address _updater, address _home) payable Ownable() {
         this.setUpdater(_updater);
         this.setHome(_home);
     }
