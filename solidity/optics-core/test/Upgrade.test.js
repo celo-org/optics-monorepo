@@ -37,19 +37,12 @@ describe('Upgrade', async () => {
 
   it('Upgrades without problem', async () => {
     // Deploy Implementation 2
-<<<<<<< HEAD
-    await optics.upgradeToImplementation(
-      upgradeBeacon,
-      signer,
-      'MysteryMathV2',
-=======
-    const implementation = await deployImplementation('MysteryMathV2');
+    const implementation = await optics.deployImplementation('MysteryMathV2');
 
     // Upgrade to implementation 2
     await upgradeBeaconController.upgrade(
       upgradeBeacon.address,
       implementation.address,
->>>>>>> Update tests to use controller to upgrade
     );
   });
 

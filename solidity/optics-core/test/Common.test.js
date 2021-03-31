@@ -21,7 +21,7 @@ describe('Common', async () => {
       [updater.signer.address],
     );
 
-          common = contracts.proxyWithImplementation;
+    common = contracts.proxyWithImplementation;
   });
 
   it('Accepts updater signature', async () => {
