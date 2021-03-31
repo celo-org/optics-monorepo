@@ -280,7 +280,7 @@ pub struct FailureNotification {
     /// Domain of replica to unenroll
     pub domain: u32,
     /// Updater of replica to unenroll
-    pub updater: Address,
+    pub updater: H256,
 }
 
 impl FailureNotification {
