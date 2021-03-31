@@ -275,6 +275,66 @@ impl SignedUpdate {
     }
 }
 
+/// Failure notification produced by watcher
+pub struct FailureNotification {
+    /// Domain of replica to unenroll
+    pub domain: u32,
+    /// Updater of replica to unenroll
+    pub updater: Address,
+}
+
+impl FailureNotification {
+    fn signing_hash(&self) -> H256 {
+        H256::from_slice(
+            Keccak256::new()
+                .chain(domain_hash(self.domain))
+                .chain(self.domain.to_be_bytes())
+                .chain(self.updater)
+                .finalize()
+                .as_slice(),
+        )
+    }
+
+    fn prepended_hash(&self) -> H256 {
+        hash_message(self.signing_hash())
+    }
+
+    /// Sign an `FailureNotification` using the specified signer
+    pub async fn sign_with<S>(self, signer: &S) -> Result<SignedFailureNotification, S::Error>
+    where
+        S: Signer,
+    {
+        let signature = signer.sign_message(self.signing_hash()).await?;
+        Ok(SignedFailureNotification {
+            notification: self,
+            signature,
+        })
+    }
+}
+
+/// Signed failure notification produced by watcher
+pub struct SignedFailureNotification {
+    /// Failure notification
+    pub notification: FailureNotification,
+    /// Signature
+    pub signature: Signature,
+}
+
+impl SignedFailureNotification {
+    /// Recover the Ethereum address of the signer
+    pub fn recover(&self) -> Result<Address, OpticsError> {
+        dbg!(self.notification.prepended_hash());
+        Ok(self.signature.recover(self.notification.prepended_hash())?)
+    }
+
+    /// Check whether a message was signed by a specific address
+    pub fn verify(&self, signer: Address) -> Result<(), OpticsError> {
+        Ok(self
+            .signature
+            .verify(self.notification.prepended_hash(), signer)?)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
