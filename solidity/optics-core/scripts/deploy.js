@@ -1,7 +1,7 @@
 const { types, task } = require('hardhat/config');
 const utils = require('./utils.js');
 
-task('deploy-upgradable-home', 'Deploy an upgradable home.')
+task('deploy-home', 'Deploy an upgradable home.')
   .addParam('domain', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'sortition',
@@ -28,7 +28,7 @@ task('deploy-upgradable-home', 'Deploy an upgradable home.')
     );
   });
 
-task('deploy-upgradable-replica', 'Deploy an upgradable replica.')
+task('deploy-replica', 'Deploy an upgradable replica.')
   .addParam('origin', 'The origin chain domain ID', undefined, types.int)
   .addParam(
     'destination',
