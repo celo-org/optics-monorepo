@@ -77,14 +77,12 @@ abstract contract UsingOptics is Ownable {
     function checkWatcherSig(
         address _watcher,
         uint32 _domain,
-        address _replica,
         address _updater,
         bytes memory _signature
     ) internal view returns (bool) {
         require(watcherPermissions[_watcher][_domain], "!watcher permission");
 
-        bytes32 _digest =
-            keccak256(abi.encodePacked(_domain, _replica, _updater));
+        bytes32 _digest = keccak256(abi.encodePacked(_domain, _updater));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature) == _watcher;
     }
@@ -92,14 +90,14 @@ abstract contract UsingOptics is Ownable {
     function unenrollReplica(
         address _watcher,
         uint32 _domain,
-        address _replica,
         address _updater,
         bytes memory _signature
     ) external {
+        address _replica = domainToReplica[_domain];
         if (
-            replicaToDomain[_replica] == _domain &&
+            _replica != address(0) &&
             Replica(_replica).updater() == _updater &&
-            checkWatcherSig(_watcher, _domain, _replica, _updater, _signature)
+            checkWatcherSig(_watcher, _domain, _updater, _signature)
         ) {
             unenrollReplica(_replica);
         }
