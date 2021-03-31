@@ -13,6 +13,7 @@ abstract contract UsingOptics is Ownable {
     mapping(uint32 => address) public domainToReplica;
     Home public home;
 
+    // watcher address => replica domain => has/doesn't have permission
     mapping(address => mapping(uint32 => bool)) watcherPermissions;
 
     // solhint-disable-next-line no-empty-blocks
@@ -74,34 +75,32 @@ abstract contract UsingOptics is Ownable {
         home.enqueue(_destination, _recipient, _body);
     }
 
-    function checkWatcherSig(
-        address _watcher,
+    function recoverWatcherFromSig(
         uint32 _domain,
         address _updater,
         bytes memory _signature
-    ) internal view returns (bool) {
-        require(watcherPermissions[_watcher][_domain], "!watcher permission");
-
+    ) internal view returns (address) {
         address _replica = domainToReplica[_domain];
         bytes32 _replicaDomainHash = Replica(_replica).domainHash();
 
         bytes32 _digest =
             keccak256(abi.encodePacked(_replicaDomainHash, _domain, _updater));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
-        return ECDSA.recover(_digest, _signature) == _watcher;
+        return ECDSA.recover(_digest, _signature);
     }
 
     function unenrollReplica(
-        address _watcher,
         uint32 _domain,
         address _updater,
         bytes memory _signature
     ) external {
         address _replica = domainToReplica[_domain];
+        address _watcher = recoverWatcherFromSig(_domain, _updater, _signature);
+
+        require(_replica != address(0), "!replica exists");
         if (
-            _replica != address(0) &&
             Replica(_replica).updater() == _updater &&
-            checkWatcherSig(_watcher, _domain, _updater, _signature)
+            watcherPermissions[_watcher][_domain]
         ) {
             unenrollReplica(_replica);
         }
