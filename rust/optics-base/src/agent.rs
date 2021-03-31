@@ -1,11 +1,11 @@
+use crate::{cancel_task, home::Homes, replica::Replicas, settings::Settings};
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
+use rocksdb::DB;
+
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
-
-use crate::{cancel_task, home::Homes, replica::Replicas, settings::Settings};
-
 /// Properties shared across all agents
 #[derive(Debug)]
 pub struct AgentCore {
@@ -13,6 +13,8 @@ pub struct AgentCore {
     pub home: Arc<Homes>,
     /// A map of boxed Replicas
     pub replicas: HashMap<String, Arc<Replicas>>,
+    /// A persistent KV Store (currently implemented as rocksdb)
+    pub db: Arc<DB>,
 }
 
 /// A trait for an application that runs on a replica and a reference to a
@@ -26,6 +28,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
         Self: Sized;
+
+    /// Return a handle to the DB
+    fn db(&self) -> Arc<DB> {
+        self.as_ref().db.clone()
+    }
 
     /// Return a reference to a home contract
     fn home(&self) -> Arc<Homes> {

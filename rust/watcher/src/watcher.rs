@@ -17,7 +17,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, db, decl_agent,
+    cancel_task, decl_agent,
     home::Homes,
     persistence::UsingPersistence,
 };
@@ -243,7 +243,6 @@ decl_agent!(
     /// A watcher agent
     Watcher {
         interval_seconds: u64,
-        db: Arc<DB>,
         sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
         watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     }
@@ -252,10 +251,9 @@ decl_agent!(
 #[allow(clippy::unit_arg)]
 impl Watcher {
     /// Instantiate a new watcher.
-    pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
+    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             interval_seconds,
-            db: Arc::new(db::from_path(db_path)),
             core,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),
@@ -304,7 +302,6 @@ impl OpticsAgent for Watcher {
     {
         Ok(Self::new(
             settings.polling_interval,
-            settings.db_path.clone(),
             settings.as_ref().try_into_core().await?,
         ))
     }
@@ -319,7 +316,7 @@ impl OpticsAgent for Watcher {
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let (tx, rx) = mpsc::channel(200);
-        let handler = UpdateHandler::new(rx, self.db.clone(), self.home()).spawn();
+        let handler = UpdateHandler::new(rx, self.db(), self.home()).spawn();
 
         for name in replicas.iter() {
             let replica = self
