@@ -32,3 +32,4 @@ contract TestSortition is SortitionI, Ownable {
         emit Slashed();
     }
 }
+// TODO: update to TestUpdaterManager

@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import {SortitionI} from "../interfaces/SortitionI.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract UpdaterManager is SortitionI, Ownable {
+contract UpdaterManager is Ownable {
+    /// @notice Address of bonded updater
     address internal updater;
+    /// @notice Address of home contract
     address internal home;
 
     event Slashed();
 
-    constructor(address _updater) payable {
-        updater = _updater;
+    constructor(address _updater, address _home) payable {
+        setUpdater(_updater);
+        setHome(_home);
     }
 
-    function setHome(address _home) external {
+    function setHome(address _home) external onlyOwner {
         home = _home;
     }
 

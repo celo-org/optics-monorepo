@@ -4,7 +4,6 @@ pragma solidity >=0.6.11;
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import "../interfaces/SortitionI.sol";
 
 /**
  * @title Home
@@ -18,9 +17,6 @@ contract Home is MerkleTreeManager, QueueManager, Common {
 
     /// @notice Mapping of sequence numbers for each destination
     mapping(uint32 => uint32) public sequences;
-
-    // TODO: removing sortition?
-    SortitionI internal sortition;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -43,11 +39,10 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
-    function initialize(address _sortition) public override {
+    function initialize(address _updater) public override {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        sortition = SortitionI(_sortition);
-        updater = SortitionI(_sortition).current();
+        // TODO: initialize UpdaterManager
 
         queue.initialize();
         state = States.ACTIVE;
@@ -56,7 +51,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Sets contract state to FAILED and slashes updater
     function fail() internal override {
         _setFailed();
-        sortition.slash(msg.sender);
+        slash(msg.sender);
     }
 
     /**

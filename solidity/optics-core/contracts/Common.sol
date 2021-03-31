@@ -4,6 +4,8 @@ pragma solidity >=0.6.11;
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
+import "./Updater.sol";
+
 /**
  * @title Message Library
  * @author Celo Labs Inc.
@@ -121,7 +123,7 @@ library Message {
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
  **/
-abstract contract Common {
+abstract contract Common is UpdaterManager {
     enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
@@ -129,8 +131,6 @@ abstract contract Common {
     /// @notice Hash of `originDomain` concatenated with "OPTICS"
     bytes32 public immutable domainHash;
 
-    /// @notice Address of bonded updater
-    address public updater;
     /// @notice Current state of contract
     States public state;
     /// @notice Current root
