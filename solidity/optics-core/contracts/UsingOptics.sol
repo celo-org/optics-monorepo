@@ -82,7 +82,11 @@ abstract contract UsingOptics is Ownable {
     ) internal view returns (bool) {
         require(watcherPermissions[_watcher][_domain], "!watcher permission");
 
-        bytes32 _digest = keccak256(abi.encodePacked(_domain, _updater));
+        address _replica = domainToReplica[_domain];
+        bytes32 _replicaDomainHash = Replica(_replica).domainHash();
+
+        bytes32 _digest =
+            keccak256(abi.encodePacked(_replicaDomainHash, _domain, _updater));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature) == _watcher;
     }
