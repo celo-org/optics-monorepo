@@ -13,7 +13,7 @@ abstract contract UsingOptics is Ownable {
     mapping(uint32 => address) public domainToReplica;
     Home public home;
 
-    mapping(address => mapping(uint32 => bool)) watchers;
+    mapping(address => mapping(uint32 => bool)) watcherPermissions;
 
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
@@ -59,7 +59,7 @@ abstract contract UsingOptics is Ownable {
         uint32 _domain,
         bool _access
     ) public onlyOwner {
-        watchers[_watcher][_domain] = _access;
+        watcherPermissions[_watcher][_domain] = _access;
     }
 
     function originDomain() public view returns (uint32) {
@@ -81,7 +81,7 @@ abstract contract UsingOptics is Ownable {
         address _updater,
         bytes memory _signature
     ) internal view returns (bool) {
-        require(watchers[_watcher][_domain], "!watcher permission");
+        require(watcherPermissions[_watcher][_domain], "!watcher permission");
 
         bytes32 _digest =
             keccak256(abi.encodePacked(_domain, _replica, _updater));
