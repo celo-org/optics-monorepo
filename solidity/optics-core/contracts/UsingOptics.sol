@@ -6,7 +6,7 @@ import "./Home.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-abstract contract UsingOptics is Ownable {
+contract UsingOptics is Ownable {
     mapping(address => uint32) public replicas;
     Home public home;
 

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import {SortitionI} from "../../interfaces/SortitionI.sol";
 
-contract TestSortition is SortitionI {
+contract TestSortition is SortitionI, Ownable {
     address internal updater;
     address internal home;
 

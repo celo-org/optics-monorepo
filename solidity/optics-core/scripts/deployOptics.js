@@ -77,18 +77,18 @@ async function deployGovernanceRouter(
   return contracts;
 }
 
-
 /*
-* struct ChainConfig {
-*   domain,
-*   updater,
-*   currentRoot,
-*   lastProcessedIndex,
-*   optimisticSeconds,
-*   // chainURL
-* };
-* */
-
+ * struct ChainConfig {
+ *   domain,
+ *   updater,
+ *   currentRoot,
+ *   lastProcessedIndex,
+ *   optimisticSeconds,
+ *   // chainURL
+ * };
+ * * param origin should be a ChainConfig
+ * * param remotes should be an array of ChainConfigs
+ * */
 // TODO: #later explore bunding these deploys into a single transaction to a bespoke DeployHelper contract
 async function deployOptics(origin, remotes) {
   const { domain: originDomain, updater: originUpdaterAddress } = origin;
@@ -97,9 +97,20 @@ async function deployOptics(origin, remotes) {
   // Note: initial owner will be the signer that's deploying
   const upgradeBeaconController = await optics.deployUpgradeBeaconController();
 
+  const updaterManager = await deployUpdaterManger(originUpdaterAddress);
+
   // Deploy UsingOptics
   // Note: initial owner will be the signer that's deploying
   const usingOptics = await deployUsingOptics();
+
+  // Deploy Home and setHome on UsingOptics
+  const home = await deployHome(
+    originDomain,
+    updaterManager,
+    upgradeBeaconController,
+  );
+
+  await usingOptics.setHome(home.proxy.address);
 
   // Deploy GovernanceRouter
   // Note: initial governor will be the signer that's deploying
@@ -108,17 +119,6 @@ async function deployOptics(origin, remotes) {
     upgradeBeaconController,
     usingOptics.address,
   );
-
-  const updaterManager = await deployUpdaterManger(originUpdaterAddress);
-
-  // Deploy Home and setHome on UsingOptics
-  const home = await deployHome(
-    originDomain,
-    originUpdaterAddress,
-    upgradeBeaconController,
-  );
-
-  await usingOptics.setHome(home.proxy.address);
 
   // Deploy Replica Upgrade Setup
   const replicaSetup = await deployReplicaUpgradeSetup(
@@ -164,3 +164,7 @@ async function deployOptics(origin, remotes) {
     replicaProxies,
   };
 }
+
+module.exports = {
+  deployOptics,
+};
