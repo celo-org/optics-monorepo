@@ -232,7 +232,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_updater",
+        "name": "_updaterManager",
         "type": "address"
       }
     ],
