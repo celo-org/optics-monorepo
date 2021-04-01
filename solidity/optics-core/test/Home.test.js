@@ -1,7 +1,7 @@
 const { waffle, ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
-const TestSortition = require('../artifacts/contracts/test/TestSortition.sol/TestSortition.json');
+const TestUpdaterManager = require('../artifacts/contracts/test/TestUpdaterManager.sol/TestUpdaterManager.json');
 const { deployProxyWithImplementation } = require('./proxyUtils');
 
 const {
@@ -34,7 +34,7 @@ describe('Home', async () => {
   });
 
   beforeEach(async () => {
-    const mockSortition = await deployMockContract(signer, TestSortition.abi);
+    const mockSortition = await deployMockContract(signer, TestUpdaterManager.abi);
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
 

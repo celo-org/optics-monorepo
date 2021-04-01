@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-// TODO: update to TestUpdaterManager
+import "../../interfaces/UpdaterManagerI.sol";
 
-interface SortitionI {
-    function current() external view returns (address);
-
-    function slash(address payable _reporter) external;
-}
-
-contract TestSortition is SortitionI {
+contract TestUpdaterManager is UpdaterManagerI {
     address internal updater;
     address internal home;
 
