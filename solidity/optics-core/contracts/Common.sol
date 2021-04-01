@@ -4,8 +4,6 @@ pragma solidity >=0.6.11;
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-import "./Updater.sol";
-
 /**
  * @title Message Library
  * @author Celo Labs Inc.
