@@ -33,17 +33,13 @@ describe('Home', async () => {
   });
 
   beforeEach(async () => {
-    const mockSortition = await deployMockContract(signer, TestSortition.abi);
-    await mockSortition.mock.current.returns(signer.address);
-    await mockSortition.mock.slash.returns();
+    const homeDetails = {
+      domain: originDomain,
+      updater: signer.address,
+    };
+    const contracts = await optics.deployOptics(homeDetails, []);
 
-    const { contracts } = await optics.deployUpgradeSetupAndProxy(
-      'TestHome',
-      [originDomain],
-      [mockSortition.address],
-    );
-
-    home = contracts.proxyWithImplementation;
+    home = contracts.home.proxyWithImplementation;
   });
 
   it('Halts on fail', async () => {

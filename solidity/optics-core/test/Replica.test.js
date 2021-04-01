@@ -41,22 +41,24 @@ describe('Replica', async () => {
   });
 
   beforeEach(async () => {
-    const controller = null;
-    const { contracts } = await optics.deployUpgradeSetupAndProxy(
-      'TestReplica',
-      [originDomain],
-      [
-        ownDomain,
-        updater.signer.address,
-        initialCurrentRoot,
-        optimisticSeconds,
-        initialLastProcessed,
-      ],
-      controller,
-      'initialize(uint32, address, bytes32, uint256, uint256)',
-    );
+    const homeDetails = {
+      domain: originDomain,
+      updater: signer.address,
+      currentRoot: initialCurrentRoot,
+      lastProcessedIndex: initialLastProcessed,
+      optimisticSeconds,
+    };
+    const replicaDetails = {
+      domain: ownDomain,
+      updater: signer.address,
+      currentRoot: initialCurrentRoot,
+      lastProcessedIndex: initialLastProcessed,
+      optimisticSeconds,
+    };
 
-    replica = contracts.proxyWithImplementation;
+    const contracts = await optics.deployOptics(homeDetails, [replicaDetails]);
+
+    replica = contracts.replicaProxies[0].proxyWithImplementation;
   });
 
   it('Halts on fail', async () => {
