@@ -37,7 +37,7 @@ describe('Home', async () => {
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
 
-    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
       [originDomain],
       [mockSortition.address],

@@ -8,7 +8,7 @@ describe('Upgrade', async () => {
 
   before(async () => {
     // SETUP CONTRACT SUITE
-    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'MysteryMathV1',
     );
 
