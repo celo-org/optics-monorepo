@@ -16,6 +16,16 @@ abstract contract UsingOptics is Ownable {
     // watcher address => replica domain => has/doesn't have permission
     mapping(address => mapping(uint32 => bool)) watcherPermissions;
 
+    event ReplicaEnrolled(uint32 indexed domain, address replica);
+
+    event ReplicaUnenrolled(uint32 indexed domain, address replica);
+
+    event WatcherPermissionSet(
+        uint32 indexed domain,
+        address watcher,
+        bool access
+    );
+
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
 
@@ -26,6 +36,22 @@ abstract contract UsingOptics is Ownable {
     modifier onlyReplica() {
         require(isReplica(msg.sender), "!replica");
         _;
+    }
+
+    function unenrollReplica(
+        uint32 _domain,
+        address _updater,
+        bytes memory _signature
+    ) external {
+        address _replica = domainToReplica[_domain];
+        require(_replica != address(0), "!replica exists");
+        require(Replica(_replica).updater() == _updater, "!current updater");
+
+        address _watcher =
+            recoverWatcherFromSig(_domain, _replica, _updater, _signature);
+        require(watcherPermissions[_watcher][_domain], "!valid watcher");
+
+        unenrollReplica(_replica);
     }
 
     function isReplica(address _replica) public view returns (bool) {
@@ -39,16 +65,12 @@ abstract contract UsingOptics is Ownable {
         unenrollReplica(_replica);
         replicaToDomain[_replica] = _domain;
         domainToReplica[_domain] = _replica;
+
+        emit ReplicaEnrolled(_domain, _replica);
     }
 
     function ownerUnenrollReplica(address _replica) public onlyOwner {
         unenrollReplica(_replica);
-    }
-
-    function unenrollReplica(address _replica) internal {
-        uint32 _currentDomain = replicaToDomain[_replica];
-        domainToReplica[_currentDomain] = address(0);
-        replicaToDomain[_replica] = 0;
     }
 
     function setHome(address _home) public onlyOwner {
@@ -61,6 +83,7 @@ abstract contract UsingOptics is Ownable {
         bool _access
     ) public onlyOwner {
         watcherPermissions[_watcher][_domain] = _access;
+        emit WatcherPermissionSet(_domain, _watcher, _access);
     }
 
     function originDomain() public view returns (uint32) {
@@ -75,35 +98,26 @@ abstract contract UsingOptics is Ownable {
         home.enqueue(_destination, _recipient, _body);
     }
 
+    function unenrollReplica(address _replica) internal {
+        uint32 _currentDomain = replicaToDomain[_replica];
+        domainToReplica[_currentDomain] = address(0);
+        replicaToDomain[_replica] = 0;
+
+        emit ReplicaUnenrolled(_currentDomain, _replica);
+    }
+
     function recoverWatcherFromSig(
         uint32 _domain,
+        address _replica,
         address _updater,
         bytes memory _signature
     ) internal view returns (address) {
-        address _replica = domainToReplica[_domain];
         bytes32 _replicaDomainHash = Replica(_replica).domainHash();
 
         bytes32 _digest =
             keccak256(abi.encodePacked(_replicaDomainHash, _domain, _updater));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature);
-    }
-
-    function unenrollReplica(
-        uint32 _domain,
-        address _updater,
-        bytes memory _signature
-    ) external {
-        address _replica = domainToReplica[_domain];
-        address _watcher = recoverWatcherFromSig(_domain, _updater, _signature);
-
-        require(_replica != address(0), "!replica exists");
-        if (
-            Replica(_replica).updater() == _updater &&
-            watcherPermissions[_watcher][_domain]
-        ) {
-            unenrollReplica(_replica);
-        }
     }
 }
 

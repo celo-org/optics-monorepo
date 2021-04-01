@@ -2853,7 +2853,7 @@ dependencies = [
  "optics-core",
  "optics-test",
  "rocksdb",
- "serde 1.0.123",
+ "serde 1.0.125",
  "serde_json",
  "thiserror",
  "tokio",
