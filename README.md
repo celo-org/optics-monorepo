@@ -22,8 +22,6 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
    npm i
    cd ../optics-bridge
    npm i
-   cd ../optics-governance
-   npm i
    ```
 
 2. Install jq

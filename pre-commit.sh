@@ -33,13 +33,6 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
     cd ../..
 fi
 
-if ! git diff-index --quiet HEAD -- ./solidity/optics-governance; then
-    cd solidity/optics-governance
-    npm test
-    npm run lint
-    cd ../..
-fi
-
 cd ./rust
 echo '+cargo test'
 cargo test

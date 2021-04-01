@@ -4,15 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-import {
-    UsingOptics,
-    TypeCasts
-} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
-
-import {
-    MessageRecipientI
-} from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
-
+import {UsingOptics, TypeCasts} from "../UsingOptics.sol";
+import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
 contract GovernanceRouter is MessageRecipientI {
