@@ -6,6 +6,10 @@ import "../Common.sol";
 contract TestCommon is Common {
     constructor(uint32 _originDomain) Common(_originDomain) {} // solhint-disable-line no-empty-blocks
 
+    function setUpdater(address _updater) external {
+        updater = _updater;
+    }
+
     function testCheckSig(
         bytes32 _oldRoot,
         bytes32 _newRoot,

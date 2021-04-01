@@ -338,6 +338,8 @@ impl SignedFailureNotification {
 #[cfg(test)]
 mod test {
     use super::*;
+    use serde_json::{json, Value};
+    use std::{fs::OpenOptions, io::Write};
 
     #[test]
     fn it_sign() {
@@ -355,6 +357,55 @@ mod test {
             let signed = message.sign_with(&signer).await.expect("!sign_with");
             signed.verify(signer.address()).expect("!verify");
         };
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(t)
+    }
+
+    #[test]
+    fn it_outputs_signed_updates() {
+        let t = async {
+            let signer: ethers::signers::LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
+
+            let mut test_cases: Vec<Value> = Vec::new();
+            for i in 1..=3 {
+                let signature = Update {
+                    origin_domain: 1,
+                    new_root: H256::repeat_byte(i + 1),
+                    previous_root: H256::repeat_byte(i),
+                }
+                .sign_with(&signer)
+                .await
+                .expect("!sign_with")
+                .signature;
+
+                test_cases.push(json!({
+                    "originDomain": 1,
+                    "newRoot": H256::repeat_byte(i + 1),
+                    "previousRoot": H256::repeat_byte(i),
+                    "signature": signature,
+                    "signer": signer.address(),
+                }))
+            }
+
+            let json = json!({ "testCases": test_cases }).to_string();
+
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open("../../vectors/signedUpdateTestCases.json")
+                .expect("Failed to open/create file");
+
+            file.write_all(json.as_bytes())
+                .expect("Failed to write to file");
+        };
+
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
