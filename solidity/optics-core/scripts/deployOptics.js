@@ -1,5 +1,5 @@
 async function deployReplicaUpgradeSetup(originDomain, controller) {
-  const { contracts } = await optics.deployUpgradeSetup(
+  const contracts = await optics.deployUpgradeSetup(
     'Replica',
     [originDomain],
     controller,
