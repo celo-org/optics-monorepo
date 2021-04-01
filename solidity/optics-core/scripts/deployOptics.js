@@ -111,6 +111,7 @@ async function deployOptics(origin, remotes) {
   );
 
   await usingOptics.setHome(home.proxy.address);
+  await updaterManager.setHome(home.proxy.address);
 
   // Deploy GovernanceRouter
   // Note: initial governor will be the signer that's deploying
