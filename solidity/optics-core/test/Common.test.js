@@ -103,11 +103,13 @@ describe('Common', async () => {
       const signerAddress = ethers.utils.getAddress(signer);
       await common.setUpdater(signerAddress);
 
-      await common.testCheckSig(
-        oldRoot,
-        newRoot,
-        ethers.utils.joinSignature(signature),
-      );
+      expect(
+        await common.testCheckSig(
+          oldRoot,
+          newRoot,
+          ethers.utils.joinSignature(signature),
+        ),
+      ).to.be.true;
     }
   });
 });

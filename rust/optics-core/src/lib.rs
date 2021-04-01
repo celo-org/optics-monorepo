@@ -364,7 +364,8 @@ mod test {
             .block_on(t)
     }
 
-    #[test]
+    #[allow(dead_code)]
+    /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
     fn it_outputs_signed_updates() {
         let t = async {
             let signer: ethers::signers::LocalWallet =
@@ -373,9 +374,12 @@ mod test {
                     .unwrap();
 
             let mut test_cases: Vec<Value> = Vec::new();
+
+            // `origin_domain` MUST BE 1000 to match origin domain of Commmon
+            // test suite
             for i in 1..=3 {
                 let signature = Update {
-                    origin_domain: 1,
+                    origin_domain: 1000,
                     new_root: H256::repeat_byte(i + 1),
                     previous_root: H256::repeat_byte(i),
                 }
@@ -385,9 +389,9 @@ mod test {
                 .signature;
 
                 test_cases.push(json!({
-                    "originDomain": 1,
+                    "originDomain": 1000,
+                    "oldRoot": H256::repeat_byte(i),
                     "newRoot": H256::repeat_byte(i + 1),
-                    "previousRoot": H256::repeat_byte(i),
                     "signature": signature,
                     "signer": signer.address(),
                 }))

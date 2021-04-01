@@ -18,8 +18,8 @@ mod test {
     use super::*;
     use std::{fs::OpenOptions, io::Write};
 
-    // Outputs domain hash test cases in /vector/domainHashTestCases.json
     #[allow(dead_code)]
+    /// Outputs domain hash test cases in /vector/domainHashTestCases.json
     fn output_domain_hashes() {
         let test_cases: Vec<Value> = (1..=3)
             .map(|i| {
