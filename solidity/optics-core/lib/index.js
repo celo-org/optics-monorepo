@@ -3,8 +3,10 @@ const { assert } = require('chai');
 const { extendEnvironment } = require('hardhat/config');
 
 const {
-  deployUpgradeSetupWithImplementation,
+  deployUpgradeSetup,
+  deployUpgradeSetupAndProxy,
   deployImplementation,
+  deployUpgradeBeaconController,
 } = require('../scripts/deployUpgradeSetup');
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/Replica.abi.json');
@@ -171,7 +173,9 @@ extendEnvironment((hre) => {
     messageToLeaf,
     ethersAddressToBytes32,
     destinationAndSequence,
-    deployUpgradeSetupWithImplementation,
+    deployUpgradeSetupAndProxy,
     deployImplementation,
+    deployUpgradeBeaconController,
+    deployUpgradeSetup,
   };
 });

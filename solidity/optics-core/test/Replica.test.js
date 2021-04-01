@@ -41,7 +41,8 @@ describe('Replica', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
+    const controller = null;
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
       [originDomain],
       [
@@ -51,6 +52,7 @@ describe('Replica', async () => {
         optimisticSeconds,
         initialLastProcessed,
       ],
+      controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
     );
 

@@ -15,7 +15,7 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestCommon',
       [originDomain],
       [updater.signer.address],
