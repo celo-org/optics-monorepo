@@ -52,6 +52,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     function initialize(address _updater) public override {
         require(state == States.UNINITIALIZED, "already initialized");
 
+        // TODO: set updaterManager address
         updaterManagerI = UpdaterManagerI(_updater);
         updater = UpdaterManagerI(_updater).current();
 
