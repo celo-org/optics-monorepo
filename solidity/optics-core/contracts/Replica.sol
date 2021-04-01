@@ -13,7 +13,7 @@ import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
  * @notice Contract responsible for tracking root updates on home,
  * and dispatching messages on Replica to end recipients.
  */
-abstract contract Replica is Common, QueueManager {
+contract Replica is Common, QueueManager {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;

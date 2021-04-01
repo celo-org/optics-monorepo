@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-abstract contract UsingOptics is Ownable {
+contract UsingOptics is Ownable {
     mapping(address => uint32) public replicaToDomain;
     mapping(uint32 => address) public domainToReplica;
+
     Home public home;
 
     // watcher address => replica domain => has/doesn't have permission

@@ -8,6 +8,7 @@ const {
   deployImplementation,
   deployUpgradeBeaconController,
 } = require('../scripts/deployUpgradeSetup');
+const { deployOptics } = require('../scripts/deployOptics');
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/Replica.abi.json');
 
@@ -177,5 +178,6 @@ extendEnvironment((hre) => {
     deployImplementation,
     deployUpgradeBeaconController,
     deployUpgradeSetup,
+    deployOptics,
   };
 });
