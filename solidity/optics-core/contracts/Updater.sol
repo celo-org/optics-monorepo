@@ -3,7 +3,9 @@ pragma solidity >=0.6.11;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract UpdaterManager is Ownable {
+import "../interfaces/UpdaterManagerI.sol";
+
+contract UpdaterManager is UpdaterManagerI, Ownable {
     address internal updater;
     address internal home;
 
@@ -14,7 +16,6 @@ contract UpdaterManager is Ownable {
         this.setHome(_home);
     }
 
-    // TODO: think about visibility;
     function setHome(address _home) external onlyOwner {
         home = _home;
     }
@@ -23,12 +24,12 @@ contract UpdaterManager is Ownable {
         updater = _updater;
     }
 
-    function currentUpdater() external view returns (address) {
+    function current() external view override returns (address) {
         return updater;
     }
 
     // solhint-disable-next-line no-unused-vars
-    function slash(address payable _reporter) external {
+    function slash(address payable _reporter) external override {
         require(msg.sender == home, "!home");
         emit Slashed();
     }
