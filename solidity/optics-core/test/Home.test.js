@@ -34,7 +34,10 @@ describe('Home', async () => {
   });
 
   beforeEach(async () => {
-    const mockSortition = await deployMockContract(signer, TestUpdaterManager.abi);
+    const mockSortition = await deployMockContract(
+      signer,
+      TestUpdaterManager.abi,
+    );
     await mockSortition.mock.current.returns(signer.address);
     await mockSortition.mock.slash.returns();
 

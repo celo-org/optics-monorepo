@@ -49,7 +49,6 @@ abstract contract Replica is Common, QueueManager {
 
     function initialize(
         uint32 _ownDomain,
-        address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
         uint256 _lastProcessed
@@ -60,7 +59,6 @@ abstract contract Replica is Common, QueueManager {
 
         ownDomain = _ownDomain;
 
-        updater = _updater;
         current = _current;
         optimisticSeconds = _optimisticSeconds;
         lastProcessed = _lastProcessed;

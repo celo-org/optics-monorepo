@@ -4,6 +4,8 @@ pragma solidity >=0.6.11;
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
+import "../interfaces/UpdaterManagerI.sol";
+
 /**
  * @title Message Library
  * @author Celo Labs Inc.
@@ -136,6 +138,11 @@ abstract contract Common {
     /// @notice Current root
     bytes32 public current;
 
+    /// @notice The address of the updater manager
+    address public updaterManager;
+
+    UpdaterManagerI internal updaterManagerI;
+
     /**
      * @notice Event emitted when update is made on Home or unconfirmed update
      * root is enqueued on Replica
@@ -171,11 +178,24 @@ abstract contract Common {
         domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
     }
 
-    function initialize(address _updater) public virtual {
+    function initialize(address _updaterManager) public virtual {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        updater = _updater;
+        updaterManager = _updaterManager;
+        updaterManagerI = UpdaterManagerI(_updaterManager);
+        updater = UpdaterManagerI(_updaterManager).current();
+
         state = States.ACTIVE;
+    }
+
+    modifier onlyUpdaterManager {
+        require(msg.sender == updaterManager);
+        _;
+    }
+
+    /// @notice Sets updater
+    function setUpdater(address _updater) internal onlyUpdaterManager {
+        updater = _updater;
     }
 
     /// @notice Called when a double update or fraudulent update is detected

@@ -4,7 +4,6 @@ pragma solidity >=0.6.11;
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import "../interfaces/UpdaterManagerI.sol";
 
 /**
  * @title Home
@@ -18,10 +17,6 @@ contract Home is MerkleTreeManager, QueueManager, Common {
 
     /// @notice Mapping of sequence numbers for each destination
     mapping(uint32 => uint32) public sequences;
-
-    address public updaterManager; // the local entity empowered to manage the updater
-
-    UpdaterManagerI internal updaterManagerI;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -44,25 +39,11 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
-    function initialize(address _updaterManager) public override {
+    function initialize() public {
         require(state == States.UNINITIALIZED, "already initialized");
-
-        updaterManager = _updaterManager;
-        updaterManagerI = UpdaterManagerI(_updaterManager);
-        updater = UpdaterManagerI(_updaterManager).current();
 
         queue.initialize();
         state = States.ACTIVE;
-    }
-
-    modifier onlyUpdaterManager {
-        require(msg.sender == updaterManager);
-        _;
-    }
-
-    /// @notice Sets updater
-    function setUpdater(address _updater) internal onlyUpdaterManager {
-        updater = _updater;
     }
 
     /// @notice Sets contract state to FAILED and slashes updater

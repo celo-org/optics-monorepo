@@ -183,14 +183,22 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_updaterManager",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint32",
         "name": "_ownDomain",
         "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "_updater",
-        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -206,19 +214,6 @@
         "internalType": "uint256",
         "name": "_lastProcessed",
         "type": "uint256"
-      }
-    ],
-    "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_updater",
-        "type": "address"
       }
     ],
     "name": "initialize",
@@ -488,6 +483,19 @@
   {
     "inputs": [],
     "name": "updater",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "updaterManager",
     "outputs": [
       {
         "internalType": "address",
