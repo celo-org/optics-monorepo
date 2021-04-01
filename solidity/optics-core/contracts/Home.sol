@@ -44,12 +44,12 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
-    function initialize(address _updater) public override {
+    function initialize(address _updaterManager) public override {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        // TODO: set updaterManager address
-        updaterManagerI = UpdaterManagerI(_updater);
-        updater = UpdaterManagerI(_updater).current();
+        updaterManager = _updaterManager;
+        updaterManagerI = UpdaterManagerI(_updaterManager);
+        updater = UpdaterManagerI(_updaterManager).current();
 
         queue.initialize();
         state = States.ACTIVE;
