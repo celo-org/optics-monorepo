@@ -9,7 +9,7 @@ contract TestUsingOptics is UsingOptics {
     function testRecoverWatcherFromSig(
         uint32 _domain,
         address _replica,
-        bytes32 _updater,
+        address _updater,
         bytes memory _signature
     ) external view returns (address) {
         return recoverWatcherFromSig(_domain, _replica, _updater, _signature);

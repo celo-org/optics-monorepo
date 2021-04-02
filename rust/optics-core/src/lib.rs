@@ -32,6 +32,7 @@ use ethers::{
         types::{Address, Signature, SignatureError, H256},
         utils::hash_message,
     },
+    prelude::H160,
     signers::Signer,
 };
 use serde::{Deserialize, Serialize};
@@ -63,6 +64,53 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
+}
+
+/// Address types
+pub enum Addresses {
+    /// 20 byte address
+    H160(H160),
+    /// 32 byte address
+    H256(H256),
+}
+
+impl From<H256> for Addresses {
+    fn from(address: H256) -> Self {
+        Addresses::H256(address)
+    }
+}
+
+impl From<H160> for Addresses {
+    fn from(address: H160) -> Self {
+        Addresses::H160(address)
+    }
+}
+
+impl From<Addresses> for H160 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(address) => address,
+            Addresses::H256(_) => unreachable!("Wrong Addresses variant!"),
+        }
+    }
+}
+
+impl From<Addresses> for H256 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(_) => unreachable!("Wrong Addresses variant!"),
+            Addresses::H256(address) => address,
+        }
+    }
+}
+
+impl AsRef<[u8]> for Addresses {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Addresses::H160(address) => address.as_bytes(),
+            Addresses::H256(address) => address.as_bytes(),
+        }
+    }
 }
 
 /// A full Optics message between chains
@@ -280,7 +328,7 @@ pub struct FailureNotification {
     /// Domain of replica to unenroll
     pub domain: u32,
     /// Updater of replica to unenroll
-    pub updater: H256,
+    pub updater: Addresses,
 }
 
 impl FailureNotification {
@@ -289,7 +337,7 @@ impl FailureNotification {
             Keccak256::new()
                 .chain(domain_hash(self.domain))
                 .chain(self.domain.to_be_bytes())
-                .chain(self.updater)
+                .chain(self.updater.as_ref())
                 .finalize()
                 .as_slice(),
         )
@@ -364,8 +412,8 @@ mod test {
             .block_on(t)
     }
 
-    #[allow(dead_code)]
     /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
+    #[allow(dead_code)]
     fn it_outputs_signed_updates() {
         let t = async {
             let signer: ethers::signers::LocalWallet =
@@ -416,8 +464,8 @@ mod test {
             .block_on(t)
     }
 
-    #[allow(dead_code)]
     /// Outputs signed update test cases in /vector/signedFailureTestCases.json
+    #[allow(dead_code)]
     fn it_outputs_signed_failure_notifications() {
         let t = async {
             let signer: ethers::signers::LocalWallet =
@@ -434,15 +482,16 @@ mod test {
             // UsingOptics test suite
             let signed_failure = FailureNotification {
                 domain: 1000,
-                updater: H256::from(updater.address()),
+                updater: Addresses::H160(updater.address()),
             }
             .sign_with(&signer)
             .await
             .expect("!sign_with");
 
+            let updater: H160 = signed_failure.notification.updater.into();
             let signed_json = json!({
                 "domain": signed_failure.notification.domain,
-                "updater": signed_failure.notification.updater,
+                "updater": updater,
                 "signature": signed_failure.signature,
                 "signer": signer.address()
             });

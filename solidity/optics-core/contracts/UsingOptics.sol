@@ -41,15 +41,12 @@ contract UsingOptics is Ownable {
 
     function unenrollReplica(
         uint32 _domain,
-        bytes32 _updater,
+        address _updater,
         bytes memory _signature
     ) external {
         address _replica = domainToReplica[_domain];
         require(_replica != address(0), "!replica exists");
-        require(
-            TypeCasts.addressToBytes32(Replica(_replica).updater()) == _updater,
-            "!current updater"
-        );
+        require(Replica(_replica).updater() == _updater, "!current updater");
 
         address _watcher =
             recoverWatcherFromSig(_domain, _replica, _updater, _signature);
@@ -113,7 +110,7 @@ contract UsingOptics is Ownable {
     function recoverWatcherFromSig(
         uint32 _domain,
         address _replica,
-        bytes32 _updater,
+        address _updater,
         bytes memory _signature
     ) internal view returns (address) {
         bytes32 _replicaDomainHash = Replica(_replica).domainHash();
