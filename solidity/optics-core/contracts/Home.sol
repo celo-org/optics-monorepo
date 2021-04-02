@@ -19,9 +19,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Mapping of sequence numbers for each destination
     mapping(uint32 => uint32) public sequences;
 
-    address public updaterManager; // the local entity empowered to manage the updater
-
-    UpdaterManagerI internal updaterManagerI;
+    UpdaterManagerI public updaterManager;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -47,8 +45,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     function initialize(address _updaterManager) public override {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        updaterManager = _updaterManager;
-        updaterManagerI = UpdaterManagerI(_updaterManager);
+        updaterManager = UpdaterManagerI(_updaterManager);
         updater = UpdaterManagerI(_updaterManager).current();
 
         queue.initialize();
@@ -56,7 +53,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     }
 
     modifier onlyUpdaterManager {
-        require(msg.sender == updaterManager);
+        // TODO: get updaterManager address
+        require(msg.sender == updaterManager, "!updaterManager");
         _;
     }
 
@@ -68,7 +66,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Sets contract state to FAILED and slashes updater
     function fail() internal override {
         _setFailed();
-        updaterManagerI.slash(msg.sender);
+        updaterManager.slash(msg.sender);
     }
 
     /**

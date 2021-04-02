@@ -11,9 +11,8 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
 
     event Slashed();
 
-    constructor(address _updater, address _home) payable Ownable() {
-        this.setUpdater(_updater);
-        this.setHome(_home);
+    constructor(address _updater) payable Ownable() {
+        updater = _updater;
     }
 
     function setHome(address _home) external onlyOwner {
