@@ -45,6 +45,13 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      */
     event NewUpdater(address updater);
 
+    /**
+     * @notice Event emitted when an updater is slashed
+     * @param updater The address of the updater
+     * @param reporter The address of the entity that reported the updater misbehavior
+     */
+    event UpdaterSlashed(address updater, address reporter);
+
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
@@ -74,6 +81,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     function fail() internal override {
         _setFailed();
         updaterManager.slash(msg.sender);
+
+        emit UpdaterSlashed(address(updaterManager), msg.sender);
     }
 
     /**
