@@ -39,6 +39,12 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Event emitted when improper update detected
     event ImproperUpdate();
 
+    /**
+     * @notice Event emitted when the UpdaterManager sets a new updater on Home
+     * @param updater The address of the new updater
+     */
+    event NewUpdater(address updater);
+
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain) payable Common(_originDomain) {}
 
@@ -60,6 +66,8 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     /// @notice Sets updater
     function setUpdater(address _updater) external onlyUpdaterManager {
         updater = _updater;
+
+        emit NewUpdater(_updater);
     }
 
     /// @notice Sets contract state to FAILED and slashes updater
