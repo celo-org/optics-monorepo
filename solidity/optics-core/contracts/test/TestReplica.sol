@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "../Replica.sol";
+import {TypeCasts} from "../UsingOptics.sol";
 
 contract TestReplica is Replica {
     using TypedMemView for bytes;
@@ -12,6 +13,10 @@ contract TestReplica is Replica {
 
     function setFailed() public {
         _setFailed();
+    }
+
+    function setUpdater(bytes32 _updater) external {
+        updater = TypeCasts.bytes32ToAddress(_updater);
     }
 
     function timestamp() external view returns (uint256) {
