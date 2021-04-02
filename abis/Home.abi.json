@@ -332,6 +332,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_updater",
+        "type": "address"
+      }
+    ],
+    "name": "setUpdater",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "state",
     "outputs": [
@@ -416,7 +429,7 @@
     "name": "updaterManager",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract UpdaterManagerI",
         "name": "",
         "type": "address"
       }

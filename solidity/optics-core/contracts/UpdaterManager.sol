@@ -2,8 +2,11 @@
 pragma solidity >=0.6.11;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../interfaces/UpdaterManagerI.sol";
+
+import "./Home.sol";
 
 contract UpdaterManager is UpdaterManagerI, Ownable {
     address internal updater;
@@ -16,11 +19,14 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
     }
 
     function setHome(address _home) external onlyOwner {
+        require(Address.isContract(_home), "!home");
         home = _home;
     }
 
     function setUpdater(address _updater) external onlyOwner {
         updater = _updater;
+        Home homeContract = Home(home);
+        homeContract.setUpdater(_updater);
     }
 
     function current() external view override returns (address) {

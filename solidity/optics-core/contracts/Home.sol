@@ -53,13 +53,12 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     }
 
     modifier onlyUpdaterManager {
-        // TODO: get updaterManager address
-        require(msg.sender == updaterManager, "!updaterManager");
+        require(msg.sender == address(updaterManager), "!updaterManager");
         _;
     }
 
     /// @notice Sets updater
-    function setUpdater(address _updater) internal onlyUpdaterManager {
+    function setUpdater(address _updater) external onlyUpdaterManager {
         updater = _updater;
     }
 
