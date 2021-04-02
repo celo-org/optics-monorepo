@@ -36,6 +36,7 @@ use ethers::{
         types::{Address, Signature, SignatureError, H256},
         utils::hash_message,
     },
+    prelude::H160,
     signers::Signer,
 };
 use identifiers::OpticsIdentifier;
@@ -68,6 +69,53 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
+}
+
+/// Address types
+pub enum Addresses {
+    /// 20 byte address
+    H160(H160),
+    /// 32 byte address
+    H256(H256),
+}
+
+impl From<H256> for Addresses {
+    fn from(address: H256) -> Self {
+        Addresses::H256(address)
+    }
+}
+
+impl From<H160> for Addresses {
+    fn from(address: H160) -> Self {
+        Addresses::H160(address)
+    }
+}
+
+impl From<Addresses> for H160 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(address) => address,
+            Addresses::H256(_) => unreachable!("Wrong Addresses variant!"),
+        }
+    }
+}
+
+impl From<Addresses> for H256 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(_) => unreachable!("Wrong Addresses variant!"),
+            Addresses::H256(address) => address,
+        }
+    }
+}
+
+impl AsRef<[u8]> for Addresses {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Addresses::H160(address) => address.as_bytes(),
+            Addresses::H256(address) => address.as_bytes(),
+        }
+    }
 }
 
 /// A full Optics message between chains
@@ -354,7 +402,7 @@ impl FailureNotification {
             Keccak256::new()
                 .chain(domain_hash(self.domain))
                 .chain(self.domain.to_be_bytes())
-                .chain(self.updater)
+                .chain(self.updater.as_ref())
                 .finalize()
                 .as_slice(),
         )
