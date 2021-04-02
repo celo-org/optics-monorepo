@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "../Replica.sol";
+import {TypeCasts} from "../UsingOptics.sol";
 
 contract TestReplica is Replica {
     using TypedMemView for bytes;
