@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use color_eyre::{eyre::ensure, Result};
-use ethers::{core::types::H256, prelude::LocalWallet, signers::Signer, types::Address};
+use ethers::{core::types::H256, signers::Signer, types::Address};
 use rocksdb::DB;
 use tokio::{
     sync::Mutex,
@@ -17,27 +17,27 @@ use optics_base::{
 };
 use optics_core::{
     traits::{Common, Home},
-    SignedUpdate,
+    SignedUpdate, Signers,
 };
 
 use crate::settings::Settings;
 
 /// An updater agent
 #[derive(Debug)]
-pub struct Updater<S> {
-    signer: Arc<S>,
+pub struct Updater {
+    signer: Arc<Signers>,
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
 }
 
-impl<S> AsRef<AgentCore> for Updater<S> {
+impl AsRef<AgentCore> for Updater {
     fn as_ref(&self) -> &AgentCore {
         &self.core
     }
 }
 
-impl<S> UsingPersistence<H256, SignedUpdate> for Updater<S> {
+impl UsingPersistence<H256, SignedUpdate> for Updater {
     const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
 
     fn key_to_bytes(key: H256) -> Vec<u8> {
@@ -45,12 +45,9 @@ impl<S> UsingPersistence<H256, SignedUpdate> for Updater<S> {
     }
 }
 
-impl<S> Updater<S>
-where
-    S: Signer + 'static,
-{
+impl Updater {
     /// Instantiate a new updater
-    pub fn new(signer: S, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
+    pub fn new(signer: Signers, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
             interval_seconds,
@@ -61,7 +58,7 @@ where
 
     async fn poll_and_handle_update(
         home: Arc<Homes>,
-        signer: Arc<S>,
+        signer: Arc<Signers>,
         db: Arc<DB>,
         mutex: Arc<Mutex<()>>,
         update_pause: u64,
@@ -126,7 +123,7 @@ where
 // This is a bit of a kludge to make from_settings work.
 // Ideally this hould be generic across all signers.
 // Right now we only have one
-impl OpticsAgent for Updater<LocalWallet> {
+impl OpticsAgent for Updater {
     type Settings = Settings;
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
@@ -134,7 +131,7 @@ impl OpticsAgent for Updater<LocalWallet> {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.updater.try_into_wallet()?,
+            settings.updater.try_into_signer()?,
             settings.polling_interval,
             settings.update_pause,
             settings.as_ref().try_into_core().await?,
@@ -186,6 +183,7 @@ impl OpticsAgent for Updater<LocalWallet> {
 #[cfg(test)]
 mod test {
     use ethers::core::types::H256;
+    use ethers::signers::LocalWallet;
     use optics_base::home::Homes;
 
     use super::*;
@@ -218,7 +216,7 @@ mod test {
             let mut home: Arc<Homes> = Arc::new(mock_home.into());
             Updater::poll_and_handle_update(
                 home.clone(),
-                Arc::new(signer),
+                Arc::new(signer.into()),
                 Arc::new(db),
                 Arc::new(Mutex::new(())),
                 1,
@@ -286,7 +284,7 @@ mod test {
             let mut home: Arc<Homes> = Arc::new(mock_home.into());
             let handle = Updater::poll_and_handle_update(
                 home.clone(),
-                Arc::new(signer),
+                Arc::new(signer.into()),
                 Arc::new(db),
                 Arc::new(Mutex::new(())),
                 1,
@@ -355,7 +353,7 @@ mod test {
             let mut home: Arc<Homes> = Arc::new(mock_home.into());
             let handle = Updater::poll_and_handle_update(
                 home.clone(),
-                Arc::new(signer),
+                Arc::new(signer.into()),
                 Arc::new(db),
                 Arc::new(Mutex::new(())),
                 1,

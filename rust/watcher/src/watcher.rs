@@ -5,7 +5,7 @@ use color_eyre::{
 };
 use thiserror::Error;
 
-use ethers::{core::types::H256, prelude::LocalWallet, signers::Signer};
+use ethers::core::types::H256;
 use futures_util::future::join_all;
 use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
@@ -23,7 +23,7 @@ use optics_base::{
 };
 use optics_core::{
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, TxOutcome},
-    FailureNotification, SignedUpdate,
+    FailureNotification, SignedUpdate, Signers,
 };
 
 use crate::settings::Settings;
@@ -240,27 +240,24 @@ impl UpdateHandler {
 }
 
 #[derive(Debug)]
-pub struct Watcher<S> {
-    signer: Arc<S>,
+pub struct Watcher {
+    signer: Arc<Signers>,
     interval_seconds: u64,
     sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     core: AgentCore,
 }
 
-impl<S> AsRef<AgentCore> for Watcher<S> {
+impl AsRef<AgentCore> for Watcher {
     fn as_ref(&self) -> &AgentCore {
         &self.core
     }
 }
 
 #[allow(clippy::unit_arg)]
-impl<S> Watcher<S>
-where
-    S: Signer + 'static,
-{
+impl Watcher {
     /// Instantiate a new watcher.
-    pub fn new(signer: S, interval_seconds: u64, core: AgentCore) -> Self {
+    pub fn new(signer: Signers, interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
             interval_seconds,
@@ -314,7 +311,7 @@ where
 
 #[async_trait]
 #[allow(clippy::unit_arg)]
-impl OpticsAgent for Watcher<LocalWallet> {
+impl OpticsAgent for Watcher {
     type Settings = Settings;
 
     #[tracing::instrument(err)]
@@ -323,7 +320,7 @@ impl OpticsAgent for Watcher<LocalWallet> {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.watcher.try_into_wallet()?,
+            settings.watcher.try_into_signer()?,
             settings.polling_interval,
             settings.as_ref().try_into_core().await?,
         ))

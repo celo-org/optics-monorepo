@@ -1,9 +1,12 @@
 use std::convert::TryFrom;
 
 use color_eyre::{eyre::eyre, Report, Result};
-use ethers::{core::types::Address, signers::LocalWallet};
+use ethers::core::types::Address;
 
-use optics_core::traits::{Home, Replica};
+use optics_core::{
+    traits::{Home, Replica},
+    Signers,
+};
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
@@ -61,6 +64,7 @@ macro_rules! construct_http_box_contract {
     }};
 }
 
+// TODO: figure out how to take inputs for Ledger and YubiWallet variants
 /// Ethereum signer types
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
@@ -84,9 +88,9 @@ impl Default for EthereumSigner {
 impl EthereumSigner {
     /// Try to convert the ethereum signer to a local wallet
     #[tracing::instrument(err)]
-    pub fn try_into_wallet(&self) -> Result<LocalWallet> {
+    pub fn try_into_signer(&self) -> Result<Signers> {
         match self {
-            EthereumSigner::HexKey { key } => Ok(key.parse()?),
+            EthereumSigner::HexKey { key } => Ok(Signers::Local(key.parse()?)),
             EthereumSigner::Node => Err(eyre!("Node signer")),
         }
     }
@@ -101,8 +105,8 @@ pub struct EthereumConf {
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<LocalWallet> {
-        self.signer.try_into_wallet().ok()
+    fn signer(&self) -> Option<Signers> {
+        self.signer.try_into_signer().ok()
     }
 
     /// Try to convert this into a home contract

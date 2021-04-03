@@ -31,14 +31,22 @@ mod utils;
 
 pub use encode::{Decode, Encode};
 
+use async_trait::async_trait;
 use ethers::{
     core::{
-        types::{Address, Signature, SignatureError, H256},
+        types::{Address, Signature, SignatureError, TransactionRequest, H256},
         utils::hash_message,
     },
     signers::Signer,
 };
 use identifiers::OpticsIdentifier;
+
+use ethers::signers::LocalWallet;
+#[cfg(feature = "ledger")]
+use ethers::signers::Ledger;
+#[cfg(feature = "yubi")]
+use ethers::signers::YubiWallet;
+
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -68,6 +76,127 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
+}
+
+/// Address types
+pub enum Addresses {
+    /// 20 byte address
+    H160(H160),
+    /// 32 byte address
+    H256(H256),
+}
+
+impl From<H256> for Addresses {
+    fn from(address: H256) -> Self {
+        Addresses::H256(address)
+    }
+}
+
+impl From<H160> for Addresses {
+    fn from(address: H160) -> Self {
+        Addresses::H160(address)
+    }
+}
+
+impl From<Addresses> for H160 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(address) => address,
+            Addresses::H256(_) => unreachable!("Wrong Addresses variant!"),
+        }
+    }
+}
+
+impl From<Addresses> for H256 {
+    fn from(addresses: Addresses) -> Self {
+        match addresses {
+            Addresses::H160(_) => unreachable!("Wrong Addresses variant!"),
+            Addresses::H256(address) => address,
+        }
+    }
+}
+
+impl AsRef<[u8]> for Addresses {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Addresses::H160(address) => address.as_bytes(),
+            Addresses::H256(address) => address.as_bytes(),
+        }
+    }
+}
+
+/// Ethereum-supported signer types
+#[derive(Debug)]
+pub enum Signers {
+    /// A wallet instantiated with a locally stored private key
+    Local(LocalWallet),
+    /// A wallet instantiated with a YubiHSM
+    #[cfg(feature = "ledger")]
+    Ledger(Ledger),
+    /// A wallet instantiated with a Ledger
+    #[cfg(feature = "yubi")]
+    Yubi(YubiWallet),
+}
+
+impl From<LocalWallet> for Signers {
+    fn from(local_wallet: LocalWallet) -> Self {
+        Signers::Local(local_wallet)
+    }
+}
+
+#[cfg(feature = "ledger")]
+impl From<Ledger> for Signers {
+    fn from(ledger: Ledger) -> Self {
+        Signers::Ledger(ledger)
+    }
+}
+
+#[cfg(feature = "yubi")]
+impl From<YubiWallet> for Signers {
+    fn from(yubi_wallet: YubiWallet) -> Self {
+        Signers::Yubi(local_wallet)
+    }
+}
+
+#[async_trait]
+impl Signer for Signers {
+    type Error = std::convert::Infallible;
+
+    async fn sign_message<S: Send + Sync + AsRef<[u8]>>(
+        &self,
+        message: S,
+    ) -> Result<Signature, Self::Error> {
+        match self {
+            Signers::Local(signer) => signer.sign_message(message).await,
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => signer.sign_message(message).await,
+            #[cfg(feature = "yubi")]
+            Signers::Ledger(signer) => signer.sign_message(message).await,
+        }
+    }
+
+    async fn sign_transaction(
+        &self,
+        message: &TransactionRequest,
+    ) -> Result<Signature, Self::Error> {
+        match self {
+            Signers::Local(signer) => signer.sign_transaction(message).await,
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => signer.sign_transaction(message).await,
+            #[cfg(feature = "yubi")]
+            Signers::Ledger(signer) => signer.sign_transaction(message).await,
+        }
+    }
+
+    fn address(&self) -> Address {
+        match self {
+            Signers::Local(signer) => signer.address(),
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => signer.address(),
+            #[cfg(feature = "yubi")]
+            Signers::Ledger(signer) => signer.address(),
+        }
+    }
 }
 
 /// A full Optics message between chains
@@ -220,10 +349,7 @@ impl Update {
     }
 
     /// Sign an update using the specified signer
-    pub async fn sign_with<S>(self, signer: &S) -> Result<SignedUpdate, S::Error>
-    where
-        S: Signer,
-    {
+    pub async fn sign_with<S: Signer>(self, signer: &S) -> Result<SignedUpdate, S::Error> {
         let signature = signer.sign_message(self.signing_hash()).await?;
         Ok(SignedUpdate {
             update: self,

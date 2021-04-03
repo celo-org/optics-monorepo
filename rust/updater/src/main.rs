@@ -12,13 +12,12 @@ mod updater;
 
 use color_eyre::{eyre::eyre, Result};
 
-use ethers::prelude::LocalWallet;
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 use crate::{settings::Settings, updater::Updater};
 
 async fn _main(settings: Settings) -> Result<()> {
-    let updater = Updater::<LocalWallet>::from_settings(settings).await?;
+    let updater = Updater::from_settings(settings).await?;
 
     updater.run("").await??;
 
