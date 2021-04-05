@@ -79,11 +79,12 @@ async function deployGovernanceRouter(
 
 /*
  * struct ChainConfig {
- *   domain,
- *   updater,
- *   currentRoot,
- *   lastProcessedIndex,
- *   optimisticSeconds,
+ *   domain: uint32,
+ *   updater: address,
+ *   currentRoot: bytes32,
+ *   lastProcessedIndex: uint256,
+ *   optimisticSeconds: uint256,
+ *   watchers?: [address],
  *   // chainURL
  * };
  * * param origin should be a ChainConfig
@@ -130,7 +131,7 @@ async function deployOptics(origin, remotes) {
   // Deploy Replica Proxies and enroll in UsingOptics
   const replicaProxies = [];
   for (let remote of remotes) {
-    const { domain, updater } = remote;
+    const { domain, watchers } = remote;
 
     const replica = await deployReplicaProxy(
       replicaSetup.upgradeBeacon.address,
@@ -145,7 +146,10 @@ async function deployOptics(origin, remotes) {
     // Enroll Replica Proxy on UsingOptics
     await usingOptics.enrollReplica(domain, replica.proxy.address);
 
-    // TODO: configure Watcher(s) for the Replica on UsingOptics (after Luke adds this functionality)
+    // Add watcher permissions for Replica
+    for (let watcher in watchers) {
+      await usingOptics.setWatcherPermission(watcher, domain, true);
+    }
   }
 
   // Delegate permissions to governance router
