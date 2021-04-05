@@ -18,7 +18,6 @@ contract Governable is Ownable {
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
 
-    // better name?
     modifier onlyGovernor() {
         require(msg.sender == owner(), "!governor");
         _;
@@ -30,6 +29,8 @@ contract Governable is Ownable {
  * @author Celo Labs Inc.
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
+ * @dev Use Governable instead of Ownable here. If we ever want the Governor and
+ * Owner to have separate roles, we need to update the Governable contract.
  */
 contract Home is Governable, MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
