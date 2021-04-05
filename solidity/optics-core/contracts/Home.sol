@@ -5,14 +5,33 @@ import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
 import "../interfaces/UpdaterManagerI.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+/**
+ * @title Governable
+ * @author Celo Labs Inc.
+ * @notice Contract that extends from Ownable. The intent is to improve the
+ * naming in order to make it more clear that the "owner" here has a very
+ * limited scope of permissions.
+ */
+contract Governable is Ownable {
+    // solhint-disable-next-line no-empty-blocks
+    constructor() Ownable() {}
+
+    // better name?
+    modifier onlyGovernor() {
+        require(msg.sender == owner(), "!governor");
+        _;
+    }
+}
 
 /**
  * @title Home
  * @author Celo Labs Inc.
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
- **/
-contract Home is MerkleTreeManager, QueueManager, Common {
+ */
+contract Home is Governable, MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
@@ -28,7 +47,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * sequence combined in single field ((destination << 32) & sequence)
      * @param leaf Hash of formatted message
      * @param message Raw bytes of enqueued message
-     **/
+     */
     event Dispatch(
         uint256 indexed leafIndex,
         uint64 indexed destinationAndSequence,
@@ -46,6 +65,12 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     event NewUpdater(address updater);
 
     /**
+     * @notice Event emitted when a new UpdaterManager is set
+     * @param updaterManager The address of the new updaterManager
+     */
+    event NewUpdaterManager(address updaterManager);
+
+    /**
      * @notice Event emitted when an updater is slashed
      * @param updater The address of the updater
      * @param reporter The address of the entity that reported the updater misbehavior
@@ -53,7 +78,11 @@ contract Home is MerkleTreeManager, QueueManager, Common {
     event UpdaterSlashed(address updater, address reporter);
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(uint32 _originDomain) payable Common(_originDomain) {}
+    constructor(uint32 _originDomain)
+        payable
+        Governable()
+        Common(_originDomain)
+    {}
 
     function initialize(address _updaterManager) public override {
         require(state == States.UNINITIALIZED, "already initialized");
@@ -77,6 +106,13 @@ contract Home is MerkleTreeManager, QueueManager, Common {
         emit NewUpdater(_updater);
     }
 
+    /// @notice sets a new updaterManager
+    function setUpdaterManager(address _updaterManager) external onlyGovernor {
+        updaterManager = UpdaterManagerI(_updaterManager);
+
+        emit NewUpdaterManager(_updaterManager);
+    }
+
     /// @notice Sets contract state to FAILED and slashes updater
     function fail() internal override {
         _setFailed();
@@ -92,7 +128,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @param _destination Domain of destination chain
      * @param _sequence Current sequence for given destination chain
      * @return Returns (`_destination` << 32) & `_sequence`
-     **/
+     */
     function destinationAndSequence(uint32 _destination, uint32 _sequence)
         internal
         pure
@@ -107,7 +143,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @param destination Domain of destination chain
      * @param recipient Address or recipient on destination chain
      * @param body Raw bytes of message
-     **/
+     */
     function enqueue(
         uint32 destination,
         bytes32 recipient,
@@ -147,7 +183,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @param _oldRoot Old merkle root (should equal home's current root)
      * @param _newRoot New merkle root
      * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
-     **/
+     */
     function update(
         bytes32 _oldRoot,
         bytes32 _newRoot,
@@ -173,7 +209,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * @param _newRoot New merkle tree root
      * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
      * @return Returns true if update was fraudulent
-     **/
+     */
     function improperUpdate(
         bytes32 _oldRoot,
         bytes32 _newRoot,
@@ -195,7 +231,7 @@ contract Home is MerkleTreeManager, QueueManager, Common {
      * `_new`. Null bytes returned if queue is empty.
      * @return _current Current root
      * @return _new New root
-     **/
+     */
     function suggestUpdate()
         external
         view
