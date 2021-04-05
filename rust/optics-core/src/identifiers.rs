@@ -9,6 +9,19 @@ use crate::{Decode, Encode};
 #[derive(Debug, Default, Copy, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct OpticsIdentifier(H256);
 
+impl OpticsIdentifier {
+    /// Check if the identifier is an ethereum address. This checks
+    /// that the first 12 bytes are all 0.
+    pub fn is_ethereum_address(&self) -> bool {
+        self.0.as_bytes()[0..12].iter().all(|b| *b == 0)
+    }
+
+    /// Cast to an ethereum address by truncating.
+    pub fn as_ethereum_address(&self) -> H160 {
+        H160::from_slice(&self.0.as_ref()[12..])
+    }
+}
+
 impl From<H256> for OpticsIdentifier {
     fn from(address: H256) -> Self {
         OpticsIdentifier(address)
