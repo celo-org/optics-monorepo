@@ -25,7 +25,8 @@ describe('UsingOptics', async () => {
     usingOptics = await UsingOptics.deploy();
     await usingOptics.deployed();
 
-    const { contracts } = await optics.deployUpgradeSetupWithImplementation(
+    const controller = null;
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
       [originDomain],
       [
@@ -35,6 +36,7 @@ describe('UsingOptics', async () => {
         optimisticSeconds,
         initialLastProcessed,
       ],
+      controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
     );
 
