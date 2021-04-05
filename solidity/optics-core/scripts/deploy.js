@@ -4,19 +4,19 @@ const utils = require('./utils.js');
 task('deploy-home', 'Deploy an upgradable home.')
   .addParam('domain', 'The origin chain domain ID', undefined, types.int)
   .addParam(
-    'sortition',
+    'updaterManager',
     'The updater identity handler',
     undefined,
     types.string,
   )
   .setAction(async (args, hre) => {
     const { ethers, optics } = hre;
-    const { domain, sortition } = args;
-    const sortitionAddr = ethers.utils.getAddress(sortition);
+    const { domain, updaterManager } = args;
+    const updaterManagerAddr = ethers.utils.getAddress(updaterManager);
     const { contracts } = await optics.deployProxyWithImplementation(
       'Home',
       [domain],
-      [sortitionAddr],
+      [updaterManagerAddr],
     );
 
     const { implementation, controller, upgradeBeacon, proxy } = contracts;
@@ -78,7 +78,7 @@ task('deploy-replica', 'Deploy an upgradable replica.')
     );
   });
 
-task('deploy-test-home', 'Deploy a home with a fake sortition for testing')
+task('deploy-test-home', 'Deploy a home with a fake updaterManager for testing')
   .addParam('domain', 'The origin chain domain ID', undefined, types.int)
   .setAction(async (args, hre) => {
     let { ethers } = hre;
@@ -86,13 +86,13 @@ task('deploy-test-home', 'Deploy a home with a fake sortition for testing')
     let signerAddress = await signer.getAddress();
 
     console.log(`Deploying from ${signerAddress}`);
-    let Sortition = await ethers.getContractFactory('TestSortition');
-    let sortition = await Sortition.deploy(signerAddress);
-    await sortition.deployed();
-    console.log(`Deployed new TestSortition at ${sortition.address}`);
+    let UpdaterManager = await ethers.getContractFactory('TestUpdaterManager');
+    let updaterManager = await UpdaterManager.deploy(signerAddress);
+    await updaterManager.deployed();
+    console.log(`Deployed new TestUpdaterManager at ${updaterManager.address}`);
 
     let home = await hre.run('deploy-home', {
       domain: args.domain,
-      sortition: sortition.address,
+      updaterManager: updaterManager.address,
     });
   });

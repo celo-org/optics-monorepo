@@ -3,7 +3,6 @@ pragma solidity >=0.6.11;
 
 import "../../interfaces/UpdaterManagerI.sol";
 
-// TODO: update to TestUpdaterManager
 contract TestUpdaterManager is UpdaterManagerI {
     address internal updater;
     address internal home;

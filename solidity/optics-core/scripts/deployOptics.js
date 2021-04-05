@@ -46,9 +46,8 @@ async function deployUsingOptics() {
   return optics.deployImplementation('UsingOptics');
 }
 
-async function deployUpdaterManger(updaterAddress) {
-  // TODO: deploy updated UpdaterManager (after Erin updates these contracts)
-  return await optics.deployImplementation('TestSortition', [updaterAddress]);
+async function deployUpdaterManger(updaterManagerAddress) {
+  return await optics.deployImplementation('TestUpdaterManager', [updaterManagerAddress]);
 }
 
 async function deployHome(originDomain, updaterManager, controller) {

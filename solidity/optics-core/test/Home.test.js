@@ -34,17 +34,17 @@ describe('Home', async () => {
   });
 
   beforeEach(async () => {
-    const mockSortition = await deployMockContract(
+    const mockUpdaterManager = await deployMockContract(
       signer,
       TestUpdaterManager.abi,
     );
-    await mockSortition.mock.current.returns(signer.address);
-    await mockSortition.mock.slash.returns();
+    await mockUpdaterManager.mock.current.returns(signer.address);
+    await mockUpdaterManager.mock.slash.returns();
 
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
       [originDomain],
-      [mockSortition.address],
+      [mockUpdaterManager.address],
     );
 
     home = contracts.proxyWithImplementation;
