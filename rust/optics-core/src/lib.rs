@@ -29,6 +29,8 @@ pub mod test_utils;
 
 mod utils;
 
+use std::convert::Infallible;
+
 pub use encode::{Decode, Encode};
 
 use async_trait::async_trait;
@@ -42,10 +44,10 @@ use ethers::{
 use identifiers::OpticsIdentifier;
 
 use ethers::signers::LocalWallet;
-#[cfg(feature = "ledger")]
-use ethers::signers::Ledger;
 #[cfg(feature = "yubi")]
 use ethers::signers::YubiWallet;
+#[cfg(feature = "ledger")]
+use ethers::signers::{Ledger, LedgerError};
 
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
@@ -76,6 +78,31 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
+}
+
+/// Error types for Signers
+#[derive(Debug, thiserror::Error)]
+pub enum SignersError {
+    /// Wallet<T> signers infallible
+    #[error(transparent)]
+    Infallible(Infallible),
+    /// Ledger error
+    #[cfg(feature = "ledger")]
+    #[error(transparent)]
+    Ledger(LedgerError),
+}
+
+impl From<Infallible> for SignersError {
+    fn from(error: Infallible) -> Self {
+        SignersError::Infallible(error)
+    }
+}
+
+#[cfg(feature = "ledger")]
+impl From<LedgerError> for SignersError {
+    fn from(error: LedgerError) -> Self {
+        SignersError::Infallible(error)
+    }
 }
 
 /// Address types
@@ -160,18 +187,18 @@ impl From<YubiWallet> for Signers {
 
 #[async_trait]
 impl Signer for Signers {
-    type Error = std::convert::Infallible;
+    type Error = SignersError;
 
     async fn sign_message<S: Send + Sync + AsRef<[u8]>>(
         &self,
         message: S,
     ) -> Result<Signature, Self::Error> {
         match self {
-            Signers::Local(signer) => signer.sign_message(message).await,
+            Signers::Local(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
             #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.sign_message(message).await,
+            Signers::Ledger(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
             #[cfg(feature = "yubi")]
-            Signers::Ledger(signer) => signer.sign_message(message).await,
+            Signers::Yubi(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
         }
     }
 
@@ -180,11 +207,11 @@ impl Signer for Signers {
         message: &TransactionRequest,
     ) -> Result<Signature, Self::Error> {
         match self {
-            Signers::Local(signer) => signer.sign_transaction(message).await,
+            Signers::Local(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
             #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.sign_transaction(message).await,
+            Signers::Ledger(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
             #[cfg(feature = "yubi")]
-            Signers::Ledger(signer) => signer.sign_transaction(message).await,
+            Signers::Yubi(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
         }
     }
 
@@ -194,7 +221,7 @@ impl Signer for Signers {
             #[cfg(feature = "ledger")]
             Signers::Ledger(signer) => signer.address(),
             #[cfg(feature = "yubi")]
-            Signers::Ledger(signer) => signer.address(),
+            Signers::Yubi(signer) => signer.address(),
         }
     }
 }
