@@ -20,6 +20,10 @@ pub mod traits;
 /// Traits for canonical binary representations
 pub mod encode;
 
+/// Unified 32-byte identifier with convenience tooling for handling
+/// 20-byte ids (e.g ethereum addresses)
+pub mod identifiers;
+
 /// Testing utilities
 pub mod test_utils;
 
@@ -32,9 +36,9 @@ use ethers::{
         types::{Address, Signature, SignatureError, H256},
         utils::hash_message,
     },
-    prelude::H160,
     signers::Signer,
 };
+use identifiers::OpticsIdentifier;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -64,53 +68,6 @@ pub enum OpticsError {
     // /// ChainCommunicationError
     // #[error(transparent)]
     // ChainCommunicationError(#[from] ChainCommunicationError),
-}
-
-/// Address types
-pub enum Addresses {
-    /// 20 byte address
-    H160(H160),
-    /// 32 byte address
-    H256(H256),
-}
-
-impl From<H256> for Addresses {
-    fn from(address: H256) -> Self {
-        Addresses::H256(address)
-    }
-}
-
-impl From<H160> for Addresses {
-    fn from(address: H160) -> Self {
-        Addresses::H160(address)
-    }
-}
-
-impl From<Addresses> for H160 {
-    fn from(addresses: Addresses) -> Self {
-        match addresses {
-            Addresses::H160(address) => address,
-            Addresses::H256(_) => unreachable!("Wrong Addresses variant!"),
-        }
-    }
-}
-
-impl From<Addresses> for H256 {
-    fn from(addresses: Addresses) -> Self {
-        match addresses {
-            Addresses::H160(_) => unreachable!("Wrong Addresses variant!"),
-            Addresses::H256(address) => address,
-        }
-    }
-}
-
-impl AsRef<[u8]> for Addresses {
-    fn as_ref(&self) -> &[u8] {
-        match self {
-            Addresses::H160(address) => address.as_bytes(),
-            Addresses::H256(address) => address.as_bytes(),
-        }
-    }
 }
 
 /// A full Optics message between chains
@@ -328,7 +285,7 @@ pub struct FailureNotification {
     /// Domain of replica to unenroll
     pub domain: u32,
     /// Updater of replica to unenroll
-    pub updater: Addresses,
+    pub updater: OpticsIdentifier,
 }
 
 impl FailureNotification {
@@ -482,13 +439,13 @@ mod test {
             // UsingOptics test suite
             let signed_failure = FailureNotification {
                 domain: 1000,
-                updater: Addresses::H160(updater.address()),
+                updater: updater.address().into(),
             }
             .sign_with(&signer)
             .await
             .expect("!sign_with");
 
-            let updater: H160 = signed_failure.notification.updater.into();
+            let updater = signed_failure.notification.updater;
             let signed_json = json!({
                 "domain": signed_failure.notification.domain,
                 "updater": updater,
