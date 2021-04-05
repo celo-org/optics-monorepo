@@ -33,7 +33,7 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.0",
-    "@summa-tx/memview-sol": "^1.1.1",
+    "@summa-tx/memview-sol": "^2.0.0",
     "dotenv": "^8.2.0"
   }
 }
