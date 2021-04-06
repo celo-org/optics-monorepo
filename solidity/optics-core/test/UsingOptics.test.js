@@ -12,8 +12,8 @@ const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
 
-describe('UsingOptics', async () => {
-  let usingOptics, replica, signer, updater;
+describe('XappConnectionManager', async () => {
+  let connectionManager, replica, signer, updater;
 
   before(async () => {
     [signer] = provider.getWallets();
@@ -21,9 +21,11 @@ describe('UsingOptics', async () => {
   });
 
   beforeEach(async () => {
-    const UsingOptics = await ethers.getContractFactory('TestUsingOptics');
-    usingOptics = await UsingOptics.deploy();
-    await usingOptics.deployed();
+    const XappConnectionManager = await ethers.getContractFactory(
+      'TestXappConnectionManager',
+    );
+    connectionManager = await XappConnectionManager.deploy();
+    await connectionManager.deployed();
 
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
@@ -49,10 +51,10 @@ describe('UsingOptics', async () => {
     const { domain, updater, signature, signer } = testCase;
 
     await replica.setUpdater(updater);
-    await usingOptics.ownerEnrollReplica(replica.address, domain);
-    await usingOptics.setWatcherPermission(signer, domain, true);
+    await connectionManager.ownerEnrollReplica(replica.address, domain);
+    await connectionManager.setWatcherPermission(signer, domain, true);
 
-    const watcher = await usingOptics.testRecoverWatcherFromSig(
+    const watcher = await connectionManager.testRecoverWatcherFromSig(
       domain,
       replica.address,
       updater,

@@ -24,7 +24,9 @@ contract BridgeRouter is MessageRecipientI, TokenRegistry {
     mapping(uint32 => bytes32) internal remotes;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _usingOptics) TokenRegistry(_usingOptics) {}
+    constructor(address _xappConnectionManager)
+        TokenRegistry(_xappConnectionManager)
+    {}
 
     function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
         remotes[_origin] = _router;
@@ -131,7 +133,7 @@ contract BridgeRouter is MessageRecipientI, TokenRegistry {
             BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
 
-        usingOptics.enqueueHome(
+        xappConnectionManager.enqueueHome(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
@@ -153,7 +155,7 @@ contract BridgeRouter is MessageRecipientI, TokenRegistry {
                 _tok.decimals()
             );
 
-        usingOptics.enqueueHome(
+        xappConnectionManager.enqueueHome(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)

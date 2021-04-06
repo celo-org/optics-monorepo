@@ -6,7 +6,7 @@ import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
 import {
-    UsingOptics,
+    XappConnectionManager,
     TypeCasts
 } from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
@@ -43,7 +43,7 @@ contract TokenRegistry is Ownable {
         bytes32 id;
     }
 
-    UsingOptics public usingOptics;
+    XappConnectionManager public xappConnectionManager;
 
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
@@ -57,13 +57,13 @@ contract TokenRegistry is Ownable {
     // If the token is native, this MUST be address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
 
-    constructor(address _usingOptics) Ownable() {
+    constructor(address _xappConnectionManager) Ownable() {
         tokenTemplate = address(new BridgeToken());
-        setUsingOptics(_usingOptics);
+        setXappConnectionManager(_xappConnectionManager);
     }
 
     modifier onlyReplica() {
-        require(usingOptics.isReplica(msg.sender), "!replica");
+        require(xappConnectionManager.isReplica(msg.sender), "!replica");
         _;
     }
 
@@ -90,8 +90,11 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    function setUsingOptics(address _usingOptics) public onlyOwner {
-        usingOptics = UsingOptics(_usingOptics);
+    function setXappConnectionManager(address _xappConnectionManager)
+        public
+        onlyOwner
+    {
+        xappConnectionManager = XappConnectionManager(_xappConnectionManager);
     }
 
     function setTemplate(address _newTemplate) external onlyOwner {
@@ -109,7 +112,7 @@ contract TokenRegistry is Ownable {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = usingOptics.originDomain();
+            _id.domain = xappConnectionManager.originDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
@@ -160,7 +163,7 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == usingOptics.originDomain()) {
+        if (_tokenId.domain() == xappConnectionManager.originDomain()) {
             return IERC20(_tokenId.evmId());
         }
 

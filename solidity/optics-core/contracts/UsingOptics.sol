@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-contract UsingOptics is Ownable {
+contract XappConnectionManager is Ownable {
     mapping(address => uint32) public replicaToDomain;
     mapping(uint32 => address) public domainToReplica;
 

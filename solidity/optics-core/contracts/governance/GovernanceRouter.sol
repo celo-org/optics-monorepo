@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-import {UsingOptics, TypeCasts} from "../UsingOptics.sol";
+import {XappConnectionManager, TypeCasts} from "../UsingOptics.sol";
 import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
@@ -16,7 +16,7 @@ contract GovernanceRouter is MessageRecipientI {
     /*
     --- STATE ---
     */
-    UsingOptics public usingOptics;
+    XappConnectionManager public xappConnectionManager;
 
     uint32 immutable localDomain;
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
@@ -47,7 +47,7 @@ contract GovernanceRouter is MessageRecipientI {
         localDomain = _localDomain;
     }
 
-    function initialize(address _usingOptics) public {
+    function initialize(address _xappConnectionManager) public {
         // initialize governor
         require(
             governorDomain == 0 && governor == address(0),
@@ -58,12 +58,12 @@ contract GovernanceRouter is MessageRecipientI {
         bool _isLocalDomain = true;
         _transferGovernor(localDomain, _governor, _isLocalDomain);
 
-        // initialize UsingOptics
-        setUsingOptics(_usingOptics);
+        // initialize XappConnectionManager
+        setXappConnectionManager(_xappConnectionManager);
 
         require(
-            usingOptics.originDomain() == localDomain,
-            "usingOptics incompatible domain"
+            xappConnectionManager.originDomain() == localDomain,
+            "XappConnectionManager incompatible domain"
         );
     }
 
@@ -71,7 +71,7 @@ contract GovernanceRouter is MessageRecipientI {
     --- FUNCTION MODIFIERS ---
     */
     modifier onlyReplica() {
-        require(usingOptics.isReplica(msg.sender), "!replica");
+        require(xappConnectionManager.isReplica(msg.sender), "!replica");
         _;
     }
 
@@ -93,8 +93,11 @@ contract GovernanceRouter is MessageRecipientI {
     /*
     --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
     */
-    function setUsingOptics(address _usingOptics) public onlyGovernor {
-        usingOptics = UsingOptics(_usingOptics);
+    function setXappConnectionManager(address _xappConnectionManager)
+        public
+        onlyGovernor
+    {
+        xappConnectionManager = XappConnectionManager(_xappConnectionManager);
     }
 
     function isGovernorRouter(uint32 _domain, bytes32 _address)
@@ -222,7 +225,7 @@ contract GovernanceRouter is MessageRecipientI {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        usingOptics.enqueueHome(_destination, _router, _msg);
+        xappConnectionManager.enqueueHome(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -263,7 +266,11 @@ contract GovernanceRouter is MessageRecipientI {
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                usingOptics.enqueueHome(domains[i], routers[domains[i]], _msg);
+                xappConnectionManager.enqueueHome(
+                    domains[i],
+                    routers[domains[i]],
+                    _msg
+                );
             }
         }
     }
