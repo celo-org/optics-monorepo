@@ -89,7 +89,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
         require(state == States.UNINITIALIZED, "already initialized");
 
         updaterManager = UpdaterManagerI(_updaterManager);
-        updater = UpdaterManagerI(_updaterManager).current();
+        updater = UpdaterManagerI(_updaterManager).currentUpdater();
 
         queue.initialize();
         state = States.ACTIVE;
@@ -117,7 +117,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
     /// @notice Sets contract state to FAILED and slashes updater
     function fail() internal override {
         _setFailed();
-        updaterManager.slash(msg.sender);
+        updaterManager.slashUpdater(msg.sender);
 
         emit UpdaterSlashed(updater, msg.sender);
     }

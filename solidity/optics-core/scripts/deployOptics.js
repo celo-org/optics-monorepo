@@ -47,9 +47,7 @@ async function deployUsingOptics() {
 }
 
 async function deployUpdaterManager(updater) {
-  return await optics.deployImplementation('UpdaterManager', [
-    updater,
-  ]);
+  return await optics.deployImplementation('UpdaterManager', [updater]);
 }
 
 async function deployHome(originDomain, updaterManager, controller) {

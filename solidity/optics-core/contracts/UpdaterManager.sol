@@ -12,9 +12,6 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
     address internal updater;
     address internal home;
 
-    /// @notice Event emitted when the updater is slashed
-    event Slashed();
-
     /**
      * @notice Event emitted when a new home is set
      * @param home The address of the new home
@@ -25,12 +22,17 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
         updater = _updater;
     }
 
+    modifier onlyHome() {
+        require(msg.sender == home, "!home");
+        _;
+    }
+
     /**
      * @notice Permissioned function that sets the address of the new home contract
      * @param _home The address of the new home contract
      */
     function setHome(address _home) external onlyOwner {
-        require(Address.isContract(_home), "!home");
+        require(Address.isContract(_home), "!contract home");
         home = _home;
 
         emit NewHome(_home);
@@ -47,7 +49,7 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
     }
 
     /// @notice Returns the address of the current updater
-    function current() external view override returns (address) {
+    function currentUpdater() external view override returns (address) {
         return updater;
     }
 
@@ -56,9 +58,10 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
      * @dev Currently only emits Slashed event, functionality will come later
      * @param _reporter The address of the entity that reported the updater fraud
      */
-    // solhint-disable-next-line no-unused-vars
-    function slash(address payable _reporter) external override {
-        require(msg.sender == home, "!home");
-        emit Slashed();
-    }
+    // solhint-disable-next-line no-unused-vars no-empty-blocks
+    function slashUpdater(address payable _reporter)
+        external
+        override
+        onlyHome
+    {}
 }
