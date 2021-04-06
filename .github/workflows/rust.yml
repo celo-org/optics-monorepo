@@ -41,3 +41,19 @@ jobs:
         run: cd rust && cargo clippy -- -D warnings
       - name: Lint
         run: cd rust && cargo fmt -- --check
+
+  complete:
+    runs-on: ubuntu-latest
+    needs: [build, test, lint]
+
+    steps:
+      - name: Trigger status event
+        run: >-
+          curl -L -X POST 
+          -H "Content-Type: application/json"
+          -H "Authorization: token ${{ secrets.GITHUB_PAT}}"
+          -d '{
+            "state": "success",
+            "description": "All tests completed", "context": "optics/rust-checks-complete"
+          }'
+          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"
