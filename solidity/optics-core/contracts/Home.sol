@@ -10,31 +10,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
- * @title Governable
- * @author Celo Labs Inc.
- * @notice Contract that extends from Ownable. The intent is to improve the
- * naming in order to make it more clear that the "owner" here has a very
- * limited scope of permissions.
- */
-contract Governable is Ownable {
-    // solhint-disable-next-line no-empty-blocks
-    constructor() Ownable() {}
-
-    modifier onlyGovernor() {
-        require(msg.sender == owner(), "!governor");
-        _;
-    }
-}
-
-/**
  * @title Home
  * @author Celo Labs Inc.
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
- * @dev Use Governable instead of Ownable here. If we ever want the Governor and
- * Owner to have separate roles, we need to update the Governable contract.
  */
-contract Home is Governable, MerkleTreeManager, QueueManager, Common {
+contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
@@ -83,7 +64,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain)
         payable
-        Governable()
+        Ownable()
         Common(_originDomain)
     {}
 
@@ -110,8 +91,11 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
     }
 
     /// @notice sets a new updaterManager
-    function setUpdaterManager(address _updaterManager) external onlyGovernor {
-        require(Address.isContract(_updaterManager), "!contract updaterManager");
+    function setUpdaterManager(address _updaterManager) external onlyOwner {
+        require(
+            Address.isContract(_updaterManager),
+            "!contract updaterManager"
+        );
 
         updaterManager = UpdaterManagerI(_updaterManager);
         emit NewUpdaterManager(_updaterManager);
