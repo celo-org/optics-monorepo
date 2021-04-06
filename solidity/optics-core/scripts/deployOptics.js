@@ -1,6 +1,6 @@
 async function deployReplicaUpgradeSetup(originDomain, controller) {
   const contracts = await optics.deployUpgradeSetup(
-    'TestReplica',
+    'Replica',
     [originDomain],
     controller,
   );
@@ -31,7 +31,7 @@ async function deployReplicaProxy(upgradeBeaconAddress, remote) {
     proxyWithImplementation,
   } = await optics.deployProxyWithImplementation(
     upgradeBeaconAddress,
-    'TestReplica',
+    'Replica',
     proxyInitializeArgs,
     'initialize(uint32, address, bytes32, uint256, uint256)',
   );
@@ -53,7 +53,7 @@ async function deployUpdaterManger(updaterAddress) {
 
 async function deployHome(originDomain, updaterManager, controller) {
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
-    'TestHome',
+    'Home',
     [originDomain],
     [updaterManager.address],
     controller,

@@ -14,6 +14,10 @@ contract TestReplica is Replica {
         _setFailed();
     }
 
+    function setUpdater(address _updater) external {
+        updater = _updater;
+    }
+
     function timestamp() external view returns (uint256) {
         return block.timestamp;
     }

@@ -3,6 +3,9 @@ const { provider } = waffle;
 const { expect } = require('chai');
 
 const { testCases } = require('../../../vectors/domainHashTestCases.json');
+const {
+  testCases: signedUpdateTestCases,
+} = require('../../../vectors/signedUpdateTestCases.json');
 const originDomain = 1000;
 
 describe('Common', async () => {
@@ -89,6 +92,24 @@ describe('Common', async () => {
       const { originDomain, expectedDomainHash } = testCase;
       const solidityDomainHash = await common.testDomainHash(originDomain);
       expect(solidityDomainHash).to.equal(expectedDomainHash);
+    }
+  });
+
+  it('Checks Rust-produced SignedUpdate', async () => {
+    // Compare Rust output in json file to solidity output
+    for (let testCase of signedUpdateTestCases) {
+      const { oldRoot, newRoot, signature, signer } = testCase;
+
+      const signerAddress = ethers.utils.getAddress(signer);
+      await common.setUpdater(signerAddress);
+
+      expect(
+        await common.testCheckSig(
+          oldRoot,
+          newRoot,
+          ethers.utils.joinSignature(signature),
+        ),
+      ).to.be.true;
     }
   });
 });

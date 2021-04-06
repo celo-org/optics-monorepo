@@ -5,14 +5,13 @@ use color_eyre::{eyre::ensure, Result};
 use ethers::{core::types::H256, prelude::LocalWallet, signers::Signer, types::Address};
 use rocksdb::DB;
 use tokio::{
-    sync::RwLock,
+    sync::Mutex,
     task::JoinHandle,
     time::{interval, Interval},
 };
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    db,
     db::UsingPersistence,
     home::Homes,
 };
@@ -27,7 +26,6 @@ use crate::settings::Settings;
 #[derive(Debug)]
 pub struct Updater<S> {
     signer: Arc<S>,
-    db_path: String,
     interval_seconds: u64,
     update_pause: u64,
     core: AgentCore,
@@ -52,16 +50,9 @@ where
     S: Signer + 'static,
 {
     /// Instantiate a new updater
-    pub fn new(
-        signer: S,
-        db_path: String,
-        interval_seconds: u64,
-        update_pause: u64,
-        core: AgentCore,
-    ) -> Self {
+    pub fn new(signer: S, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
         Self {
             signer: Arc::new(signer),
-            db_path,
             interval_seconds,
             update_pause,
             core,
@@ -71,7 +62,8 @@ where
     async fn poll_and_handle_update(
         home: Arc<Homes>,
         signer: Arc<S>,
-        db: Arc<RwLock<DB>>,
+        db: Arc<DB>,
+        mutex: Arc<Mutex<()>>,
         update_pause: u64,
     ) -> Result<Option<JoinHandle<()>>> {
         // Check if there is an update
@@ -99,24 +91,26 @@ where
                 if in_queue && current_root == old_root {
                     // If update still valid and doesn't conflict with local
                     // history of signed updates, sign and submit update. Note
-                    // that because we write-acquire RwLock, only one thread
+                    // that because we acquire a guard, only one thread
                     // can check and enter the below `if` block at a time,
                     // protecting from races between threads.
-                    let db_write = db.write().await;
-                    if let Ok(None) = Self::db_get(&db_write, old_root) {
+
+                    // acquire guard
+                    let _guard = mutex.lock().await;
+                    if let Ok(None) = Self::db_get(&db, old_root) {
                         let signed = update.sign_with(signer.as_ref()).await.unwrap();
 
                         // If successfully submitted update, record in db
                         match home.update(&signed).await {
                             Ok(_) => {
-                                Self::db_put(&db_write, old_root, signed).expect("!db_put");
+                                Self::db_put(&db, old_root, signed).expect("!db_put");
                             }
                             Err(ref e) => {
                                 tracing::error!("Error submitting update to home: {:?}", e)
                             }
                         }
                     }
-                }
+                } // guard dropped here
             })));
         }
 
@@ -141,7 +135,6 @@ impl OpticsAgent for Updater<LocalWallet> {
     {
         Ok(Self::new(
             settings.updater.try_into_wallet()?,
-            settings.db_path.clone(),
             settings.polling_interval,
             settings.update_pause,
             settings.as_ref().try_into_core().await?,
@@ -155,7 +148,9 @@ impl OpticsAgent for Updater<LocalWallet> {
         let mut interval = self.interval();
         let update_pause = self.update_pause;
         let signer = self.signer.clone();
-        let db = Arc::new(RwLock::new(db::from_path(self.db_path.clone())));
+        let db = self.db();
+
+        let mutex = Arc::new(Mutex::new(()));
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
@@ -172,6 +167,7 @@ impl OpticsAgent for Updater<LocalWallet> {
                     home.clone(),
                     signer.clone(),
                     db.clone(),
+                    mutex.clone(),
                     update_pause,
                 )
                 .await;
@@ -189,9 +185,6 @@ impl OpticsAgent for Updater<LocalWallet> {
 
 #[cfg(test)]
 mod test {
-    use std::sync::Arc;
-    use tokio::sync::RwLock;
-
     use ethers::core::types::H256;
     use optics_base::home::Homes;
 
@@ -226,7 +219,8 @@ mod test {
             Updater::poll_and_handle_update(
                 home.clone(),
                 Arc::new(signer),
-                Arc::new(RwLock::new(db)),
+                Arc::new(db),
+                Arc::new(Mutex::new(())),
                 1,
             )
             .await
@@ -293,7 +287,8 @@ mod test {
             let handle = Updater::poll_and_handle_update(
                 home.clone(),
                 Arc::new(signer),
-                Arc::new(RwLock::new(db)),
+                Arc::new(db),
+                Arc::new(Mutex::new(())),
                 1,
             )
             .await
@@ -361,7 +356,8 @@ mod test {
             let handle = Updater::poll_and_handle_update(
                 home.clone(),
                 Arc::new(signer),
-                Arc::new(RwLock::new(db)),
+                Arc::new(db),
+                Arc::new(Mutex::new(())),
                 1,
             )
             .await

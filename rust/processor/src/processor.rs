@@ -4,7 +4,6 @@ use color_eyre::{
     Result,
 };
 use futures_util::future::select_all;
-use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
     sync::{oneshot::channel, RwLock},
@@ -14,7 +13,7 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, db, decl_agent,
+    cancel_task, decl_agent,
     home::Homes,
     replica::Replicas,
     reset_loop_if,
@@ -112,21 +111,17 @@ decl_agent!(
         interval_seconds: u64,
         prover: Arc<RwLock<Prover>>,
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
-        db: Arc<DB>,
     }
 );
 
 impl Processor {
     /// Instantiate a new processor
-    pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
-        let db = db::from_path(db_path);
-
+    pub fn new(interval_seconds: u64, core: AgentCore) -> Self {
         Self {
             interval_seconds,
-            prover: Arc::new(RwLock::new(Prover::from_disk(&db))),
+            prover: Arc::new(RwLock::new(Prover::from_disk(&core.db))),
             core,
             replica_tasks: Default::default(),
-            db: Arc::new(db),
         }
     }
 }
@@ -142,7 +137,6 @@ impl OpticsAgent for Processor {
     {
         Ok(Self::new(
             settings.polling_interval,
-            settings.db_path.clone(),
             settings.as_ref().try_into_core().await?,
         ))
     }
@@ -168,7 +162,7 @@ impl OpticsAgent for Processor {
         let (_tx, rx) = channel();
         let interval_seconds = self.interval_seconds;
 
-        let sync = ProverSync::new(self.prover.clone(), self.home(), self.db.clone(), rx);
+        let sync = ProverSync::new(self.prover.clone(), self.home(), self.db(), rx);
         let sync_task = tokio::spawn(async move {
             sync.poll_updates(interval_seconds)
                 .await

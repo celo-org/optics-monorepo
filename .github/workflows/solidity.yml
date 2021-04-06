@@ -3,21 +3,20 @@ name: Solidity
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   optics-core:
-
     runs-on: ubuntu-latest
 
     defaults:
-        run:
-          working-directory: ./solidity/optics-core
+      run:
+        working-directory: ./solidity/optics-core
 
     steps:
       - uses: actions/checkout@v2
@@ -32,32 +31,11 @@ jobs:
         run: npm run lint
 
   optics-bridge:
-
     runs-on: ubuntu-latest
 
     defaults:
-        run:
-          working-directory: ./solidity/optics-bridge
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install
-        run: npm i
-
-      - name: Test
-        run: npm test
-
-      - name: Lint
-        run: npm run lint
-
-  optics-governance:
-
-    runs-on: ubuntu-latest
-
-    defaults:
-        run:
-          working-directory: ./solidity/optics-governance
+      run:
+        working-directory: ./solidity/optics-bridge
 
     steps:
       - uses: actions/checkout@v2

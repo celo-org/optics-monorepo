@@ -20,6 +20,10 @@ pub mod traits;
 /// Traits for canonical binary representations
 pub mod encode;
 
+/// Unified 32-byte identifier with convenience tooling for handling
+/// 20-byte ids (e.g ethereum addresses)
+pub mod identifiers;
+
 /// Testing utilities
 pub mod test_utils;
 
@@ -34,6 +38,7 @@ use ethers::{
     },
     signers::Signer,
 };
+use identifiers::OpticsIdentifier;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -275,9 +280,71 @@ impl SignedUpdate {
     }
 }
 
+/// Failure notification produced by watcher
+pub struct FailureNotification {
+    /// Domain of replica to unenroll
+    pub domain: u32,
+    /// Updater of replica to unenroll
+    pub updater: OpticsIdentifier,
+}
+
+impl FailureNotification {
+    fn signing_hash(&self) -> H256 {
+        H256::from_slice(
+            Keccak256::new()
+                .chain(domain_hash(self.domain))
+                .chain(self.domain.to_be_bytes())
+                .chain(self.updater.as_ref())
+                .finalize()
+                .as_slice(),
+        )
+    }
+
+    fn prepended_hash(&self) -> H256 {
+        hash_message(self.signing_hash())
+    }
+
+    /// Sign an `FailureNotification` using the specified signer
+    pub async fn sign_with<S>(self, signer: &S) -> Result<SignedFailureNotification, S::Error>
+    where
+        S: Signer,
+    {
+        let signature = signer.sign_message(self.signing_hash()).await?;
+        Ok(SignedFailureNotification {
+            notification: self,
+            signature,
+        })
+    }
+}
+
+/// Signed failure notification produced by watcher
+pub struct SignedFailureNotification {
+    /// Failure notification
+    pub notification: FailureNotification,
+    /// Signature
+    pub signature: Signature,
+}
+
+impl SignedFailureNotification {
+    /// Recover the Ethereum address of the signer
+    pub fn recover(&self) -> Result<Address, OpticsError> {
+        dbg!(self.notification.prepended_hash());
+        Ok(self.signature.recover(self.notification.prepended_hash())?)
+    }
+
+    /// Check whether a message was signed by a specific address
+    pub fn verify(&self, signer: Address) -> Result<(), OpticsError> {
+        Ok(self
+            .signature
+            .verify(self.notification.prepended_hash(), signer)?)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use serde_json::{json, Value};
+    use std::{fs::OpenOptions, io::Write};
 
     #[test]
     fn it_sign() {
@@ -295,6 +362,110 @@ mod test {
             let signed = message.sign_with(&signer).await.expect("!sign_with");
             signed.verify(signer.address()).expect("!verify");
         };
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(t)
+    }
+
+    /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
+    #[allow(dead_code)]
+    fn it_outputs_signed_updates() {
+        let t = async {
+            let signer: ethers::signers::LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
+
+            let mut test_cases: Vec<Value> = Vec::new();
+
+            // `origin_domain` MUST BE 1000 to match origin domain of Commmon
+            // test suite
+            for i in 1..=3 {
+                let signed_update = Update {
+                    origin_domain: 1000,
+                    new_root: H256::repeat_byte(i + 1),
+                    previous_root: H256::repeat_byte(i),
+                }
+                .sign_with(&signer)
+                .await
+                .expect("!sign_with");
+
+                test_cases.push(json!({
+                    "originDomain": signed_update.update.origin_domain,
+                    "oldRoot": signed_update.update.previous_root,
+                    "newRoot": signed_update.update.new_root,
+                    "signature": signed_update.signature,
+                    "signer": signer.address(),
+                }))
+            }
+
+            let json = json!({ "testCases": test_cases }).to_string();
+
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open("../../vectors/signedUpdateTestCases.json")
+                .expect("Failed to open/create file");
+
+            file.write_all(json.as_bytes())
+                .expect("Failed to write to file");
+        };
+
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(t)
+    }
+
+    /// Outputs signed update test cases in /vector/signedFailureTestCases.json
+    #[allow(dead_code)]
+    fn it_outputs_signed_failure_notifications() {
+        let t = async {
+            let signer: ethers::signers::LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
+
+            let updater: ethers::signers::LocalWallet =
+                "2222222222222222222222222222222222222222222222222222222222222222"
+                    .parse()
+                    .unwrap();
+
+            // `origin_domain` MUST BE 1000 to match origin domain of
+            // UsingOptics test suite
+            let signed_failure = FailureNotification {
+                domain: 1000,
+                updater: updater.address().into(),
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign_with");
+
+            let updater = signed_failure.notification.updater;
+            let signed_json = json!({
+                "domain": signed_failure.notification.domain,
+                "updater": updater,
+                "signature": signed_failure.signature,
+                "signer": signer.address()
+            });
+
+            let json = json!({ "testCases": vec!(signed_json) }).to_string();
+
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open("../../vectors/signedFailureTestCases.json")
+                .expect("Failed to open/create file");
+
+            file.write_all(json.as_bytes())
+                .expect("Failed to write to file");
+        };
+
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()

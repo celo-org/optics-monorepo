@@ -30,10 +30,10 @@ impl Default for ChatGenConfig {
     }
 }
 
-impl Into<ChatGenerator> for ChatGenConfig {
-    fn into(self) -> ChatGenerator {
-        match self {
-            Self::Static {
+impl From<ChatGenConfig> for ChatGenerator {
+    fn from(conf: ChatGenConfig) -> ChatGenerator {
+        match conf {
+            ChatGenConfig::Static {
                 destination,
                 recipient,
                 message,
@@ -42,12 +42,12 @@ impl Into<ChatGenerator> for ChatGenConfig {
                 recipient,
                 message,
             },
-            Self::OrderedList { messages } => ChatGenerator::OrderedList {
+            ChatGenConfig::OrderedList { messages } => ChatGenerator::OrderedList {
                 messages,
                 counter: 0,
             },
-            Self::Random { length } => ChatGenerator::Random { length },
-            Self::Default => ChatGenerator::Default,
+            ChatGenConfig::Random { length } => ChatGenerator::Random { length },
+            ChatGenConfig::Default => ChatGenerator::Default,
         }
     }
 }

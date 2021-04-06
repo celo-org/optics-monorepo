@@ -3,7 +3,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
-use crate::{home::Homes, replica::Replicas};
+use crate::{db, home::Homes, replica::Replicas};
 
 /// Ethereum configuration
 pub mod ethereum;
@@ -86,6 +86,8 @@ impl ChainSetup {
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Settings {
+    /// The path to use for the DB file
+    pub db_path: String,
     /// The home configuration
     pub home: ChainSetup,
     /// The replica configurations
@@ -113,7 +115,9 @@ impl Settings {
     pub async fn try_into_core(&self) -> Result<AgentCore, Report> {
         let home = Arc::new(self.try_home().await?);
         let replicas = self.try_replicas().await?;
-        Ok(AgentCore { home, replicas })
+        let db = Arc::new(db::from_path(&self.db_path)?);
+
+        Ok(AgentCore { home, replicas, db })
     }
 
     /// Read settings from the config file

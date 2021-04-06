@@ -5,7 +5,7 @@ use color_eyre::{
 };
 use thiserror::Error;
 
-use ethers::core::types::H256;
+use ethers::{core::types::H256, prelude::LocalWallet, signers::Signer};
 use futures_util::future::join_all;
 use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
@@ -17,13 +17,13 @@ use tokio::{
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    cancel_task, db, decl_agent,
+    cancel_task,
     home::Homes,
     persistence::UsingPersistence,
 };
 use optics_core::{
-    traits::{ChainCommunicationError, Common, DoubleUpdate, TxOutcome},
-    SignedUpdate,
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, TxOutcome},
+    FailureNotification, SignedUpdate,
 };
 
 use crate::settings::Settings;
@@ -239,26 +239,34 @@ impl UpdateHandler {
     }
 }
 
-decl_agent!(
-    /// A watcher agent
-    Watcher {
-        interval_seconds: u64,
-        db: Arc<DB>,
-        sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
-        watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+#[derive(Debug)]
+pub struct Watcher<S> {
+    signer: Arc<S>,
+    interval_seconds: u64,
+    sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+    watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+    core: AgentCore,
+}
+
+impl<S> AsRef<AgentCore> for Watcher<S> {
+    fn as_ref(&self) -> &AgentCore {
+        &self.core
     }
-);
+}
 
 #[allow(clippy::unit_arg)]
-impl Watcher {
+impl<S> Watcher<S>
+where
+    S: Signer + 'static,
+{
     /// Instantiate a new watcher.
-    pub fn new(interval_seconds: u64, db_path: String, core: AgentCore) -> Self {
+    pub fn new(signer: S, interval_seconds: u64, core: AgentCore) -> Self {
         Self {
+            signer: Arc::new(signer),
             interval_seconds,
-            db: Arc::new(db::from_path(db_path)),
-            core,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),
+            core,
         }
     }
 
@@ -279,11 +287,23 @@ impl Watcher {
     ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
         tracing::info!(
             "Dispatching double-update notifications to home and {} replicas",
-            self.replicas().len()
+            self.core.replicas.len()
         );
 
+        // TODO: submit signed failure notifications to UsingOptics
+        for replica in self.core.replicas.values() {
+            let _signed = FailureNotification {
+                domain: replica.destination_domain(),
+                updater: replica.updater().await.unwrap().into(),
+            }
+            .sign_with(self.signer.as_ref())
+            .await
+            .expect("!sign");
+        }
+
         let mut futs: Vec<_> = self
-            .replicas()
+            .core
+            .replicas
             .values()
             .map(|replica| replica.double_update(&double))
             .collect();
@@ -294,7 +314,7 @@ impl Watcher {
 
 #[async_trait]
 #[allow(clippy::unit_arg)]
-impl OpticsAgent for Watcher {
+impl OpticsAgent for Watcher<LocalWallet> {
     type Settings = Settings;
 
     #[tracing::instrument(err)]
@@ -303,8 +323,8 @@ impl OpticsAgent for Watcher {
         Self: Sized,
     {
         Ok(Self::new(
+            settings.watcher.try_into_wallet()?,
             settings.polling_interval,
-            settings.db_path.clone(),
             settings.as_ref().try_into_core().await?,
         ))
     }
@@ -319,7 +339,7 @@ impl OpticsAgent for Watcher {
     #[tracing::instrument(err)]
     async fn run_many(&self, replicas: &[&str]) -> Result<()> {
         let (tx, rx) = mpsc::channel(200);
-        let handler = UpdateHandler::new(rx, self.db.clone(), self.home()).spawn();
+        let handler = UpdateHandler::new(rx, self.db(), self.home()).spawn();
 
         for name in replicas.iter() {
             let replica = self
