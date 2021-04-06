@@ -62,6 +62,6 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_PAT}}"
           -d '{
             "state": "success",
-            "description": "All tests completed", "context": "optics/solidity-checks-complete"
+            "description": "Solidity tests completed", "context": "optics/solidity-checks-complete"
           }'
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"

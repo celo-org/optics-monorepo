@@ -54,6 +54,6 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_PAT}}"
           -d '{
             "state": "success",
-            "description": "All tests completed", "context": "optics/rust-checks-complete"
+            "description": "Rust tests completed", "context": "optics/rust-checks-complete"
           }'
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"
