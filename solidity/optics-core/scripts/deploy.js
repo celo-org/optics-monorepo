@@ -86,10 +86,10 @@ task('deploy-test-home', 'Deploy a home with a fake updaterManager for testing')
     let signerAddress = await signer.getAddress();
 
     console.log(`Deploying from ${signerAddress}`);
-    let UpdaterManager = await ethers.getContractFactory('TestUpdaterManager');
+    let UpdaterManager = await ethers.getContractFactory('UpdaterManager');
     let updaterManager = await UpdaterManager.deploy(signerAddress);
     await updaterManager.deployed();
-    console.log(`Deployed new TestUpdaterManager at ${updaterManager.address}`);
+    console.log(`Deployed new UpdaterManager at ${updaterManager.address}`);
 
     let home = await hre.run('deploy-home', {
       domain: args.domain,

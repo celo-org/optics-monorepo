@@ -119,7 +119,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
         _setFailed();
         updaterManager.slash(msg.sender);
 
-        emit UpdaterSlashed(address(updaterManager), msg.sender);
+        emit UpdaterSlashed(updater, msg.sender);
     }
 
     /**
