@@ -59,7 +59,7 @@ jobs:
         run: >-
           curl -L -X POST 
           -H "Content-Type: application/json"
-          -H "Authorization: token ${{ secrets.GITHUB_PAT}}"
+          -H "Authorization: token ${{ secrets.ACTIONS_PAT}}"
           -d '{
             "state": "success",
             "description": "Solidity tests completed", "context": "optics/solidity-checks-complete"

@@ -29,11 +29,11 @@ jobs:
 
     steps:
       - name: automerge
-        uses: "pascalgn/automerge-action@v0.13.1"
+        uses: pascalgn/automerge-action@v0.13.1
         with:
           args: “--trace”
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.ACTIONS_PAT }}"
           MERGE_LABELS: "automerge"
           MERGE_REMOVE_LABELS: "automerge"
           MERGE_METHOD: "squash"
