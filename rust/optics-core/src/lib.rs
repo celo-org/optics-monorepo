@@ -110,11 +110,11 @@ pub enum Signers {
     /// A wallet instantiated with a locally stored private key
     Local(LocalWallet),
     /// A wallet instantiated with a YubiHSM
-    #[cfg(feature = "ledger")]
-    Ledger(Ledger),
-    /// A wallet instantiated with a Ledger
     #[cfg(feature = "yubi")]
     Yubi(YubiWallet),
+    /// A wallet instantiated with a Ledger
+    #[cfg(feature = "ledger")]
+    Ledger(Ledger),
 }
 
 impl From<LocalWallet> for Signers {
@@ -146,11 +146,11 @@ impl Signer for Signers {
         message: S,
     ) -> Result<Signature, Self::Error> {
         match self {
-            Signers::Local(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
+            Signers::Local(signer) => Ok(signer.sign_message(message).await?),
             #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => signer.sign_message(message).await.map_err(|e| e.into()),
+            Signers::Yubi(signer) => Ok(signer.sign_message(message).await?),
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => Ok(signer.sign_message(message).await?),
         }
     }
 
@@ -159,21 +159,21 @@ impl Signer for Signers {
         message: &TransactionRequest,
     ) -> Result<Signature, Self::Error> {
         match self {
-            Signers::Local(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
+            Signers::Local(signer) => Ok(signer.sign_transaction(message).await?),
             #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => signer.sign_transaction(message).await.map_err(|e| e.into()),
+            Signers::Yubi(signer) => Ok(signer.sign_transaction(message).await?),
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => Ok(signer.sign_transaction(message).await?),
         }
     }
 
     fn address(&self) -> Address {
         match self {
             Signers::Local(signer) => signer.address(),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.address(),
             #[cfg(feature = "yubi")]
             Signers::Yubi(signer) => signer.address(),
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => signer.address(),
         }
     }
 }
