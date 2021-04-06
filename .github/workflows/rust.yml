@@ -47,13 +47,10 @@ jobs:
     needs: [build, test, lint]
 
     steps:
-      - name: Trigger status event
-        run: >-
-          curl -L -X POST 
-          -H "Content-Type: application/json"
-          -H "Authorization: token ${{ secrets.ACTIONS_PAT}}"
-          -d '{
-            "state": "success",
-            "description": "Rust tests completed", "context": "optics/rust-checks-complete"
-          }'
-          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"
+      - name: Rust tests successful
+        if: success()
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.ACTIONS_PAT }}
+          repository: ${{ github.repository }}
+          event-type: rust-tests-successful

@@ -55,13 +55,10 @@ jobs:
     needs: [optics-core, optics-bridge]
 
     steps:
-      - name: Trigger status event
-        run: >-
-          curl -L -X POST 
-          -H "Content-Type: application/json"
-          -H "Authorization: token ${{ secrets.ACTIONS_PAT}}"
-          -d '{
-            "state": "success",
-            "description": "Solidity tests completed", "context": "optics/solidity-checks-complete"
-          }'
-          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"
+      - name: Solidity tests successful
+        if: success()
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.ACTIONS_PAT }}
+          repository: ${{ github.repository }}
+          event-type: solidity-tests-successful

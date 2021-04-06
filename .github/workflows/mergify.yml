@@ -16,9 +16,8 @@ on:
     types:
       - submitted
 
-  check_suite:
-    types:
-      - completed
+  repository_dispatch:
+    types: [rust-tests-successful, solidity-tests-successful]
 
   status: {}
 
