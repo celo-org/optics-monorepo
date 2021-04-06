@@ -9,7 +9,7 @@ import "../interfaces/UpdaterManagerI.sol";
 import "./Home.sol";
 
 contract UpdaterManager is UpdaterManagerI, Ownable {
-    address internal updater;
+    address private _updater;
     address internal home;
 
     /**
@@ -19,7 +19,7 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
     event NewHome(address home);
 
     constructor(address _updater) payable Ownable() {
-        updater = _updater;
+        _updater = _updater;
     }
 
     modifier onlyHome() {
@@ -43,14 +43,14 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
      * @param _updater The address of the new updater contract
      */
     function setUpdater(address _updater) external onlyOwner {
-        updater = _updater;
+        _updater = _updater;
         Home homeContract = Home(home);
         homeContract.setUpdater(_updater);
     }
 
     /// @notice Returns the address of the current updater
-    function currentUpdater() external view override returns (address) {
-        return updater;
+    function updater() external view override returns (address) {
+        return _updater;
     }
 
     /**

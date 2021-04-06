@@ -37,7 +37,7 @@ describe('Home', async () => {
       signer,
       UpdaterManager.abi,
     );
-    await mockUpdaterManager.mock.currentUpdater.returns(signer.address);
+    await mockUpdaterManager.mock.updater.returns(signer.address);
     await mockUpdaterManager.mock.slashUpdater.returns();
 
     const { contracts } = await optics.deployUpgradeSetupAndProxy(

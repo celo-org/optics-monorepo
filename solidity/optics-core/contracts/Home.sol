@@ -89,7 +89,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
         require(state == States.UNINITIALIZED, "already initialized");
 
         updaterManager = UpdaterManagerI(_updaterManager);
-        updater = UpdaterManagerI(_updaterManager).currentUpdater();
+        updater = UpdaterManagerI(_updaterManager).updater();
 
         queue.initialize();
         state = States.ACTIVE;
