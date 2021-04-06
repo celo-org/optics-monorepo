@@ -5,7 +5,9 @@ import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
 import "../interfaces/UpdaterManagerI.sol";
+
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title Governable
@@ -76,7 +78,7 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
      * @param updater The address of the updater
      * @param reporter The address of the entity that reported the updater misbehavior
      */
-    event UpdaterSlashed(address updater, address reporter);
+    event UpdaterSlashed(address indexed updater, address indexed reporter);
 
     // solhint-disable-next-line no-empty-blocks
     constructor(uint32 _originDomain)
@@ -109,8 +111,9 @@ contract Home is Governable, MerkleTreeManager, QueueManager, Common {
 
     /// @notice sets a new updaterManager
     function setUpdaterManager(address _updaterManager) external onlyGovernor {
-        updaterManager = UpdaterManagerI(_updaterManager);
+        require(Address.isContract(_updaterManager), "!contract updaterManager");
 
+        updaterManager = UpdaterManagerI(_updaterManager);
         emit NewUpdaterManager(_updaterManager);
     }
 

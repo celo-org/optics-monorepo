@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+import "../interfaces/UpdaterManagerI.sol";
+import "./Home.sol";
+
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-
-import "../interfaces/UpdaterManagerI.sol";
-
-import "./Home.sol";
 
 contract UpdaterManager is UpdaterManagerI, Ownable {
     address private _updater;
