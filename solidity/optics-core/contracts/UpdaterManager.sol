@@ -13,12 +13,12 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
 
     /**
      * @notice Event emitted when a new home is set
-     * @param home The address of the new home
+     * @param home The address of the new home contract
      */
     event NewHome(address home);
 
-    constructor(address _updater) payable Ownable() {
-        _updater = _updater;
+    constructor(address _updaterAddress) payable Ownable() {
+        _updater = _updaterAddress;
     }
 
     modifier onlyHome() {
@@ -39,12 +39,12 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
 
     /**
      * @notice Permissioned function that sets the address of the new updater contract
-     * @param _updater The address of the new updater contract
+     * @param _updaterAddress The address of the new updater contract
      */
-    function setUpdater(address _updater) external onlyOwner {
-        _updater = _updater;
+    function setUpdater(address _updaterAddress) external onlyOwner {
+        _updater = _updaterAddress;
         Home homeContract = Home(home);
-        homeContract.setUpdater(_updater);
+        homeContract.setUpdater(_updaterAddress);
     }
 
     /// @notice Returns the address of the current updater
