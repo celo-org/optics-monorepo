@@ -30,14 +30,14 @@ macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
             let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
-            Box::new(optics_ethereum::$contract::new(
+            Box::new(crate::$contract::new(
                 $name,
                 $domain,
                 $address,
                 provider.into(),
             ))
         } else {
-            Box::new(optics_ethereum::$contract::new(
+            Box::new(crate::$contract::new(
                 $name,
                 $domain,
                 $address,
@@ -105,7 +105,8 @@ pub struct EthereumConf {
 }
 
 impl EthereumConf {
-    fn signer(&self) -> Option<Signers> {
+    /// Try to get a signer from the config
+    pub fn signer(&self) -> Option<Signers> {
         self.signer.try_into_signer().ok()
     }
 

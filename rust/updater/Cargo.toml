@@ -22,6 +22,7 @@ rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
 optics-core = { path = "../optics-core" }
 optics-base = { path = "../optics-base" }
+optics-ethereum = { path = "../optics-ethereum" }
 
 [dev-dependencies]
 mockall = "0.9.1"

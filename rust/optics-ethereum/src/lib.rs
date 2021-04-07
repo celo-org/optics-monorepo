@@ -15,5 +15,8 @@ mod replica;
 /// Base trait for an agent
 mod utils;
 
+/// Configuration structs
+pub mod settings;
+
 #[cfg(not(doctest))]
-pub use crate::{home::EthereumHome, replica::EthereumReplica};
+pub use crate::{home::EthereumHome, replica::EthereumReplica, settings::EthereumSigner};

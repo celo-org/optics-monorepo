@@ -1,5 +1,6 @@
 //! Configuration
-use optics_base::{decl_settings, settings::ethereum::EthereumSigner};
+use optics_base::decl_settings;
+use optics_ethereum::EthereumSigner;
 
 decl_settings!(Settings {
     agent: "updater",

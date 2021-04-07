@@ -5,14 +5,11 @@ use std::{collections::HashMap, env, sync::Arc};
 
 use crate::{db, home::Homes, replica::Replicas};
 
-/// Ethereum configuration
-pub mod ethereum;
-
 /// Tracing configuration
 pub mod log;
 
-use ethereum::EthereumConf;
 use log::TracingConfig;
+use optics_ethereum::settings::EthereumConf;
 
 use crate::agent::AgentCore;
 
