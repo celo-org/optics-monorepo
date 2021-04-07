@@ -33,14 +33,16 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
     cd ../..
 fi
 
-cd ./rust
-echo '+cargo test'
-cargo test
-echo '+cargo clippy -- -D warnings'
-cargo clippy -- -D warnings
-echo '+cargo fmt -- --check'
-cargo fmt -- --check
-cd ..
+if ! git diff-index --quiet HEAD -- ./rust; then
+    cd ./rust
+    echo '+cargo test'
+    cargo test
+    echo '+cargo clippy -- -D warnings'
+    cargo clippy -- -D warnings
+    echo '+cargo fmt -- --check'
+    cargo fmt -- --check
+    cd ..
+fi
 
 trap : 0
 
