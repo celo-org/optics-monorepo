@@ -1,0 +1,9 @@
+{
+  "message-interval": 100,
+  "chat-gen-config": {
+    "destination": 1,
+    "message": "static message",
+    "recipient": "recipient",
+    "type": "static"
+  }
+}
