@@ -1,5 +1,5 @@
 [package]
-name = "optics-updater"
+name = "updater"
 version = "0.1.0"
 authors = ["James Prestwich <prestwich@clabs.co>"]
 edition = "2018"

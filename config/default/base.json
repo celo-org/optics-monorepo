@@ -44,5 +44,6 @@
   "tracing": {
     "level": "debug",
     "style": "pretty"
-  }
+  },
+  "db-path": "db_path"
 }

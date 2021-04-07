@@ -85,6 +85,7 @@ impl ChainSetup {
 /// }
 /// ```
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Settings {
     /// The path to use for the DB file
     pub db_path: String,

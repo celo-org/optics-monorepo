@@ -1,0 +1,8 @@
+{
+  "polling-interval": 100,
+  "update-pause": 100,
+  "updater": {
+    "key": "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc",
+    "type": "hex-key"
+  }
+}
