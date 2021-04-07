@@ -104,7 +104,7 @@ macro_rules! decl_settings {
             pub fn new() -> Result<Self, config::ConfigError> {
                 let mut s = config::Config::new();
 
-                let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "example".into());
+                let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "default".into());
 
                 s.merge(config::File::with_name(&format!("/config/{}/base", env)))?;
                 s.merge(config::File::with_name(&format!("/config/{}/{}-partial", env, $name)).required(false))?;
