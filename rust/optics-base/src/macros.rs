@@ -74,6 +74,7 @@ macro_rules! decl_settings {
         $(#[$outer:meta])*
         Settings {
             $prefix:literal,
+            $agent:ident: $name:literal,
             $($(#[$tags:meta])* $prop:ident: $type:ty,)*
         }
     ) => {
@@ -103,11 +104,10 @@ macro_rules! decl_settings {
             pub fn new() -> Result<Self, config::ConfigError> {
                 let mut s = config::Config::new();
 
-                let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "alfajores".into());
-                let agent = std::env::var("AGENT").unwrap_or_else(|_| "updater".into());
+                let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "example".into());
 
                 s.merge(config::File::with_name(&format!("/config/{}/base", env)))?;
-                s.merge(config::File::with_name(&format!("/config/{}/{}-partial", env, agent)).required(false))?;
+                s.merge(config::File::with_name(&format!("/config/{}/{}-partial", env, $name)).required(false))?;
 
                 s.merge(config::Environment::with_prefix($prefix))?;
 
