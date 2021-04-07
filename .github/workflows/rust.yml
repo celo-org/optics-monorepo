@@ -21,6 +21,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
+          sharedKey: optics-rust
 
       - name: Build
         run: cd rust && cargo build --verbose
@@ -33,6 +34,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
+          sharedKey: optics-rust
 
       - name: Run tests
         run: cd rust && cargo test --verbose
@@ -45,6 +47,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
+          sharedKey: optics-rust
 
       - name: Clippy
         run: cd rust && cargo clippy -- -D warnings
