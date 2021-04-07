@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ./rust
+
       - name: Build
         run: cd rust && cargo build --verbose
 
@@ -28,6 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ./rust
+
       - name: Run tests
         run: cd rust && cargo test --verbose
 
@@ -37,6 +43,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ./rust
+
       - name: Clippy
         run: cd rust && cargo clippy -- -D warnings
       - name: Lint
