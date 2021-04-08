@@ -2,29 +2,29 @@ use async_trait::async_trait;
 use ethers::contract::abigen;
 use ethers::core::types::Address;
 use optics_core::{
-    traits::{ChainCommunicationError, TxOutcome, XAppConnectionManager},
+    traits::{ChainCommunicationError, ConnectionManager, TxOutcome},
     OpticsIdentifier, SignedFailureNotification,
 };
 use std::sync::Arc;
 
 #[allow(missing_docs)]
 abigen!(
-    EthereumXAppConnectionManagerInternal,
+    EthereumConnectionManagerInternal,
     "../abis/XAppConnectionManager.abi.json"
 );
 
 /// A reference to a XAppConnectionManager contract on some Ethereum chain
 #[derive(Debug)]
-pub struct EthereumXAppConnectionManager<M>
+pub struct EthereumConnectionManager<M>
 where
     M: ethers::providers::Middleware,
 {
-    contract: EthereumXAppConnectionManagerInternal<M>,
+    contract: EthereumConnectionManagerInternal<M>,
     domain: u32,
     name: String,
 }
 
-impl<M> EthereumXAppConnectionManager<M>
+impl<M> EthereumConnectionManager<M>
 where
     M: ethers::providers::Middleware,
 {
@@ -33,7 +33,7 @@ where
     #[allow(dead_code)]
     pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
-            contract: EthereumXAppConnectionManagerInternal::new(address, provider),
+            contract: EthereumConnectionManagerInternal::new(address, provider),
             domain,
             name: name.to_owned(),
         }
@@ -41,11 +41,11 @@ where
 }
 
 #[async_trait]
-impl<M> XAppConnectionManager for EthereumXAppConnectionManager<M>
+impl<M> ConnectionManager for EthereumConnectionManager<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn origin_domain(&self) -> u32 {
+    fn local_domain(&self) -> u32 {
         self.domain
     }
 

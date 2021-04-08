@@ -14,7 +14,7 @@ mod replica;
 
 /// XAppConnectionManager abi
 #[cfg(not(doctest))]
-mod xapp_connection_manager;
+mod xapp;
 
 /// Base trait for an agent
 mod utils;

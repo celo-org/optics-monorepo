@@ -1,13 +1,14 @@
-use crate::{traits::ChainCommunicationError, OpticsIdentifier, SignedFailureNotification};
+use crate::{
+    traits::{ChainCommunicationError, TxOutcome},
+    OpticsIdentifier, SignedFailureNotification,
+};
 use async_trait::async_trait;
-
-use super::TxOutcome;
 
 /// Interface for on-chain XAppConnectionManager
 #[async_trait]
-pub trait XAppConnectionManager: Send + Sync + std::fmt::Debug {
-    /// Return the contract's home domain ID
-    fn origin_domain(&self) -> u32;
+pub trait ConnectionManager: Send + Sync + std::fmt::Debug {
+    /// Return the contract's local domain ID
+    fn local_domain(&self) -> u32;
 
     /// Return true if provided address is the contract's owner
     async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError>;
