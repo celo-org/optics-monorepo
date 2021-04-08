@@ -4,7 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
+import {Home} from "../Home.sol";
+import {XAppConnectionManager, TypeCasts} from "../UsingOptics.sol";
 import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
@@ -225,7 +226,7 @@ contract GovernanceRouter is MessageRecipientI {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        xAppConnectionManager.enqueueHome(_destination, _router, _msg);
+        Home(xAppConnectionManager.home()).enqueue(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -264,13 +265,11 @@ contract GovernanceRouter is MessageRecipientI {
     }
 
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
+        Home home = Home(xAppConnectionManager.home());
+
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                xAppConnectionManager.enqueueHome(
-                    domains[i],
-                    routers[domains[i]],
-                    _msg
-                );
+                home.enqueue(domains[i], routers[domains[i]], _msg);
             }
         }
     }

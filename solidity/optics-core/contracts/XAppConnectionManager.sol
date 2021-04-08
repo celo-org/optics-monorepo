@@ -91,14 +91,6 @@ contract XAppConnectionManager is Ownable {
         return home.originDomain();
     }
 
-    function enqueueHome(
-        uint32 _destination,
-        bytes32 _recipient,
-        bytes memory _body
-    ) public {
-        home.enqueue(_destination, _recipient, _body);
-    }
-
     function unenrollReplica(address _replica) internal {
         uint32 _currentDomain = replicaToDomain[_replica];
         domainToReplica[_currentDomain] = address(0);

@@ -6,9 +6,8 @@ import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
-import {
-    TypeCasts
-} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
+import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 import {
     MessageRecipientI
 } from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
@@ -135,7 +134,7 @@ contract BridgeRouter is MessageRecipientI, TokenRegistry {
             BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
 
-        xAppConnectionManager.enqueueHome(
+        Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
@@ -157,7 +156,7 @@ contract BridgeRouter is MessageRecipientI, TokenRegistry {
                 _tok.decimals()
             );
 
-        xAppConnectionManager.enqueueHome(
+        Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)

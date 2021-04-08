@@ -106,29 +106,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "_destination",
-        "type": "uint32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_recipient",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_body",
-        "type": "bytes"
-      }
-    ],
-    "name": "enqueueHome",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "home",
     "outputs": [
