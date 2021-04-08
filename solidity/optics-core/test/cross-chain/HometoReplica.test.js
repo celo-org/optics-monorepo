@@ -8,7 +8,7 @@ const optimisticSeconds = 3;
 const currentRoot = ethers.utils.formatBytes32String('current');
 const lastProcessedIndex = 0;
 
-describe('FullSetup', async () => {
+describe('CrossChainMessage', async () => {
   let randomSigner;
   const chainDetails = {};
   const originDomain = domains[0];
@@ -56,6 +56,12 @@ describe('FullSetup', async () => {
 
   const getHome = (domain) => {
     return chainDetails[domain].contracts.home.proxyWithImplementation;
+  };
+
+  const getReplica = (destinationDomain, originDomain) => {
+    return chainDetails[destinationDomain].contracts.replicaProxies[
+      originDomain
+    ].proxyWithImplementation;
   };
 
   const getUpdaterObject = (domain) => {
@@ -127,7 +133,7 @@ describe('FullSetup', async () => {
   }
 
   describe('Home', async () => {
-    it('Suggests empty update values when queue is empty', async () => {
+    it('All Homes suggest empty update values when queue is empty', async () => {
       for (let domain of domains) {
         const home = getHome(domain);
 
@@ -140,12 +146,25 @@ describe('FullSetup', async () => {
       }
     });
 
-    it('Accepts one valid update', async () => {
+    it('All Replicas have empty queue of updates', async () => {
+      for (let destinationDomain of domains) {
+        for (let originDomain of domains) {
+          if (destinationDomain !== originDomain) {
+            const replica = getReplica(destinationDomain, originDomain);
+
+            const length = await replica.queueLength();
+            expect(length).to.equal(0);
+          }
+        }
+      }
+    });
+
+    it('Origin Home Accepts one valid update', async () => {
       const messages = ['message'];
       await enqueueMessagesAndUpdate(messages, originDomain);
     });
 
-    it('Accepts an update with several batched messages', async () => {
+    it('Origin Home Accepts an update with several batched messages', async () => {
       const messages = ['message1', 'message2', 'message3'];
       await enqueueMessagesAndUpdate(messages, originDomain);
     });
