@@ -12,7 +12,7 @@ const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
 
-describe('XappConnectionManager', async () => {
+describe('XAppConnectionManager', async () => {
   let connectionManager, replica, signer, updater;
 
   before(async () => {
@@ -21,10 +21,10 @@ describe('XappConnectionManager', async () => {
   });
 
   beforeEach(async () => {
-    const XappConnectionManager = await ethers.getContractFactory(
-      'TestXappConnectionManager',
+    const XAppConnectionManager = await ethers.getContractFactory(
+      'TestXAppConnectionManager',
     );
-    connectionManager = await XappConnectionManager.deploy();
+    connectionManager = await XAppConnectionManager.deploy();
     await connectionManager.deployed();
 
     const controller = null;

@@ -541,7 +541,7 @@ mod test {
                     .unwrap();
 
             // `origin_domain` MUST BE 1000 to match origin domain of
-            // XappConnectionManager test suite
+            // XAppConnectionManager test suite
             let signed_failure = FailureNotification {
                 domain: 1000,
                 updater: updater.address().into(),

@@ -6,7 +6,7 @@ import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
 import {
-    XappConnectionManager,
+    XAppConnectionManager,
     TypeCasts
 } from "@celo-org/optics-sol/contracts/UsingOptics.sol";
 
@@ -43,7 +43,7 @@ contract TokenRegistry is Ownable {
         bytes32 id;
     }
 
-    XappConnectionManager public xappConnectionManager;
+    XAppConnectionManager public xAppConnectionManager;
 
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
@@ -57,13 +57,13 @@ contract TokenRegistry is Ownable {
     // If the token is native, this MUST be address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
 
-    constructor(address _xappConnectionManager) Ownable() {
+    constructor(address _xAppConnectionManager) Ownable() {
         tokenTemplate = address(new BridgeToken());
-        setXappConnectionManager(_xappConnectionManager);
+        setXAppConnectionManager(_xAppConnectionManager);
     }
 
     modifier onlyReplica() {
-        require(xappConnectionManager.isReplica(msg.sender), "!replica");
+        require(xAppConnectionManager.isReplica(msg.sender), "!replica");
         _;
     }
 
@@ -90,11 +90,11 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    function setXappConnectionManager(address _xappConnectionManager)
+    function setXAppConnectionManager(address _xAppConnectionManager)
         public
         onlyOwner
     {
-        xappConnectionManager = XappConnectionManager(_xappConnectionManager);
+        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
     function setTemplate(address _newTemplate) external onlyOwner {
@@ -112,7 +112,7 @@ contract TokenRegistry is Ownable {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = xappConnectionManager.originDomain();
+            _id.domain = xAppConnectionManager.originDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
@@ -163,7 +163,7 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == xappConnectionManager.originDomain()) {
+        if (_tokenId.domain() == xAppConnectionManager.originDomain()) {
             return IERC20(_tokenId.evmId());
         }
 

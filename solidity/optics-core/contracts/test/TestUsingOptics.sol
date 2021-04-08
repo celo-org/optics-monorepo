@@ -3,8 +3,8 @@ pragma solidity >=0.6.11;
 
 import "../UsingOptics.sol";
 
-contract TestXappConnectionManager is XappConnectionManager {
-    constructor() XappConnectionManager() {} // solhint-disable-line no-empty-blocks
+contract TestXAppConnectionManager is XAppConnectionManager {
+    constructor() XAppConnectionManager() {} // solhint-disable-line no-empty-blocks
 
     function testRecoverWatcherFromSig(
         uint32 _domain,

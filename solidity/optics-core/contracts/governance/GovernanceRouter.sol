@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
-import {XappConnectionManager, TypeCasts} from "../UsingOptics.sol";
+import {XAppConnectionManager, TypeCasts} from "../UsingOptics.sol";
 import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
@@ -16,7 +16,7 @@ contract GovernanceRouter is MessageRecipientI {
     /*
     --- STATE ---
     */
-    XappConnectionManager public xappConnectionManager;
+    XAppConnectionManager public xAppConnectionManager;
 
     uint32 immutable localDomain;
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
@@ -47,7 +47,7 @@ contract GovernanceRouter is MessageRecipientI {
         localDomain = _localDomain;
     }
 
-    function initialize(address _xappConnectionManager) public {
+    function initialize(address _xAppConnectionManager) public {
         // initialize governor
         require(
             governorDomain == 0 && governor == address(0),
@@ -58,12 +58,12 @@ contract GovernanceRouter is MessageRecipientI {
         bool _isLocalDomain = true;
         _transferGovernor(localDomain, _governor, _isLocalDomain);
 
-        // initialize XappConnectionManager
-        setXappConnectionManager(_xappConnectionManager);
+        // initialize XAppConnectionManager
+        setXAppConnectionManager(_xAppConnectionManager);
 
         require(
-            xappConnectionManager.originDomain() == localDomain,
-            "XappConnectionManager incompatible domain"
+            xAppConnectionManager.originDomain() == localDomain,
+            "XAppConnectionManager incompatible domain"
         );
     }
 
@@ -71,7 +71,7 @@ contract GovernanceRouter is MessageRecipientI {
     --- FUNCTION MODIFIERS ---
     */
     modifier onlyReplica() {
-        require(xappConnectionManager.isReplica(msg.sender), "!replica");
+        require(xAppConnectionManager.isReplica(msg.sender), "!replica");
         _;
     }
 
@@ -93,11 +93,11 @@ contract GovernanceRouter is MessageRecipientI {
     /*
     --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
     */
-    function setXappConnectionManager(address _xappConnectionManager)
+    function setXAppConnectionManager(address _xAppConnectionManager)
         public
         onlyGovernor
     {
-        xappConnectionManager = XappConnectionManager(_xappConnectionManager);
+        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
     function isGovernorRouter(uint32 _domain, bytes32 _address)
@@ -225,7 +225,7 @@ contract GovernanceRouter is MessageRecipientI {
         bytes32 _router = mustHaveRouter(_destination);
         bytes memory _msg = GovernanceMessage.formatCalls(calls);
 
-        xappConnectionManager.enqueueHome(_destination, _router, _msg);
+        xAppConnectionManager.enqueueHome(_destination, _router, _msg);
     }
 
     function transferGovernor(uint32 _newDomain, address _newGovernor)
@@ -266,7 +266,7 @@ contract GovernanceRouter is MessageRecipientI {
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                xappConnectionManager.enqueueHome(
+                xAppConnectionManager.enqueueHome(
                     domains[i],
                     routers[domains[i]],
                     _msg

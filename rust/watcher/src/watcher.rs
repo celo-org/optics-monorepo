@@ -287,7 +287,7 @@ impl Watcher {
             self.core.replicas.len()
         );
 
-        // TODO: submit signed failure notifications to XappConnectionManager
+        // TODO: submit signed failure notifications to XAppConnectionManager
         for replica in self.core.replicas.values() {
             let _signed = FailureNotification {
                 domain: replica.destination_domain(),

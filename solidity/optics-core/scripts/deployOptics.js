@@ -42,8 +42,8 @@ async function deployReplicaProxy(upgradeBeaconAddress, remote) {
   };
 }
 
-async function deployXappConnectionManager() {
-  return optics.deployImplementation('XappConnectionManager');
+async function deployXAppConnectionManager() {
+  return optics.deployImplementation('XAppConnectionManager');
 }
 
 async function deployUpdaterManager(updater) {
@@ -64,12 +64,12 @@ async function deployHome(originDomain, updaterManager, controller) {
 async function deployGovernanceRouter(
   originDomain,
   controller,
-  xappConnectionManagerAddress,
+  xAppConnectionManagerAddress,
 ) {
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     'GovernanceRouter',
     [originDomain],
-    [xappConnectionManagerAddress],
+    [xAppConnectionManagerAddress],
     controller,
   );
 
@@ -99,18 +99,18 @@ async function deployOptics(origin, remotes) {
 
   const updaterManager = await deployUpdaterManager(originUpdaterAddress);
 
-  // Deploy XappConnectionManager
+  // Deploy XAppConnectionManager
   // Note: initial owner will be the signer that's deploying
-  const xappConnectionManager = await deployXappConnectionManager();
+  const xAppConnectionManager = await deployXAppConnectionManager();
 
-  // Deploy Home and setHome on XappConnectionManager
+  // Deploy Home and setHome on XAppConnectionManager
   const home = await deployHome(
     originDomain,
     originUpdaterAddress,
     upgradeBeaconController,
   );
 
-  await xappConnectionManager.setHome(home.proxy.address);
+  await xAppConnectionManager.setHome(home.proxy.address);
   await updaterManager.setHome(home.proxy.address);
 
   // Deploy GovernanceRouter
@@ -118,7 +118,7 @@ async function deployOptics(origin, remotes) {
   const governanceRouter = await deployGovernanceRouter(
     originDomain,
     upgradeBeaconController,
-    xappConnectionManager.address,
+    xAppConnectionManager.address,
   );
 
   // Deploy Replica Upgrade Setup
@@ -127,7 +127,7 @@ async function deployOptics(origin, remotes) {
     upgradeBeaconController,
   );
 
-  // Deploy Replica Proxies and enroll in XappConnectionManager
+  // Deploy Replica Proxies and enroll in XAppConnectionManager
   const replicaProxies = [];
   for (let remote of remotes) {
     const { domain, watchers } = remote;
@@ -142,25 +142,25 @@ async function deployOptics(origin, remotes) {
       ...replica,
     });
 
-    // Enroll Replica Proxy on XappConnectionManager
-    await xappConnectionManager.enrollReplica(domain, replica.proxy.address);
+    // Enroll Replica Proxy on XAppConnectionManager
+    await xAppConnectionManager.enrollReplica(domain, replica.proxy.address);
 
     // Add watcher permissions for Replica
     for (let watcher in watchers) {
-      await xappConnectionManager.setWatcherPermission(watcher, domain, true);
+      await xAppConnectionManager.setWatcherPermission(watcher, domain, true);
     }
   }
 
   // Delegate permissions to governance router
   await updaterManager.transferOwnership(governanceRouter.proxy.address);
-  await xappConnectionManager.transferOwnership(governanceRouter.proxy.address);
+  await xAppConnectionManager.transferOwnership(governanceRouter.proxy.address);
   await upgradeBeaconController.transferOwnership(
     governanceRouter.proxy.address,
   );
 
   return {
     upgradeBeaconController,
-    xappConnectionManager,
+    xAppConnectionManager,
     governanceRouter,
     updaterManager,
     home,
