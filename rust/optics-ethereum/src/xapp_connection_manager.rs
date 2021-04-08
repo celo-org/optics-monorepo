@@ -1,44 +1,156 @@
 use async_trait::async_trait;
 use ethers::contract::abigen;
-use ethers::core::types::{Address, Signature, H256, U256};
+use ethers::core::types::Address;
 use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    },
-    Message, SignedUpdate, Update,
+    traits::{ChainCommunicationError, TxOutcome, XAppConnectionManager},
+    OpticsIdentifier, SignedFailureNotification,
 };
-
-use crate::utils::*;
-
-use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
+use std::sync::Arc;
 
 #[allow(missing_docs)]
-abigen!(EthereumXappConnectionManagerInternal, "../abis/XappConnectionManager.abi.json");
+abigen!(
+    EthereumXAppConnectionManagerInternal,
+    "../abis/XAppConnectionManager.abi.json"
+);
 
-/// A reference to a XappConnectionManager contract on some Ethereum chain
+/// A reference to a XAppConnectionManager contract on some Ethereum chain
 #[derive(Debug)]
-pub struct EthereumXappConnectionManager<M>
+pub struct EthereumXAppConnectionManager<M>
 where
     M: ethers::providers::Middleware,
 {
-    contract: EthereumXappConnectionManagerInternal<M>,
+    contract: EthereumXAppConnectionManagerInternal<M>,
     domain: u32,
     name: String,
 }
 
-impl<M> EthereumXappConnectionManager<M>
+impl<M> EthereumXAppConnectionManager<M>
 where
     M: ethers::providers::Middleware,
 {
-    /// Create a reference to a XappConnectionManager at a specific Ethereum 
+    /// Create a reference to a XAppConnectionManager at a specific Ethereum
     /// address on some chain
+    #[allow(dead_code)]
     pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
         Self {
-            contract: EthereumXappConnectionManagerInternal::new(address, provider),
+            contract: EthereumXAppConnectionManagerInternal::new(address, provider),
             domain,
             name: name.to_owned(),
         }
     }
+}
 
-    
+#[async_trait]
+impl<M> XAppConnectionManager for EthereumXAppConnectionManager<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    fn origin_domain(&self) -> u32 {
+        self.domain
+    }
+
+    #[tracing::instrument(err)]
+    async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .is_owner(address.as_ethereum_address())
+            .call()
+            .await?)
+    }
+
+    #[tracing::instrument(err)]
+    async fn is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .is_replica(address.as_ethereum_address())
+            .call()
+            .await?)
+    }
+
+    #[tracing::instrument(err)]
+    async fn watcher_permission(
+        &self,
+        address: OpticsIdentifier,
+        domain: u32,
+    ) -> Result<bool, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .watcher_permission(address.as_ethereum_address(), domain)
+            .call()
+            .await?)
+    }
+
+    #[tracing::instrument(err)]
+    async fn owner_enroll_replica(
+        &self,
+        replica: OpticsIdentifier,
+        domain: u32,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .owner_enroll_replica(replica.as_ethereum_address(), domain)
+            .send()
+            .await?
+            .await?
+            .into())
+    }
+
+    #[tracing::instrument(err)]
+    async fn owner_unenroll_replica(
+        &self,
+        replica: OpticsIdentifier,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .owner_unenroll_replica(replica.as_ethereum_address())
+            .send()
+            .await?
+            .await?
+            .into())
+    }
+
+    #[tracing::instrument(err)]
+    async fn set_home(&self, home: OpticsIdentifier) -> Result<TxOutcome, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .set_home(home.as_ethereum_address())
+            .send()
+            .await?
+            .await?
+            .into())
+    }
+
+    #[tracing::instrument(err)]
+    async fn set_watcher_permission(
+        &self,
+        watcher: OpticsIdentifier,
+        domain: u32,
+        access: bool,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .set_watcher_permission(watcher.as_ethereum_address(), domain, access)
+            .send()
+            .await?
+            .await?
+            .into())
+    }
+
+    #[tracing::instrument(err)]
+    async fn unenroll_replica(
+        &self,
+        signed_failure: SignedFailureNotification,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        Ok(self
+            .contract
+            .unenroll_replica(
+                signed_failure.notification.domain,
+                signed_failure.notification.updater.as_ethereum_address(),
+                signed_failure.signature.to_vec(),
+            )
+            .send()
+            .await?
+            .await?
+            .into())
+    }
 }

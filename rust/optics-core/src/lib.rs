@@ -32,6 +32,7 @@ mod utils;
 use std::convert::Infallible;
 
 pub use encode::{Decode, Encode};
+pub use identifiers::OpticsIdentifier;
 
 use async_trait::async_trait;
 use ethers::{
@@ -41,7 +42,6 @@ use ethers::{
     },
     signers::Signer,
 };
-use identifiers::OpticsIdentifier;
 
 use ethers::signers::LocalWallet;
 #[cfg(feature = "yubi")]
@@ -386,6 +386,7 @@ impl SignedUpdate {
 }
 
 /// Failure notification produced by watcher
+#[derive(Debug)]
 pub struct FailureNotification {
     /// Domain of replica to unenroll
     pub domain: u32,
@@ -423,6 +424,7 @@ impl FailureNotification {
 }
 
 /// Signed failure notification produced by watcher
+#[derive(Debug)]
 pub struct SignedFailureNotification {
     /// Failure notification
     pub notification: FailureNotification,

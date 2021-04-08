@@ -91,6 +91,14 @@ contract XAppConnectionManager is Ownable {
         return home.originDomain();
     }
 
+    function watcherPermission(address _watcher, uint32 _domain)
+        public
+        view
+        returns (bool)
+    {
+        return watcherPermissions[_watcher][_domain];
+    }
+
     function unenrollReplica(address _replica) internal {
         uint32 _currentDomain = replicaToDomain[_replica];
         domainToReplica[_currentDomain] = address(0);

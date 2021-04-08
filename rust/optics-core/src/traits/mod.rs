@@ -4,6 +4,9 @@ pub mod home;
 /// Interface for replica chain contract
 pub mod replica;
 
+/// Interface for XAppConnectionManager contract
+pub mod xapp_connection_manager;
+
 use async_trait::async_trait;
 use ethers::{
     contract::ContractError,
@@ -16,6 +19,7 @@ use crate::{OpticsError, SignedUpdate};
 
 pub use home::*;
 pub use replica::*;
+pub use xapp_connection_manager::*;
 
 /// Contract states
 #[derive(Debug)]
