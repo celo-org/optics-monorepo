@@ -20,8 +20,8 @@ describe('Common', async () => {
   beforeEach(async () => {
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestCommon',
-      [originDomain],
-      [updater.signer.address],
+      [],
+      [originDomain, updater.signer.address],
     );
 
     common = contracts.proxyWithImplementation;

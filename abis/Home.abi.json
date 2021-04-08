@@ -1,16 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "_originDomain",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -294,6 +283,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "_originDomain",
+        "type": "uint32"
+      },
       {
         "internalType": "address",
         "name": "_updaterManager",

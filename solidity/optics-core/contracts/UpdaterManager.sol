@@ -57,10 +57,10 @@ contract UpdaterManager is UpdaterManagerI, Ownable {
      * @dev Currently only emits Slashed event, functionality will come later
      * @param _reporter The address of the entity that reported the updater fraud
      */
-    // solhint-disable-next-line no-unused-vars no-empty-blocks
+    // solhint-disable-next-line no-unused-vars
     function slashUpdater(address payable _reporter)
         external
         override
         onlyHome
-    {}
+    {} // solhint-disable-line no-empty-blocks
 }

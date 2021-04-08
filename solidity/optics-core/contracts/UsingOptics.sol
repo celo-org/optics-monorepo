@@ -15,7 +15,7 @@ contract XAppConnectionManager is Ownable {
     Home public home;
 
     // watcher address => replica domain => has/doesn't have permission
-    mapping(address => mapping(uint32 => bool)) watcherPermissions;
+    mapping(address => mapping(uint32 => bool)) private watcherPermissions;
 
     event ReplicaEnrolled(uint32 indexed domain, address replica);
 

@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_ownDomain",
         "type": "uint32"
       }
     ],
@@ -195,7 +195,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_ownDomain",
+        "name": "_originDomain",
         "type": "uint32"
       },
       {
@@ -226,6 +226,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "_originDomain",
+        "type": "uint32"
+      },
       {
         "internalType": "address",
         "name": "_updater",

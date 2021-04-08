@@ -22,7 +22,7 @@ contract Replica is Common, QueueManager {
     using Message for bytes29;
 
     /// @notice Domain of replica's native chain
-    uint32 public ownDomain;
+    uint32 public immutable ownDomain;
 
     /// @notice Minimum gas for message processing
     uint256 public constant PROCESS_GAS = 500000;
@@ -46,10 +46,12 @@ contract Replica is Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    constructor(uint32 _originDomain) Common(_originDomain) {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _ownDomain) {
+        ownDomain = _ownDomain;
+    }
 
     function initialize(
-        uint32 _ownDomain,
+        uint32 _originDomain,
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
@@ -57,9 +59,9 @@ contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        queue.initialize();
+        setOriginDomain(_originDomain);
 
-        ownDomain = _ownDomain;
+        queue.initialize();
 
         updater = _updater;
         current = _current;

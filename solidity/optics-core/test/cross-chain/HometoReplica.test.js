@@ -5,12 +5,14 @@ const { expect } = require('chai');
 // TODO: get these details from a config file?
 const domains = [1000, 2000];
 const optimisticSeconds = 3;
-const initialRoot = ethers.utils.formatBytes32String('current');
+const initialRoot =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
 const lastProcessedIndex = 0;
 
 describe('CrossChainMessage', async () => {
   let randomSigner;
   const latestRoot = {};
+  const latestUpdate = {};
   const chainDetails = {};
   const chainADomain = domains[0];
   const chainBDomain = domains[1];
@@ -91,7 +93,7 @@ describe('CrossChainMessage', async () => {
 
   // // Helper function that enqueues message and returns its root.
   // // The message recipient is the same for all messages enqueued.
-  const enqueueMessageAndGetRoot = async (
+  const enqueueMessageAndGetRootHome = async (
     message,
     originDomain,
     destinationDomain,
@@ -115,7 +117,7 @@ describe('CrossChainMessage', async () => {
     return newRoot;
   };
 
-  async function enqueueMessagesAndUpdate(
+  async function enqueueMessagesAndUpdateHome(
     messages,
     originDomain,
     destinationDomain,
@@ -128,7 +130,7 @@ describe('CrossChainMessage', async () => {
     // enqueue each message to Home and get the intermediate root
     const roots = [];
     for (let message of messages) {
-      const newRoot = await enqueueMessageAndGetRoot(
+      const newRoot = await enqueueMessageAndGetRootHome(
         message,
         originDomain,
         destinationDomain,
@@ -147,6 +149,12 @@ describe('CrossChainMessage', async () => {
 
     const { signature } = await updater.signUpdate(startRoot, finalRoot);
 
+    latestUpdate[originDomain] = {
+      startRoot,
+      finalRoot,
+      signature,
+    };
+
     await expect(home.update(startRoot, finalRoot, signature))
       .to.emit(home, 'Update')
       .withArgs(originDomain, startRoot, finalRoot, signature);
@@ -163,6 +171,14 @@ describe('CrossChainMessage', async () => {
 
     return finalRoot;
   }
+
+  const enqueueUpdateReplica = async (originDomain, destinationDomain) => {
+    const replica = getReplica(destinationDomain, originDomain);
+
+    const { startRoot, finalRoot, signature } = latestUpdate[originDomain];
+
+    await replica.update(startRoot, finalRoot, signature);
+  };
 
   describe('Home', async () => {
     it('All Homes suggest empty update values when queue is empty', async () => {
@@ -193,12 +209,20 @@ describe('CrossChainMessage', async () => {
 
     it('Origin Home Accepts one valid update', async () => {
       const messages = ['message'];
-      await enqueueMessagesAndUpdate(messages, chainADomain, chainBDomain);
+      await enqueueMessagesAndUpdateHome(messages, chainADomain, chainBDomain);
+    });
+
+    it('Destination Replica Accepts the first update', async () => {
+      await enqueueUpdateReplica(chainADomain, chainBDomain);
     });
 
     it('Origin Home Accepts an update with several batched messages', async () => {
       const messages = ['message1', 'message2', 'message3'];
-      await enqueueMessagesAndUpdate(messages, chainADomain, chainBDomain);
+      await enqueueMessagesAndUpdateHome(messages, chainADomain, chainBDomain);
+    });
+
+    it('Destination Replica Accepts the second update', async () => {
+      await enqueueUpdateReplica(chainADomain, chainBDomain);
     });
   });
 

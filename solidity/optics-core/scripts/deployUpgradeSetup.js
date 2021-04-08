@@ -99,8 +99,8 @@ async function deployUpgradeSetupAndController(
 
 async function deployUpgradeSetupAndProxy(
   implementationName,
-  implementationDeployArgs = [],
-  proxyInitializeArgs = [],
+  constructorArgs = [],
+  initializeArgs = [],
   upgradeBeaconController,
   implementationInitializeFunctionIdentifier = 'initialize',
 ) {
@@ -108,13 +108,13 @@ async function deployUpgradeSetupAndProxy(
   if (upgradeBeaconController) {
     upgradeSetup = await deployUpgradeSetup(
       implementationName,
-      implementationDeployArgs,
+      constructorArgs,
       upgradeBeaconController,
     );
   } else {
     upgradeSetup = await deployUpgradeSetupAndController(
       implementationName,
-      implementationDeployArgs,
+      constructorArgs,
     );
     upgradeBeaconController = upgradeSetup.upgradeBeaconController;
   }
@@ -129,7 +129,7 @@ async function deployUpgradeSetupAndProxy(
   } = await deployProxyWithImplementation(
     upgradeBeacon.address,
     implementationName,
-    proxyInitializeArgs,
+    initializeArgs,
     implementationInitializeFunctionIdentifier,
   );
 

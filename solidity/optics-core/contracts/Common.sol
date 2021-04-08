@@ -125,9 +125,9 @@ abstract contract Common {
     enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
-    uint32 public immutable originDomain;
+    uint32 public originDomain;
     /// @notice Hash of `originDomain` concatenated with "OPTICS"
-    bytes32 public immutable domainHash;
+    bytes32 public domainHash;
 
     /// @notice Address of bonded updater
     address public updater;
@@ -166,18 +166,6 @@ abstract contract Common {
         bytes _signature2
     );
 
-    constructor(uint32 _originDomain) {
-        originDomain = _originDomain;
-        domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
-    }
-
-    function initialize(address _updater) public virtual {
-        require(state == States.UNINITIALIZED, "already initialized");
-
-        updater = _updater;
-        state = States.ACTIVE;
-    }
-
     /// @notice Called when a double update or fraudulent update is detected
     function fail() internal virtual;
 
@@ -190,6 +178,21 @@ abstract contract Common {
     modifier notFailed() {
         require(state != States.FAILED, "failed state");
         _;
+    }
+
+    function initialize(uint32 _originDomain, address _updater) public virtual {
+        require(state == States.UNINITIALIZED, "already initialized");
+
+        setOriginDomain(_originDomain);
+
+        updater = _updater;
+
+        state = States.ACTIVE;
+    }
+
+    function setOriginDomain(uint32 _originDomain) internal {
+        originDomain = _originDomain;
+        domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
     }
 
     /**

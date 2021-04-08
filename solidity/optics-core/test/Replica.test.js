@@ -44,9 +44,9 @@ describe('Replica', async () => {
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [originDomain],
+      [ownDomain],
       [
-        ownDomain,
+        originDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,

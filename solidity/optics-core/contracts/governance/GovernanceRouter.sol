@@ -18,7 +18,7 @@ contract GovernanceRouter is MessageRecipientI {
     */
     XAppConnectionManager public xAppConnectionManager;
 
-    uint32 immutable localDomain;
+    uint32 public immutable localDomain;
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
     address public governor; // the local entity empowered to call governance functions
 

@@ -42,8 +42,8 @@ describe('Home', async () => {
 
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
-      [originDomain],
-      [mockUpdaterManager.address],
+      [],
+      [originDomain, mockUpdaterManager.address],
     );
 
     home = contracts.proxyWithImplementation;
