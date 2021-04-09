@@ -533,7 +533,7 @@
     "name": "updaterManager",
     "outputs": [
       {
-        "internalType": "contract UpdaterManagerI",
+        "internalType": "contract IUpdaterManager",
         "name": "",
         "type": "address"
       }
