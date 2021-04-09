@@ -172,7 +172,7 @@ contract Replica is Common, QueueManager {
      * @notice Given formatted message, attempts to dispatch message payload to
      * end recipient.
      * @dev Requires recipient to have implemented `handle` method (refer to
-     * UsingOptics.sol). Reverts if formatted message's destination domain
+     * XAppConnectionManager.sol). Reverts if formatted message's destination domain
      * doesn't match replica's own domain, if message is out of order (skips
      * one or more sequence numbers), if message has not been proven (doesn't
      * have MessageStatus.Pending), or if not enough gas is provided for

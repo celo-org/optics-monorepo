@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "../UsingOptics.sol";
+import "../XAppConnectionManager.sol";
 
 contract TestXAppConnectionManager is XAppConnectionManager {
     constructor() XAppConnectionManager() {} // solhint-disable-line no-empty-blocks
