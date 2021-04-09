@@ -67,7 +67,7 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts one valid update', async () => {
     const messages = ['message'].map((message) =>
-        formatMessage(message, replicaDomain, randomSigner.address),
+      formatMessage(message, replicaDomain, randomSigner.address),
     );
     const update = await enqueueMessagesAndUpdateHome(
       chainDetails,
@@ -91,7 +91,7 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts an update with several batched messages', async () => {
     const messages = ['message1', 'message2', 'message3'].map((message) =>
-        formatMessage(message, replicaDomain, randomSigner.address),
+      formatMessage(message, replicaDomain, randomSigner.address),
     );
     const update = await enqueueMessagesAndUpdateHome(
       chainDetails,

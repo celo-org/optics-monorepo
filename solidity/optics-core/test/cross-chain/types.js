@@ -17,18 +17,6 @@
  *    },
  * };
  *
- * Message {
- *      message: string,
- *      destinationDomain: int,
- *      recipientAddress: address,
- * };
- *
- * Update {
- *      startRoot: bytes32,
- *      finalRoot: bytes32,
- *      signature: hex,
- * }
- *
  * OpticsContracts {
  *      home: UpgradableContractSetup,
  *      governanceRouter: UpgradableContractSetup,
@@ -54,4 +42,17 @@
  *      ...UpgradeSetup,
  *      ...UpgradableProxy,
  * };
+ *
+ * Message {
+ *      message: string,
+ *      destinationDomain: int,
+ *      recipientAddress: address,
+ * };
+ *
+ * Update {
+ *      startRoot: bytes32,
+ *      finalRoot: bytes32,
+ *      signature: hex,
+ * }
+ *
  */
