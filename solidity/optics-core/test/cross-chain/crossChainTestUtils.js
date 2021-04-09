@@ -7,11 +7,14 @@ const {
 
 // // Helper function that enqueues message and returns its root.
 // // The message recipient is the same for all messages enqueued.
+/*
+ *
+ *
+ * */
 async function enqueueMessageAndGetRootHome(
   chainDetails,
-  latestRoot,
-  message,
   originDomain,
+  message,
   destinationDomain,
   recipientAddress,
 ) {
@@ -28,19 +31,15 @@ async function enqueueMessageAndGetRootHome(
 
   const [, newRoot] = await home.suggestUpdate();
 
-  latestRoot[originDomain] = newRoot;
-
   return newRoot;
 }
 
 async function enqueueMessagesAndUpdateHome(
   chainDetails,
-  messages,
   originDomain,
+  messages,
   destinationDomain,
   recipientAddress,
-  latestRoot,
-  latestUpdate,
 ) {
   const home = getHome(chainDetails, originDomain);
   const updater = getUpdaterObject(chainDetails, originDomain);
@@ -48,35 +47,29 @@ async function enqueueMessagesAndUpdateHome(
   const startRoot = await home.current();
 
   // enqueue each message to Home and get the intermediate root
-  const roots = [];
+  const enqueuedRoots = [];
   for (let message of messages) {
     const newRoot = await enqueueMessageAndGetRootHome(
       chainDetails,
-      latestRoot,
-      message,
       originDomain,
+      message,
       destinationDomain,
       recipientAddress,
     );
-    roots.push(newRoot);
+
+    enqueuedRoots.push(newRoot);
   }
 
   // ensure that Home queue contains
   // all of the roots we just enqueued
-  for (let root of roots) {
+  for (let root of enqueuedRoots) {
     expect(await home.queueContains(root)).to.be.true;
   }
 
   // sign & submit an update from startRoot to finalRoot
-  const finalRoot = latestRoot[originDomain];
+  const finalRoot = enqueuedRoots[enqueuedRoots.length - 1];
 
   const { signature } = await updater.signUpdate(startRoot, finalRoot);
-
-  latestUpdate[originDomain] = {
-    startRoot,
-    finalRoot,
-    signature,
-  };
 
   await expect(home.update(startRoot, finalRoot, signature))
     .to.emit(home, 'Update')
@@ -88,25 +81,26 @@ async function enqueueMessagesAndUpdateHome(
   // ensure that Home queue no longer contains
   // any of the roots we just enqueued -
   // they should be removed from queue when update is submitted
-  for (let root of roots) {
+  for (let root of enqueuedRoots) {
     expect(await home.queueContains(root)).to.be.false;
   }
 
   return {
-    latestRoot,
-    latestUpdate,
+    startRoot,
+    finalRoot,
+    signature,
   };
 }
 
 async function enqueueUpdateReplica(
   chainDetails,
-  latestUpdate,
+  latestUpdateOnOriginChain,
   originDomain,
   destinationDomain,
 ) {
   const replica = getReplica(chainDetails, destinationDomain, originDomain);
 
-  const { startRoot, finalRoot, signature } = latestUpdate[originDomain];
+  const { startRoot, finalRoot, signature } = latestUpdateOnOriginChain;
 
   await expect(replica.update(startRoot, finalRoot, signature))
     .to.emit(replica, 'Update')

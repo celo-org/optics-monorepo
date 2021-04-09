@@ -18,8 +18,8 @@ const domains = [1000, 2000];
 
 describe('SimpleCrossChainMessage', async () => {
   let randomSigner, chainDetails;
-  const chainADomain = domains[0];
-  const chainBDomain = domains[1];
+  const originDomain = domains[0];
+  const destinationDomain = domains[1];
   let latestRoot = {};
   let latestUpdate = {};
 
@@ -67,64 +67,62 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts one valid update', async () => {
     const messages = ['message'];
-    const ret = await enqueueMessagesAndUpdateHome(
+    const update = await enqueueMessagesAndUpdateHome(
       chainDetails,
+      originDomain,
       messages,
-      chainADomain,
-      chainBDomain,
+      destinationDomain,
       randomSigner.address,
-      latestRoot,
-      latestUpdate,
     );
-    latestRoot = ret.latestRoot;
-    latestUpdate = ret.latestUpdate;
+
+    latestUpdate[originDomain] = update;
+    latestRoot[originDomain] = update.finalRoot;
   });
 
   let prevFinalRoot;
   it('Destination Replica Accepts the first update', async () => {
     prevFinalRoot = await enqueueUpdateReplica(
       chainDetails,
-      latestUpdate,
-      chainADomain,
-      chainBDomain,
+      latestUpdate[originDomain],
+      originDomain,
+      destinationDomain,
     );
   });
 
   it('Origin Home Accepts an update with several batched messages', async () => {
     const messages = ['message1', 'message2', 'message3'];
-    const ret = await enqueueMessagesAndUpdateHome(
+    const update = await enqueueMessagesAndUpdateHome(
       chainDetails,
+      originDomain,
       messages,
-      chainADomain,
-      chainBDomain,
+      destinationDomain,
       randomSigner.address,
-      latestRoot,
-      latestUpdate,
     );
-    latestRoot = ret.latestRoot;
-    latestUpdate = ret.latestUpdate;
+
+    latestUpdate[originDomain] = update;
+    latestRoot[originDomain] = update.finalRoot;
   });
 
   it('Destination Replica Accepts the second update', async () => {
     await enqueueUpdateReplica(
       chainDetails,
-      latestUpdate,
-      chainADomain,
-      chainBDomain,
+      latestUpdate[originDomain],
+      originDomain,
+      destinationDomain,
     );
   });
 
   it('Destination Replica shows first update as the next pending', async () => {
-    const replica = getReplica(chainDetails, chainBDomain, chainADomain);
+    const replica = getReplica(chainDetails, destinationDomain, originDomain);
     const [pending] = await replica.nextPending();
     expect(pending).to.equal(prevFinalRoot);
   });
 
   it('Destination Replica Batch-confirms several ready updates', async () => {
-    const replica = getReplica(chainDetails, chainBDomain, chainADomain);
+    const replica = getReplica(chainDetails, destinationDomain, originDomain);
 
     // Increase time enough for both updates to be confirmable
-    const optimisticSeconds = chainDetails[chainBDomain].optimisticSeconds;
+    const optimisticSeconds = chainDetails[destinationDomain].optimisticSeconds;
     await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
@@ -133,7 +131,7 @@ describe('SimpleCrossChainMessage', async () => {
     await replica.confirm();
 
     // after confirming, current root should be equal to the last submitted update
-    const { finalRoot } = latestUpdate[chainADomain];
+    const { finalRoot } = latestUpdate[originDomain];
     expect(await replica.current()).to.equal(finalRoot);
   });
 
