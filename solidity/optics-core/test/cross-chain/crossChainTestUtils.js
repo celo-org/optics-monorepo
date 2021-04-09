@@ -131,7 +131,7 @@ async function enqueueUpdateToReplica(
 }
 
 /*
- * Format
+ * Format into a Message type
  *
  * @param messageString - string for the body of the message
  * @param messageDestinationDomain - domain where the message will be sent
@@ -139,7 +139,7 @@ async function enqueueUpdateToReplica(
  *
  * @return message - Message type
  * */
-function generateMessage(
+function formatMessage(
   messageString,
   messageDestinationDomain,
   messageRecipient,
@@ -156,5 +156,5 @@ function generateMessage(
 module.exports = {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
-  generateMessage,
+  formatMessage,
 };
