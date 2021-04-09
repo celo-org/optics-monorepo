@@ -36,8 +36,8 @@ describe('Replica', async () => {
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, remoteDomain);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, remoteDomain);
+    updater = await optics.Updater.fromSigner(signer, localDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   });
 
   beforeEach(async () => {
