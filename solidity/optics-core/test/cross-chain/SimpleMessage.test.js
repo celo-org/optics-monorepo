@@ -56,12 +56,12 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('All Replicas have empty queue of pending updates', async () => {
     for (let destinationDomain of domains) {
-      for (let originDomain of domains) {
-        if (destinationDomain !== originDomain) {
+      for (let remoteDomain of domains) {
+        if (destinationDomain !== remoteDomain) {
           const replica = getReplica(
             chainDetails,
             destinationDomain,
-            originDomain,
+            remoteDomain,
           );
 
           const length = await replica.queueLength();

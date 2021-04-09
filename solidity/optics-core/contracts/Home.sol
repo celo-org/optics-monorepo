@@ -61,13 +61,13 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
      */
     event UpdaterSlashed(address indexed updater, address indexed reporter);
 
-    function initialize(uint32 _originDomain, address _updaterManager)
+    function initialize(uint32 _localDomain, address _updaterManager)
         public
         override
     {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setOriginDomain(_originDomain);
+        setLocalDomain(_localDomain);
 
         updaterManager = UpdaterManagerI(_updaterManager);
         updater = UpdaterManagerI(_updaterManager).updater();
@@ -140,7 +140,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
         bytes memory _message =
             Message.formatMessage(
-                originDomain,
+                localDomain,
                 bytes32(uint256(uint160(msg.sender))),
                 sequence,
                 destination,
@@ -182,7 +182,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         }
 
         current = _newRoot;
-        emit Update(originDomain, _oldRoot, _newRoot, _signature);
+        emit Update(localDomain, _oldRoot, _newRoot, _signature);
     }
 
     /**

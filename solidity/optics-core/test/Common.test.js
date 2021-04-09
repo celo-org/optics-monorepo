@@ -6,22 +6,22 @@ const { testCases } = require('../../../vectors/domainHashTestCases.json');
 const {
   testCases: signedUpdateTestCases,
 } = require('../../../vectors/signedUpdateTestCases.json');
-const originDomain = 1000;
+const localDomain = 1000;
 
 describe('Common', async () => {
   let common, signer, fakeSigner, updater, fakeUpdater;
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originDomain);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
+    updater = await optics.Updater.fromSigner(signer, localDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   });
 
   beforeEach(async () => {
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestCommon',
       [],
-      [originDomain, updater.signer.address],
+      [localDomain, updater.signer.address],
     );
 
     common = contracts.proxyWithImplementation;
@@ -86,11 +86,11 @@ describe('Common', async () => {
     expect(state).to.equal(optics.State.ACTIVE);
   });
 
-  it('Calculates domain hashes from originDomain', async () => {
+  it('Calculates domain hashes from localDomain', async () => {
     // Compare Rust output in json file to solidity output
     for (let testCase of testCases) {
-      const { originDomain, expectedDomainHash } = testCase;
-      const solidityDomainHash = await common.testDomainHash(originDomain);
+      const { localDomain, expectedDomainHash } = testCase;
+      const solidityDomainHash = await common.testDomainHash(localDomain);
       expect(solidityDomainHash).to.equal(expectedDomainHash);
     }
   });

@@ -6,8 +6,8 @@ const {
   testCases: signedFailureTestCases,
 } = require('../../../vectors/signedFailureTestCases.json');
 
-const originDomain = 1000;
-const ownDomain = 2000;
+const remoteDomain = 1000;
+const localDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
@@ -17,7 +17,7 @@ describe('XAppConnectionManager', async () => {
 
   before(async () => {
     [signer] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originDomain);
+    updater = await optics.Updater.fromSigner(signer, remoteDomain);
   });
 
   beforeEach(async () => {
@@ -30,9 +30,9 @@ describe('XAppConnectionManager', async () => {
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [ownDomain],
+      [remoteDomain],
       [
-        originDomain,
+        localDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,

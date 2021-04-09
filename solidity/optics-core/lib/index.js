@@ -84,23 +84,23 @@ extendEnvironment((hre) => {
   }
 
   class Updater {
-    constructor(signer, address, originDomain, disableWarn) {
+    constructor(signer, address, localDomain, disableWarn) {
       if (!disableWarn) {
         throw new Error('Please use `Updater.fromSigner()` to instantiate.');
       }
-      this.originDomain = originDomain ? originDomain : 0;
+      this.localDomain = localDomain ? localDomain : 0;
       this.signer = signer;
       this.address = address;
     }
 
-    static async fromSigner(signer, originDomain) {
-      return new Updater(signer, await signer.getAddress(), originDomain, true);
+    static async fromSigner(signer, localDomain) {
+      return new Updater(signer, await signer.getAddress(), localDomain, true);
     }
 
     domain() {
       return ethers.utils.solidityKeccak256(
         ['uint32', 'string'],
-        [this.originDomain, 'OPTICS'],
+        [this.localDomain, 'OPTICS'],
       );
     }
 
@@ -113,7 +113,7 @@ extendEnvironment((hre) => {
       let msgHash = ethers.utils.arrayify(ethers.utils.keccak256(message));
       let signature = await this.signer.signMessage(msgHash);
       return {
-        origin: this.originDomain,
+        origin: this.localDomain,
         oldRoot,
         newRoot,
         signature,
@@ -122,7 +122,7 @@ extendEnvironment((hre) => {
   }
 
   const formatMessage = (
-    originDomain,
+    localDomain,
     senderAddr,
     sequence,
     destinationDomain,
@@ -135,7 +135,7 @@ extendEnvironment((hre) => {
     return ethers.utils.solidityPack(
       ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
       [
-        originDomain,
+        localDomain,
         senderAddr,
         sequence,
         destinationDomain,

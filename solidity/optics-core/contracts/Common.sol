@@ -18,7 +18,7 @@ library Message {
 
     /**
      * @notice Returns formatted (packed) message with provided fields
-     * @param _origin Domain of home chain
+     * @param _homeDomain Domain of home chain
      * @param _sender Address of sender as bytes32
      * @param _sequence Destination-specific sequence number
      * @param _destination Domain of destination chain
@@ -27,7 +27,7 @@ library Message {
      * @return Formatted message
      **/
     function formatMessage(
-        uint32 _origin,
+        uint32 _homeDomain,
         bytes32 _sender,
         uint32 _sequence,
         uint32 _destination,
@@ -36,7 +36,7 @@ library Message {
     ) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
-                _origin,
+                _homeDomain,
                 _sender,
                 _sequence,
                 _destination,
@@ -47,7 +47,7 @@ library Message {
 
     /**
      * @notice Returns leaf of formatted message with provided fields.
-     * @param _origin Domain of home chain
+     * @param _homeDomain Domain of home chain
      * @param _sender Address of sender as bytes32
      * @param _sequence Destination-specific sequence number
      * @param _destination Domain of destination chain
@@ -56,7 +56,7 @@ library Message {
      * @return Leaf (hash) of formatted message
      **/
     function messageHash(
-        uint32 _origin,
+        uint32 _homeDomain,
         bytes32 _sender,
         uint32 _sequence,
         uint32 _destination,
@@ -66,7 +66,7 @@ library Message {
         return
             keccak256(
                 formatMessage(
-                    _origin,
+                    _homeDomain,
                     _sender,
                     _sequence,
                     _destination,
@@ -125,8 +125,8 @@ abstract contract Common {
     enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
-    uint32 public originDomain;
-    /// @notice Hash of `originDomain` concatenated with "OPTICS"
+    uint32 public localDomain;
+    /// @notice Hash of `localDomain` concatenated with "OPTICS"
     bytes32 public domainHash;
 
     /// @notice Address of bonded updater
@@ -139,13 +139,13 @@ abstract contract Common {
     /**
      * @notice Event emitted when update is made on Home or unconfirmed update
      * root is enqueued on Replica
-     * @param _originDomain Domain of contract's chain
+     * @param _localDomain Domain of contract's chain
      * @param _oldRoot Old merkle root
      * @param _newRoot New merkle root
      * @param signature Updater's signature on `_oldRoot` and `_newRoot`
      **/
     event Update(
-        uint32 indexed _originDomain,
+        uint32 indexed _localDomain,
         bytes32 indexed _oldRoot,
         bytes32 indexed _newRoot,
         bytes signature
@@ -180,19 +180,19 @@ abstract contract Common {
         _;
     }
 
-    function initialize(uint32 _originDomain, address _updater) public virtual {
+    function initialize(uint32 _localDomain, address _updater) public virtual {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setOriginDomain(_originDomain);
+        setLocalDomain(_localDomain);
 
         updater = _updater;
 
         state = States.ACTIVE;
     }
 
-    function setOriginDomain(uint32 _originDomain) internal {
-        originDomain = _originDomain;
-        domainHash = keccak256(abi.encodePacked(_originDomain, "OPTICS"));
+    function setLocalDomain(uint32 _localDomain) internal {
+        localDomain = _localDomain;
+        domainHash = keccak256(abi.encodePacked(_localDomain, "OPTICS"));
     }
 
     /**

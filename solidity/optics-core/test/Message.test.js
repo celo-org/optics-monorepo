@@ -2,8 +2,8 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 
-const originDomain = 1000;
-const ownDomain = 2000;
+const remoteDomain = 1000;
+const localDomain = 2000;
 
 describe('Message', async () => {
   let messageLib;
@@ -20,20 +20,20 @@ describe('Message', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const message = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       recipient.address,
       body,
     );
 
-    expect(await messageLib.origin(message)).to.equal(originDomain);
+    expect(await messageLib.origin(message)).to.equal(remoteDomain);
     expect(await messageLib.sender(message)).to.equal(
       optics.ethersAddressToBytes32(sender.address),
     );
     expect(await messageLib.sequence(message)).to.equal(sequence);
-    expect(await messageLib.destination(message)).to.equal(ownDomain);
+    expect(await messageLib.destination(message)).to.equal(localDomain);
     expect(await messageLib.recipient(message)).to.equal(
       optics.ethersAddressToBytes32(recipient.address),
     );

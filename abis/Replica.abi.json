@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_ownDomain",
+        "name": "_localDomain",
         "type": "uint32"
       }
     ],
@@ -47,7 +47,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_localDomain",
         "type": "uint32"
       },
       {
@@ -195,7 +195,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_localDomain",
         "type": "uint32"
       },
       {
@@ -228,7 +228,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_localDomain",
         "type": "uint32"
       },
       {
@@ -250,6 +250,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "localDomain",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -300,32 +313,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "originDomain",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "ownDomain",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
       }
     ],
     "stateMutability": "view",

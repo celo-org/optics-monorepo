@@ -8,7 +8,7 @@ contract TestReplica is Replica {
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    constructor(uint32 _ownDomain) Replica(_ownDomain) {} // solhint-disable-line no-empty-blocks
+    constructor(uint32 _remoteDomain) Replica(_remoteDomain) {} // solhint-disable-line no-empty-blocks
 
     function setFailed() public {
         _setFailed();

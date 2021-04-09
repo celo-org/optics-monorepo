@@ -12,8 +12,8 @@ const {
   testCases: proveAndProcessTestCases,
 } = require('../../../vectors/proveAndProcessTestCases.json');
 
-const originDomain = 1000;
-const ownDomain = 2000;
+const remoteDomain = 1000;
+const localDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
@@ -36,17 +36,17 @@ describe('Replica', async () => {
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originDomain);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
+    updater = await optics.Updater.fromSigner(signer, remoteDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, remoteDomain);
   });
 
   beforeEach(async () => {
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [ownDomain],
+      [remoteDomain],
       [
-        originDomain,
+        localDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
@@ -268,10 +268,10 @@ describe('Replica', async () => {
 
     const sequence = (await replica.lastProcessed()).add(1);
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       mockRecipient.address,
       '0x',
     );
@@ -294,10 +294,10 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       recipient.address,
       body,
     );
@@ -315,10 +315,10 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       recipient.address,
       body,
     );
@@ -334,11 +334,11 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
       // Wrong destination Domain
-      ownDomain + 5,
+      localDomain + 5,
       recipient.address,
       body,
     );
@@ -354,10 +354,10 @@ describe('Replica', async () => {
     const body = ethers.utils.formatBytes32String('message');
 
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       recipient.address,
       body,
     );
@@ -383,10 +383,10 @@ describe('Replica', async () => {
 
     const sequence = (await replica.lastProcessed()).add(1);
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       mockRecipient.address,
       '0x',
     );
@@ -414,10 +414,10 @@ describe('Replica', async () => {
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       mockRecipient.address,
       '0x',
     );
@@ -449,10 +449,10 @@ describe('Replica', async () => {
 
     // Create arbitrary message (contents not important)
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      remoteDomain,
       sender.address,
       sequence,
-      ownDomain,
+      localDomain,
       recipient.address,
       '0x',
     );

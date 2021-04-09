@@ -118,7 +118,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_localDomain",
         "type": "uint32"
       },
       {
@@ -285,7 +285,7 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_originDomain",
+        "name": "_localDomain",
         "type": "uint32"
       },
       {
@@ -301,7 +301,7 @@
   },
   {
     "inputs": [],
-    "name": "originDomain",
+    "name": "localDomain",
     "outputs": [
       {
         "internalType": "uint32",

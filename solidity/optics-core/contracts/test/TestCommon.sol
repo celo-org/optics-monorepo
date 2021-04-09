@@ -20,11 +20,11 @@ contract TestCommon is Common {
         _setFailed();
     }
 
-    function testDomainHash(uint32 _originDomain)
+    function testDomainHash(uint32 _remoteDomain)
         external
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked(_originDomain, "OPTICS"));
+        return keccak256(abi.encodePacked(_remoteDomain, "OPTICS"));
     }
 }

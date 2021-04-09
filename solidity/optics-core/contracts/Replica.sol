@@ -21,9 +21,6 @@ contract Replica is Common, QueueManager {
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    /// @notice Domain of replica's native chain
-    uint32 public immutable ownDomain;
-
     /// @notice Minimum gas for message processing
     uint256 public constant PROCESS_GAS = 500000;
     /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
@@ -46,12 +43,12 @@ contract Replica is Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    constructor(uint32 _ownDomain) {
-        ownDomain = _ownDomain;
+    constructor(uint32 _localDomain) {
+        localDomain = _localDomain;
     }
 
     function initialize(
-        uint32 _originDomain,
+        uint32 _localDomain,
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
@@ -59,7 +56,7 @@ contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setOriginDomain(_originDomain);
+        setLocalDomain(_localDomain);
 
         queue.initialize();
 
@@ -120,7 +117,7 @@ contract Replica is Common, QueueManager {
         confirmAt[_newRoot] = block.timestamp + optimisticSeconds;
         queue.enqueue(_newRoot);
 
-        emit Update(originDomain, _oldRoot, _newRoot, _signature);
+        emit Update(localDomain, _oldRoot, _newRoot, _signature);
     }
 
     /**
@@ -190,7 +187,7 @@ contract Replica is Common, QueueManager {
         bytes29 _m = _message.ref(0);
 
         uint32 _sequence = _m.sequence();
-        require(_m.destination() == ownDomain, "!destination");
+        require(_m.destination() == localDomain, "!destination");
         require(_sequence == lastProcessed + 1, "!sequence");
         require(
             messages[keccak256(_message)] == MessageStatus.Pending,

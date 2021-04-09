@@ -7,7 +7,7 @@ const {
   testCases,
 } = require('../../../vectors/destinationSequenceTestCases.json');
 
-const originDomain = 1000;
+const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
@@ -28,8 +28,8 @@ describe('Home', async () => {
 
   before(async () => {
     [signer, fakeSigner, recipient] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, originDomain);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, originDomain);
+    updater = await optics.Updater.fromSigner(signer, localDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   });
 
   beforeEach(async () => {
@@ -43,7 +43,7 @@ describe('Home', async () => {
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
       [],
-      [originDomain, mockUpdaterManager.address],
+      [localDomain, mockUpdaterManager.address],
     );
 
     home = contracts.proxyWithImplementation;
@@ -65,7 +65,7 @@ describe('Home', async () => {
 
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
-    const sequence = (await home.sequences(originDomain)) + 1;
+    const sequence = (await home.sequences(localDomain)) + 1;
 
     // Format data that will be emitted from Dispatch event
     const destinationAndSequence = optics.destinationAndSequence(
@@ -74,7 +74,7 @@ describe('Home', async () => {
     );
 
     const formattedMessage = optics.formatMessage(
-      originDomain,
+      localDomain,
       signer.address,
       sequence,
       destDomain,
@@ -130,7 +130,7 @@ describe('Home', async () => {
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
     await expect(home.update(currentRoot, newRoot, signature))
       .to.emit(home, 'Update')
-      .withArgs(originDomain, currentRoot, newRoot, signature);
+      .withArgs(localDomain, currentRoot, newRoot, signature);
 
     expect(await home.current()).to.equal(newRoot);
     expect(await home.queueContains(newRoot)).to.be.false;
@@ -145,7 +145,7 @@ describe('Home', async () => {
     const { signature } = await updater.signUpdate(currentRoot, newRoot3);
     await expect(home.update(currentRoot, newRoot3, signature))
       .to.emit(home, 'Update')
-      .withArgs(originDomain, currentRoot, newRoot3, signature);
+      .withArgs(localDomain, currentRoot, newRoot3, signature);
 
     expect(await home.current()).to.equal(newRoot3);
     expect(await home.queueContains(newRoot1)).to.be.false;

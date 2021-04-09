@@ -112,7 +112,7 @@ contract TokenRegistry is Ownable {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = xAppConnectionManager.originDomain();
+            _id.domain = xAppConnectionManager.localDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
@@ -163,7 +163,7 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == xAppConnectionManager.originDomain()) {
+        if (_tokenId.domain() == xAppConnectionManager.localDomain()) {
             return IERC20(_tokenId.evmId());
         }
 
