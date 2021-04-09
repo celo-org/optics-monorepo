@@ -17,7 +17,7 @@ const {
  *   the recipient address on the destination domain to which the message will be dispatched
  *
  * @return newRoot - bytes32 of the latest root
- * */
+ */
 async function enqueueMessageToHome(chainDetails, homeDomain, messageDetails) {
   const home = getHome(chainDetails, homeDomain);
 
@@ -44,7 +44,7 @@ async function enqueueMessageToHome(chainDetails, homeDomain, messageDetails) {
  * @param messages - Message[]
  *
  * @return update - Update type
- * */
+ */
 async function enqueueMessagesAndUpdateHome(
   chainDetails,
   homeDomain,
@@ -110,7 +110,7 @@ async function enqueueMessagesAndUpdateHome(
  * @param replicaDomain - domain of the Replica contract where the update will be submitted
  *
  * @return finalRoot - updated state root enqueued to the Replica
- * */
+ */
 async function enqueueUpdateToReplica(
   chainDetails,
   latestUpdateOnOriginChain,
@@ -138,7 +138,7 @@ async function enqueueUpdateToReplica(
  * @param messageRecipient - recipient of the message on the destination domain
  *
  * @return message - Message type
- * */
+ */
 function formatMessage(
   messageString,
   messageDestinationDomain,

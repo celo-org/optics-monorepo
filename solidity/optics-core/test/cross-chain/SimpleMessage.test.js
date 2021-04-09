@@ -15,13 +15,13 @@ const {
 } = require('./deployCrossChainTest');
 
 /*
-* Deploy the full Optics suite on two chains
-* enqueue messages to Home
-* sign and submit updates to Home
-* relay updates to Replica
-* confirm updates on Replica
-* TODO prove and process messages on Replica
-* */
+ * Deploy the full Optics suite on two chains
+ * enqueue messages to Home
+ * sign and submit updates to Home
+ * relay updates to Replica
+ * confirm updates on Replica
+ * TODO prove and process messages on Replica
+ */
 describe('SimpleCrossChainMessage', async () => {
   const domains = [1000, 2000];
   const homeDomain = domains[0];

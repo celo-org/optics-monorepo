@@ -10,7 +10,7 @@ const { provider } = waffle;
  * @param domains - array of domains (integers) for chains we want to deploy Optics on
  *
  * @return configs - TestChainConfig[]
- * */
+ */
 async function domainsToTestConfigs(domains) {
   let configs = domains.map((domain) => {
     return {

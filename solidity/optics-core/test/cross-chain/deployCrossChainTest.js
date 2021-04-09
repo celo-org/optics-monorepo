@@ -5,7 +5,7 @@
  * @param domain - domain where the Home contract is deployed; localDomain for the Home
  *
  * @return homeContract - ethers contract for interacting with the Home
- * */
+ */
 function getHome(chainDetails, domain) {
   return chainDetails[domain].contracts.home.proxyWithImplementation;
 }
@@ -19,7 +19,7 @@ function getHome(chainDetails, domain) {
  * @param homeDomain - remoteDomain for the Replica; domain of the Home contract the Replica "listens" to
  *
  * @return replicaContract - ethers contract for interacting with the Replica
- * */
+ */
 function getReplica(chainDetails, replicaDomain, homeDomain) {
   return chainDetails[replicaDomain].contracts.replicaProxies[homeDomain]
     .proxyWithImplementation;
@@ -32,7 +32,7 @@ function getReplica(chainDetails, replicaDomain, homeDomain) {
  * @param domain - domain of the chain for which we want the Updater
  *
  * @return updaterObject - an optics.Updater type
- * */
+ */
 function getUpdaterObject(chainDetails, domain) {
   return chainDetails[domain].updaterObject;
 }
@@ -47,7 +47,7 @@ function getUpdaterObject(chainDetails, domain) {
  * @param chainConfigs - ChainConfig[]
  *
  * @return chainDetails - ChainDetails type
- * */
+ */
 async function deployMultipleChains(chainConfigs) {
   // for each domain, deploy the entire contract suite,
   // including one replica for each other domain
@@ -88,7 +88,7 @@ async function deployMultipleChains(chainConfigs) {
  *    local - ChainConfig for the local domain
  *    remotes - ChainConfig[] for all other domains
  * }
- * */
+ */
 function separateLocalFromRemotes(chainConfigs, localDomain) {
   let local;
   const remotes = [];
