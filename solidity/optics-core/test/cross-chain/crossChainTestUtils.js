@@ -11,7 +11,7 @@ const {
  *
  *
  * */
-async function enqueueMessageAndGetRootHome(
+async function enqueueMessageToHome(
   chainDetails,
   homeDomain,
   messageDetails,
@@ -45,7 +45,7 @@ async function enqueueMessagesAndUpdateHome(
   // enqueue each message to Home and get the intermediate root
   const enqueuedRoots = [];
   for (let message of messages) {
-    const newRoot = await enqueueMessageAndGetRootHome(
+    const newRoot = await enqueueMessageToHome(
       chainDetails,
       homeDomain,
       message,
@@ -86,7 +86,7 @@ async function enqueueMessagesAndUpdateHome(
   };
 }
 
-async function enqueueUpdateReplica(
+async function enqueueUpdateToReplica(
   chainDetails,
   latestUpdateOnOriginChain,
   originDomain,
@@ -118,7 +118,7 @@ function generateMessage(
 }
 
 module.exports = {
-  enqueueUpdateReplica,
+  enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   generateMessage,
 };

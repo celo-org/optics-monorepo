@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const testUtils = require('../utils');
 const { domainsToTestConfigs } = require('./generateTestConfigs');
 const {
-  enqueueUpdateReplica,
+  enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   generateMessage,
 } = require('./crossChainTestUtils');
@@ -79,9 +79,9 @@ describe('SimpleCrossChainMessage', async () => {
     latestRoot[homeDomain] = update.finalRoot;
   });
 
-  let prevFinalRoot;
+  let firstRootEnqueuedToReplica;
   it('Destination Replica Accepts the first update', async () => {
-    prevFinalRoot = await enqueueUpdateReplica(
+    firstRootEnqueuedToReplica = await enqueueUpdateToReplica(
       chainDetails,
       latestUpdate[homeDomain],
       homeDomain,
@@ -104,7 +104,7 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Destination Replica Accepts the second update', async () => {
-    await enqueueUpdateReplica(
+    await enqueueUpdateToReplica(
       chainDetails,
       latestUpdate[homeDomain],
       homeDomain,
@@ -115,7 +115,7 @@ describe('SimpleCrossChainMessage', async () => {
   it('Destination Replica shows first update as the next pending', async () => {
     const replica = getReplica(chainDetails, replicaDomain, homeDomain);
     const [pending] = await replica.nextPending();
-    expect(pending).to.equal(prevFinalRoot);
+    expect(pending).to.equal(firstRootEnqueuedToReplica);
   });
 
   it('Destination Replica Batch-confirms several ready updates', async () => {
