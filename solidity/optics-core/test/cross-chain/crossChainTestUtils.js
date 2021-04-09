@@ -5,17 +5,20 @@ const {
   getUpdaterObject,
 } = require('./deployCrossChainTest');
 
-// // Helper function that enqueues message and returns its root.
-// // The message recipient is the same for all messages enqueued.
 /*
+ * Enqueue a message to the specified Home contract
+ * and return the updated root
  *
+ * @param chainDetails - ChainDetails type containing every deployed domain
+ * @param homeDomain - domain of the Home contract to which we will enqueue the message
+ * @param messageDetails - Message type containing
+ *   the message string,
+ *   the destination domain to which the message will be sent,
+ *   the recipient address on the destination domain to which the message will be dispatched
  *
+ * @return newRoot - bytes32 of the latest root
  * */
-async function enqueueMessageToHome(
-  chainDetails,
-  homeDomain,
-  messageDetails,
-) {
+async function enqueueMessageToHome(chainDetails, homeDomain, messageDetails) {
   const home = getHome(chainDetails, homeDomain);
 
   const { message, destinationDomain, recipientAddress } = messageDetails;
@@ -32,6 +35,16 @@ async function enqueueMessageToHome(
   return newRoot;
 }
 
+/*
+ * Enqueue a set of messages to the specified Home contract,
+ * then sign and submit an update to the Home contract
+ *
+ * @param chainDetails - ChainDetails type containing every deployed domain
+ * @param homeDomain - domain of the Home contract to which we will enqueue all of messages / submit the update
+ * @param messages - Message[]
+ *
+ * @return update - Update type
+ * */
 async function enqueueMessagesAndUpdateHome(
   chainDetails,
   homeDomain,
@@ -79,42 +92,65 @@ async function enqueueMessagesAndUpdateHome(
     expect(await home.queueContains(root)).to.be.false;
   }
 
-  return {
+  const update = {
     startRoot,
     finalRoot,
     signature,
   };
+
+  return update;
 }
 
+/*
+ * Enqueue a signed update to the Replica contract
+ *
+ * @param chainDetails - ChainDetails type containing every deployed domain
+ * @param latestUpdateOnOriginChain - Update type, the last Update submitted to the Home chain for this Replica
+ * @param homeDomain - domain of the Home contract from which the update originated
+ * @param replicaDomain - domain of the Replica contract where the update will be submitted
+ *
+ * @return finalRoot - updated state root enqueued to the Replica
+ * */
 async function enqueueUpdateToReplica(
   chainDetails,
   latestUpdateOnOriginChain,
-  originDomain,
-  destinationDomain,
+  homeDomain,
+  replicaDomain,
 ) {
-  const replica = getReplica(chainDetails, destinationDomain, originDomain);
+  const replica = getReplica(chainDetails, replicaDomain, homeDomain);
 
   const { startRoot, finalRoot, signature } = latestUpdateOnOriginChain;
 
   await expect(replica.update(startRoot, finalRoot, signature))
     .to.emit(replica, 'Update')
-    .withArgs(originDomain, startRoot, finalRoot, signature);
+    .withArgs(homeDomain, startRoot, finalRoot, signature);
 
   expect(await replica.queueEnd()).to.equal(finalRoot);
 
   return finalRoot;
 }
 
+/*
+ * Format
+ *
+ * @param messageString - string for the body of the message
+ * @param messageDestinationDomain - domain where the message will be sent
+ * @param messageRecipient - recipient of the message on the destination domain
+ *
+ * @return message - Message type
+ * */
 function generateMessage(
   messageString,
   messageDestinationDomain,
   messageRecipient,
 ) {
-  return {
+  const message = {
     message: messageString,
     destinationDomain: messageDestinationDomain,
     recipientAddress: messageRecipient,
   };
+
+  return message;
 }
 
 module.exports = {
