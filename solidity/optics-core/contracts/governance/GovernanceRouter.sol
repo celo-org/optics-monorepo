@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 import {Home} from "../Home.sol";
-import {XAppConnectionManager, TypeCasts} from "../UsingOptics.sol";
+import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 

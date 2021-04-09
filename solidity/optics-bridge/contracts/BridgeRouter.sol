@@ -7,7 +7,7 @@ import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
-import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
+import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {
     MessageRecipientI
 } from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
