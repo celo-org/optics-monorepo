@@ -158,7 +158,7 @@
   },
   {
     "inputs": [],
-    "name": "originDomain",
+    "name": "localDomain",
     "outputs": [
       {
         "internalType": "uint32",
