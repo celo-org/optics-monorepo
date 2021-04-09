@@ -2,194 +2,38 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const testUtils = require('../utils');
+const { domainsToTestConfigs } = require('./generateTestConfigs');
+const {
+  enqueueUpdateReplica,
+  enqueueMessagesAndUpdateHome,
+} = require('./crossChainTestUtils');
+const {
+  deployMultipleChains,
+  getHome,
+  getReplica,
+} = require('./deployCrossChainTest');
 
-// TODO: get these details from a config file?
+// TODO: load these details from a config file
 const domains = [1000, 2000];
-const optimisticSeconds = 3;
-const initialRoot =
-  '0x0000000000000000000000000000000000000000000000000000000000000000';
-const lastProcessedIndex = 0;
 
 describe('SimpleCrossChainMessage', async () => {
-  let randomSigner;
-  const latestRoot = {};
-  const latestUpdate = {};
-  const chainDetails = {};
+  let randomSigner, chainDetails;
   const chainADomain = domains[0];
   const chainBDomain = domains[1];
+  let latestRoot = {};
+  let latestUpdate = {};
 
   before(async () => {
-    const wallets = provider.getWallets();
-    if (wallets.length <= domains.length) {
-      throw new Error('need more wallets');
-    }
+    const configs = await domainsToTestConfigs(domains);
 
-    randomSigner = wallets[domains.length];
+    chainDetails = await deployMultipleChains(configs);
 
-    // generate all chain details
-    for (let i = 0; i < domains.length; i++) {
-      const domain = domains[i];
-      const signer = wallets[i];
-
-      const updaterObject = await optics.Updater.fromSigner(signer, domain);
-      chainDetails[domain] = {
-        domain,
-        updater: signer.address,
-        updaterObject,
-        signer,
-        currentRoot: initialRoot,
-        lastProcessedIndex,
-        optimisticSeconds,
-      };
-    }
-
-    // for each domain, deploy the entire contract suite,
-    // including one replica for each other domain
-    for (let i = 0; i < domains.length; i++) {
-      const domain = domains[i];
-
-      // for the given domain,
-      // origin is the single chainConfig for the chain at domain
-      // remotes is an array of all other chains
-      const { origin, remotes } = getOriginAndRemotes(domain);
-
-      // deploy contract suite for this chain
-      // note: we will be working with a persistent set of contracts across each test
-      const contracts = await optics.deployOptics(origin, remotes);
-
-      chainDetails[domain].contracts = contracts;
-    }
+    randomSigner = testUtils.getUnusedSigner(provider, configs.length);
   });
-
-  const getHome = (domain) => {
-    return chainDetails[domain].contracts.home.proxyWithImplementation;
-  };
-
-  const getReplica = (destinationDomain, originDomain) => {
-    return chainDetails[destinationDomain].contracts.replicaProxies[
-      originDomain
-    ].proxyWithImplementation;
-  };
-
-  const getUpdaterObject = (domain) => {
-    return chainDetails[domain].updaterObject;
-  };
-
-  const getOriginAndRemotes = (originDomain) => {
-    // the origin is the chain at index i
-    const origin = chainDetails[originDomain];
-
-    // the remotes are all chains except the origin
-    const allDomains = Object.keys(chainDetails);
-    const remoteDomains = allDomains.filter((domain) => domain != originDomain);
-    const remotes = remoteDomains.map(
-      (remoteDomain) => chainDetails[remoteDomain],
-    );
-
-    return {
-      origin,
-      remotes,
-    };
-  };
-
-  // // Helper function that enqueues message and returns its root.
-  // // The message recipient is the same for all messages enqueued.
-  const enqueueMessageAndGetRootHome = async (
-    message,
-    originDomain,
-    destinationDomain,
-    recipientAddress = randomSigner.address,
-  ) => {
-    const home = getHome(originDomain);
-
-    message = ethers.utils.formatBytes32String(message);
-
-    // Send message with random signer address as msg.sender
-    await home.enqueue(
-      destinationDomain,
-      optics.ethersAddressToBytes32(recipientAddress),
-      message,
-    );
-
-    const [, newRoot] = await home.suggestUpdate();
-
-    latestRoot[originDomain] = newRoot;
-
-    return newRoot;
-  };
-
-  async function enqueueMessagesAndUpdateHome(
-    messages,
-    originDomain,
-    destinationDomain,
-  ) {
-    const home = getHome(originDomain);
-    const updater = getUpdaterObject(originDomain);
-
-    const startRoot = await home.current();
-
-    // enqueue each message to Home and get the intermediate root
-    const roots = [];
-    for (let message of messages) {
-      const newRoot = await enqueueMessageAndGetRootHome(
-        message,
-        originDomain,
-        destinationDomain,
-      );
-      roots.push(newRoot);
-    }
-
-    // ensure that Home queue contains
-    // all of the roots we just enqueued
-    for (let root of roots) {
-      expect(await home.queueContains(root)).to.be.true;
-    }
-
-    // sign & submit an update from startRoot to finalRoot
-    const finalRoot = latestRoot[originDomain];
-
-    const { signature } = await updater.signUpdate(startRoot, finalRoot);
-
-    latestUpdate[originDomain] = {
-      startRoot,
-      finalRoot,
-      signature,
-    };
-
-    await expect(home.update(startRoot, finalRoot, signature))
-      .to.emit(home, 'Update')
-      .withArgs(originDomain, startRoot, finalRoot, signature);
-
-    // ensure that Home root is now finalRoot
-    expect(await home.current()).to.equal(finalRoot);
-
-    // ensure that Home queue no longer contains
-    // any of the roots we just enqueued -
-    // they should be removed from queue when update is submitted
-    for (let root of roots) {
-      expect(await home.queueContains(root)).to.be.false;
-    }
-
-    return finalRoot;
-  }
-
-  const enqueueUpdateReplica = async (originDomain, destinationDomain) => {
-    const replica = getReplica(destinationDomain, originDomain);
-
-    const { startRoot, finalRoot, signature } = latestUpdate[originDomain];
-
-    await expect(replica.update(startRoot, finalRoot, signature))
-      .to.emit(replica, 'Update')
-      .withArgs(originDomain, startRoot, finalRoot, signature);
-
-    expect(await replica.queueEnd()).to.equal(finalRoot);
-
-    return finalRoot;
-  };
 
   it('All Homes suggest empty update values when queue is empty', async () => {
     for (let domain of domains) {
-      const home = getHome(domain);
+      const home = getHome(chainDetails, domain);
 
       const length = await home.queueLength();
       expect(length).to.equal(0);
@@ -204,7 +48,11 @@ describe('SimpleCrossChainMessage', async () => {
     for (let destinationDomain of domains) {
       for (let originDomain of domains) {
         if (destinationDomain !== originDomain) {
-          const replica = getReplica(destinationDomain, originDomain);
+          const replica = getReplica(
+            chainDetails,
+            destinationDomain,
+            originDomain,
+          );
 
           const length = await replica.queueLength();
           expect(length).to.equal(0);
@@ -219,33 +67,64 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts one valid update', async () => {
     const messages = ['message'];
-    await enqueueMessagesAndUpdateHome(messages, chainADomain, chainBDomain);
+    const ret = await enqueueMessagesAndUpdateHome(
+      chainDetails,
+      messages,
+      chainADomain,
+      chainBDomain,
+      randomSigner.address,
+      latestRoot,
+      latestUpdate,
+    );
+    latestRoot = ret.latestRoot;
+    latestUpdate = ret.latestUpdate;
   });
 
   let prevFinalRoot;
   it('Destination Replica Accepts the first update', async () => {
-    prevFinalRoot = await enqueueUpdateReplica(chainADomain, chainBDomain);
+    prevFinalRoot = await enqueueUpdateReplica(
+      chainDetails,
+      latestUpdate,
+      chainADomain,
+      chainBDomain,
+    );
   });
 
   it('Origin Home Accepts an update with several batched messages', async () => {
     const messages = ['message1', 'message2', 'message3'];
-    await enqueueMessagesAndUpdateHome(messages, chainADomain, chainBDomain);
+    const ret = await enqueueMessagesAndUpdateHome(
+      chainDetails,
+      messages,
+      chainADomain,
+      chainBDomain,
+      randomSigner.address,
+      latestRoot,
+      latestUpdate,
+    );
+    latestRoot = ret.latestRoot;
+    latestUpdate = ret.latestUpdate;
   });
 
   it('Destination Replica Accepts the second update', async () => {
-    await enqueueUpdateReplica(chainADomain, chainBDomain);
+    await enqueueUpdateReplica(
+      chainDetails,
+      latestUpdate,
+      chainADomain,
+      chainBDomain,
+    );
   });
 
   it('Destination Replica shows first update as the next pending', async () => {
-    const replica = getReplica(chainBDomain, chainADomain);
+    const replica = getReplica(chainDetails, chainBDomain, chainADomain);
     const [pending] = await replica.nextPending();
     expect(pending).to.equal(prevFinalRoot);
   });
 
   it('Destination Replica Batch-confirms several ready updates', async () => {
-    const replica = getReplica(chainBDomain, chainADomain);
+    const replica = getReplica(chainDetails, chainBDomain, chainADomain);
 
     // Increase time enough for both updates to be confirmable
+    const optimisticSeconds = chainDetails[chainBDomain].optimisticSeconds;
     await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
