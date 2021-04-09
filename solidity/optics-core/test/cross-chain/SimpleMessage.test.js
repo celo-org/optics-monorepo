@@ -14,18 +14,28 @@ const {
   getReplica,
 } = require('./deployCrossChainTest');
 
+/*
+* Deploy the full Optics suite on two chains
+* enqueue messages to Home
+* sign and submit updates to Home
+* relay updates to Replica
+* confirm updates on Replica
+* TODO prove and process messages on Replica
+* */
 describe('SimpleCrossChainMessage', async () => {
   const domains = [1000, 2000];
   const homeDomain = domains[0];
   const replicaDomain = domains[1];
 
-  let randomSigner, chainDetails;
+  let randomSigner, chainDetails, firstRootEnqueuedToReplica;
   let latestRoot = {},
     latestUpdate = {};
 
   before(async () => {
+    // generate TestChainConfigs for the given domains
     const configs = await domainsToTestConfigs(domains);
 
+    // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
 
     randomSigner = testUtils.getUnusedSigner(provider, configs.length);
@@ -79,7 +89,6 @@ describe('SimpleCrossChainMessage', async () => {
     latestRoot[homeDomain] = update.finalRoot;
   });
 
-  let firstRootEnqueuedToReplica;
   it('Destination Replica Accepts the first update', async () => {
     firstRootEnqueuedToReplica = await enqueueUpdateToReplica(
       chainDetails,
