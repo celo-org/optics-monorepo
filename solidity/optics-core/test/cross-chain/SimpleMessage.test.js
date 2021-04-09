@@ -2,7 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const testUtils = require('../utils');
-const { domainsToTestConfigs } = require('./generateTestConfigs');
+const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,

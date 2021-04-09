@@ -8,13 +8,15 @@
  *      watchers?: [address],
  * };
  *
- * ChainDetails {
- *   [domain]: {
+ * TestChainConfig {
  *      ...ChainConfig,
- *      updaterObject,
+ *      updaterObject: optics.Updater type,
  *      signer: ethers Signer,
  *      contracts: OpticsContracts,
- *    },
+ * };
+ *
+ * ChainDetails {
+ *   [domain]: TestChainConfig,
  * };
  *
  * OpticsContracts {
