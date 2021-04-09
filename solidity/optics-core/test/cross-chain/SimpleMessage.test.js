@@ -6,6 +6,7 @@ const { domainsToTestConfigs } = require('./generateTestConfigs');
 const {
   enqueueUpdateReplica,
   enqueueMessagesAndUpdateHome,
+  generateMessage,
 } = require('./crossChainTestUtils');
 const {
   deployMultipleChains,
@@ -13,15 +14,14 @@ const {
   getReplica,
 } = require('./deployCrossChainTest');
 
-// TODO: load these details from a config file
-const domains = [1000, 2000];
-
 describe('SimpleCrossChainMessage', async () => {
+  const domains = [1000, 2000];
+  const homeDomain = domains[0];
+  const replicaDomain = domains[1];
+
   let randomSigner, chainDetails;
-  const originDomain = domains[0];
-  const destinationDomain = domains[1];
-  let latestRoot = {};
-  let latestUpdate = {};
+  let latestRoot = {},
+    latestUpdate = {};
 
   before(async () => {
     const configs = await domainsToTestConfigs(domains);
@@ -66,63 +66,63 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Origin Home Accepts one valid update', async () => {
-    const messages = ['message'];
+    const messages = ['message'].map((message) =>
+      generateMessage(message, replicaDomain, randomSigner.address),
+    );
     const update = await enqueueMessagesAndUpdateHome(
       chainDetails,
-      originDomain,
+      homeDomain,
       messages,
-      destinationDomain,
-      randomSigner.address,
     );
 
-    latestUpdate[originDomain] = update;
-    latestRoot[originDomain] = update.finalRoot;
+    latestUpdate[homeDomain] = update;
+    latestRoot[homeDomain] = update.finalRoot;
   });
 
   let prevFinalRoot;
   it('Destination Replica Accepts the first update', async () => {
     prevFinalRoot = await enqueueUpdateReplica(
       chainDetails,
-      latestUpdate[originDomain],
-      originDomain,
-      destinationDomain,
+      latestUpdate[homeDomain],
+      homeDomain,
+      replicaDomain,
     );
   });
 
   it('Origin Home Accepts an update with several batched messages', async () => {
-    const messages = ['message1', 'message2', 'message3'];
+    const messages = ['message1', 'message2', 'message3'].map((message) =>
+      generateMessage(message, replicaDomain, randomSigner.address),
+    );
     const update = await enqueueMessagesAndUpdateHome(
       chainDetails,
-      originDomain,
+      homeDomain,
       messages,
-      destinationDomain,
-      randomSigner.address,
     );
 
-    latestUpdate[originDomain] = update;
-    latestRoot[originDomain] = update.finalRoot;
+    latestUpdate[homeDomain] = update;
+    latestRoot[homeDomain] = update.finalRoot;
   });
 
   it('Destination Replica Accepts the second update', async () => {
     await enqueueUpdateReplica(
       chainDetails,
-      latestUpdate[originDomain],
-      originDomain,
-      destinationDomain,
+      latestUpdate[homeDomain],
+      homeDomain,
+      replicaDomain,
     );
   });
 
   it('Destination Replica shows first update as the next pending', async () => {
-    const replica = getReplica(chainDetails, destinationDomain, originDomain);
+    const replica = getReplica(chainDetails, replicaDomain, homeDomain);
     const [pending] = await replica.nextPending();
     expect(pending).to.equal(prevFinalRoot);
   });
 
   it('Destination Replica Batch-confirms several ready updates', async () => {
-    const replica = getReplica(chainDetails, destinationDomain, originDomain);
+    const replica = getReplica(chainDetails, replicaDomain, homeDomain);
 
     // Increase time enough for both updates to be confirmable
-    const optimisticSeconds = chainDetails[destinationDomain].optimisticSeconds;
+    const optimisticSeconds = chainDetails[replicaDomain].optimisticSeconds;
     await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
@@ -131,7 +131,7 @@ describe('SimpleCrossChainMessage', async () => {
     await replica.confirm();
 
     // after confirming, current root should be equal to the last submitted update
-    const { finalRoot } = latestUpdate[originDomain];
+    const { finalRoot } = latestUpdate[homeDomain];
     expect(await replica.current()).to.equal(finalRoot);
   });
 

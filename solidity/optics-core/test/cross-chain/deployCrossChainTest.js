@@ -2,8 +2,8 @@ function getHome(chainDetails, domain) {
   return chainDetails[domain].contracts.home.proxyWithImplementation;
 }
 
-function getReplica(chainDetails, destinationDomain, originDomain) {
-  return chainDetails[destinationDomain].contracts.replicaProxies[originDomain]
+function getReplica(chainDetails, replicaDomain, homeDomain) {
+  return chainDetails[replicaDomain].contracts.replicaProxies[homeDomain]
     .proxyWithImplementation;
 }
 

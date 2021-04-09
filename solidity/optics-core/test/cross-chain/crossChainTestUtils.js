@@ -13,20 +13,18 @@ const {
  * */
 async function enqueueMessageAndGetRootHome(
   chainDetails,
-  originDomain,
-  message,
-  destinationDomain,
-  recipientAddress,
+  homeDomain,
+  messageDetails,
 ) {
-  const home = getHome(chainDetails, originDomain);
+  const home = getHome(chainDetails, homeDomain);
 
-  message = ethers.utils.formatBytes32String(message);
+  const { message, destinationDomain, recipientAddress } = messageDetails;
 
   // Send message with random signer address as msg.sender
   await home.enqueue(
     destinationDomain,
     optics.ethersAddressToBytes32(recipientAddress),
-    message,
+    ethers.utils.formatBytes32String(message),
   );
 
   const [, newRoot] = await home.suggestUpdate();
@@ -36,13 +34,11 @@ async function enqueueMessageAndGetRootHome(
 
 async function enqueueMessagesAndUpdateHome(
   chainDetails,
-  originDomain,
+  homeDomain,
   messages,
-  destinationDomain,
-  recipientAddress,
 ) {
-  const home = getHome(chainDetails, originDomain);
-  const updater = getUpdaterObject(chainDetails, originDomain);
+  const home = getHome(chainDetails, homeDomain);
+  const updater = getUpdaterObject(chainDetails, homeDomain);
 
   const startRoot = await home.current();
 
@@ -51,10 +47,8 @@ async function enqueueMessagesAndUpdateHome(
   for (let message of messages) {
     const newRoot = await enqueueMessageAndGetRootHome(
       chainDetails,
-      originDomain,
+      homeDomain,
       message,
-      destinationDomain,
-      recipientAddress,
     );
 
     enqueuedRoots.push(newRoot);
@@ -73,7 +67,7 @@ async function enqueueMessagesAndUpdateHome(
 
   await expect(home.update(startRoot, finalRoot, signature))
     .to.emit(home, 'Update')
-    .withArgs(originDomain, startRoot, finalRoot, signature);
+    .withArgs(homeDomain, startRoot, finalRoot, signature);
 
   // ensure that Home root is now finalRoot
   expect(await home.current()).to.equal(finalRoot);
@@ -111,7 +105,20 @@ async function enqueueUpdateReplica(
   return finalRoot;
 }
 
+function generateMessage(
+  messageString,
+  messageDestinationDomain,
+  messageRecipient,
+) {
+  return {
+    message: messageString,
+    destinationDomain: messageDestinationDomain,
+    recipientAddress: messageRecipient,
+  };
+}
+
 module.exports = {
   enqueueUpdateReplica,
   enqueueMessagesAndUpdateHome,
+  generateMessage,
 };
