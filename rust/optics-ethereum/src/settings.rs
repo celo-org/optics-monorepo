@@ -10,7 +10,7 @@ use optics_core::{
 
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum EthereumConnection {
     /// HTTP connection details
     Http {
@@ -67,7 +67,7 @@ macro_rules! construct_http_box_contract {
 // TODO: figure out how to take inputs for Ledger and YubiWallet variants
 /// Ethereum signer types
 #[derive(Debug, Clone, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum EthereumSigner {
     /// A local hex key
     HexKey {

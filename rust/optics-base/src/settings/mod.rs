@@ -18,7 +18,7 @@ use crate::agent::AgentCore;
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
 #[derive(Debug, Deserialize)]
-#[serde(tag = "rpc-style", content = "config", rename_all = "kebab-case")]
+#[serde(tag = "rpcStyle", content = "config", rename_all = "camelCase")]
 pub enum ChainConf {
     /// Ethereum configuration
     Ethereum(EthereumConf),
@@ -82,7 +82,7 @@ impl ChainSetup {
 /// }
 /// ```
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// The path to use for the DB file
     pub db_path: String,

@@ -80,7 +80,7 @@ macro_rules! decl_settings {
 
         $(#[$outer])*
         #[derive(Debug, serde::Deserialize)]
-        #[serde(rename_all = "kebab-case")]
+        #[serde(rename_all = "camelCase")]
         pub struct Settings {
             #[serde(flatten)]
             pub(crate) base: optics_base::settings::Settings,

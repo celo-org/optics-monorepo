@@ -7,7 +7,7 @@ use crate::kathy::ChatGenerator;
 use optics_base::decl_settings;
 
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum ChatGenConfig {
     Static {
         destination: u32,
