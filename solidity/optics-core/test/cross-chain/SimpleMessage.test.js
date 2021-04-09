@@ -135,53 +135,5 @@ describe('SimpleCrossChainMessage', async () => {
     expect(await replica.current()).to.equal(finalRoot);
   });
 
-  ///////// TODO: BELOW HERE NOTHING IS FINALIZED ///////////
-  //     it('Proves a valid message', async () => {
-  //       // Use 1st proof of 1st merkle vector test case
-  //       const testCase = merkleTestCases[0];
-  //       let { leaf, index, path } = testCase.proofs[0];
-  //
-  //       // and then proving the update
-  //       await replica.setCurrentRoot(testCase.expectedRoot);
-  //
-  //       // Ensure proper static call return value
-  //       expect(await replica.callStatic.prove(leaf, path, index)).to.be.true;
-  //
-  //       await replica.prove(leaf, path, index);
-  //       expect(await replica.messages(leaf)).to.equal(
-  //         optics.MessageStatus.PENDING,
-  //       );
-  //     });
-  //
-  //     it('Processes a proved message', async () => {
-  //       const [sender, recipient] = provider.getWallets();
-  //       const mockRecipient = await deployMockContract(
-  //         recipient,
-  //         MockRecipient.abi,
-  //       );
-  //
-  //       const mockVal = '0x1234abcd';
-  //       await mockRecipient.mock.handle.returns(mockVal);
-  //
-  //       const sequence = (await replica.lastProcessed()).add(1);
-  //       const formattedMessage = optics.formatMessage(
-  //         originDomain,
-  //         sender.address,
-  //         sequence,
-  //         ownDomain,
-  //         mockRecipient.address,
-  //         '0x',
-  //       );
-  //
-  //       // Set message status to MessageStatus.Pending
-  //       await replica.setMessagePending(formattedMessage);
-  //
-  //       // Ensure proper static call return value
-  //       let [success, ret] = await replica.callStatic.process(formattedMessage);
-  //       expect(success).to.be.true;
-  //       expect(ret).to.equal(mockVal);
-  //
-  //       await replica.process(formattedMessage);
-  //       expect(await replica.lastProcessed()).to.equal(sequence);
-  //     });
+  // TODO: PROVE AND PROCESS MESSAGE ON REPLICA
 });
