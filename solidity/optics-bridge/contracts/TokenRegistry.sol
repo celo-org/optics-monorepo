@@ -8,7 +8,7 @@ import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 import {
     XAppConnectionManager,
     TypeCasts
-} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
+} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";

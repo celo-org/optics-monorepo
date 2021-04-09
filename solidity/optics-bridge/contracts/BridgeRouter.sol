@@ -6,7 +6,9 @@ import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeToken} from "./BridgeToken.sol";
 import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
 
-import {TypeCasts} from "@celo-org/optics-sol/contracts/UsingOptics.sol";
+import {
+    TypeCasts
+} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {
     MessageRecipientI
 } from "@celo-org/optics-sol/interfaces/MessageRecipientI.sol";
