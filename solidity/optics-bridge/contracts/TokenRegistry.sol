@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 import {BridgeMessage} from "./BridgeMessage.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
+import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
 
 import {
     XAppConnectionManager,
@@ -101,8 +101,8 @@ contract TokenRegistry is Ownable {
         tokenTemplate = _newTemplate;
     }
 
-    function downcast(IERC20 _token) internal pure returns (BridgeTokenI) {
-        return BridgeTokenI(address(_token));
+    function downcast(IERC20 _token) internal pure returns (IBridgeToken) {
+        return IBridgeToken(address(_token));
     }
 
     function tokenIdFor(address _token)
@@ -150,7 +150,7 @@ contract TokenRegistry is Ownable {
         _token = createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
-        BridgeTokenI(_token).setDetails(_idHash, _idHash, 18);
+        IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
 
         reprToCanonical[_token].domain = _tokenId.domain();
         reprToCanonical[_token].id = _tokenId.id();

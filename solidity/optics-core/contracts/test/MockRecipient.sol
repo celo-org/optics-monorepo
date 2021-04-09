@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
+import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 
-contract MockRecipient is MessageRecipientI {
+contract MockRecipient is IMessageRecipient {
     // solhint-disable-next-line no-empty-blocks
     constructor() {}
 

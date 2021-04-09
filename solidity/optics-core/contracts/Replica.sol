@@ -4,7 +4,7 @@ pragma solidity >=0.6.11;
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import {MessageRecipientI} from "../interfaces/MessageRecipientI.sol";
+import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -214,7 +214,7 @@ contract Replica is Common, QueueManager {
         // transparently return.
 
         try
-            MessageRecipientI(recipient).handle{gas: PROCESS_GAS}(
+            IMessageRecipient(recipient).handle{gas: PROCESS_GAS}(
                 _m.origin(),
                 _m.sender(),
                 payload

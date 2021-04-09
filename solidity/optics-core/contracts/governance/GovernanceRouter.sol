@@ -6,10 +6,10 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 import {Home} from "../Home.sol";
 import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
-import {MessageRecipientI} from "../../interfaces/MessageRecipientI.sol";
+import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is MessageRecipientI {
+contract GovernanceRouter is IMessageRecipient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;

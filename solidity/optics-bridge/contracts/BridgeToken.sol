@@ -6,9 +6,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {BridgeTokenI} from "../interfaces/BridgeTokenI.sol";
+import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
 
-contract BridgeToken is BridgeTokenI, Ownable, ERC20 {
+contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     /**
      * @dev Returns the name of the token.
      */

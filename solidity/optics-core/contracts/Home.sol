@@ -4,7 +4,7 @@ pragma solidity >=0.6.11;
 import "./Common.sol";
 import "./Merkle.sol";
 import "./Queue.sol";
-import "../interfaces/UpdaterManagerI.sol";
+import "../interfaces/IUpdaterManager.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -22,7 +22,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     /// @notice Mapping of sequence numbers for each destination
     mapping(uint32 => uint32) public sequences;
 
-    UpdaterManagerI public updaterManager;
+    IUpdaterManager public updaterManager;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -69,8 +69,8 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
         setLocalDomain(_localDomain);
 
-        updaterManager = UpdaterManagerI(_updaterManager);
-        updater = UpdaterManagerI(_updaterManager).updater();
+        updaterManager = IUpdaterManager(_updaterManager);
+        updater = IUpdaterManager(_updaterManager).updater();
 
         queue.initialize();
         state = States.ACTIVE;
@@ -95,7 +95,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
             "!contract updaterManager"
         );
 
-        updaterManager = UpdaterManagerI(_updaterManager);
+        updaterManager = IUpdaterManager(_updaterManager);
         emit NewUpdaterManager(_updaterManager);
     }
 

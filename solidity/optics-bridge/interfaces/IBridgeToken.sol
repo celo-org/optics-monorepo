@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-interface BridgeTokenI {
+interface IBridgeToken {
     function name() external returns (string memory);
 
     function symbol() external returns (string memory);
