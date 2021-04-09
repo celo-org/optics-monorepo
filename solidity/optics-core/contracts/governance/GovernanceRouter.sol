@@ -64,7 +64,7 @@ contract GovernanceRouter is IMessageRecipient {
 
         require(
             xAppConnectionManager.localDomain() == localDomain,
-            "XAppConnectionManager incompatible domain"
+            "XAppConnectionManager bad domain"
         );
     }
 

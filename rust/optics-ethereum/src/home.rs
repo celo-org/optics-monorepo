@@ -98,7 +98,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    origin_domain: event.origin_domain,
+                    origin_domain: event.local_domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -125,7 +125,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    origin_domain: event.origin_domain,
+                    origin_domain: event.local_domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
