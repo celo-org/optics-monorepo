@@ -30,9 +30,9 @@ describe('XAppConnectionManager', async () => {
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [remoteDomain],
+      [localDomain],
       [
-        localDomain,
+        remoteDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
