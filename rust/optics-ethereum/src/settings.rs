@@ -4,7 +4,7 @@ use color_eyre::{eyre::eyre, Report, Result};
 use ethers::core::types::Address;
 
 use optics_core::{
-    traits::{Home, Replica},
+    traits::{ConnectionManager, Home, Replica},
     Signers,
 };
 
@@ -158,6 +158,39 @@ impl EthereumConf {
             EthereumConnection::Ws { url } => {
                 construct_ws_box_contract!(
                     EthereumReplica,
+                    name,
+                    domain,
+                    address,
+                    url,
+                    self.signer()
+                )
+            }
+        };
+        Ok(b)
+    }
+
+    /// Try to convert this into a replica contract
+    #[tracing::instrument(err)]
+    pub async fn try_into_xapp_connection_manager(
+        &self,
+        name: &str,
+        domain: u32,
+        address: Address,
+    ) -> Result<Box<dyn ConnectionManager>, Report> {
+        let b: Box<dyn ConnectionManager> = match &self.connection {
+            EthereumConnection::Http { url } => {
+                construct_http_box_contract!(
+                    EthereumConnectionManager,
+                    name,
+                    domain,
+                    address,
+                    url,
+                    self.signer()
+                )
+            }
+            EthereumConnection::Ws { url } => {
+                construct_ws_box_contract!(
+                    EthereumConnectionManager,
                     name,
                     domain,
                     address,

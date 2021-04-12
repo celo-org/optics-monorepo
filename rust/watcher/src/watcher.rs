@@ -20,9 +20,12 @@ use optics_base::{
     cancel_task,
     home::Homes,
     persistence::UsingPersistence,
+    xapp::ConnectionManagers,
 };
 use optics_core::{
-    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, TxOutcome},
+    traits::{
+        ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Replica, TxOutcome,
+    },
     FailureNotification, SignedUpdate, Signers,
 };
 
@@ -245,6 +248,7 @@ pub struct Watcher {
     interval_seconds: u64,
     sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+    xapp_connection_manager: ConnectionManagers,
     core: AgentCore,
 }
 
@@ -257,12 +261,18 @@ impl AsRef<AgentCore> for Watcher {
 #[allow(clippy::unit_arg)]
 impl Watcher {
     /// Instantiate a new watcher.
-    pub fn new(signer: Signers, interval_seconds: u64, core: AgentCore) -> Self {
+    pub fn new(
+        signer: Signers,
+        interval_seconds: u64,
+        xapp_connection_manager: ConnectionManagers,
+        core: AgentCore,
+    ) -> Self {
         Self {
             signer: Arc::new(signer),
             interval_seconds,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),
+            xapp_connection_manager,
             core,
         }
     }
@@ -287,25 +297,34 @@ impl Watcher {
             self.core.replicas.len()
         );
 
-        // TODO: submit signed failure notifications to XAppConnectionManager
-        for replica in self.core.replicas.values() {
-            let _signed = FailureNotification {
-                domain: replica.destination_domain(),
-                updater: replica.updater().await.unwrap().into(),
-            }
-            .sign_with(self.signer.as_ref())
-            .await
-            .expect("!sign");
-        }
+        #[allow(clippy::async_yields_async)]
+        let unenroll_futs: Vec<_> = self
+            .core
+            .replicas
+            .values()
+            .map(|replica| async move {
+                let signed_failure = FailureNotification {
+                    domain: replica.destination_domain(),
+                    updater: replica.updater().await.unwrap().into(),
+                }
+                .sign_with(self.signer.as_ref())
+                .await
+                .expect("!sign");
 
-        let mut futs: Vec<_> = self
+                self.xapp_connection_manager
+                    .unenroll_replica(signed_failure)
+            })
+            .collect();
+        join_all(unenroll_futs).await;
+
+        let mut double_update_futs: Vec<_> = self
             .core
             .replicas
             .values()
             .map(|replica| replica.double_update(&double))
             .collect();
-        futs.push(self.core.home.double_update(double));
-        join_all(futs).await
+        double_update_futs.push(self.core.home.double_update(double));
+        join_all(double_update_futs).await
     }
 }
 
@@ -319,10 +338,17 @@ impl OpticsAgent for Watcher {
     where
         Self: Sized,
     {
+        let xapp_connection_manager = settings
+            .xapp_connection_manager
+            .try_into_xapp_connection_manager()
+            .await?;
+        let core = settings.as_ref().try_into_core().await?;
+
         Ok(Self::new(
             settings.watcher.try_into_signer()?,
             settings.polling_interval,
-            settings.as_ref().try_into_core().await?,
+            xapp_connection_manager,
+            core,
         ))
     }
 
