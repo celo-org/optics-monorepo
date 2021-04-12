@@ -136,10 +136,6 @@ contract TokenRegistry is Ownable {
         return IERC20(_local);
     }
 
-    function downcast(IERC20 _token) internal pure returns (IBridgeToken) {
-        return IBridgeToken(address(_token));
-    }
-
     function tokenIdFor(address _token)
         internal
         view
@@ -174,5 +170,9 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         return IERC20(canonicalToRepr[_tokenId.keccak()]);
+    }
+
+    function downcast(IERC20 _token) internal pure returns (IBridgeToken) {
+        return IBridgeToken(address(_token));
     }
 }

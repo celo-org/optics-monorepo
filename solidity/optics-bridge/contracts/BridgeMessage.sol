@@ -24,6 +24,19 @@ library BridgeMessage {
         _;
     }
 
+    function formatMessage(bytes29 _tokenId, bytes29 _action)
+        internal
+        view
+        typeAssert(_tokenId, Types.TokenId)
+        returns (bytes memory)
+    {
+        require(isDetails(_action) || isTransfer(_action), "!action");
+        bytes29[] memory _views = new bytes29[](2);
+        _views[0] = _tokenId;
+        _views[1] = _action;
+        return TypedMemView.join(_views);
+    }
+
     function messageType(bytes29 _view) internal pure returns (Types) {
         return Types(uint8(_view.typeOf()));
     }
@@ -59,19 +72,6 @@ library BridgeMessage {
         returns (bytes29)
     {
         return mustBeTokenId(abi.encodePacked(_domain, _id).ref(0));
-    }
-
-    function formatMessage(bytes29 _tokenId, bytes29 _action)
-        internal
-        view
-        typeAssert(_tokenId, Types.TokenId)
-        returns (bytes memory)
-    {
-        require(isDetails(_action) || isTransfer(_action), "!action");
-        bytes29[] memory _views = new bytes29[](2);
-        _views[0] = _tokenId;
-        _views[1] = _action;
-        return TypedMemView.join(_views);
     }
 
     function domain(bytes29 _view)
