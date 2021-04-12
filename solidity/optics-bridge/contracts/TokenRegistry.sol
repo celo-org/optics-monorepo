@@ -112,8 +112,8 @@ contract TokenRegistry is Ownable {
         // Initial details are set to a hash of the ID
         IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
 
-        reprToCanonical[_token].domain = _tokenId.domain();
-        reprToCanonical[_token].id = _tokenId.id();
+        reprToCanonical[_token].domain = _tokenId._domain();
+        reprToCanonical[_token].id = _tokenId._id();
         canonicalToRepr[_idHash] = _token;
     }
 
@@ -123,8 +123,8 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == xAppConnectionManager.localDomain()) {
-            return IERC20(_tokenId.evmId());
+        if (_tokenId._domain() == xAppConnectionManager.localDomain()) {
+            return IERC20(_tokenId._evmId());
         }
 
         // Repr

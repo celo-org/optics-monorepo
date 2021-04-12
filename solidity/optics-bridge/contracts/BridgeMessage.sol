@@ -24,57 +24,57 @@ library BridgeMessage {
         _;
     }
 
-    function formatMessage(bytes29 _tokenId, bytes29 _action)
+    function _formatMessage(bytes29 _tokenId, bytes29 _action)
         internal
         view
         typeAssert(_tokenId, Types.TokenId)
         returns (bytes memory)
     {
-        require(isDetails(_action) || isTransfer(_action), "!action");
+        require(_isDetails(_action) || _isTransfer(_action), "!action");
         bytes29[] memory _views = new bytes29[](2);
         _views[0] = _tokenId;
         _views[1] = _action;
         return TypedMemView.join(_views);
     }
 
-    function messageType(bytes29 _view) internal pure returns (Types) {
+    function _messageType(bytes29 _view) internal pure returns (Types) {
         return Types(uint8(_view.typeOf()));
     }
 
-    function isTransfer(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.Transfer;
+    function _isTransfer(bytes29 _view) internal pure returns (bool) {
+        return _messageType(_view) == Types.Transfer;
     }
 
-    function isDetails(bytes29 _view) internal pure returns (bool) {
-        return messageType(_view) == Types.Details;
+    function _isDetails(bytes29 _view) internal pure returns (bool) {
+        return _messageType(_view) == Types.Details;
     }
 
-    function formatTransfer(bytes32 _to, uint256 _amnt)
+    function _formatTransfer(bytes32 _to, uint256 _amnt)
         internal
         pure
         returns (bytes29)
     {
-        return mustBeTransfer(abi.encodePacked(_to, _amnt).ref(0));
+        return _mustBeTransfer(abi.encodePacked(_to, _amnt).ref(0));
     }
 
-    function formatDetails(
+    function _formatDetails(
         bytes32 _name,
         bytes32 _symbol,
         uint8 _decimals
     ) internal pure returns (bytes29) {
         return
-            mustBeDetails(abi.encodePacked(_name, _symbol, _decimals).ref(0));
+            _mustBeDetails(abi.encodePacked(_name, _symbol, _decimals).ref(0));
     }
 
-    function formatTokenId(uint32 _domain, bytes32 _id)
+    function _formatTokenId(uint32 _domain, bytes32 _id)
         internal
         pure
         returns (bytes29)
     {
-        return mustBeTokenId(abi.encodePacked(_domain, _id).ref(0));
+        return _mustBeTokenId(abi.encodePacked(_domain, _id).ref(0));
     }
 
-    function domain(bytes29 _view)
+    function _domain(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.TokenId)
@@ -83,7 +83,7 @@ library BridgeMessage {
         return uint32(_view.indexUint(0, 4));
     }
 
-    function id(bytes29 _view)
+    function _id(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.TokenId)
@@ -92,7 +92,7 @@ library BridgeMessage {
         return _view.index(4, 32);
     }
 
-    function evmId(bytes29 _view)
+    function _evmId(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.TokenId)
@@ -102,7 +102,7 @@ library BridgeMessage {
         return _view.indexAddress(16);
     }
 
-    function recipient(bytes29 _view)
+    function _recipient(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Transfer)
@@ -111,7 +111,7 @@ library BridgeMessage {
         return _view.index(0, 32);
     }
 
-    function evmRecipient(bytes29 _view)
+    function _evmRecipient(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Transfer)
@@ -120,7 +120,7 @@ library BridgeMessage {
         return _view.indexAddress(12);
     }
 
-    function amnt(bytes29 _view)
+    function _amnt(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Transfer)
@@ -129,7 +129,7 @@ library BridgeMessage {
         return _view.indexUint(32, 32);
     }
 
-    function name(bytes29 _view)
+    function _name(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Details)
@@ -138,7 +138,7 @@ library BridgeMessage {
         return _view.index(0, 32);
     }
 
-    function symbol(bytes29 _view)
+    function _symbol(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Details)
@@ -147,7 +147,7 @@ library BridgeMessage {
         return _view.index(32, 32);
     }
 
-    function decimals(bytes29 _view)
+    function _decimals(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Details)
@@ -156,7 +156,7 @@ library BridgeMessage {
         return uint8(_view.indexUint(64, 1));
     }
 
-    function tokenId(bytes29 _view)
+    function _tokenId(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Message)
@@ -165,7 +165,7 @@ library BridgeMessage {
         return _view.slice(0, TOKEN_ID_LEN, uint40(Types.TokenId));
     }
 
-    function action(bytes29 _view)
+    function _action(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Message)
@@ -187,28 +187,28 @@ library BridgeMessage {
             );
     }
 
-    function tryAsTransfer(bytes29 _view) internal pure returns (bytes29) {
+    function _tryAsTransfer(bytes29 _view) internal pure returns (bytes29) {
         if (_view.len() == TRANSFER_LEN) {
             return _view.castTo(uint40(Types.Transfer));
         }
         return TypedMemView.nullView();
     }
 
-    function tryAsDetails(bytes29 _view) internal pure returns (bytes29) {
+    function _tryAsDetails(bytes29 _view) internal pure returns (bytes29) {
         if (_view.len() == DETAILS_LEN) {
             return _view.castTo(uint40(Types.Details));
         }
         return TypedMemView.nullView();
     }
 
-    function tryAsTokenId(bytes29 _view) internal pure returns (bytes29) {
+    function _tryAsTokenId(bytes29 _view) internal pure returns (bytes29) {
         if (_view.len() == 36) {
             return _view.castTo(uint40(Types.TokenId));
         }
         return TypedMemView.nullView();
     }
 
-    function tryAsMessage(bytes29 _view) internal pure returns (bytes29) {
+    function _tryAsMessage(bytes29 _view) internal pure returns (bytes29) {
         uint256 _len = _view.len();
         if (
             _len == TOKEN_ID_LEN + TRANSFER_LEN ||
@@ -219,19 +219,19 @@ library BridgeMessage {
         return TypedMemView.nullView();
     }
 
-    function mustBeTransfer(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsTransfer(_view).assertValid();
+    function _mustBeTransfer(bytes29 _view) internal pure returns (bytes29) {
+        return _tryAsTransfer(_view).assertValid();
     }
 
-    function mustBeDetails(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsDetails(_view).assertValid();
+    function _mustBeDetails(bytes29 _view) internal pure returns (bytes29) {
+        return _tryAsDetails(_view).assertValid();
     }
 
-    function mustBeTokenId(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsTokenId(_view).assertValid();
+    function _mustBeTokenId(bytes29 _view) internal pure returns (bytes29) {
+        return _tryAsTokenId(_view).assertValid();
     }
 
-    function mustBeMessage(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsMessage(_view).assertValid();
+    function _mustBeMessage(bytes29 _view) internal pure returns (bytes29) {
+        return _tryAsMessage(_view).assertValid();
     }
 }
