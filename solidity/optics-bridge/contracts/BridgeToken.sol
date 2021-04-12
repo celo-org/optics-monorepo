@@ -9,6 +9,25 @@ import {
 import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
+    function burn(address from, uint256 amnt) external override onlyOwner {
+        _burn(from, amnt);
+    }
+
+    function mint(address to, uint256 amnt) external override onlyOwner {
+        _mint(to, amnt);
+    }
+
+    function setDetails(
+        bytes32 _newName,
+        bytes32 _newSymbol,
+        uint8 _newDecimals
+    ) external override onlyOwner {
+        // careful with naming convention change here
+        _name = TypeCasts.coerceString(_newName);
+        _symbol = TypeCasts.coerceString(_newSymbol);
+        _decimals = _newDecimals;
+    }
+
     /**
      * @dev Returns the name of the token.
      */
@@ -39,24 +58,5 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
      */
     function decimals() public view override returns (uint8) {
         return _decimals;
-    }
-
-    function burn(address from, uint256 amnt) external override onlyOwner {
-        _burn(from, amnt);
-    }
-
-    function mint(address to, uint256 amnt) external override onlyOwner {
-        _mint(to, amnt);
-    }
-
-    function setDetails(
-        bytes32 _newName,
-        bytes32 _newSymbol,
-        uint8 _newDecimals
-    ) external override onlyOwner {
-        // careful with naming convention change here
-        _name = TypeCasts.coerceString(_newName);
-        _symbol = TypeCasts.coerceString(_newSymbol);
-        _decimals = _newDecimals;
     }
 }

@@ -72,6 +72,17 @@ contract TokenRegistry is Ownable {
         _;
     }
 
+    function setTemplate(address _newTemplate) external onlyOwner {
+        tokenTemplate = _newTemplate;
+    }
+
+    function setXAppConnectionManager(address _xAppConnectionManager)
+        public
+        onlyOwner
+    {
+        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
+    }
+
     function createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
         // solhint-disable-next-line no-inline-assembly
@@ -90,15 +101,39 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    function setXAppConnectionManager(address _xAppConnectionManager)
-        public
-        onlyOwner
+    function deployToken(bytes29 _tokenId)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (address _token)
     {
-        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
+        bytes32 _idHash = _tokenId.keccak();
+        _token = createClone(tokenTemplate);
+
+        // Initial details are set to a hash of the ID
+        IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
+
+        reprToCanonical[_token].domain = _tokenId.domain();
+        reprToCanonical[_token].id = _tokenId.id();
+        canonicalToRepr[_idHash] = _token;
     }
 
-    function setTemplate(address _newTemplate) external onlyOwner {
-        tokenTemplate = _newTemplate;
+    function ensureToken(bytes29 _tokenId)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (IERC20)
+    {
+        // Native
+        if (_tokenId.domain() == xAppConnectionManager.localDomain()) {
+            return IERC20(_tokenId.evmId());
+        }
+
+        // Repr
+        address _local = canonicalToRepr[_tokenId.keccak()];
+        if (_local == address(0)) {
+            // DEPLO
+            _local = deployToken(_tokenId);
+        }
+        return IERC20(_local);
     }
 
     function downcast(IERC20 _token) internal pure returns (IBridgeToken) {
@@ -139,40 +174,5 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         return IERC20(canonicalToRepr[_tokenId.keccak()]);
-    }
-
-    function deployToken(bytes29 _tokenId)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (address _token)
-    {
-        bytes32 _idHash = _tokenId.keccak();
-        _token = createClone(tokenTemplate);
-
-        // Initial details are set to a hash of the ID
-        IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
-
-        reprToCanonical[_token].domain = _tokenId.domain();
-        reprToCanonical[_token].id = _tokenId.id();
-        canonicalToRepr[_idHash] = _token;
-    }
-
-    function ensureToken(bytes29 _tokenId)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (IERC20)
-    {
-        // Native
-        if (_tokenId.domain() == xAppConnectionManager.localDomain()) {
-            return IERC20(_tokenId.evmId());
-        }
-
-        // Repr
-        address _local = canonicalToRepr[_tokenId.keccak()];
-        if (_local == address(0)) {
-            // DEPLO
-            _local = deployToken(_tokenId);
-        }
-        return IERC20(_local);
     }
 }

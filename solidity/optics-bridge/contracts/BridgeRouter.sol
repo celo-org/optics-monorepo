@@ -31,30 +31,13 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
         TokenRegistry(_xAppConnectionManager)
     {}
 
-    function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
-        remotes[_origin] = _router;
-    }
-
-    function mustHaveRemote(uint32 _domain)
-        internal
-        view
-        returns (bytes32 _remote)
-    {
-        _remote = remotes[_domain];
-        require(_remote != bytes32(0), "!remote");
-    }
-
-    function isRemoteRouter(uint32 _origin, bytes32 _router)
-        internal
-        view
-        returns (bool)
-    {
-        return remotes[_origin] == _router;
-    }
-
     modifier onlyRemoteRouter(uint32 _origin, bytes32 _router) {
         require(isRemoteRouter(_origin, _router), "Not a remote router");
         _;
+    }
+
+    function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
+        remotes[_origin] = _router;
     }
 
     function handle(
@@ -78,41 +61,6 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
             return handleDetails(_tokenId, _action);
         }
         require(false, "!action");
-        return hex"";
-    }
-
-    function handleTransfer(bytes29 _tokenId, bytes29 _action)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Transfer)
-        returns (bytes memory)
-    {
-        IERC20 _token = ensureToken(_tokenId);
-
-        if (isNative(_token)) {
-            _token.safeTransfer(_action.evmRecipient(), _action.amnt());
-        } else {
-            downcast(_token).mint(_action.evmRecipient(), _action.amnt());
-        }
-
-        return hex"";
-    }
-
-    function handleDetails(bytes29 _tokenId, bytes29 _action)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Details)
-        returns (bytes memory)
-    {
-        IERC20 _token = ensureToken(_tokenId);
-        require(!isNative(_token), "!repr");
-
-        downcast(_token).setDetails(
-            _action.name(),
-            _action.symbol(),
-            _action.decimals()
-        );
-
         return hex"";
     }
 
@@ -163,5 +111,57 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
         );
+    }
+
+    function handleTransfer(bytes29 _tokenId, bytes29 _action)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        typeAssert(_action, BridgeMessage.Types.Transfer)
+        returns (bytes memory)
+    {
+        IERC20 _token = ensureToken(_tokenId);
+
+        if (isNative(_token)) {
+            _token.safeTransfer(_action.evmRecipient(), _action.amnt());
+        } else {
+            downcast(_token).mint(_action.evmRecipient(), _action.amnt());
+        }
+
+        return hex"";
+    }
+
+    function handleDetails(bytes29 _tokenId, bytes29 _action)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        typeAssert(_action, BridgeMessage.Types.Details)
+        returns (bytes memory)
+    {
+        IERC20 _token = ensureToken(_tokenId);
+        require(!isNative(_token), "!repr");
+
+        downcast(_token).setDetails(
+            _action.name(),
+            _action.symbol(),
+            _action.decimals()
+        );
+
+        return hex"";
+    }
+
+    function mustHaveRemote(uint32 _domain)
+        internal
+        view
+        returns (bytes32 _remote)
+    {
+        _remote = remotes[_domain];
+        require(_remote != bytes32(0), "!remote");
+    }
+
+    function isRemoteRouter(uint32 _origin, bytes32 _router)
+        internal
+        view
+        returns (bool)
+    {
+        return remotes[_origin] == _router;
     }
 }
