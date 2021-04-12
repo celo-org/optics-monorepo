@@ -99,30 +99,6 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         emit NewUpdaterManager(_updaterManager);
     }
 
-    /// @notice Sets contract state to FAILED and slashes updater
-    function fail() internal override {
-        _setFailed();
-        updaterManager.slashUpdater(msg.sender);
-
-        emit UpdaterSlashed(updater, msg.sender);
-    }
-
-    /**
-     * @notice Internal utility function that combines provided `_destination`
-     * and `_sequence`.
-     * @dev Both destination and sequence should be < 2^32 - 1
-     * @param _destination Domain of destination chain
-     * @param _sequence Current sequence for given destination chain
-     * @return Returns (`_destination` << 32) & `_sequence`
-     */
-    function destinationAndSequence(uint32 _destination, uint32 _sequence)
-        internal
-        pure
-        returns (uint64)
-    {
-        return (uint64(_destination) << 32) | _sequence;
-    }
-
     /**
      * @notice Formats message, adds its leaf into merkle tree, enqueues new
      * merkle root, and emits `Dispatch` event with data regarding message.
@@ -186,6 +162,24 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     }
 
     /**
+     * @notice Suggests an update to caller. If queue is non-empty, returns the
+     * home's current root as `_current` and the queue's latest root as
+     * `_new`. Null bytes returned if queue is empty.
+     * @return _current Current root
+     * @return _new New root
+     */
+    function suggestUpdate()
+        external
+        view
+        returns (bytes32 _current, bytes32 _new)
+    {
+        if (queue.length() != 0) {
+            _current = current;
+            _new = queue.lastItem();
+        }
+    }
+
+    /**
      * @notice Checks that `_newRoot` in update currently exists in queue. If
      * `_newRoot` doesn't exist in queue, update is fraudulent, causing
      * updater to be slashed and home to be failed.
@@ -211,21 +205,27 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         return false;
     }
 
+    /// @notice Sets contract state to FAILED and slashes updater
+    function fail() internal override {
+        _setFailed();
+        updaterManager.slashUpdater(msg.sender);
+
+        emit UpdaterSlashed(updater, msg.sender);
+    }
+
     /**
-     * @notice Suggests an update to caller. If queue is non-empty, returns the
-     * home's current root as `_current` and the queue's latest root as
-     * `_new`. Null bytes returned if queue is empty.
-     * @return _current Current root
-     * @return _new New root
+     * @notice Internal utility function that combines provided `_destination`
+     * and `_sequence`.
+     * @dev Both destination and sequence should be < 2^32 - 1
+     * @param _destination Domain of destination chain
+     * @param _sequence Current sequence for given destination chain
+     * @return Returns (`_destination` << 32) & `_sequence`
      */
-    function suggestUpdate()
-        external
-        view
-        returns (bytes32 _current, bytes32 _new)
+    function destinationAndSequence(uint32 _destination, uint32 _sequence)
+        internal
+        pure
+        returns (uint64)
     {
-        if (queue.length() != 0) {
-            _current = current;
-            _new = queue.lastItem();
-        }
+        return (uint64(_destination) << 32) | _sequence;
     }
 }

@@ -16,15 +16,15 @@ contract TestCommon is Common {
         return checkSig(_oldRoot, _newRoot, _signature);
     }
 
-    function fail() internal override {
-        _setFailed();
-    }
-
     function testDomainHash(uint32 _remoteDomain)
         external
         pure
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_remoteDomain, "OPTICS"));
+    }
+
+    function fail() internal override {
+        _setFailed();
     }
 }

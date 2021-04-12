@@ -11,18 +11,6 @@ contract TestQueue is QueueManager {
 
     // NB: this is unfortunately expensive
 
-    function contains(bytes32 _item) external view returns (bool) {
-        return queue.contains(_item);
-    }
-
-    function lastItem() external view returns (bytes32) {
-        return queue.lastItem();
-    }
-
-    function peek() external view returns (bytes32 _item) {
-        return queue.peek();
-    }
-
     function enqueue(bytes32 _item) external returns (uint256 _last) {
         return queue.enqueue(_item);
     }
@@ -45,10 +33,6 @@ contract TestQueue is QueueManager {
         return queue.dequeue(_number);
     }
 
-    function length() external view returns (uint256) {
-        return queue.length();
-    }
-
     function drain() external {
         while (queue.length() != 0) {
             queue.dequeue();
@@ -57,5 +41,21 @@ contract TestQueue is QueueManager {
 
     function initializeAgain() external {
         queue.initialize();
+    }
+
+    function contains(bytes32 _item) external view returns (bool) {
+        return queue.contains(_item);
+    }
+
+    function lastItem() external view returns (bytes32) {
+        return queue.lastItem();
+    }
+
+    function peek() external view returns (bytes32 _item) {
+        return queue.peek();
+    }
+
+    function length() external view returns (uint256) {
+        return queue.length();
     }
 }

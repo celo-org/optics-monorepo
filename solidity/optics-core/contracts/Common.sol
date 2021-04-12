@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./libs/Message.sol";
+import "../libs/Message.sol";
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
@@ -55,20 +55,6 @@ abstract contract Common {
         bytes _signature2
     );
 
-    /// @notice Called when a double update or fraudulent update is detected
-    function fail() internal virtual;
-
-    /// @notice Sets contract state to FAILED
-    function _setFailed() internal {
-        state = States.FAILED;
-    }
-
-    /// @notice Ensures that contract state != FAILED
-    modifier notFailed() {
-        require(state != States.FAILED, "failed state");
-        _;
-    }
-
     function initialize(uint32 _localDomain, address _updater) public virtual {
         require(state == States.UNINITIALIZED, "already initialized");
 
@@ -79,28 +65,10 @@ abstract contract Common {
         state = States.ACTIVE;
     }
 
-    function setLocalDomain(uint32 _localDomain) internal {
-        localDomain = _localDomain;
-        domainHash = keccak256(abi.encodePacked(_localDomain, "OPTICS"));
-    }
-
-    /**
-     * @notice Called internally. Checks that signature is valid (belongs to
-     * updater).
-     * @param _oldRoot Old merkle root
-     * @param _newRoot New merkle root
-     * @param _signature Signature on `_oldRoot` and `_newRoot`
-     * @return Returns true if signature is valid and false if otherwise
-     **/
-    function checkSig(
-        bytes32 _oldRoot,
-        bytes32 _newRoot,
-        bytes memory _signature
-    ) internal view returns (bool) {
-        bytes32 _digest =
-            keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
-        _digest = ECDSA.toEthSignedMessageHash(_digest);
-        return ECDSA.recover(_digest, _signature) == updater;
+    /// @notice Ensures that contract state != FAILED
+    modifier notFailed() {
+        require(state != States.FAILED, "failed state");
+        _;
     }
 
     /**
@@ -128,5 +96,37 @@ abstract contract Common {
             fail();
             emit DoubleUpdate(_oldRoot, _newRoot, _signature, _signature2);
         }
+    }
+
+    /// @notice Sets contract state to FAILED
+    function _setFailed() internal {
+        state = States.FAILED;
+    }
+
+    function setLocalDomain(uint32 _localDomain) internal {
+        localDomain = _localDomain;
+        domainHash = keccak256(abi.encodePacked(_localDomain, "OPTICS"));
+    }
+
+    /// @notice Called when a double update or fraudulent update is detected
+    function fail() internal virtual;
+
+    /**
+     * @notice Called internally. Checks that signature is valid (belongs to
+     * updater).
+     * @param _oldRoot Old merkle root
+     * @param _newRoot New merkle root
+     * @param _signature Signature on `_oldRoot` and `_newRoot`
+     * @return Returns true if signature is valid and false if otherwise
+     **/
+    function checkSig(
+        bytes32 _oldRoot,
+        bytes32 _newRoot,
+        bytes memory _signature
+    ) internal view returns (bool) {
+        bytes32 _digest =
+            keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
+        _digest = ECDSA.toEthSignedMessageHash(_digest);
+        return ECDSA.recover(_digest, _signature) == updater;
     }
 }

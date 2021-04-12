@@ -8,6 +8,10 @@ contract TestMessage {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
+    function body(bytes memory _message) external view returns (bytes memory) {
+        return _message.ref(0).body().clone();
+    }
+
     function origin(bytes memory _message) external pure returns (uint32) {
         return _message.ref(0).origin();
     }
@@ -34,9 +38,5 @@ contract TestMessage {
         returns (address)
     {
         return _message.ref(0).recipientAddress();
-    }
-
-    function body(bytes memory _message) external view returns (bytes memory) {
-        return _message.ref(0).body().clone();
     }
 }

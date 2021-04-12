@@ -68,29 +68,6 @@ contract Replica is Common, QueueManager {
         state = States.ACTIVE;
     }
 
-    /// @notice Sets contract state to FAILED
-    function fail() internal override {
-        _setFailed();
-    }
-
-    /**
-     * @notice Called by external agent. Returns next pending root to be
-     * confirmed and its confirmation time. If queue is empty, returns null
-     * values.
-     * @return _pending Pending (unconfirmed) root
-     * @return _confirmAt Pending root's confirmation time
-     **/
-    function nextPending()
-        external
-        view
-        returns (bytes32 _pending, uint256 _confirmAt)
-    {
-        if (queue.length() != 0) {
-            _pending = queue.peek();
-            _confirmAt = confirmAt[_pending];
-        }
-    }
-
     /**
      * @notice Called by external agent. Enqueues signed update's new root,
      * marks root's allowable confirmation time, and emits an `Update` event.
@@ -121,15 +98,6 @@ contract Replica is Common, QueueManager {
     }
 
     /**
-     * @notice Called by external agent. Returns true if there is a confirmable
-     * root in the queue and false if otherwise.
-     **/
-    function canConfirm() external view returns (bool) {
-        return
-            queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()];
-    }
-
-    /**
      * @notice Called by external agent. Confirms as many confirmable roots in
      * queue as possible, updating replica's current root to be the last
      * confirmed root.
@@ -157,13 +125,50 @@ contract Replica is Common, QueueManager {
         current = _pending;
     }
 
-    /// @notice Sets `previous` to `current` root before updating `current`
-    function _beforeConfirm() internal {
-        previous = current;
+    /**
+     * @notice First attempts to prove the validity of provided formatted
+     * `message`. If the message is successfully proven, then tries to process
+     * message.
+     * @dev Reverts if `prove` call returns false
+     * @param message Formatted message (refer to Common.sol Message library)
+     * @param proof Merkle proof of inclusion for message's leaf
+     * @param index Index of leaf in home's merkle tree
+     **/
+    function proveAndProcess(
+        bytes memory message,
+        bytes32[32] calldata proof,
+        uint256 index
+    ) external {
+        require(prove(keccak256(message), proof, index), "!prove");
+        process(message);
     }
 
-    // solhint-disable-next-line no-empty-blocks
-    function _beforeUpdate() internal {}
+    /**
+     * @notice Called by external agent. Returns next pending root to be
+     * confirmed and its confirmation time. If queue is empty, returns null
+     * values.
+     * @return _pending Pending (unconfirmed) root
+     * @return _confirmAt Pending root's confirmation time
+     **/
+    function nextPending()
+        external
+        view
+        returns (bytes32 _pending, uint256 _confirmAt)
+    {
+        if (queue.length() != 0) {
+            _pending = queue.peek();
+            _confirmAt = confirmAt[_pending];
+        }
+    }
+
+    /**
+     * @notice Called by external agent. Returns true if there is a confirmable
+     * root in the queue and false if otherwise.
+     **/
+    function canConfirm() external view returns (bool) {
+        return
+            queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()];
+    }
 
     /**
      * @notice Given formatted message, attempts to dispatch message payload to
@@ -258,21 +263,16 @@ contract Replica is Common, QueueManager {
         return false;
     }
 
-    /**
-     * @notice First attempts to prove the validity of provided formatted
-     * `message`. If the message is successfully proven, then tries to process
-     * message.
-     * @dev Reverts if `prove` call returns false
-     * @param message Formatted message (refer to Common.sol Message library)
-     * @param proof Merkle proof of inclusion for message's leaf
-     * @param index Index of leaf in home's merkle tree
-     **/
-    function proveAndProcess(
-        bytes memory message,
-        bytes32[32] calldata proof,
-        uint256 index
-    ) external {
-        require(prove(keccak256(message), proof, index), "!prove");
-        process(message);
+    /// @notice Sets contract state to FAILED
+    function fail() internal override {
+        _setFailed();
     }
+
+    /// @notice Sets `previous` to `current` root before updating `current`
+    function _beforeConfirm() internal {
+        previous = current;
+    }
+
+    // solhint-disable-next-line no-empty-blocks
+    function _beforeUpdate() internal {}
 }

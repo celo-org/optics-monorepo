@@ -47,11 +47,6 @@ contract UpdaterManager is IUpdaterManager, Ownable {
         homeContract.setUpdater(_updaterAddress);
     }
 
-    /// @notice Returns the address of the current updater
-    function updater() external view override returns (address) {
-        return _updater;
-    }
-
     /**
      * @notice Slashes the updater
      * @dev Currently only emits Slashed event, functionality will come later
@@ -63,4 +58,9 @@ contract UpdaterManager is IUpdaterManager, Ownable {
         override
         onlyHome
     {} // solhint-disable-line no-empty-blocks
+
+    /// @notice Returns the address of the current updater
+    function updater() external view override returns (address) {
+        return _updater;
+    }
 }

@@ -79,6 +79,9 @@ contract GovernanceRouter is IMessageRecipient {
         _;
     }
 
+    /*
+    --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
+    */
     function setXAppConnectionManager(address _xAppConnectionManager)
         public
         onlyGovernor

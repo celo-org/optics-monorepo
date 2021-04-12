@@ -18,10 +18,6 @@ contract TestReplica is Replica {
         updater = _updater;
     }
 
-    function timestamp() external view returns (uint256) {
-        return block.timestamp;
-    }
-
     function setMessagePending(bytes memory _message) external {
         bytes29 _m = _message.ref(0);
         messages[_m.keccak()] = MessageStatus.Pending;
@@ -29,6 +25,10 @@ contract TestReplica is Replica {
 
     function setCurrentRoot(bytes32 _newRoot) external {
         current = _newRoot;
+    }
+
+    function timestamp() external view returns (uint256) {
+        return block.timestamp;
     }
 
     function testBranchRoot(

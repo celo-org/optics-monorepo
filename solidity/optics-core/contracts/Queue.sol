@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./libs/Queue.sol";
+import "../libs/Queue.sol";
 
 /**
  * @title QueueManager

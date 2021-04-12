@@ -105,39 +105,6 @@ contract UpgradeBeaconProxy {
     }
 
     /**
-     * @notice Call the Upgrade Beacon to get the current implementation contract address
-     *
-     * @return implementation - Address of the current implementation.
-     */
-    function _implementation() private view returns (address implementation) {
-        implementation = _implementation(upgradeBeacon);
-    }
-
-    /**
-     * @notice Call the Upgrade Beacon to get the current implementation contract address
-     *
-     * Note: we pass in the _upgradeBeacon so we can also use this function at
-     * deployment, when the upgradeBeacon variable hasn't been set yet.
-     *
-     * @param _upgradeBeacon - Address of the UpgradeBeacon storing the current implementation
-     * @return implementation - Address of the current implementation.
-     */
-    function _implementation(address _upgradeBeacon)
-        private
-        view
-        returns (address implementation)
-    {
-        // Get the current implementation address from the upgrade beacon.
-        (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
-
-        // Revert and pass along revert message if call to upgrade beacon reverts.
-        require(ok, string(returnData));
-
-        // Set the implementation to the address returned from the upgrade beacon.
-        implementation = abi.decode(returnData, (address));
-    }
-
-    /**
      * @notice Delegate function execution to the implementation contract
      *
      * This is a low level function that doesn't return to its internal
@@ -177,5 +144,38 @@ contract UpgradeBeaconProxy {
                     return(0, returndatasize())
                 }
         }
+    }
+
+    /**
+     * @notice Call the Upgrade Beacon to get the current implementation contract address
+     *
+     * @return implementation - Address of the current implementation.
+     */
+    function _implementation() private view returns (address implementation) {
+        implementation = _implementation(upgradeBeacon);
+    }
+
+    /**
+     * @notice Call the Upgrade Beacon to get the current implementation contract address
+     *
+     * Note: we pass in the _upgradeBeacon so we can also use this function at
+     * deployment, when the upgradeBeacon variable hasn't been set yet.
+     *
+     * @param _upgradeBeacon - Address of the UpgradeBeacon storing the current implementation
+     * @return implementation - Address of the current implementation.
+     */
+    function _implementation(address _upgradeBeacon)
+        private
+        view
+        returns (address implementation)
+    {
+        // Get the current implementation address from the upgrade beacon.
+        (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
+
+        // Revert and pass along revert message if call to upgrade beacon reverts.
+        require(ok, string(returnData));
+
+        // Set the implementation to the address returned from the upgrade beacon.
+        implementation = abi.decode(returnData, (address));
     }
 }
