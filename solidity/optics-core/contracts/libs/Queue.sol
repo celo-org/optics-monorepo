@@ -147,6 +147,14 @@ library QueueLib {
         return _q.last < _q.first;
     }
 
+    /// @notice Returns number of elements in queue
+    function length(Queue storage _q) internal view returns (uint256) {
+        uint128 _last = _q.last;
+        uint128 _first = _q.first;
+        // Cannot underflow unless state is corrupted
+        return _length(_last, _first);
+    }
+
     /// @notice Returns number of elements between `_last` and `_first` (used internally)
     function _length(uint128 _last, uint128 _first)
         internal
@@ -154,13 +162,5 @@ library QueueLib {
         returns (uint256)
     {
         return uint256(_last + 1 - _first);
-    }
-
-    /// @notice Returns number of elements in queue
-    function length(Queue storage _q) internal view returns (uint256) {
-        uint128 _last = _q.last;
-        uint128 _first = _q.first;
-        // Cannot underflow unless state is corrupted
-        return _length(_last, _first);
     }
 }

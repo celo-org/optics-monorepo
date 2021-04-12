@@ -14,9 +14,6 @@ contract GovernanceRouter is IMessageRecipient {
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
 
-    /*
-    --- STATE ---
-    */
     XAppConnectionManager public xAppConnectionManager;
 
     uint32 public immutable localDomain;
@@ -26,9 +23,6 @@ contract GovernanceRouter is IMessageRecipient {
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
 
-    /*
-    --- EVENTS ---
-    */
     event TransferGovernor(
         uint32 previousGovernorDomain,
         uint32 newGovernorDomain,
@@ -41,9 +35,6 @@ contract GovernanceRouter is IMessageRecipient {
         bytes32 newRouter
     );
 
-    /*
-    --- CONSTRUCTOR ---
-    */
     constructor(uint32 _localDomain) {
         localDomain = _localDomain;
     }
@@ -68,9 +59,6 @@ contract GovernanceRouter is IMessageRecipient {
         );
     }
 
-    /*
-    --- FUNCTION MODIFIERS ---
-    */
     modifier onlyReplica() {
         require(xAppConnectionManager.isReplica(msg.sender), "!replica");
         _;
@@ -91,9 +79,6 @@ contract GovernanceRouter is IMessageRecipient {
         _;
     }
 
-    /*
-    --- DOMAIN/ADDRESS VALIDATION HELPERS  ---
-    */
     function setXAppConnectionManager(address _xAppConnectionManager)
         public
         onlyGovernor
