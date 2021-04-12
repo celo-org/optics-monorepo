@@ -18,7 +18,7 @@ contract GovernanceRouter is IMessageRecipient {
 
     uint32 public immutable localDomain;
     uint32 public governorDomain; // domain of Governor chain -- for accepting incoming messages from Governor
-    address public governor; // the local entity empowered to call governance functions
+    address public governor; // the local entity empowered to call governance functions, set to 0x0 on non-Governor chains
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
