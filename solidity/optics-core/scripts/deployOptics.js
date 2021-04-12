@@ -110,7 +110,7 @@ async function deployHome(localDomain, controller, updaterManagerAddress) {
  *
  * @param localDomain - domain on which the Home contract will be deployed
  * @param controller - ethers Contract of the UpgradeBeaconController contract
- * @param usingOpticsAddress - address of the UsingOptics contract for the GovernanceRouter
+ * @param XAappConnectionManagerAddress - address of the XAappConnectionManager contract for the GovernanceRouter
  *
  * @return contracts - UpgradableContractSetup type for the GovernanceRouter contracts
  */

@@ -14,7 +14,7 @@
  *      replicaSetup: UpgradeSetup,
  *      replicaProxies: UpgradableProxy[],
  *      upgradeBeaconController: ethers Contract,
- *      usingOptics: ethers Contract,
+ *      xAppConnectionManager: ethers Contract,
  *      updaterManager: ethers Contract,
  * };
  *
