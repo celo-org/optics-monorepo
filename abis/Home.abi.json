@@ -73,7 +73,7 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "updater",
+        "name": "_updater",
         "type": "address"
       }
     ],
@@ -86,7 +86,7 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "updaterManager",
+        "name": "_updaterManager",
         "type": "address"
       }
     ],
@@ -136,7 +136,7 @@
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "signature",
+        "name": "_signature",
         "type": "bytes"
       }
     ],
@@ -149,13 +149,13 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "updater",
+        "name": "_updater",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "reporter",
+        "name": "_reporter",
         "type": "address"
       }
     ],
@@ -233,17 +233,17 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "destination",
+        "name": "_destination",
         "type": "uint32"
       },
       {
         "internalType": "bytes32",
-        "name": "recipient",
+        "name": "_recipient",
         "type": "bytes32"
       },
       {
         "internalType": "bytes",
-        "name": "body",
+        "name": "_body",
         "type": "bytes"
       }
     ],

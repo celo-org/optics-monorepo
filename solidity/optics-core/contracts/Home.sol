@@ -44,22 +44,22 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
     /**
      * @notice Event emitted when the UpdaterManager sets a new updater on Home
-     * @param updater The address of the new updater
+     * @param _updater The address of the new updater
      */
-    event NewUpdater(address updater);
+    event NewUpdater(address _updater);
 
     /**
      * @notice Event emitted when a new UpdaterManager is set
-     * @param updaterManager The address of the new updaterManager
+     * @param _updaterManager The address of the new updaterManager
      */
-    event NewUpdaterManager(address updaterManager);
+    event NewUpdaterManager(address _updaterManager);
 
     /**
      * @notice Event emitted when an updater is slashed
-     * @param updater The address of the updater
-     * @param reporter The address of the entity that reported the updater misbehavior
+     * @param _updater The address of the updater
+     * @param _reporter The address of the entity that reported the updater misbehavior
      */
-    event UpdaterSlashed(address indexed updater, address indexed reporter);
+    event UpdaterSlashed(address indexed _updater, address indexed _reporter);
 
     function initialize(uint32 _localDomain, address _updaterManager)
         public
@@ -102,26 +102,26 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     /**
      * @notice Formats message, adds its leaf into merkle tree, enqueues new
      * merkle root, and emits `Dispatch` event with data regarding message.
-     * @param destination Domain of destination chain
-     * @param recipient Address or recipient on destination chain
-     * @param body Raw bytes of message
+     * @param _destination Domain of destination chain
+     * @param _recipient Address or recipient on destination chain
+     * @param _body Raw bytes of message
      */
     function enqueue(
-        uint32 destination,
-        bytes32 recipient,
-        bytes memory body
+        uint32 _destination,
+        bytes32 _recipient,
+        bytes memory _body
     ) external notFailed {
-        uint32 sequence = sequences[destination] + 1;
-        sequences[destination] = sequence;
+        uint32 sequence = sequences[_destination] + 1;
+        sequences[_destination] = sequence;
 
         bytes memory _message =
             Message.formatMessage(
                 localDomain,
                 bytes32(uint256(uint160(msg.sender))),
                 sequence,
-                destination,
-                recipient,
-                body
+                _destination,
+                _recipient,
+                _body
             );
         bytes32 leaf = keccak256(_message);
 
@@ -131,7 +131,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         // leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
             count() - 1,
-            _destinationAndSequence(destination, sequence),
+            _destinationAndSequence(_destination, sequence),
             leaf,
             _message
         );

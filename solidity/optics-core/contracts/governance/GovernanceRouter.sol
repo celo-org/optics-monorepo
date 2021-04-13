@@ -317,12 +317,17 @@ contract GovernanceRouter is IMessageRecipient {
         }
 
         // Governor is 0x0 unless the governor is local
-        address _governor = _isLocalDom ? _newGovernor : address(0);
+        address newGovernor = _isLocalDom ? _newGovernor : address(0);
 
-        emit TransferGovernor(governorDomain, _newDomain, governor, _governor);
+        emit TransferGovernor(
+            governorDomain,
+            _newDomain,
+            governor,
+            newGovernor
+        );
 
         governorDomain = _newDomain;
-        governor = _governor;
+        governor = newGovernor;
     }
 
     /**

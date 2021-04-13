@@ -31,13 +31,13 @@ abstract contract Common {
      * @param _localDomain Domain of contract's chain
      * @param _oldRoot Old merkle root
      * @param _newRoot New merkle root
-     * @param signature Updater's signature on `_oldRoot` and `_newRoot`
+     * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
      **/
     event Update(
         uint32 indexed _localDomain,
         bytes32 indexed _oldRoot,
         bytes32 indexed _newRoot,
-        bytes signature
+        bytes _signature
     );
 
     /**

@@ -60,12 +60,12 @@ contract UpgradeBeacon {
             }
         } else {
             // Load new implementation from the first word of the calldata
-            address _newImplementation;
+            address newImplementation;
             assembly {
-                _newImplementation := calldataload(0)
+                newImplementation := calldataload(0)
             }
 
-            _setImplementation(_newImplementation);
+            _setImplementation(newImplementation);
         }
     }
 

@@ -130,17 +130,17 @@ contract Replica is Common, QueueManager {
      * `message`. If the message is successfully proven, then tries to process
      * message.
      * @dev Reverts if `prove` call returns false
-     * @param message Formatted message (refer to Common.sol Message library)
-     * @param proof Merkle proof of inclusion for message's leaf
-     * @param index Index of leaf in home's merkle tree
+     * @param _message Formatted message (refer to Common.sol Message library)
+     * @param _proof Merkle proof of inclusion for message's leaf
+     * @param _index Index of leaf in home's merkle tree
      **/
     function proveAndProcess(
-        bytes memory message,
-        bytes32[32] calldata proof,
-        uint256 index
+        bytes memory _message,
+        bytes32[32] calldata _proof,
+        uint256 _index
     ) external {
-        require(prove(keccak256(message), proof, index), "!prove");
-        process(message);
+        require(prove(keccak256(_message), _proof, _index), "!prove");
+        process(_message);
     }
 
     /**
@@ -240,24 +240,24 @@ contract Replica is Common, QueueManager {
      * merkle proof of inclusion for the leaf, and the index of the leaf.
      * @dev Reverts if message's MessageStatus != None (i.e. if message was
      * already proven or processed)
-     * @param leaf Leaf of message to prove
-     * @param proof Merkle proof of inclusion for leaf
-     * @param index Index of leaf in home's merkle tree
+     * @param _leaf Leaf of message to prove
+     * @param _proof Merkle proof of inclusion for leaf
+     * @param _index Index of leaf in home's merkle tree
      * @return Returns true if proof was valid and `prove` call succeeded
      **/
     function prove(
-        bytes32 leaf,
-        bytes32[32] calldata proof,
-        uint256 index
+        bytes32 _leaf,
+        bytes32[32] calldata _proof,
+        uint256 _index
     ) public returns (bool) {
-        require(messages[leaf] == MessageStatus.None, "!MessageStatus.None");
-        bytes32 actual = MerkleLib.branchRoot(leaf, proof, index);
+        require(messages[_leaf] == MessageStatus.None, "!MessageStatus.None");
+        bytes32 actual = MerkleLib.branchRoot(_leaf, _proof, _index);
 
         // NB:
         // For convenience, we allow proving against the previous root.
         // This means that witnesses don't need to be updated for the new root
         if (actual == current || actual == previous) {
-            messages[leaf] = MessageStatus.Pending;
+            messages[_leaf] = MessageStatus.Pending;
             return true;
         }
         return false;

@@ -78,15 +78,14 @@ contract UpgradeBeaconProxy {
      * Used at deployment to initialize the proxy
      * based on the logic for initialization defined at the implementation
      *
-     * @param implementation - Contract to which the initalization is delegated
+     * @param _impl - Contract to which the initalization is delegated
      * @param _initializationCalldata - Calldata supplied when calling the initialization function
      */
-    function _initialize(
-        address implementation,
-        bytes memory _initializationCalldata
-    ) private {
+    function _initialize(address _impl, bytes memory _initializationCalldata)
+        private
+    {
         // Delegatecall into the implementation, supplying initialization calldata.
-        (bool ok, ) = implementation.delegatecall(_initializationCalldata);
+        (bool ok, ) = _impl.delegatecall(_initializationCalldata);
 
         // Revert and include revert data if delegatecall to implementation reverts.
         if (!ok) {
@@ -149,10 +148,10 @@ contract UpgradeBeaconProxy {
     /**
      * @notice Call the Upgrade Beacon to get the current implementation contract address
      *
-     * @return implementation - Address of the current implementation.
+     * @return _impl - Address of the current implementation.
      */
-    function _implementation() private view returns (address implementation) {
-        implementation = _implementation(upgradeBeacon);
+    function _implementation() private view returns (address _impl) {
+        _impl = _implementation(upgradeBeacon);
     }
 
     /**
@@ -162,12 +161,12 @@ contract UpgradeBeaconProxy {
      * deployment, when the upgradeBeacon variable hasn't been set yet.
      *
      * @param _upgradeBeacon - Address of the UpgradeBeacon storing the current implementation
-     * @return implementation - Address of the current implementation.
+     * @return _impl - Address of the current implementation.
      */
     function _implementation(address _upgradeBeacon)
         private
         view
-        returns (address implementation)
+        returns (address _impl)
     {
         // Get the current implementation address from the upgrade beacon.
         (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
@@ -176,6 +175,6 @@ contract UpgradeBeaconProxy {
         require(ok, string(returnData));
 
         // Set the implementation to the address returned from the upgrade beacon.
-        implementation = abi.decode(returnData, (address));
+        _impl = abi.decode(returnData, (address));
     }
 }

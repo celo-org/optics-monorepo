@@ -65,7 +65,7 @@
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "signature",
+        "name": "_signature",
         "type": "bytes"
       }
     ],
@@ -359,17 +359,17 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "leaf",
+        "name": "_leaf",
         "type": "bytes32"
       },
       {
         "internalType": "bytes32[32]",
-        "name": "proof",
+        "name": "_proof",
         "type": "bytes32[32]"
       },
       {
         "internalType": "uint256",
-        "name": "index",
+        "name": "_index",
         "type": "uint256"
       }
     ],
@@ -388,17 +388,17 @@
     "inputs": [
       {
         "internalType": "bytes",
-        "name": "message",
+        "name": "_message",
         "type": "bytes"
       },
       {
         "internalType": "bytes32[32]",
-        "name": "proof",
+        "name": "_proof",
         "type": "bytes32[32]"
       },
       {
         "internalType": "uint256",
-        "name": "index",
+        "name": "_index",
         "type": "uint256"
       }
     ],

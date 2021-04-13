@@ -106,15 +106,15 @@ contract TokenRegistry is Ownable {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _token)
     {
-        bytes32 _idHash = _tokenId.keccak();
+        bytes32 idHash = _tokenId.keccak();
         _token = _createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
-        IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
+        IBridgeToken(_token).setDetails(idHash, idHash, 18);
 
         reprToCanonical[_token].domain = _tokenId._domain();
         reprToCanonical[_token].id = _tokenId._id();
-        canonicalToRepr[_idHash] = _token;
+        canonicalToRepr[idHash] = _token;
     }
 
     function _ensureToken(bytes29 _tokenId)
@@ -128,12 +128,12 @@ contract TokenRegistry is Ownable {
         }
 
         // Repr
-        address _local = canonicalToRepr[_tokenId.keccak()];
-        if (_local == address(0)) {
+        address local = canonicalToRepr[_tokenId.keccak()];
+        if (local == address(0)) {
             // DEPLO
-            _local = _deployToken(_tokenId);
+            local = _deployToken(_tokenId);
         }
-        return IERC20(_local);
+        return IERC20(local);
     }
 
     function _tokenIdFor(address _token)
@@ -155,12 +155,12 @@ contract TokenRegistry is Ownable {
             return false;
         }
         // Avoid returning true for non-existant contracts
-        uint256 _codeSize;
+        uint256 codeSize;
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            _codeSize := extcodesize(_addr)
+            codeSize := extcodesize(_addr)
         }
-        return _codeSize != 0;
+        return codeSize != 0;
     }
 
     function _reprFor(bytes29 _tokenId)
