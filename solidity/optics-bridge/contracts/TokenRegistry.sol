@@ -83,7 +83,7 @@ contract TokenRegistry is Ownable {
         xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
-    function createClone(address _target) internal returns (address result) {
+    function _createClone(address _target) internal returns (address result) {
         bytes20 targetBytes = bytes20(_target);
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -101,13 +101,13 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    function deployToken(bytes29 _tokenId)
+    function _deployToken(bytes29 _tokenId)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _token)
     {
         bytes32 _idHash = _tokenId.keccak();
-        _token = createClone(tokenTemplate);
+        _token = _createClone(tokenTemplate);
 
         // Initial details are set to a hash of the ID
         IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
@@ -117,7 +117,7 @@ contract TokenRegistry is Ownable {
         canonicalToRepr[_idHash] = _token;
     }
 
-    function ensureToken(bytes29 _tokenId)
+    function _ensureToken(bytes29 _tokenId)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
@@ -131,12 +131,12 @@ contract TokenRegistry is Ownable {
         address _local = canonicalToRepr[_tokenId.keccak()];
         if (_local == address(0)) {
             // DEPLO
-            _local = deployToken(_tokenId);
+            _local = _deployToken(_tokenId);
         }
         return IERC20(_local);
     }
 
-    function tokenIdFor(address _token)
+    function _tokenIdFor(address _token)
         internal
         view
         returns (TokenId memory _id)
@@ -148,7 +148,7 @@ contract TokenRegistry is Ownable {
         }
     }
 
-    function isNative(IERC20 _token) internal view returns (bool) {
+    function _isNative(IERC20 _token) internal view returns (bool) {
         address _addr = address(_token);
         // If this contract deployed it, it isn't native.
         if (reprToCanonical[_addr].domain != 0) {
@@ -163,7 +163,7 @@ contract TokenRegistry is Ownable {
         return _codeSize != 0;
     }
 
-    function reprFor(bytes29 _tokenId)
+    function _reprFor(bytes29 _tokenId)
         internal
         view
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
@@ -172,7 +172,7 @@ contract TokenRegistry is Ownable {
         return IERC20(canonicalToRepr[_tokenId.keccak()]);
     }
 
-    function downcast(IERC20 _token) internal pure returns (IBridgeToken) {
+    function _downcast(IERC20 _token) internal pure returns (IBridgeToken) {
         return IBridgeToken(address(_token));
     }
 }
