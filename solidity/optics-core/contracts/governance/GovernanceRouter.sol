@@ -225,7 +225,7 @@ contract GovernanceRouter is IMessageRecipient {
     function handleCall(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
-        returns (bytes memory _ret)
+        returns (bytes memory)
     {
         GovernanceMessage.Call[] memory _calls = _msg.getCalls();
         for (uint256 i = 0; i < _calls.length; i++) {
@@ -243,7 +243,7 @@ contract GovernanceRouter is IMessageRecipient {
     function handleTransferGovernor(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
-        returns (bytes memory _ret)
+        returns (bytes memory)
     {
         uint32 _newDomain = _msg.domain();
         address _newGovernor = TypeCasts.bytes32ToAddress(_msg.governor());
@@ -262,7 +262,7 @@ contract GovernanceRouter is IMessageRecipient {
     function handleSetRouter(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.SetRouter)
-        returns (bytes memory _ret)
+        returns (bytes memory)
     {
         uint32 _domain = _msg.domain();
         bytes32 _router = _msg.router();
