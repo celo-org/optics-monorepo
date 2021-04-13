@@ -309,6 +309,7 @@ impl Watcher {
     }
 
     // Unenroll replicas if double update detected
+    #[tracing::instrument]
     async fn unenroll_replicas(&self) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
         // Create signed failure notifications
         let signed_failure_futs: Vec<_> = self
@@ -328,7 +329,9 @@ impl Watcher {
         let signed_failures = join_all(signed_failure_futs).await;
 
         // For each ConnectionManager, submit all signed failure notifications.
-        // OK if unenroll_replica tx reverts.
+        // If signed failure notification for replica is submitted to a
+        // ConnectionManager that has no knowledge of given replica, it is OK
+        // if tx reverts.
         let mut unenroll_futs = Vec::new();
         for connection_manager in self.connection_managers.iter() {
             for signed_failure in signed_failures.iter() {
@@ -352,7 +355,7 @@ impl OpticsAgent for Watcher {
         let connection_manager_futs: Vec<_> = settings
             .connection_managers
             .iter()
-            .map(|chain_setup| async move { chain_setup.try_into_connection_manager().await })
+            .map(|chain_setup| chain_setup.try_into_connection_manager())
             .collect();
 
         let connection_managers = join_all(connection_manager_futs)
