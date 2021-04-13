@@ -57,15 +57,11 @@ impl ChainSetup {
     }
 
     /// Try to convert chain setting into XAppConnectionManager contract
-    pub async fn try_into_xapp_connection_manager(&self) -> Result<ConnectionManagers, Report> {
+    pub async fn try_into_connection_manager(&self) -> Result<ConnectionManagers, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(ConnectionManagers::Ethereum(
-                conf.try_into_xapp_connection_manager(
-                    &self.name,
-                    self.domain,
-                    self.address.parse()?,
-                )
-                .await?,
+                conf.try_into_connection_manager(&self.name, self.domain, self.address.parse()?)
+                    .await?,
             )),
         }
     }
