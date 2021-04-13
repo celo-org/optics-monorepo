@@ -211,8 +211,8 @@ contract GovernanceRouter is IMessageRecipient {
      * @param _xAppConnectionManager The address of the new xAppConnectionManager
      */
     function setXAppConnectionManager(address _xAppConnectionManager)
-        public
-        onlyGovernor
+    external
+    onlyGovernor
     {
         xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
