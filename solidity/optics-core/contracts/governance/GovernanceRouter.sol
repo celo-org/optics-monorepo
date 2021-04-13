@@ -80,7 +80,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Message handler
+     * @notice Handle Optics messages
      *
      * For all non-Governor chains to handle messages
      * sent from the Governor chain via Optics.
@@ -88,7 +88,7 @@ contract GovernanceRouter is IMessageRecipient {
      * Governor chain should never receive messages,
      * because non-Governor chains are not able to send them
      * @param _origin The domain (of the Governor Router)
-     * @param _sender The sender
+     * @param _sender The message sender (must be the Governor Router)
      * @param _message The message
      * @return _ret
      */
@@ -117,7 +117,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches local call
+     * @notice Dispatch calls locally
      * @param _calls The calls
      */
     function callLocal(GovernanceMessage.Call[] calldata _calls)
@@ -130,8 +130,8 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches call to remote router
-     * @param _destination The destination router
+     * @notice Dispatch calls on a remote chain via the remote GovernanceRouter
+     * @param _destination The domain of the remote chain
      * @param _calls The calls
      */
     function callRemote(
@@ -145,7 +145,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Transfer governorship to a new domain
+     * @notice Transfer governorship
      * @param _newDomain The domain of the new governor
      * @param _newGovernor The address of the new governor
      */
@@ -191,12 +191,10 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-    * @notice Set a router locally
-    *
-    * @dev External helper for contract setup.
-    *
-    * convenience function so deployer can setup the router mapping for the
-    * contract locally before transferring to a new domain to the remote governor.
+    * @notice Set the router address *locally only*
+    * for the deployer to setup the router mapping locally
+    * before transferring governorship to the "true" governor
+    * @dev External helper for contract setup
     * @param _domain The domain
     * @param _router The new router
     */
@@ -208,7 +206,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Sets up XAppConnectionManager
+     * @notice Set the address of the XAppConnectionManager
      * @dev Domain/address validation helper
      * @param _xAppConnectionManager The address of the new xAppConnectionManager
      */
@@ -220,7 +218,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles dispatching a call
+     * @notice Handle message dispatching calls locally
      * @param _msg The message
      * @return _ret
      */
@@ -238,7 +236,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles transfer to a new Governor
+     * @notice Handle message transferring governorship to a new Governor
      * @param _msg The message
      * @return _ret
      */
@@ -257,7 +255,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles setting a router address for a given domain
+     * @notice Handle message setting the router address for a given domain
      * @param _msg The message
      * @return _ret
      */
@@ -275,7 +273,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches message to all remote routers
+     * @notice Dispatch message to all remote routers
      * @param _msg The message
      */
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
@@ -289,7 +287,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches call
+     * @notice Dispatch call locally
      * @param _call The call
      * @return _ret
      */
@@ -306,8 +304,8 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Transfers governorship to a new domain
-     * @param _newDomain The new domain
+     * @notice Transfer governorship within this contract's state
+     * @param _newDomain The domain of the new governor
      * @param _newGovernor The address of the new governor
      */
     function _transferGovernor(
@@ -352,7 +350,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Adds a given domain
+     * @notice Add a domain that has a router
      * @param _domain The domain
      */
     function _addDomain(uint32 _domain) internal {
@@ -360,7 +358,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Removes a domain and its associated router
+     * @notice Remove a domain and its associated router
      * @param _domain The domain
      */
     function _removeDomain(uint32 _domain) internal {
@@ -376,7 +374,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Determines if a given domain and address is the Governor Router
+     * @notice Determine if a given domain and address is the Governor Router
      * @param _domain The domain
      * @param _address The address of the domain's router
      * @return _isGovernorRouter True if the given domain/address is the
@@ -393,7 +391,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Requires that a domain have a router and returns the router
+     * @notice Require that a domain has a router and returns the router
      * @param _domain The domain
      * @return _router - The domain's router
      */
@@ -407,7 +405,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Determines if a given domain is the local domain
+     * @notice Determine if a given domain is the local domain
      * @param _domain The domain
      * @return _isLocalDomain - True if the given domain is the local domain
      */
