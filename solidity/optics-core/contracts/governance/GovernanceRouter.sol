@@ -29,7 +29,7 @@ contract GovernanceRouter is IMessageRecipient {
         address indexed previousGovernor,
         address indexed newGovernor
     );
-    event ChangeRouter(
+    event SetRouter(
         uint32 indexed domain,
         bytes32 previousRouter,
         bytes32 newRouter
@@ -109,8 +109,8 @@ contract GovernanceRouter is IMessageRecipient {
             return handleCall(_msg.tryAsCall());
         } else if (_msg.isValidTransferGovernor()) {
             return handleTransferGovernor(_msg.tryAsTransferGovernor());
-        } else if (_msg.isValidEnrollRouter()) {
-            return handleEnrollRouter(_msg.tryAsEnrollRouter());
+        } else if (_msg.isValidSetRouter()) {
+            return handleSetRouter(_msg.tryAsSetRouter());
         }
 
         require(false, "!valid message type");
@@ -173,38 +173,38 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Enrolls a new router for a given domain and dispatches to all
-     * remote routers
+     * @notice Set the router address for a given domain and
+     * dispatch the change to all remote routers
      * @param _domain The domain
-     * @param _router The new router
+     * @param _router The address of the new router
      */
-    function enrollRouter(uint32 _domain, bytes32 _router)
+    function setRouter(uint32 _domain, bytes32 _router)
         external
         onlyGovernor
     {
-        _enrollRouter(_domain, _router); // enroll the router locally
+        _setRouter(_domain, _router); // set the router locally
 
-        bytes memory enrollRouterMessage =
-            GovernanceMessage.formatEnrollRouter(_domain, _router);
+        bytes memory setRouterMessage =
+            GovernanceMessage.formatSetRouter(_domain, _router);
 
-        _sendToAllRemoteRouters(enrollRouterMessage);
+        _sendToAllRemoteRouters(setRouterMessage);
     }
 
     /**
-     * @notice Enrolls a router locally
-     *
-     * @dev External helper for contract setup.
-     *
-     * convenience function so deployer can setup the router mapping for the
-     * contract locally before transferring to a new domain to the remote governor.
-     * @param _domain The domain
-     * @param _router The new router
-     */
-    function enrollRouterSetup(uint32 _domain, bytes32 _router)
+    * @notice Set a router locally
+    *
+    * @dev External helper for contract setup.
+    *
+    * convenience function so deployer can setup the router mapping for the
+    * contract locally before transferring to a new domain to the remote governor.
+    * @param _domain The domain
+    * @param _router The new router
+    */
+    function setRouterDuringSetup(uint32 _domain, bytes32 _router)
         external
         onlyGovernor
     {
-        _enrollRouter(_domain, _router); // enroll the router locally
+        _setRouter(_domain, _router); // set the router locally
     }
 
     /**
@@ -257,19 +257,19 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles enrolling a router
+     * @notice Handles setting a router address for a given domain
      * @param _msg The message
      * @return _ret
      */
-    function handleEnrollRouter(bytes29 _msg)
+    function handleSetRouter(bytes29 _msg)
         internal
-        typeAssert(_msg, GovernanceMessage.Types.EnrollRouter)
+        typeAssert(_msg, GovernanceMessage.Types.SetRouter)
         returns (bytes memory _ret)
     {
         uint32 _domain = _msg.domain();
         bytes32 _router = _msg.router();
 
-        _enrollRouter(_domain, _router);
+        _setRouter(_domain, _router);
 
         return hex"";
     }
@@ -330,14 +330,14 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Enrolls a new router for a given domain
+     * @notice Set the router for a given domain
      * @param _domain The domain
      * @param _newRouter The new router
      */
-    function _enrollRouter(uint32 _domain, bytes32 _newRouter) internal {
+    function _setRouter(uint32 _domain, bytes32 _newRouter) internal {
         bytes32 _previousRouter = routers[_domain];
 
-        emit ChangeRouter(_domain, _previousRouter, _newRouter);
+        emit SetRouter(_domain, _previousRouter, _newRouter);
 
         if (_newRouter == bytes32(0)) {
             _removeDomain(_domain);
