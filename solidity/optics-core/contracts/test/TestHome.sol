@@ -16,7 +16,7 @@ contract TestHome is Home {
         pure
         returns (uint64)
     {
-        return destinationAndSequence(_destination, _sequence);
+        return _destinationAndSequence(_destination, _sequence);
     }
 
     function setFailed() public {

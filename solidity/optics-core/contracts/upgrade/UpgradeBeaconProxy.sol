@@ -59,6 +59,21 @@ contract UpgradeBeaconProxy {
     }
 
     /**
+     * @notice Forwards all calls with data to _fallback()
+     * No public functions are declared on the contract, so all calls hit fallback
+     */
+    fallback() external payable {
+        _fallback();
+    }
+
+    /**
+     * @notice Forwards all calls with no data to _fallback()
+     */
+    receive() external payable {
+        _fallback();
+    }
+
+    /**
      * @notice Call the initialization function on the implementation
      * Used at deployment to initialize the proxy
      * based on the logic for initialization defined at the implementation
@@ -80,21 +95,6 @@ contract UpgradeBeaconProxy {
                 revert(0, returndatasize())
             }
         }
-    }
-
-    /**
-     * @notice Forwards all calls with data to _fallback()
-     * No public functions are declared on the contract, so all calls hit fallback
-     */
-    fallback() external payable {
-        _fallback();
-    }
-
-    /**
-     * @notice Forwards all calls with no data to _fallback()
-     */
-    receive() external payable {
-        _fallback();
     }
 
     /**

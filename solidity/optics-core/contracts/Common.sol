@@ -58,7 +58,7 @@ abstract contract Common {
     function initialize(uint32 _localDomain, address _updater) public virtual {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setLocalDomain(_localDomain);
+        _setLocalDomain(_localDomain);
 
         updater = _updater;
 
@@ -89,11 +89,11 @@ abstract contract Common {
         bytes calldata _signature2
     ) external notFailed {
         if (
-            Common.checkSig(_oldRoot, _newRoot[0], _signature) &&
-            Common.checkSig(_oldRoot, _newRoot[1], _signature2) &&
+            Common._checkSig(_oldRoot, _newRoot[0], _signature) &&
+            Common._checkSig(_oldRoot, _newRoot[1], _signature2) &&
             _newRoot[0] != _newRoot[1]
         ) {
-            fail();
+            _fail();
             emit DoubleUpdate(_oldRoot, _newRoot, _signature, _signature2);
         }
     }
@@ -103,13 +103,13 @@ abstract contract Common {
         state = States.FAILED;
     }
 
-    function setLocalDomain(uint32 _localDomain) internal {
+    function _setLocalDomain(uint32 _localDomain) internal {
         localDomain = _localDomain;
         domainHash = keccak256(abi.encodePacked(_localDomain, "OPTICS"));
     }
 
     /// @notice Called when a double update or fraudulent update is detected
-    function fail() internal virtual;
+    function _fail() internal virtual;
 
     /**
      * @notice Called internally. Checks that signature is valid (belongs to
@@ -119,14 +119,14 @@ abstract contract Common {
      * @param _signature Signature on `_oldRoot` and `_newRoot`
      * @return Returns true if signature is valid and false if otherwise
      **/
-    function checkSig(
+    function _checkSig(
         bytes32 _oldRoot,
         bytes32 _newRoot,
         bytes memory _signature
     ) internal view returns (bool) {
-        bytes32 _digest =
+        bytes32 digest =
             keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
-        _digest = ECDSA.toEthSignedMessageHash(_digest);
-        return ECDSA.recover(_digest, _signature) == updater;
+        digest = ECDSA.toEthSignedMessageHash(digest);
+        return ECDSA.recover(digest, _signature) == updater;
     }
 }

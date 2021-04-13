@@ -56,7 +56,7 @@ contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setLocalDomain(_localDomain);
+        _setLocalDomain(_localDomain);
 
         queue.initialize();
 
@@ -87,7 +87,7 @@ contract Replica is Common, QueueManager {
         } else {
             require(current == _oldRoot, "not current update");
         }
-        require(Common.checkSig(_oldRoot, _newRoot, _signature), "bad sig");
+        require(Common._checkSig(_oldRoot, _newRoot, _signature), "bad sig");
 
         _beforeUpdate();
 
@@ -106,23 +106,23 @@ contract Replica is Common, QueueManager {
     function confirm() external notFailed {
         require(queue.length() != 0, "no pending");
 
-        bytes32 _pending;
-        uint256 _now = block.timestamp;
+        bytes32 pending;
+        uint256 timestamp = block.timestamp;
 
-        uint256 _remaining = queue.length();
-        while (_remaining > 0 && _now >= confirmAt[queue.peek()]) {
-            _pending = queue.dequeue();
-            delete confirmAt[_pending];
-            _remaining -= 1;
+        uint256 remaining = queue.length();
+        while (remaining > 0 && timestamp >= confirmAt[queue.peek()]) {
+            pending = queue.dequeue();
+            delete confirmAt[pending];
+            remaining -= 1;
         }
 
         // This condition is hit if the while loop is never executed, because
         // the first queue item has not hit its timer yet
-        require(_pending != bytes32(0), "not time");
+        require(pending != bytes32(0), "not time");
 
         _beforeConfirm();
 
-        current = _pending;
+        current = pending;
     }
 
     /**
@@ -191,9 +191,9 @@ contract Replica is Common, QueueManager {
     {
         bytes29 _m = _message.ref(0);
 
-        uint32 _sequence = _m.sequence();
+        uint32 sequence = _m.sequence();
         require(_m.destination() == localDomain, "!destination");
-        require(_sequence == lastProcessed + 1, "!sequence");
+        require(sequence == lastProcessed + 1, "!sequence");
         require(
             messages[keccak256(_message)] == MessageStatus.Pending,
             "not pending"
@@ -232,7 +232,7 @@ contract Replica is Common, QueueManager {
             _result = _err;
         }
 
-        lastProcessed = _sequence;
+        lastProcessed = sequence;
     }
 
     /**
@@ -264,7 +264,7 @@ contract Replica is Common, QueueManager {
     }
 
     /// @notice Sets contract state to FAILED
-    function fail() internal override {
+    function _fail() internal override {
         _setFailed();
     }
 

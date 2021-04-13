@@ -67,7 +67,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        setLocalDomain(_localDomain);
+        _setLocalDomain(_localDomain);
 
         updaterManager = IUpdaterManager(_updaterManager);
         updater = IUpdaterManager(_updaterManager).updater();
@@ -123,16 +123,16 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
                 recipient,
                 body
             );
-        bytes32 _leaf = keccak256(_message);
+        bytes32 leaf = keccak256(_message);
 
-        tree.insert(_leaf);
+        tree.insert(leaf);
         queue.enqueue(root());
 
         // leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
             count() - 1,
-            destinationAndSequence(destination, sequence),
-            _leaf,
+            _destinationAndSequence(destination, sequence),
+            leaf,
             _message
         );
     }
@@ -195,10 +195,10 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) public notFailed returns (bool) {
-        require(Common.checkSig(_oldRoot, _newRoot, _signature), "bad sig");
+        require(Common._checkSig(_oldRoot, _newRoot, _signature), "bad sig");
         require(_oldRoot == current, "not a current update");
         if (!queue.contains(_newRoot)) {
-            fail();
+            _fail();
             emit ImproperUpdate();
             return true;
         }
@@ -206,7 +206,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     }
 
     /// @notice Sets contract state to FAILED and slashes updater
-    function fail() internal override {
+    function _fail() internal override {
         _setFailed();
         updaterManager.slashUpdater(msg.sender);
 
@@ -221,7 +221,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
      * @param _sequence Current sequence for given destination chain
      * @return Returns (`_destination` << 32) & `_sequence`
      */
-    function destinationAndSequence(uint32 _destination, uint32 _sequence)
+    function _destinationAndSequence(uint32 _destination, uint32 _sequence)
         internal
         pure
         returns (uint64)
