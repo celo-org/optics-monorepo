@@ -171,7 +171,7 @@ impl EthereumConf {
 
     /// Try to convert this into a replica contract
     #[tracing::instrument(err)]
-    pub async fn try_into_xapp_connection_manager(
+    pub async fn try_into_connection_manager(
         &self,
         name: &str,
         domain: u32,

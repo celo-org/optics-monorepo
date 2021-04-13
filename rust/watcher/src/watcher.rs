@@ -248,7 +248,7 @@ pub struct Watcher {
     interval_seconds: u64,
     sync_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
     watch_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
-    xapp_connection_manager: ConnectionManagers,
+    connection_managers: Vec<ConnectionManagers>,
     core: AgentCore,
 }
 
@@ -264,7 +264,7 @@ impl Watcher {
     pub fn new(
         signer: Signers,
         interval_seconds: u64,
-        xapp_connection_manager: ConnectionManagers,
+        connection_managers: Vec<ConnectionManagers>,
         core: AgentCore,
     ) -> Self {
         Self {
@@ -272,7 +272,7 @@ impl Watcher {
             interval_seconds,
             sync_tasks: Default::default(),
             watch_tasks: Default::default(),
-            xapp_connection_manager,
+            connection_managers,
             core,
         }
     }
@@ -297,26 +297,6 @@ impl Watcher {
             self.core.replicas.len()
         );
 
-        #[allow(clippy::async_yields_async)]
-        let unenroll_futs: Vec<_> = self
-            .core
-            .replicas
-            .values()
-            .map(|replica| async move {
-                let signed_failure = FailureNotification {
-                    domain: replica.destination_domain(),
-                    updater: replica.updater().await.unwrap().into(),
-                }
-                .sign_with(self.signer.as_ref())
-                .await
-                .expect("!sign");
-
-                self.xapp_connection_manager
-                    .unenroll_replica(signed_failure)
-            })
-            .collect();
-        join_all(unenroll_futs).await;
-
         let mut double_update_futs: Vec<_> = self
             .core
             .replicas
@@ -324,7 +304,38 @@ impl Watcher {
             .map(|replica| replica.double_update(&double))
             .collect();
         double_update_futs.push(self.core.home.double_update(double));
+
         join_all(double_update_futs).await
+    }
+
+    // Unenroll replicas if double update detected
+    async fn unenroll_replicas(&self) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
+        // Create signed failure notifications
+        let signed_failure_futs: Vec<_> = self
+            .core
+            .replicas
+            .values()
+            .map(|replica| async move {
+                FailureNotification {
+                    domain: replica.destination_domain(),
+                    updater: replica.updater().await.unwrap().into(),
+                }
+                .sign_with(self.signer.as_ref())
+                .await
+                .expect("!sign")
+            })
+            .collect();
+        let signed_failures = join_all(signed_failure_futs).await;
+
+        // For each ConnectionManager, submit all signed failure notifications.
+        // OK if unenroll_replica tx reverts.
+        let mut unenroll_futs = Vec::new();
+        for connection_manager in self.connection_managers.iter() {
+            for signed_failure in signed_failures.iter() {
+                unenroll_futs.push(connection_manager.unenroll_replica(signed_failure));
+            }
+        }
+        join_all(unenroll_futs).await
     }
 }
 
@@ -338,16 +349,24 @@ impl OpticsAgent for Watcher {
     where
         Self: Sized,
     {
-        let xapp_connection_manager = settings
-            .xapp_connection_manager
-            .try_into_xapp_connection_manager()
-            .await?;
+        let connection_manager_futs: Vec<_> = settings
+            .connection_managers
+            .iter()
+            .map(|chain_setup| async move { chain_setup.try_into_connection_manager().await })
+            .collect();
+
+        let connection_managers = join_all(connection_manager_futs)
+            .await
+            .into_iter()
+            .map(Result::unwrap)
+            .collect();
+
         let core = settings.as_ref().try_into_core().await?;
 
         Ok(Self::new(
             settings.watcher.try_into_signer()?,
             settings.polling_interval,
-            xapp_connection_manager,
+            connection_managers,
             core,
         ))
     }
@@ -396,12 +415,20 @@ impl OpticsAgent for Watcher {
         self.shutdown().await;
 
         let res = join_result??;
+        tracing::error!("Double update detected!");
 
-        tracing::error!("Double update detected! Notifying all contracts!");
+        tracing::error!("Notifying all contracts!");
         self.handle_double_update(&res)
             .await
             .iter()
             .for_each(|res| tracing::info!("{:#?}", res));
+
+        tracing::error!("Unenrolling replicas!");
+        self.unenroll_replicas()
+            .await
+            .iter()
+            .for_each(|res| tracing::info!("{:#?}", res));
+
         bail!(
             r#"
             Double update detected!
