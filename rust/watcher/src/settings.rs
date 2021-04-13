@@ -6,6 +6,6 @@ use optics_ethereum::EthereumSigner;
 decl_settings!(Settings {
     agent: "watcher",
     watcher: EthereumSigner,
-    xapp_connection_manager: ChainSetup,
+    connection_managers: Vec<ChainSetup>,
     polling_interval: u64,
 });

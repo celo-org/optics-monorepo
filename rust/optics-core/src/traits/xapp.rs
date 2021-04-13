@@ -51,6 +51,6 @@ pub trait ConnectionManager: Send + Sync + std::fmt::Debug {
     /// and `SignedFailureNotification` from a watcher
     async fn unenroll_replica(
         &self,
-        signed_failure: SignedFailureNotification,
+        signed_failure: &SignedFailureNotification,
     ) -> Result<TxOutcome, ChainCommunicationError>;
 }

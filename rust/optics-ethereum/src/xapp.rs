@@ -139,7 +139,7 @@ where
     #[tracing::instrument(err)]
     async fn unenroll_replica(
         &self,
-        signed_failure: SignedFailureNotification,
+        signed_failure: &SignedFailureNotification,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
