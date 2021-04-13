@@ -178,10 +178,7 @@ contract GovernanceRouter is IMessageRecipient {
      * @param _domain The domain
      * @param _router The address of the new router
      */
-    function setRouter(uint32 _domain, bytes32 _router)
-        external
-        onlyGovernor
-    {
+    function setRouter(uint32 _domain, bytes32 _router) external onlyGovernor {
         _setRouter(_domain, _router); // set the router locally
 
         bytes memory setRouterMessage =
@@ -191,30 +188,30 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Set the address of the XAppConnectionManager
-     * @dev Domain/address validation helper
-     * @param _xAppConnectionManager The address of the new xAppConnectionManager
+     * @notice Set the router address *locally only*
+     * for the deployer to setup the router mapping locally
+     * before transferring governorship to the "true" governor
+     * @dev External helper for contract setup
+     * @param _domain The domain
+     * @param _router The new router
      */
-    function setXAppConnectionManager(address _xAppConnectionManager)
-    external
-    onlyGovernor
-    {
-        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
-    }
-
-    /**
-    * @notice Set the router address *locally only*
-    * for the deployer to setup the router mapping locally
-    * before transferring governorship to the "true" governor
-    * @dev External helper for contract setup
-    * @param _domain The domain
-    * @param _router The new router
-    */
     function setRouterDuringSetup(uint32 _domain, bytes32 _router)
         external
         onlyGovernor
     {
         _setRouter(_domain, _router); // set the router locally
+    }
+
+    /**
+     * @notice Set the address of the XAppConnectionManager
+     * @dev Domain/address validation helper
+     * @param _xAppConnectionManager The address of the new xAppConnectionManager
+     */
+    function setXAppConnectionManager(address _xAppConnectionManager)
+        public
+        onlyGovernor
+    {
+        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
     /**
@@ -404,14 +401,14 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-    * @notice Require that a domain has a router and returns the router
-    * @param _domain The domain
-    * @return _router - The domain's router
-    */
+     * @notice Require that a domain has a router and returns the router
+     * @param _domain The domain
+     * @return _router - The domain's router
+     */
     function mustHaveRouter(uint32 _domain)
-    internal
-    view
-    returns (bytes32 _router)
+        internal
+        view
+        returns (bytes32 _router)
     {
         _router = routers[_domain];
         require(_router != bytes32(0), "!router");

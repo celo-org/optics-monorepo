@@ -247,9 +247,7 @@ library GovernanceMessage {
     }
 
     function isSetRouter(bytes29 _view) internal pure returns (bool) {
-        return
-            isValidSetRouter(_view) &&
-            messageType(_view) == Types.SetRouter;
+        return isValidSetRouter(_view) && messageType(_view) == Types.SetRouter;
     }
 
     function tryAsSetRouter(bytes29 _view) internal pure returns (bytes29) {
