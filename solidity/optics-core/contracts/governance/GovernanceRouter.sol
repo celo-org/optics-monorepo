@@ -29,7 +29,7 @@ contract GovernanceRouter is IMessageRecipient {
         address indexed previousGovernor,
         address indexed newGovernor
     );
-    event ChangeRouter(
+    event SetRouter(
         uint32 indexed domain,
         bytes32 previousRouter,
         bytes32 newRouter
@@ -80,7 +80,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Message handler
+     * @notice Handle Optics messages
      *
      * For all non-Governor chains to handle messages
      * sent from the Governor chain via Optics.
@@ -88,7 +88,7 @@ contract GovernanceRouter is IMessageRecipient {
      * Governor chain should never receive messages,
      * because non-Governor chains are not able to send them
      * @param _origin The domain (of the Governor Router)
-     * @param _sender The sender
+     * @param _sender The message sender (must be the Governor Router)
      * @param _message The message
      * @return _ret
      */
@@ -109,15 +109,15 @@ contract GovernanceRouter is IMessageRecipient {
             return handleCall(_msg.tryAsCall());
         } else if (_msg.isValidTransferGovernor()) {
             return handleTransferGovernor(_msg.tryAsTransferGovernor());
-        } else if (_msg.isValidEnrollRouter()) {
-            return handleEnrollRouter(_msg.tryAsEnrollRouter());
+        } else if (_msg.isValidSetRouter()) {
+            return handleSetRouter(_msg.tryAsSetRouter());
         }
 
         require(false, "!valid message type");
     }
 
     /**
-     * @notice Dispatches local call
+     * @notice Dispatch calls locally
      * @param _calls The calls
      */
     function callLocal(GovernanceMessage.Call[] calldata _calls)
@@ -130,8 +130,8 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches call to remote router
-     * @param _destination The destination router
+     * @notice Dispatch calls on a remote chain via the remote GovernanceRouter
+     * @param _destination The domain of the remote chain
      * @param _calls The calls
      */
     function callRemote(
@@ -145,7 +145,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Transfer governorship to a new domain
+     * @notice Transfer governorship
      * @param _newDomain The domain of the new governor
      * @param _newGovernor The address of the new governor
      */
@@ -173,42 +173,37 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Enrolls a new router for a given domain and dispatches to all
-     * remote routers
+     * @notice Set the router address for a given domain and
+     * dispatch the change to all remote routers
      * @param _domain The domain
-     * @param _router The new router
+     * @param _router The address of the new router
      */
-    function enrollRouter(uint32 _domain, bytes32 _router)
-        external
-        onlyGovernor
-    {
-        _enrollRouter(_domain, _router); // enroll the router locally
+    function setRouter(uint32 _domain, bytes32 _router) external onlyGovernor {
+        _setRouter(_domain, _router); // set the router locally
 
-        bytes memory enrollRouterMessage =
-            GovernanceMessage.formatEnrollRouter(_domain, _router);
+        bytes memory setRouterMessage =
+            GovernanceMessage.formatSetRouter(_domain, _router);
 
-        _sendToAllRemoteRouters(enrollRouterMessage);
+        _sendToAllRemoteRouters(setRouterMessage);
     }
 
     /**
-     * @notice Enrolls a router locally
-     *
-     * @dev External helper for contract setup.
-     *
-     * convenience function so deployer can setup the router mapping for the
-     * contract locally before transferring to a new domain to the remote governor.
+     * @notice Set the router address *locally only*
+     * for the deployer to setup the router mapping locally
+     * before transferring governorship to the "true" governor
+     * @dev External helper for contract setup
      * @param _domain The domain
      * @param _router The new router
      */
-    function enrollRouterSetup(uint32 _domain, bytes32 _router)
+    function setRouterDuringSetup(uint32 _domain, bytes32 _router)
         external
         onlyGovernor
     {
-        _enrollRouter(_domain, _router); // enroll the router locally
+        _setRouter(_domain, _router); // set the router locally
     }
 
     /**
-     * @notice Sets up XAppConnectionManager
+     * @notice Set the address of the XAppConnectionManager
      * @dev Domain/address validation helper
      * @param _xAppConnectionManager The address of the new xAppConnectionManager
      */
@@ -220,14 +215,14 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles dispatching a call
+     * @notice Handle message dispatching calls locally
      * @param _msg The message
      * @return _ret
      */
     function handleCall(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
-        returns (bytes memory _ret)
+        returns (bytes memory)
     {
         GovernanceMessage.Call[] memory _calls = _msg.getCalls();
         for (uint256 i = 0; i < _calls.length; i++) {
@@ -238,14 +233,14 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles transfer to a new Governor
+     * @notice Handle message transferring governorship to a new Governor
      * @param _msg The message
      * @return _ret
      */
     function handleTransferGovernor(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
-        returns (bytes memory _ret)
+        returns (bytes memory)
     {
         uint32 _newDomain = _msg.domain();
         address _newGovernor = TypeCasts.bytes32ToAddress(_msg.governor());
@@ -257,25 +252,25 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Handles enrolling a router
+     * @notice Handle message setting the router address for a given domain
      * @param _msg The message
      * @return _ret
      */
-    function handleEnrollRouter(bytes29 _msg)
+    function handleSetRouter(bytes29 _msg)
         internal
-        typeAssert(_msg, GovernanceMessage.Types.EnrollRouter)
-        returns (bytes memory _ret)
+        typeAssert(_msg, GovernanceMessage.Types.SetRouter)
+        returns (bytes memory)
     {
         uint32 _domain = _msg.domain();
         bytes32 _router = _msg.router();
 
-        _enrollRouter(_domain, _router);
+        _setRouter(_domain, _router);
 
         return hex"";
     }
 
     /**
-     * @notice Dispatches message to all remote routers
+     * @notice Dispatch message to all remote routers
      * @param _msg The message
      */
     function _sendToAllRemoteRouters(bytes memory _msg) internal {
@@ -289,7 +284,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Dispatches call
+     * @notice Dispatch call locally
      * @param _call The call
      * @return _ret
      */
@@ -306,8 +301,8 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Transfers governorship to a new domain
-     * @param _newDomain The new domain
+     * @notice Transfer governorship within this contract's state
+     * @param _newDomain The domain of the new governor
      * @param _newGovernor The address of the new governor
      */
     function _transferGovernor(
@@ -330,14 +325,14 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Enrolls a new router for a given domain
+     * @notice Set the router for a given domain
      * @param _domain The domain
      * @param _newRouter The new router
      */
-    function _enrollRouter(uint32 _domain, bytes32 _newRouter) internal {
+    function _setRouter(uint32 _domain, bytes32 _newRouter) internal {
         bytes32 _previousRouter = routers[_domain];
 
-        emit ChangeRouter(_domain, _previousRouter, _newRouter);
+        emit SetRouter(_domain, _previousRouter, _newRouter);
 
         if (_newRouter == bytes32(0)) {
             _removeDomain(_domain);
@@ -352,7 +347,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Adds a given domain
+     * @notice Add a domain that has a router
      * @param _domain The domain
      */
     function _addDomain(uint32 _domain) internal {
@@ -360,7 +355,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Removes a domain and its associated router
+     * @notice Remove a domain and its associated router
      * @param _domain The domain
      */
     function _removeDomain(uint32 _domain) internal {
@@ -376,7 +371,7 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Determines if a given domain and address is the Governor Router
+     * @notice Determine if a given domain and address is the Governor Router
      * @param _domain The domain
      * @param _address The address of the domain's router
      * @return _isGovernorRouter True if the given domain/address is the
@@ -393,7 +388,20 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Requires that a domain have a router and returns the router
+     * @notice Determine if a given domain is the local domain
+     * @param _domain The domain
+     * @return _isLocalDomain - True if the given domain is the local domain
+     */
+    function isLocalDomain(uint32 _domain)
+        internal
+        view
+        returns (bool _isLocalDomain)
+    {
+        _isLocalDomain = _domain == localDomain;
+    }
+
+    /**
+     * @notice Require that a domain has a router and returns the router
      * @param _domain The domain
      * @return _router - The domain's router
      */
@@ -404,18 +412,5 @@ contract GovernanceRouter is IMessageRecipient {
     {
         _router = routers[_domain];
         require(_router != bytes32(0), "!router");
-    }
-
-    /**
-     * @notice Determines if a given domain is the local domain
-     * @param _domain The domain
-     * @return _isLocalDomain - True if the given domain is the local domain
-     */
-    function isLocalDomain(uint32 _domain)
-        internal
-        view
-        returns (bool _isLocalDomain)
-    {
-        _isLocalDomain = _domain == localDomain;
     }
 }

@@ -14,7 +14,7 @@ library GovernanceMessage {
         Invalid, // 0
         Call, // 1
         TransferGovernor, // 2
-        EnrollRouter, // 3
+        SetRouter, // 3
         Data // 4
     }
 
@@ -28,43 +28,11 @@ library GovernanceMessage {
         _;
     }
 
-    function nextCall(bytes29 _view)
-        public
-        pure
-        typeAssert(_view, Types.Call)
-        returns (bytes29)
-    {
-        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
-        return
-            _view.slice(
-                lastCallLen,
-                _view.len() - lastCallLen,
-                uint40(Types.Call)
-            );
-    }
-
     // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
         _data = TypedMemView.clone(
             _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
         );
-    }
-
-    function getCalls(bytes29 _msg)
-        internal
-        view
-        returns (Call[] memory _calls)
-    {
-        // Skip 1 byte identifier
-        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
-
-        uint256 counter = 0;
-        while (_msgPtr.len() > 0) {
-            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
-
-            _msgPtr = nextCall(_msgPtr);
-            counter++;
-        }
     }
 
     function formatCalls(Call[] memory _calls)
@@ -104,16 +72,48 @@ library GovernanceMessage {
         );
     }
 
-    function formatEnrollRouter(uint32 _domain, bytes32 _router)
+    function formatSetRouter(uint32 _domain, bytes32 _router)
         internal
         view
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
-            mustBeEnrollRouter(
-                abi.encodePacked(Types.EnrollRouter, _domain, _router).ref(0)
+            mustBeSetRouter(
+                abi.encodePacked(Types.SetRouter, _domain, _router).ref(0)
             )
         );
+    }
+
+    function getCalls(bytes29 _msg)
+        internal
+        view
+        returns (Call[] memory _calls)
+    {
+        // Skip 1 byte identifier
+        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
+
+        uint256 counter = 0;
+        while (_msgPtr.len() > 0) {
+            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
+
+            _msgPtr = nextCall(_msgPtr);
+            counter++;
+        }
+    }
+
+    function nextCall(bytes29 _view)
+        internal
+        pure
+        typeAssert(_view, Types.Call)
+        returns (bytes29)
+    {
+        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
+        return
+            _view.slice(
+                lastCallLen,
+                _view.len() - lastCallLen,
+                uint40(Types.Call)
+            );
     }
 
     function messageType(bytes29 _view) internal pure returns (Types) {
@@ -233,33 +233,31 @@ library GovernanceMessage {
     /*
         Message Type: ENROLL ROUTER
 
-        struct EnrollRouter {
+        struct SetRouter {
             identifier, // message ID -- 1 byte
             domain,     // domain of new router -- 4 bytes
             addr        // address of new router -- 32 bytes
         }
     */
 
-    function isValidEnrollRouter(bytes29 _view) internal pure returns (bool) {
+    function isValidSetRouter(bytes29 _view) internal pure returns (bool) {
         return
-            identifier(_view) == uint8(Types.EnrollRouter) &&
+            identifier(_view) == uint8(Types.SetRouter) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function isEnrollRouter(bytes29 _view) internal pure returns (bool) {
-        return
-            isValidEnrollRouter(_view) &&
-            messageType(_view) == Types.EnrollRouter;
+    function isSetRouter(bytes29 _view) internal pure returns (bool) {
+        return isValidSetRouter(_view) && messageType(_view) == Types.SetRouter;
     }
 
-    function tryAsEnrollRouter(bytes29 _view) internal pure returns (bytes29) {
-        if (isValidEnrollRouter(_view)) {
-            return _view.castTo(uint40(Types.EnrollRouter));
+    function tryAsSetRouter(bytes29 _view) internal pure returns (bytes29) {
+        if (isValidSetRouter(_view)) {
+            return _view.castTo(uint40(Types.SetRouter));
         }
         return TypedMemView.nullView();
     }
 
-    function mustBeEnrollRouter(bytes29 _view) internal pure returns (bytes29) {
-        return tryAsEnrollRouter(_view).assertValid();
+    function mustBeSetRouter(bytes29 _view) internal pure returns (bytes29) {
+        return tryAsSetRouter(_view).assertValid();
     }
 }
