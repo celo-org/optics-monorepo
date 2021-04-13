@@ -28,43 +28,11 @@ library GovernanceMessage {
         _;
     }
 
-    function nextCall(bytes29 _view)
-        public
-        pure
-        typeAssert(_view, Types.Call)
-        returns (bytes29)
-    {
-        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
-        return
-            _view.slice(
-                lastCallLen,
-                _view.len() - lastCallLen,
-                uint40(Types.Call)
-            );
-    }
-
     // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
         _data = TypedMemView.clone(
             _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
         );
-    }
-
-    function getCalls(bytes29 _msg)
-        internal
-        view
-        returns (Call[] memory _calls)
-    {
-        // Skip 1 byte identifier
-        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
-
-        uint256 counter = 0;
-        while (_msgPtr.len() > 0) {
-            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
-
-            _msgPtr = nextCall(_msgPtr);
-            counter++;
-        }
     }
 
     function formatCalls(Call[] memory _calls)
@@ -114,6 +82,38 @@ library GovernanceMessage {
                 abi.encodePacked(Types.EnrollRouter, _domain, _router).ref(0)
             )
         );
+    }
+
+    function getCalls(bytes29 _msg)
+        internal
+        view
+        returns (Call[] memory _calls)
+    {
+        // Skip 1 byte identifier
+        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
+
+        uint256 counter = 0;
+        while (_msgPtr.len() > 0) {
+            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
+
+            _msgPtr = nextCall(_msgPtr);
+            counter++;
+        }
+    }
+
+    function nextCall(bytes29 _view)
+        internal
+        pure
+        typeAssert(_view, Types.Call)
+        returns (bytes29)
+    {
+        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
+        return
+            _view.slice(
+                lastCallLen,
+                _view.len() - lastCallLen,
+                uint40(Types.Call)
+            );
     }
 
     function messageType(bytes29 _view) internal pure returns (Types) {
