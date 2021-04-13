@@ -26,10 +26,9 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
 
     mapping(uint32 => bytes32) internal remotes;
 
-    // solhint-disable-next-line no-empty-blocks
     constructor(address _xAppConnectionManager)
         TokenRegistry(_xAppConnectionManager)
-    {}
+    {} // solhint-disable-line no-empty-blocks
 
     modifier onlyRemoteRouter(uint32 _origin, bytes32 _router) {
         require(isRemoteRouter(_origin, _router), "Not a remote router");

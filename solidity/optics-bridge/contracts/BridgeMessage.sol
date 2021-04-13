@@ -24,16 +24,20 @@ library BridgeMessage {
         _;
     }
 
-    function _formatMessage(bytes29 _tokenId, bytes29 _action)
+    /**
+     * @param _t The tokenId
+     * @param _a The action
+     */
+    function _formatMessage(bytes29 _t, bytes29 _a)
         internal
         view
-        typeAssert(_tokenId, Types.TokenId)
+        typeAssert(_t, Types.TokenId)
         returns (bytes memory)
     {
-        require(_isDetails(_action) || _isTransfer(_action), "!action");
+        require(_isDetails(_a) || _isTransfer(_a), "!action");
         bytes29[] memory _views = new bytes29[](2);
-        _views[0] = _tokenId;
-        _views[1] = _action;
+        _views[0] = _t;
+        _views[1] = _a;
         return TypedMemView.join(_views);
     }
 
@@ -49,29 +53,41 @@ library BridgeMessage {
         return _messageType(_view) == Types.Details;
     }
 
-    function _formatTransfer(bytes32 _to, uint256 _amnt)
+    /**
+     * @param _to The destination address
+     * @param _a The amount
+     */
+    function _formatTransfer(bytes32 _to, uint256 _a)
         internal
         pure
         returns (bytes29)
     {
-        return _mustBeTransfer(abi.encodePacked(_to, _amnt).ref(0));
+        return _mustBeTransfer(abi.encodePacked(_to, _a).ref(0));
     }
 
+    /**
+     * @param _n The name
+     * @param _s The symbol
+     * @param _d The decimals
+     */
     function _formatDetails(
-        bytes32 _name,
-        bytes32 _symbol,
-        uint8 _decimals
+        bytes32 _n,
+        bytes32 _s,
+        uint8 _d
     ) internal pure returns (bytes29) {
-        return
-            _mustBeDetails(abi.encodePacked(_name, _symbol, _decimals).ref(0));
+        return _mustBeDetails(abi.encodePacked(_n, _s, _d).ref(0));
     }
 
-    function _formatTokenId(uint32 _domain, bytes32 _id)
+    /**
+     * @param _d The domain
+     * @param _i The id
+     */
+    function _formatTokenId(uint32 _d, bytes32 _i)
         internal
         pure
         returns (bytes29)
     {
-        return _mustBeTokenId(abi.encodePacked(_domain, _id).ref(0));
+        return _mustBeTokenId(abi.encodePacked(_d, _i).ref(0));
     }
 
     function _domain(bytes29 _view)
