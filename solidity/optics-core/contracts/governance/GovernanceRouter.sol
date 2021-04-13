@@ -191,6 +191,18 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
+     * @notice Set the address of the XAppConnectionManager
+     * @dev Domain/address validation helper
+     * @param _xAppConnectionManager The address of the new xAppConnectionManager
+     */
+    function setXAppConnectionManager(address _xAppConnectionManager)
+    external
+    onlyGovernor
+    {
+        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
+    }
+
+    /**
     * @notice Set the router address *locally only*
     * for the deployer to setup the router mapping locally
     * before transferring governorship to the "true" governor
@@ -203,18 +215,6 @@ contract GovernanceRouter is IMessageRecipient {
         onlyGovernor
     {
         _setRouter(_domain, _router); // set the router locally
-    }
-
-    /**
-     * @notice Set the address of the XAppConnectionManager
-     * @dev Domain/address validation helper
-     * @param _xAppConnectionManager The address of the new xAppConnectionManager
-     */
-    function setXAppConnectionManager(address _xAppConnectionManager)
-    external
-    onlyGovernor
-    {
-        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
     /**
@@ -391,20 +391,6 @@ contract GovernanceRouter is IMessageRecipient {
     }
 
     /**
-     * @notice Require that a domain has a router and returns the router
-     * @param _domain The domain
-     * @return _router - The domain's router
-     */
-    function mustHaveRouter(uint32 _domain)
-        internal
-        view
-        returns (bytes32 _router)
-    {
-        _router = routers[_domain];
-        require(_router != bytes32(0), "!router");
-    }
-
-    /**
      * @notice Determine if a given domain is the local domain
      * @param _domain The domain
      * @return _isLocalDomain - True if the given domain is the local domain
@@ -415,5 +401,19 @@ contract GovernanceRouter is IMessageRecipient {
         returns (bool _isLocalDomain)
     {
         _isLocalDomain = _domain == localDomain;
+    }
+
+    /**
+    * @notice Require that a domain has a router and returns the router
+    * @param _domain The domain
+    * @return _router - The domain's router
+    */
+    function mustHaveRouter(uint32 _domain)
+    internal
+    view
+    returns (bytes32 _router)
+    {
+        _router = routers[_domain];
+        require(_router != bytes32(0), "!router");
     }
 }
