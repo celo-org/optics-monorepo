@@ -358,8 +358,17 @@ impl OpticsAgent for Watcher {
             .map(|chain_setup| chain_setup.try_into_connection_manager())
             .collect();
 
-        let connection_managers = join_all(connection_manager_futs)
+        let (connection_managers, errors): (Vec<_>, Vec<_>) = join_all(connection_manager_futs)
             .await
+            .into_iter()
+            .partition(Result::is_ok);
+
+        // Report any invalid ConnectionManager chain setups
+        errors
+            .into_iter()
+            .for_each(|e| tracing::error!("{:?}", e.unwrap_err()));
+
+        let connection_managers: Vec<_> = connection_managers
             .into_iter()
             .map(Result::unwrap)
             .collect();
