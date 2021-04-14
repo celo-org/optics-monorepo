@@ -105,12 +105,12 @@ contract GovernanceRouter is IMessageRecipient {
     {
         bytes29 _msg = _message.ref(0);
 
-        if (_msg._isValidCall()) {
-            return _handleCall(_msg._tryAsCall());
-        } else if (_msg._isValidTransferGovernor()) {
-            return _handleTransferGovernor(_msg._tryAsTransferGovernor());
-        } else if (_msg._isValidSetRouter()) {
-            return _handleSetRouter(_msg._tryAsSetRouter());
+        if (_msg.isValidCall()) {
+            return _handleCall(_msg.tryAsCall());
+        } else if (_msg.isValidTransferGovernor()) {
+            return _handleTransferGovernor(_msg.tryAsTransferGovernor());
+        } else if (_msg.isValidSetRouter()) {
+            return _handleSetRouter(_msg.tryAsSetRouter());
         }
 
         require(false, "!valid message type");
@@ -139,7 +139,7 @@ contract GovernanceRouter is IMessageRecipient {
         GovernanceMessage.Call[] calldata _calls
     ) external onlyGovernor {
         bytes32 router = _mustHaveRouter(_destination);
-        bytes memory _msg = GovernanceMessage._formatCalls(_calls);
+        bytes memory _msg = GovernanceMessage.formatCalls(_calls);
 
         Home(xAppConnectionManager.home()).enqueue(_destination, router, _msg);
     }
@@ -164,7 +164,7 @@ contract GovernanceRouter is IMessageRecipient {
         }
 
         bytes memory transferGovernorMessage =
-            GovernanceMessage._formatTransferGovernor(
+            GovernanceMessage.formatTransferGovernor(
                 _newDomain,
                 TypeCasts.addressToBytes32(_newGovernor)
             );
@@ -182,7 +182,7 @@ contract GovernanceRouter is IMessageRecipient {
         _setRouter(_domain, _router); // set the router locally
 
         bytes memory setRouterMessage =
-            GovernanceMessage._formatSetRouter(_domain, _router);
+            GovernanceMessage.formatSetRouter(_domain, _router);
 
         _sendToAllRemoteRouters(setRouterMessage);
     }
@@ -224,7 +224,7 @@ contract GovernanceRouter is IMessageRecipient {
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory)
     {
-        GovernanceMessage.Call[] memory _calls = _msg._getCalls();
+        GovernanceMessage.Call[] memory _calls = _msg.getCalls();
         for (uint256 i = 0; i < _calls.length; i++) {
             _dispatchCall(_calls[i]);
         }
@@ -242,8 +242,8 @@ contract GovernanceRouter is IMessageRecipient {
         typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
         returns (bytes memory)
     {
-        uint32 newDomain = _msg._domain();
-        address newGovernor = TypeCasts.bytes32ToAddress(_msg._governor());
+        uint32 newDomain = _msg.domain();
+        address newGovernor = TypeCasts.bytes32ToAddress(_msg.governor());
         bool isLocalDomain = _isLocalDomain(newDomain);
 
         _transferGovernor(newDomain, newGovernor, isLocalDomain);
@@ -261,8 +261,8 @@ contract GovernanceRouter is IMessageRecipient {
         typeAssert(_msg, GovernanceMessage.Types.SetRouter)
         returns (bytes memory)
     {
-        uint32 domain = _msg._domain();
-        bytes32 router = _msg._router();
+        uint32 domain = _msg.domain();
+        bytes32 router = _msg.router();
 
         _setRouter(domain, router);
 

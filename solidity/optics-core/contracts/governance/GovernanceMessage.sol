@@ -29,18 +29,13 @@ library GovernanceMessage {
     }
 
     // Types.Call
-    function _data(bytes29 _view) internal view returns (bytes memory) {
-        return
-            TypedMemView.clone(
-                _view.slice(
-                    CALL_PREFIX_LEN,
-                    _dataLen(_view),
-                    uint40(Types.Data)
-                )
-            );
+    function data(bytes29 _view) internal view returns (bytes memory _data) {
+        _data = TypedMemView.clone(
+            _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
+        );
     }
 
-    function _formatCalls(Call[] memory _calls)
+    function formatCalls(Call[] memory _calls)
         internal
         view
         returns (bytes memory _msg)
@@ -63,40 +58,33 @@ library GovernanceMessage {
         _msg = TypedMemView.join(_encodedCalls);
     }
 
-    function _formatTransferGovernor(uint32 _newDomain, bytes32 _newGovernor)
+    function formatTransferGovernor(uint32 _domain, bytes32 _governor)
         internal
         view
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
-            _mustBeTransferGovernor(
+            mustBeTransferGovernor(
                 abi
-                    .encodePacked(
-                    Types
-                        .TransferGovernor,
-                    _newDomain,
-                    _newGovernor
-                )
+                    .encodePacked(Types.TransferGovernor, _domain, _governor)
                     .ref(0)
             )
         );
     }
 
-    /**
-     * @param _d The domain
-     * @param _r The router
-     */
-    function _formatSetRouter(uint32 _d, bytes32 _r)
+    function formatSetRouter(uint32 _domain, bytes32 _router)
         internal
         view
         returns (bytes memory _msg)
     {
         _msg = TypedMemView.clone(
-            _mustBeSetRouter(abi.encodePacked(Types.SetRouter, _d, _r).ref(0))
+            mustBeSetRouter(
+                abi.encodePacked(Types.SetRouter, _domain, _router).ref(0)
+            )
         );
     }
 
-    function _getCalls(bytes29 _msg)
+    function getCalls(bytes29 _msg)
         internal
         view
         returns (Call[] memory _calls)
@@ -106,20 +94,20 @@ library GovernanceMessage {
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
-            _calls[counter] = Call({to: _to(_msgPtr), data: _data(_msgPtr)});
+            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
 
-            _msgPtr = _nextCall(_msgPtr);
+            _msgPtr = nextCall(_msgPtr);
             counter++;
         }
     }
 
-    function _nextCall(bytes29 _view)
+    function nextCall(bytes29 _view)
         internal
         pure
         typeAssert(_view, Types.Call)
         returns (bytes29)
     {
-        uint256 lastCallLen = CALL_PREFIX_LEN + _dataLen(_view);
+        uint256 lastCallLen = CALL_PREFIX_LEN + dataLen(_view);
         return
             _view.slice(
                 lastCallLen,
@@ -128,7 +116,7 @@ library GovernanceMessage {
             );
     }
 
-    function _messageType(bytes29 _view) internal pure returns (Types) {
+    function messageType(bytes29 _view) internal pure returns (Types) {
         return Types(uint8(_view.typeOf()));
     }
 
@@ -137,38 +125,37 @@ library GovernanceMessage {
     */
 
     // All Types
-    function _identifier(bytes29 _view) internal pure returns (uint8) {
+    function identifier(bytes29 _view) internal pure returns (uint8) {
         return uint8(_view.indexUint(0, 1));
     }
 
     // Types.Call
-    function _to(bytes29 _view) internal pure returns (bytes32) {
+    function to(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(0, 32);
     }
 
     // Types.Call
-    function _dataLen(bytes29 _view) internal pure returns (uint256) {
+    function dataLen(bytes29 _view) internal pure returns (uint256) {
         return uint256(_view.index(32, 32));
     }
 
     // Types.TransferGovernor & Types.EnrollRemote
-    function _domain(bytes29 _view) internal pure returns (uint32) {
+    function domain(bytes29 _view) internal pure returns (uint32) {
         return uint32(_view.indexUint(1, 4));
     }
 
     // Types.EnrollRemote
-    function _router(bytes29 _view) internal pure returns (bytes32) {
+    function router(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(5, 32);
     }
 
     // Types.TransferGovernor
-    function _governor(bytes29 _view) internal pure returns (bytes32) {
+    function governor(bytes29 _view) internal pure returns (bytes32) {
         return _view.index(5, 32);
     }
 
     /*
         Message Type: CALL
-
         struct Call {
             addr,       // address to call -- 32 bytes
             dataLen,    // call data length -- 32 bytes,
@@ -176,30 +163,29 @@ library GovernanceMessage {
         }
     */
 
-    function _isValidCall(bytes29 _view) internal pure returns (bool) {
+    function isValidCall(bytes29 _view) internal pure returns (bool) {
         return
-            _identifier(_view) == uint8(Types.Call) &&
+            identifier(_view) == uint8(Types.Call) &&
             _view.len() >= CALL_PREFIX_LEN;
     }
 
-    function _isCall(bytes29 _view) internal pure returns (bool) {
-        return _isValidCall(_view) && _messageType(_view) == Types.Call;
+    function isCall(bytes29 _view) internal pure returns (bool) {
+        return isValidCall(_view) && messageType(_view) == Types.Call;
     }
 
-    function _tryAsCall(bytes29 _view) internal pure returns (bytes29) {
-        if (_isValidCall(_view)) {
+    function tryAsCall(bytes29 _view) internal pure returns (bytes29) {
+        if (isValidCall(_view)) {
             return _view.castTo(uint40(Types.Call));
         }
         return TypedMemView.nullView();
     }
 
-    function _mustBeCalls(bytes29 _view) internal pure returns (bytes29) {
-        return _tryAsCall(_view).assertValid();
+    function mustBeCalls(bytes29 _view) internal pure returns (bytes29) {
+        return tryAsCall(_view).assertValid();
     }
 
     /*
         Message Type: TRANSFER GOVERNOR
-
         struct TransferGovernor {
             identifier, // message ID -- 1 byte
             domain,     // domain of new governor -- 4 bytes
@@ -207,44 +193,43 @@ library GovernanceMessage {
         }
     */
 
-    function _isValidTransferGovernor(bytes29 _view)
+    function isValidTransferGovernor(bytes29 _view)
         internal
         pure
         returns (bool)
     {
         return
-            _identifier(_view) == uint8(Types.TransferGovernor) &&
+            identifier(_view) == uint8(Types.TransferGovernor) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function _isTransferGovernor(bytes29 _view) internal pure returns (bool) {
+    function isTransferGovernor(bytes29 _view) internal pure returns (bool) {
         return
-            _isValidTransferGovernor(_view) &&
-            _messageType(_view) == Types.TransferGovernor;
+            isValidTransferGovernor(_view) &&
+            messageType(_view) == Types.TransferGovernor;
     }
 
-    function _tryAsTransferGovernor(bytes29 _view)
+    function tryAsTransferGovernor(bytes29 _view)
         internal
         pure
         returns (bytes29)
     {
-        if (_isValidTransferGovernor(_view)) {
+        if (isValidTransferGovernor(_view)) {
             return _view.castTo(uint40(Types.TransferGovernor));
         }
         return TypedMemView.nullView();
     }
 
-    function _mustBeTransferGovernor(bytes29 _view)
+    function mustBeTransferGovernor(bytes29 _view)
         internal
         pure
         returns (bytes29)
     {
-        return _tryAsTransferGovernor(_view).assertValid();
+        return tryAsTransferGovernor(_view).assertValid();
     }
 
     /*
         Message Type: ENROLL ROUTER
-
         struct SetRouter {
             identifier, // message ID -- 1 byte
             domain,     // domain of new router -- 4 bytes
@@ -252,25 +237,24 @@ library GovernanceMessage {
         }
     */
 
-    function _isValidSetRouter(bytes29 _view) internal pure returns (bool) {
+    function isValidSetRouter(bytes29 _view) internal pure returns (bool) {
         return
-            _identifier(_view) == uint8(Types.SetRouter) &&
+            identifier(_view) == uint8(Types.SetRouter) &&
             _view.len() == GOV_ACTION_LEN;
     }
 
-    function _isSetRouter(bytes29 _view) internal pure returns (bool) {
-        return
-            _isValidSetRouter(_view) && _messageType(_view) == Types.SetRouter;
+    function isSetRouter(bytes29 _view) internal pure returns (bool) {
+        return isValidSetRouter(_view) && messageType(_view) == Types.SetRouter;
     }
 
-    function _tryAsSetRouter(bytes29 _view) internal pure returns (bytes29) {
-        if (_isValidSetRouter(_view)) {
+    function tryAsSetRouter(bytes29 _view) internal pure returns (bytes29) {
+        if (isValidSetRouter(_view)) {
             return _view.castTo(uint40(Types.SetRouter));
         }
         return TypedMemView.nullView();
     }
 
-    function _mustBeSetRouter(bytes29 _view) internal pure returns (bytes29) {
-        return _tryAsSetRouter(_view).assertValid();
+    function mustBeSetRouter(bytes29 _view) internal pure returns (bytes29) {
+        return tryAsSetRouter(_view).assertValid();
     }
 }
