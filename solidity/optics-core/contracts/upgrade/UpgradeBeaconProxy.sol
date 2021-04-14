@@ -85,10 +85,10 @@ contract UpgradeBeaconProxy {
         private
     {
         // Delegatecall into the implementation, supplying initialization calldata.
-        (bool ok, ) = _impl.delegatecall(_initializationCalldata);
+        (bool _ok, ) = _impl.delegatecall(_initializationCalldata);
 
         // Revert and include revert data if delegatecall to implementation reverts.
-        if (!ok) {
+        if (!_ok) {
             assembly {
                 returndatacopy(0, 0, returndatasize())
                 revert(0, returndatasize())
@@ -169,12 +169,12 @@ contract UpgradeBeaconProxy {
         returns (address _impl)
     {
         // Get the current implementation address from the upgrade beacon.
-        (bool ok, bytes memory returnData) = _upgradeBeacon.staticcall("");
+        (bool _ok, bytes memory _returnData) = _upgradeBeacon.staticcall("");
 
         // Revert and pass along revert message if call to upgrade beacon reverts.
-        require(ok, string(returnData));
+        require(_ok, string(_returnData));
 
         // Set the implementation to the address returned from the upgrade beacon.
-        _impl = abi.decode(returnData, (address));
+        _impl = abi.decode(_returnData, (address));
     }
 }

@@ -34,10 +34,10 @@ contract UpgradeBeaconController is Ownable {
         require(Address.isContract(_beacon), "beacon !contract");
 
         // Call into beacon and supply address of new implementation to update it.
-        (bool success, ) = _beacon.call(abi.encode(_implementation));
+        (bool _success, ) = _beacon.call(abi.encode(_implementation));
 
         // Revert with message on failure (i.e. if the beacon is somehow incorrect).
-        if (!success) {
+        if (!_success) {
             assembly {
                 returndatacopy(0, 0, returndatasize())
                 revert(0, returndatasize())
