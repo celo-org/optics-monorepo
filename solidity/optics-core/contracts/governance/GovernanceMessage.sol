@@ -30,9 +30,14 @@ library GovernanceMessage {
 
     // Types.Call
     function _data(bytes29 _view) internal view returns (bytes memory) {
-        return TypedMemView.clone(
-            _view.slice(CALL_PREFIX_LEN, _dataLen(_view), uint40(Types.Data))
-        );
+        return
+            TypedMemView.clone(
+                _view.slice(
+                    CALL_PREFIX_LEN,
+                    _dataLen(_view),
+                    uint40(Types.Data)
+                )
+            );
     }
 
     function _formatCalls(Call[] memory _calls)
