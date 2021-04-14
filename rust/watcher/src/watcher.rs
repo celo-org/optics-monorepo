@@ -6,7 +6,7 @@ use color_eyre::{
 use thiserror::Error;
 
 use ethers::core::types::H256;
-use futures_util::future::join_all;
+use futures_util::future::{join, join_all};
 use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc};
 use tokio::{
@@ -26,7 +26,7 @@ use optics_core::{
     traits::{
         ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Replica, TxOutcome,
     },
-    FailureNotification, SignedUpdate, Signers,
+    FailureNotification, SignedFailureNotification, SignedUpdate, Signers,
 };
 
 use crate::settings::Settings;
@@ -286,32 +286,9 @@ impl Watcher {
         }
     }
 
-    // Handle a double-update once it has been detected.
+    // Create signed failure notifications for all replicas in AgentCore
     #[tracing::instrument]
-    async fn handle_double_update(
-        &self,
-        double: &DoubleUpdate,
-    ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
-        tracing::info!(
-            "Dispatching double-update notifications to home and {} replicas",
-            self.core.replicas.len()
-        );
-
-        let mut double_update_futs: Vec<_> = self
-            .core
-            .replicas
-            .values()
-            .map(|replica| replica.double_update(&double))
-            .collect();
-        double_update_futs.push(self.core.home.double_update(double));
-
-        join_all(double_update_futs).await
-    }
-
-    // Unenroll replicas if double update detected
-    #[tracing::instrument]
-    async fn unenroll_replicas(&self) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
-        // Create signed failure notifications
+    async fn create_signed_failures(&self) -> Vec<SignedFailureNotification> {
         let signed_failure_futs: Vec<_> = self
             .core
             .replicas
@@ -326,19 +303,46 @@ impl Watcher {
                 .expect("!sign")
             })
             .collect();
-        let signed_failures = join_all(signed_failure_futs).await;
 
-        // For each ConnectionManager, submit all signed failure notifications.
-        // If signed failure notification for replica is submitted to a
-        // ConnectionManager that has no knowledge of given replica, it is OK
-        // if tx reverts.
+        join_all(signed_failure_futs).await
+    }
+
+    // Handle a double-update once it has been detected.
+    #[tracing::instrument]
+    async fn handle_failure(
+        &self,
+        double: &DoubleUpdate,
+    ) -> Vec<Result<TxOutcome, ChainCommunicationError>> {
+        // Create vector of double update futures
+        let mut double_update_futs: Vec<_> = self
+            .core
+            .replicas
+            .values()
+            .map(|replica| replica.double_update(&double))
+            .collect();
+        double_update_futs.push(self.core.home.double_update(double));
+
+        let signed_failures = self.create_signed_failures().await;
+
+        // Create vector of unenroll futures. For each ConnectionManager,
+        // submit all signed failure notifications. If signed failure
+        // notification for replica is submitted to a ConnectionManager that
+        // has no knowledge of given replica, it is OK if tx reverts.
         let mut unenroll_futs = Vec::new();
         for connection_manager in self.connection_managers.iter() {
             for signed_failure in signed_failures.iter() {
-                unenroll_futs.push(connection_manager.unenroll_replica(signed_failure));
+                unenroll_futs.push(connection_manager.unenroll_replica(&signed_failure));
             }
         }
-        join_all(unenroll_futs).await
+
+        // Join both vectors of double update and unenroll futures and
+        // return vector containing all results
+        let (double_update_res, unenroll_res) =
+            join(join_all(double_update_futs), join_all(unenroll_futs)).await;
+        double_update_res
+            .into_iter()
+            .chain(unenroll_res.into_iter())
+            .collect()
     }
 }
 
@@ -426,17 +430,13 @@ impl OpticsAgent for Watcher {
         cancel_task!(home_sync);
         self.shutdown().await;
 
-        let res = join_result??;
+        let double_update_res = join_result??;
 
         tracing::error!(
             "Double update detected! Notifying all contracts and unenrolling replicas!"
         );
-        let (double_update_results, unenroll_results) =
-            tokio::join!(self.handle_double_update(&res), self.unenroll_replicas());
-        double_update_results
-            .iter()
-            .for_each(|res| tracing::info!("{:#?}", res));
-        unenroll_results
+        self.handle_failure(&double_update_res)
+            .await
             .iter()
             .for_each(|res| tracing::info!("{:#?}", res));
 
