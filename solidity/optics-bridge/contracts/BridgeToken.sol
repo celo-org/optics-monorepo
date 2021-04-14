@@ -23,16 +23,16 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
         uint8 _newDecimals
     ) external override onlyOwner {
         // careful with naming convention change here
-        _name = TypeCasts.coerceString(_newName);
-        _symbol = TypeCasts.coerceString(_newSymbol);
-        _decimals = _newDecimals;
+        token.name = TypeCasts.coerceString(_newName);
+        token.symbol = TypeCasts.coerceString(_newSymbol);
+        token.decimals = _newDecimals;
     }
 
     /**
      * @dev Returns the name of the token.
      */
     function name() public view override returns (string memory) {
-        return _name;
+        return token.name;
     }
 
     /**
@@ -40,7 +40,7 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
      * name.
      */
     function symbol() public view override returns (string memory) {
-        return _symbol;
+        return token.symbol;
     }
 
     /**
@@ -57,6 +57,6 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
     function decimals() public view override returns (uint8) {
-        return _decimals;
+        return token.decimals;
     }
 }
