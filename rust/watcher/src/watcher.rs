@@ -427,17 +427,16 @@ impl OpticsAgent for Watcher {
         self.shutdown().await;
 
         let res = join_result??;
-        tracing::error!("Double update detected!");
 
-        tracing::error!("Notifying all contracts!");
-        self.handle_double_update(&res)
-            .await
+        tracing::error!(
+            "Double update detected! Notifying all contracts and unenrolling replicas!"
+        );
+        let (double_update_results, unenroll_results) =
+            tokio::join!(self.handle_double_update(&res), self.unenroll_replicas());
+        double_update_results
             .iter()
             .for_each(|res| tracing::info!("{:#?}", res));
-
-        tracing::error!("Unenrolling replicas!");
-        self.unenroll_replicas()
-            .await
+        unenroll_results
             .iter()
             .for_each(|res| tracing::info!("{:#?}", res));
 
@@ -445,6 +444,7 @@ impl OpticsAgent for Watcher {
             r#"
             Double update detected!
             All contracts notified!
+            Replicas unenrolled!
             Watcher has been shut down!
         "#
         )
