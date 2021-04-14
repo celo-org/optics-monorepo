@@ -319,12 +319,7 @@ contract GovernanceRouter is IMessageRecipient {
         // Governor is 0x0 unless the governor is local
         address _newGov = _isLocalGovernor ? _newGovernor : address(0);
 
-        emit TransferGovernor(
-            governorDomain,
-            _newDomain,
-            governor,
-            _newGov
-        );
+        emit TransferGovernor(governorDomain, _newDomain, governor, _newGov);
 
         governorDomain = _newDomain;
         governor = _newGov;

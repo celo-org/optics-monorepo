@@ -111,28 +111,28 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         bytes32 _recipient,
         bytes memory _body
     ) external notFailed {
-        uint32 sequence = sequences[_destination] + 1;
-        sequences[_destination] = sequence;
+        uint32 _sequence = sequences[_destination] + 1;
+        sequences[_destination] = _sequence;
 
         bytes memory _message =
             Message.formatMessage(
                 localDomain,
                 bytes32(uint256(uint160(msg.sender))),
-                sequence,
+                _sequence,
                 _destination,
                 _recipient,
                 _body
             );
-        bytes32 leaf = keccak256(_message);
+        bytes32 _leaf = keccak256(_message);
 
-        tree.insert(leaf);
+        tree.insert(_leaf);
         queue.enqueue(root());
 
         // leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
             count() - 1,
-            _destinationAndSequence(_destination, sequence),
-            leaf,
+            _destinationAndSequence(_destination, _sequence),
+            _leaf,
             _message
         );
     }
@@ -153,8 +153,8 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     ) external notFailed {
         if (improperUpdate(_oldRoot, _newRoot, _signature)) return;
         while (true) {
-            bytes32 next = queue.dequeue();
-            if (next == _newRoot) break;
+            bytes32 _next = queue.dequeue();
+            if (_next == _newRoot) break;
         }
 
         current = _newRoot;

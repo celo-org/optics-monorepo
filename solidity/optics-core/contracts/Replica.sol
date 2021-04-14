@@ -109,23 +109,23 @@ contract Replica is Common, QueueManager {
     function confirm() external notFailed {
         require(queue.length() != 0, "no pending");
 
-        bytes32 pending;
-        uint256 timestamp = block.timestamp;
+        bytes32 _pending;
+        uint256 _timestamp = block.timestamp;
 
         uint256 remaining = queue.length();
-        while (remaining > 0 && timestamp >= confirmAt[queue.peek()]) {
-            pending = queue.dequeue();
-            delete confirmAt[pending];
+        while (remaining > 0 && _timestamp >= confirmAt[queue.peek()]) {
+            _pending = queue.dequeue();
+            delete confirmAt[_pending];
             remaining -= 1;
         }
 
         // This condition is hit if the while loop is never executed, because
         // the first queue item has not hit its timer yet
-        require(pending != bytes32(0), "not time");
+        require(_pending != bytes32(0), "not time");
 
         _beforeConfirm();
 
-        current = pending;
+        current = _pending;
     }
 
     /**
@@ -207,8 +207,8 @@ contract Replica is Common, QueueManager {
         // fail.
         messages[_m.keccak()] = MessageStatus.Processed;
 
-        bytes memory payload = _m.body().clone();
-        address recipient = _m.recipientAddress();
+        bytes memory _payload = _m.body().clone();
+        address _recipient = _m.recipientAddress();
 
         // NB:
         // A call running out of gas TYPICALLY errors the whole tx. We want to
@@ -222,10 +222,10 @@ contract Replica is Common, QueueManager {
         // transparently return.
 
         try
-            IMessageRecipient(recipient).handle{gas: PROCESS_GAS}(
+            IMessageRecipient(_recipient).handle{gas: PROCESS_GAS}(
                 _m.origin(),
                 _m.sender(),
-                payload
+                _payload
             )
         returns (bytes memory _response) {
             _success = true;
@@ -254,12 +254,12 @@ contract Replica is Common, QueueManager {
         uint256 _index
     ) public returns (bool) {
         require(messages[_leaf] == MessageStatus.None, "!MessageStatus.None");
-        bytes32 actual = MerkleLib.branchRoot(_leaf, _proof, _index);
+        bytes32 _actual = MerkleLib.branchRoot(_leaf, _proof, _index);
 
         // NB:
         // For convenience, we allow proving against the previous root.
         // This means that witnesses don't need to be updated for the new root
-        if (actual == current || actual == previous) {
+        if (_actual == current || _actual == previous) {
             messages[_leaf] = MessageStatus.Pending;
             return true;
         }

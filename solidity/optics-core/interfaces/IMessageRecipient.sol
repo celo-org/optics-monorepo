@@ -3,8 +3,8 @@ pragma solidity >=0.6.11;
 
 interface IMessageRecipient {
     function handle(
-        uint32 origin,
-        bytes32 sender,
-        bytes memory message
+        uint32 _origin,
+        bytes32 _sender,
+        bytes memory _message
     ) external returns (bytes memory);
 }

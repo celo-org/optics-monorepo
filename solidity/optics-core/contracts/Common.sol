@@ -124,9 +124,9 @@ abstract contract Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) internal view returns (bool) {
-        bytes32 digest =
+        bytes32 _digest =
             keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
-        digest = ECDSA.toEthSignedMessageHash(digest);
-        return ECDSA.recover(digest, _signature) == updater;
+        _digest = ECDSA.toEthSignedMessageHash(_digest);
+        return ECDSA.recover(_digest, _signature) == updater;
     }
 }
