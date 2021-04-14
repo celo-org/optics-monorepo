@@ -9,12 +9,12 @@ import {
 import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
-    function burn(address from, uint256 amnt) external override onlyOwner {
-        _burn(from, amnt);
+    function burn(address _from, uint256 _amnt) external override onlyOwner {
+        _burn(_from, _amnt);
     }
 
-    function mint(address to, uint256 amnt) external override onlyOwner {
-        _mint(to, amnt);
+    function mint(address _to, uint256 _amnt) external override onlyOwner {
+        _mint(_to, _amnt);
     }
 
     function setDetails(

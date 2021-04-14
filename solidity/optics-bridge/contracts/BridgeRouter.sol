@@ -69,13 +69,13 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
         bytes32 _recipient,
         uint256 _amnt
     ) external {
-        bytes32 remote = _mustHaveRemote(_destination);
-        IERC20 bridgeToken = IERC20(_token);
+        bytes32 _remote = _mustHaveRemote(_destination);
+        IERC20 _bridgeToken = IERC20(_token);
 
-        if (_isNative(bridgeToken)) {
-            bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
+        if (_isNative(_bridgeToken)) {
+            _bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
         } else {
-            _downcast(bridgeToken).burn(msg.sender, _amnt);
+            _downcast(_bridgeToken).burn(msg.sender, _amnt);
         }
 
         TokenId memory _tokId = _tokenIdFor(_token);
@@ -85,14 +85,14 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
 
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
-            remote,
+            _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
         );
     }
 
     function updateDetails(address _token, uint32 _destination) external {
-        bytes32 remote = _mustHaveRemote(_destination);
-        IBridgeToken bridgeToken = IBridgeToken(_token);
+        bytes32 _remote = _mustHaveRemote(_destination);
+        IBridgeToken _bridgeToken = IBridgeToken(_token);
 
         TokenId memory _tokId = _tokenIdFor(_token);
         bytes29 _tokenId =
@@ -100,14 +100,14 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
 
         bytes29 _action =
             BridgeMessage.formatDetails(
-                TypeCasts.coerceBytes32(bridgeToken.name()),
-                TypeCasts.coerceBytes32(bridgeToken.symbol()),
-                bridgeToken.decimals()
+                TypeCasts.coerceBytes32(_bridgeToken.name()),
+                TypeCasts.coerceBytes32(_bridgeToken.symbol()),
+                _bridgeToken.decimals()
             );
 
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
-            remote,
+            _remote,
             BridgeMessage.formatMessage(_tokenId, _action)
         );
     }
@@ -118,12 +118,12 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
         typeAssert(_action, BridgeMessage.Types.Transfer)
         returns (bytes memory)
     {
-        IERC20 token = _ensureToken(_tokenId);
+        IERC20 _token = _ensureToken(_tokenId);
 
-        if (_isNative(token)) {
-            token.safeTransfer(_action.evmRecipient(), _action.amnt());
+        if (_isNative(_token)) {
+            _token.safeTransfer(_action.evmRecipient(), _action.amnt());
         } else {
-            _downcast(token).mint(_action.evmRecipient(), _action.amnt());
+            _downcast(_token).mint(_action.evmRecipient(), _action.amnt());
         }
 
         return hex"";
@@ -135,10 +135,10 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
         typeAssert(_action, BridgeMessage.Types.Details)
         returns (bytes memory)
     {
-        IERC20 token = _ensureToken(_tokenId);
-        require(!_isNative(token), "!repr");
+        IERC20 _token = _ensureToken(_tokenId);
+        require(!_isNative(_token), "!repr");
 
-        _downcast(token).setDetails(
+        _downcast(_token).setDetails(
             _action.name(),
             _action.symbol(),
             _action.decimals()

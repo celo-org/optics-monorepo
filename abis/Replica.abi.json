@@ -16,25 +16,25 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "_oldRoot",
+        "name": "oldRoot",
         "type": "bytes32"
       },
       {
         "indexed": false,
         "internalType": "bytes32[2]",
-        "name": "_newRoot",
+        "name": "newRoot",
         "type": "bytes32[2]"
       },
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "_signature",
+        "name": "signature",
         "type": "bytes"
       },
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "_signature2",
+        "name": "signature2",
         "type": "bytes"
       }
     ],
@@ -47,25 +47,25 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "_localDomain",
+        "name": "localDomain",
         "type": "uint32"
       },
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "_oldRoot",
+        "name": "oldRoot",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "_newRoot",
+        "name": "newRoot",
         "type": "bytes32"
       },
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "_signature",
+        "name": "signature",
         "type": "bytes"
       }
     ],

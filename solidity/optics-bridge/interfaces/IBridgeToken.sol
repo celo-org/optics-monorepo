@@ -8,9 +8,9 @@ interface IBridgeToken {
 
     function decimals() external returns (uint8);
 
-    function burn(address from, uint256 amnt) external;
+    function burn(address _from, uint256 _amnt) external;
 
-    function mint(address to, uint256 amnt) external;
+    function mint(address _to, uint256 _amnt) external;
 
     function setDetails(
         bytes32 _name,
