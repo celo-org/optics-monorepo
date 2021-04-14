@@ -44,22 +44,22 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
     /**
      * @notice Event emitted when the UpdaterManager sets a new updater on Home
-     * @param _updater The address of the new updater
+     * @param updater The address of the new updater
      */
-    event NewUpdater(address _updater);
+    event NewUpdater(address updater);
 
     /**
      * @notice Event emitted when a new UpdaterManager is set
-     * @param _updaterManager The address of the new updaterManager
+     * @param updaterManager The address of the new updaterManager
      */
-    event NewUpdaterManager(address _updaterManager);
+    event NewUpdaterManager(address updaterManager);
 
     /**
      * @notice Event emitted when an updater is slashed
-     * @param _updater The address of the updater
-     * @param _reporter The address of the entity that reported the updater misbehavior
+     * @param updater The address of the updater
+     * @param reporter The address of the entity that reported the updater misbehavior
      */
-    event UpdaterSlashed(address indexed _updater, address indexed _reporter);
+    event UpdaterSlashed(address indexed updater, address indexed reporter);
 
     function initialize(uint32 _localDomain, address _updaterManager)
         public
