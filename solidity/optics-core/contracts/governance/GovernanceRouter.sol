@@ -304,20 +304,20 @@ contract GovernanceRouter is IMessageRecipient {
      * @notice Transfer governorship within this contract's state
      * @param _newDomain The domain of the new governor
      * @param _newGovernor The address of the new governor
-     * @param _isLocalDom True if the newDomain is the localDomain
+     * @param _isGovernorDomain True if the newDomain is the localDomain
      */
     function _transferGovernor(
         uint32 _newDomain,
         address _newGovernor,
-        bool _isLocalDom
+        bool _isGovernorDomain
     ) internal {
         // require that the governor domain has a valid router
-        if (!_isLocalDom) {
+        if (!_isGovernorDomain) {
             _mustHaveRouter(_newDomain);
         }
 
         // Governor is 0x0 unless the governor is local
-        address newGovernor = _isLocalDom ? _newGovernor : address(0);
+        address newGovernor = _isGovernorDomain ? _newGovernor : address(0);
 
         emit TransferGovernor(
             governorDomain,
@@ -386,9 +386,9 @@ contract GovernanceRouter is IMessageRecipient {
     function _isGovernorRouter(uint32 _domain, bytes32 _address)
         internal
         view
-        returns (bool _ret)
+        returns (bool)
     {
-        _ret = _domain == governorDomain && _address == routers[_domain];
+        return _domain == governorDomain && _address == routers[_domain];
     }
 
     /**
@@ -396,8 +396,8 @@ contract GovernanceRouter is IMessageRecipient {
      * @param _domain The domain
      * @return _ret - True if the given domain is the local domain
      */
-    function _isLocalDomain(uint32 _domain) internal view returns (bool _ret) {
-        _ret = _domain == localDomain;
+    function _isLocalDomain(uint32 _domain) internal view returns (bool) {
+        return _domain == localDomain;
     }
 
     /**

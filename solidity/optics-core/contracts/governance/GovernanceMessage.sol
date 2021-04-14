@@ -29,8 +29,8 @@ library GovernanceMessage {
     }
 
     // Types.Call
-    function _data(bytes29 _view) internal view returns (bytes memory _ret) {
-        _ret = TypedMemView.clone(
+    function _data(bytes29 _view) internal view returns (bytes memory) {
+        return TypedMemView.clone(
             _view.slice(CALL_PREFIX_LEN, _dataLen(_view), uint40(Types.Data))
         );
     }

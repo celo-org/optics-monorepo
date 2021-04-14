@@ -13,7 +13,7 @@ contract TestCommon is Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) external view returns (bool) {
-        return _checkSig(_oldRoot, _newRoot, _signature);
+        return _isUpdaterSignature(_oldRoot, _newRoot, _signature);
     }
 
     function testDomainHash(uint32 _remoteDomain)

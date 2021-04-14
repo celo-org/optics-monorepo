@@ -87,7 +87,10 @@ contract Replica is Common, QueueManager {
         } else {
             require(current == _oldRoot, "not current update");
         }
-        require(Common._checkSig(_oldRoot, _newRoot, _signature), "bad sig");
+        require(
+            Common._isUpdaterSignature(_oldRoot, _newRoot, _signature),
+            "bad sig"
+        );
 
         _beforeUpdate();
 

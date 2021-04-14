@@ -89,8 +89,8 @@ abstract contract Common {
         bytes calldata _signature2
     ) external notFailed {
         if (
-            Common._checkSig(_oldRoot, _newRoot[0], _signature) &&
-            Common._checkSig(_oldRoot, _newRoot[1], _signature2) &&
+            Common._isUpdaterSignature(_oldRoot, _newRoot[0], _signature) &&
+            Common._isUpdaterSignature(_oldRoot, _newRoot[1], _signature2) &&
             _newRoot[0] != _newRoot[1]
         ) {
             _fail();
@@ -119,7 +119,7 @@ abstract contract Common {
      * @param _signature Signature on `_oldRoot` and `_newRoot`
      * @return Returns true if signature is valid and false if otherwise
      **/
-    function _checkSig(
+    function _isUpdaterSignature(
         bytes32 _oldRoot,
         bytes32 _newRoot,
         bytes memory _signature

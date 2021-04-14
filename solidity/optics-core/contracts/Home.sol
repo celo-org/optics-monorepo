@@ -195,7 +195,10 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         bytes32 _newRoot,
         bytes memory _signature
     ) public notFailed returns (bool) {
-        require(Common._checkSig(_oldRoot, _newRoot, _signature), "bad sig");
+        require(
+            Common._isUpdaterSignature(_oldRoot, _newRoot, _signature),
+            "bad sig"
+        );
         require(_oldRoot == current, "not a current update");
         if (!queue.contains(_newRoot)) {
             _fail();
