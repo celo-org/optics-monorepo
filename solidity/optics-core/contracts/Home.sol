@@ -173,7 +173,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     }
 
     /// @notice Hash of `localDomain` concatenated with "OPTICS"
-    function homeDomainHash() public payable override returns (bytes32) {
+    function signatureDomain() public payable override returns (bytes32) {
         return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }
 

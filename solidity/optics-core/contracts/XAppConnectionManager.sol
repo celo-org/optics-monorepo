@@ -113,10 +113,10 @@ contract XAppConnectionManager is Ownable {
         address _updater,
         bytes memory _signature
     ) internal returns (address) {
-        bytes32 _replicaDomainHash = Replica(_replica).homeDomainHash();
+        bytes32 _signatureDomain = Replica(_replica).signatureDomain();
 
         bytes32 _digest =
-            keccak256(abi.encodePacked(_replicaDomainHash, _domain, _updater));
+            keccak256(abi.encodePacked(_signatureDomain, _domain, _updater));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature);
     }

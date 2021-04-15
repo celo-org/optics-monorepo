@@ -16,12 +16,12 @@ contract TestCommon is Common {
         return checkSig(_oldRoot, _newRoot, _signature);
     }
 
-    function testHomeDomainHash() external payable returns (bytes32) {
-        return homeDomainHash();
+    function testSignatureDomain() external payable returns (bytes32) {
+        return signatureDomain();
     }
 
     /// @notice Hash of `localDomain` concatenated with "OPTICS"
-    function homeDomainHash() public payable override returns (bytes32) {
+    function signatureDomain() public payable override returns (bytes32) {
         return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }
 

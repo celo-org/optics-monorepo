@@ -89,9 +89,9 @@ describe('Common', async () => {
   it('Calculates domain hashes from localDomain', async () => {
     // Compare Rust output in json file to solidity output
     for (let testCase of testCases) {
-      const { localDomain, expectedHomeDomainHash } = testCase;
-      const homeDomainHash = await common.testHomeDomainHash(localDomain);
-      expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+      const { localDomain, expectedSignatureDomain } = testCase;
+      const signatureDomain = await common.testSignatureDomain(localDomain);
+      expect(signatureDomain).to.equal(expectedSignatureDomain);
     }
   });
 

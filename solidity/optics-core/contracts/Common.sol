@@ -96,7 +96,7 @@ abstract contract Common {
     }
 
     /// @notice Hash of Home domain concatenated with "OPTICS"
-    function homeDomainHash() public payable virtual returns (bytes32);
+    function signatureDomain() public payable virtual returns (bytes32);
 
     /// @notice Sets contract state to FAILED
     function _setFailed() internal {
@@ -120,7 +120,7 @@ abstract contract Common {
         bytes memory _signature
     ) internal returns (bool) {
         bytes32 _digest =
-            keccak256(abi.encodePacked(homeDomainHash(), _oldRoot, _newRoot));
+            keccak256(abi.encodePacked(signatureDomain(), _oldRoot, _newRoot));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature) == updater;
     }
