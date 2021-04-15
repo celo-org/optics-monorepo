@@ -2,7 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 
-const { testCases } = require('../../../vectors/domainHashTestCases.json');
+const { testCases } = require('../../../vectors/signatureDomainTestCases.json');
 const {
   testCases: signedUpdateTestCases,
 } = require('../../../vectors/signedUpdateTestCases.json');
@@ -32,7 +32,8 @@ describe('Common', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
-    expect(await common.testCheckSig(oldRoot, newRoot, signature)).to.be.true;
+    const isValid = await common.testCheckSig(oldRoot, newRoot, signature);
+    expect(isValid).to.be.true;
   });
 
   it('Rejects non-updater signature', async () => {
@@ -90,7 +91,8 @@ describe('Common', async () => {
     // Compare Rust output in json file to solidity output
     for (let testCase of testCases) {
       const { localDomain, expectedSignatureDomain } = testCase;
-      const signatureDomain = await common.testSignatureDomain(localDomain);
+      common.localDomain = localDomain;
+      const signatureDomain = await common.testSignatureDomain();
       expect(signatureDomain).to.equal(expectedSignatureDomain);
     }
   });
