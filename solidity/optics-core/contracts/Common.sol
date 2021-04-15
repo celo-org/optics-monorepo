@@ -15,9 +15,6 @@ abstract contract Common {
 
     /// @notice Domain of owning contract
     uint32 public localDomain;
-    /// @notice Hash of `localDomain` concatenated with "OPTICS"
-    bytes32 public domainHash;
-
     /// @notice Address of bonded updater
     address public updater;
     /// @notice Current state of contract
@@ -58,7 +55,7 @@ abstract contract Common {
     function initialize(uint32 _localDomain, address _updater) public virtual {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        _setLocalDomain(_localDomain);
+        localDomain = _localDomain;
 
         updater = _updater;
 
@@ -98,14 +95,12 @@ abstract contract Common {
         }
     }
 
+    /// @notice Hash of Home domain concatenated with "OPTICS"
+    function homeDomainHash() public payable virtual returns (bytes32);
+
     /// @notice Sets contract state to FAILED
     function _setFailed() internal {
         state = States.FAILED;
-    }
-
-    function _setLocalDomain(uint32 _localDomain) internal {
-        localDomain = _localDomain;
-        domainHash = keccak256(abi.encodePacked(_localDomain, "OPTICS"));
     }
 
     /// @notice Called when a double update or fraudulent update is detected
@@ -123,9 +118,9 @@ abstract contract Common {
         bytes32 _oldRoot,
         bytes32 _newRoot,
         bytes memory _signature
-    ) internal view returns (bool) {
+    ) internal returns (bool) {
         bytes32 _digest =
-            keccak256(abi.encodePacked(domainHash, _oldRoot, _newRoot));
+            keccak256(abi.encodePacked(homeDomainHash(), _oldRoot, _newRoot));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature) == updater;
     }

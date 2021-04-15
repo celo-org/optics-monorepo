@@ -26,6 +26,9 @@ contract Replica is Common, QueueManager {
     /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
     uint256 public constant RESERVE_GAS = 10000;
 
+    /// @notice Domain of home chain
+    uint32 public remoteDomain;
+
     /// @notice Number of seconds to wait before enqueued root becomes confirmable
     uint256 public optimisticSeconds;
 
@@ -56,7 +59,7 @@ contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        _setLocalDomain(_localDomain);
+        localDomain = _localDomain;
 
         queue.initialize();
 
@@ -264,6 +267,11 @@ contract Replica is Common, QueueManager {
             return true;
         }
         return false;
+    }
+
+    /// @notice Hash of `remoteDomain` concatenated with "OPTICS"
+    function homeDomainHash() public payable override returns (bytes32) {
+        return keccak256(abi.encodePacked(remoteDomain, "OPTICS"));
     }
 
     /// @notice Sets contract state to FAILED

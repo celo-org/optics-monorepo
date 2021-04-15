@@ -67,7 +67,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
     {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        _setLocalDomain(_localDomain);
+        localDomain = _localDomain;
 
         _setUpdaterManager(_updaterManager);
         address _updater = updaterManager.updater();
@@ -170,6 +170,11 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
             _current = current;
             _new = queue.lastItem();
         }
+    }
+
+    /// @notice Hash of `localDomain` concatenated with "OPTICS"
+    function homeDomainHash() public payable override returns (bytes32) {
+        return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }
 
     /**
