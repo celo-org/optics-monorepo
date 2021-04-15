@@ -51,7 +51,7 @@ contract Replica is Common, QueueManager {
     }
 
     function initialize(
-        uint32 _localDomain,
+        uint32 _remoteDomain,
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
@@ -59,7 +59,7 @@ contract Replica is Common, QueueManager {
     ) public {
         require(state == States.UNINITIALIZED, "already initialized");
 
-        localDomain = _localDomain;
+        remoteDomain = _remoteDomain;
 
         queue.initialize();
 
@@ -100,7 +100,7 @@ contract Replica is Common, QueueManager {
         confirmAt[_newRoot] = block.timestamp + optimisticSeconds;
         queue.enqueue(_newRoot);
 
-        emit Update(localDomain, _oldRoot, _newRoot, _signature);
+        emit Update(remoteDomain, _oldRoot, _newRoot, _signature);
     }
 
     /**
