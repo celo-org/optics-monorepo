@@ -3,18 +3,14 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
-const {
-  testCases: signedFailureTestCases,
-} = require('../../../vectors/signedFailureTestCases.json');
-
 const localDomain = 1000;
 const remoteDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
 
-describe('XAppConnectionManager', async () => {
-  let connectionManager, replica, home, signer, updater;
+describe('GovernanceRouter', async () => {
+  let governanceRouter, connectionManager, replica, signer, updater;
 
   before(async () => {
     [signer] = provider.getWallets();
@@ -69,25 +65,19 @@ describe('XAppConnectionManager', async () => {
 
     // Enroll replica
     await connectionManager.ownerEnrollReplica(replica.address, localDomain);
-  });
 
-  it('Checks Rust-produced SignedFailureNotification', async () => {
-    // Compare Rust output in json file to solidity output
-    const testCase = signedFailureTestCases[0];
-    const { domain, updater, signature, signer } = testCase;
-
-    await replica.setUpdater(updater);
-    await connectionManager.setWatcherPermission(signer, domain, true);
-
-    // Just performs signature recovery (not dependent on replica state, just
-    // tests functionality)
-    const watcher = await connectionManager.testRecoverWatcherFromSig(
-      domain,
-      replica.address,
-      updater,
-      ethers.utils.joinSignature(signature),
+    // Deploy governance router given XAppConnectionManager
+    const {
+      contracts: govRouterContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
+      'TestGovernanceRouter',
+      [localDomain],
+      [connectionManager.address],
+      controller,
+      'initialize(address)',
     );
-
-    expect(watcher.toLowerCase()).to.equal(signer);
+    governanceRouter = govRouterContracts.proxyWithImplementation;
   });
+
+  it('Receives message from enrolled replica', async () => {});
 });
