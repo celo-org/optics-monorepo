@@ -36,17 +36,17 @@ describe('Replica', async () => {
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, localDomain);
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
+    updater = await optics.Updater.fromSigner(signer, remoteDomain);
+    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, remoteDomain);
   });
 
   beforeEach(async () => {
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [remoteDomain],
+      [localDomain],
       [
-        localDomain,
+        remoteDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
