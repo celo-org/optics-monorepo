@@ -69,8 +69,9 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
         setLocalDomain(_localDomain);
 
-        updaterManager = IUpdaterManager(_updaterManager);
-        updater = IUpdaterManager(_updaterManager).updater();
+        _setUpdaterManager(_updaterManager);
+        address _updater = updaterManager.updater();
+        _setUpdater(_updater);
 
         queue.initialize();
         state = States.ACTIVE;
@@ -83,20 +84,12 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
     /// @notice Sets updater
     function setUpdater(address _updater) external onlyUpdaterManager {
-        updater = _updater;
-
-        emit NewUpdater(_updater);
+        _setUpdater(_updater);
     }
 
-    /// @notice sets a new updaterManager
+    /// @notice sets a new updaterManager and changes to its updater
     function setUpdaterManager(address _updaterManager) external onlyOwner {
-        require(
-            Address.isContract(_updaterManager),
-            "!contract updaterManager"
-        );
-
-        updaterManager = IUpdaterManager(_updaterManager);
-        emit NewUpdaterManager(_updaterManager);
+        _setUpdaterManager(_updaterManager);
     }
 
     /**
@@ -203,6 +196,29 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @notice sets a new updaterManager and changes to its updater
+     * @param _updaterManager Address of new UpdaterManager
+     */
+    function _setUpdaterManager(address _updaterManager) internal {
+        require(
+            Address.isContract(_updaterManager),
+            "!contract updaterManager"
+        );
+
+        updaterManager = IUpdaterManager(_updaterManager);
+        emit NewUpdaterManager(_updaterManager);
+    }
+
+    /**
+     * @notice sets a new updater
+     * @param _updater Address of new Updater
+     */
+    function _setUpdater(address _updater) internal {
+        updater = _updater;
+        emit NewUpdater(_updater);
     }
 
     /// @notice Sets contract state to FAILED and slashes updater
