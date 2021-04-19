@@ -7,8 +7,16 @@ contract TestHome is Home {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
+    function setLocalDomain(uint32 _localDomain) external {
+        localDomain = _localDomain;
+    }
+
     function nextLeafIndex() external view returns (uint256) {
         return count();
+    }
+
+    function testSignatureDomain() external view returns (bytes32) {
+        return signatureDomain();
     }
 
     function testDestinationAndSequence(uint32 _destination, uint32 _sequence)

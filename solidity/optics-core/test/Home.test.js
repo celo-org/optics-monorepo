@@ -4,6 +4,9 @@ const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
 const {
+  testCases: signatureDomainTestCases,
+} = require('../../../vectors/signatureDomainTestCases.json');
+const {
   testCases,
 } = require('../../../vectors/destinationSequenceTestCases.json');
 
@@ -61,6 +64,16 @@ describe('Home', async () => {
         message,
       ),
     ).to.be.revertedWith('failed state');
+  });
+
+  it('Calculates signatureDomain from localDomain', async () => {
+    // Compare Rust output in json file to solidity output
+    for (let testCase of signatureDomainTestCases) {
+      const { domain, expectedSignatureDomain } = testCase;
+      home.setLocalDomain(domain);
+      const signatureDomain = await home.testSignatureDomain();
+      expect(signatureDomain).to.equal(expectedSignatureDomain);
+    }
   });
 
   it('Enqueues a message', async () => {

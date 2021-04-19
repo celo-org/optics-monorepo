@@ -6,6 +6,9 @@ const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
 const {
+  testCases: signatureDomainTestCases,
+} = require('../../../vectors/signatureDomainTestCases.json');
+const {
   testCases: merkleTestCases,
 } = require('../../../vectors/merkleTestCases.json');
 const {
@@ -67,6 +70,16 @@ describe('Replica', async () => {
     await expect(enqueueValidUpdate(newRoot)).to.be.revertedWith(
       'failed state',
     );
+  });
+
+  it('Calculates signatureDomain from remoteDomain', async () => {
+    // Compare Rust output in json file to solidity output
+    for (let testCase of signatureDomainTestCases) {
+      const { domain, expectedSignatureDomain } = testCase;
+      replica.setRemoteDomain(domain);
+      const signatureDomain = await replica.testSignatureDomain();
+      expect(signatureDomain).to.equal(expectedSignatureDomain);
+    }
   });
 
   it('Enqueues pending updates', async () => {

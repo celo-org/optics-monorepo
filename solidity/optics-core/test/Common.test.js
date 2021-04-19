@@ -2,7 +2,6 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 
-const { testCases } = require('../../../vectors/signatureDomainTestCases.json');
 const {
   testCases: signedUpdateTestCases,
 } = require('../../../vectors/signedUpdateTestCases.json');
@@ -89,16 +88,6 @@ describe('Common', async () => {
     const state = await common.state();
     expect(state).not.to.equal(optics.State.FAILED);
     expect(state).to.equal(optics.State.ACTIVE);
-  });
-
-  it('Calculates domain hashes from localDomain', async () => {
-    // Compare Rust output in json file to solidity output
-    for (let testCase of testCases) {
-      const { localDomain, expectedSignatureDomain } = testCase;
-      common.localDomain = localDomain;
-      const signatureDomain = await common.testSignatureDomain();
-      expect(signatureDomain).to.equal(expectedSignatureDomain);
-    }
   });
 
   it('Checks Rust-produced SignedUpdate', async () => {
