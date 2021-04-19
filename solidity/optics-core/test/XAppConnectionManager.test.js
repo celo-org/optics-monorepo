@@ -6,8 +6,8 @@ const {
   testCases: signedFailureTestCases,
 } = require('../../../vectors/signedFailureTestCases.json');
 
-const remoteDomain = 1000;
-const localDomain = 2000;
+const localDomain = 1000;
+const remoteDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
@@ -21,11 +21,10 @@ describe('XAppConnectionManager', async () => {
   });
 
   beforeEach(async () => {
-    const XAppConnectionManager = await ethers.getContractFactory(
+    connectionManager = await optics.deployImplementation(
       'TestXAppConnectionManager',
+      [],
     );
-    connectionManager = await XAppConnectionManager.deploy();
-    await connectionManager.deployed();
 
     const controller = null;
     const { contracts } = await optics.deployUpgradeSetupAndProxy(

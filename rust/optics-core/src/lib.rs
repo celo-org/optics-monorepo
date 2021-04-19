@@ -542,20 +542,19 @@ mod test {
                     .parse()
                     .unwrap();
 
-            // `origin_domain` MUST BE 1000 to match origin domain of
+            // `domain` MUST BE 2000 to match origin domain of
             // XAppConnectionManager test suite
             let signed_failure = FailureNotification {
-                domain: 1000,
+                domain: 2000,
                 updater: updater.address().into(),
             }
             .sign_with(&signer)
             .await
             .expect("!sign_with");
 
-            let updater = signed_failure.notification.updater;
             let signed_json = json!({
                 "domain": signed_failure.notification.domain,
-                "updater": updater,
+                "updater": signed_failure.notification.updater.as_ethereum_address(),
                 "signature": signed_failure.signature,
                 "signer": signer.address()
             });
