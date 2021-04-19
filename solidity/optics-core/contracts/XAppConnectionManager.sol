@@ -112,7 +112,7 @@ contract XAppConnectionManager is Ownable {
         address _replica,
         address _updater,
         bytes memory _signature
-    ) internal returns (address) {
+    ) internal view returns (address) {
         bytes32 _signatureDomain = Replica(_replica).signatureDomain();
 
         bytes32 _digest =
