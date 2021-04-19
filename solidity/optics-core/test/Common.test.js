@@ -32,7 +32,11 @@ describe('Common', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
-    const isValid = await common.testCheckSig(oldRoot, newRoot, signature);
+    const isValid = await common.testIsUpdaterSignature(
+      oldRoot,
+      newRoot,
+      signature,
+    );
     expect(isValid).to.be.true;
   });
 
@@ -44,8 +48,8 @@ describe('Common', async () => {
       oldRoot,
       newRoot,
     );
-    expect(await common.testCheckSig(oldRoot, newRoot, fakeSignature)).to.be
-      .false;
+    expect(await common.testIsUpdaterSignature(oldRoot, newRoot, fakeSignature))
+      .to.be.false;
   });
 
   it('Fails on valid double update proof', async () => {
@@ -106,7 +110,7 @@ describe('Common', async () => {
       await common.setUpdater(signerAddress);
 
       expect(
-        await common.testCheckSig(
+        await common.testIsUpdaterSignature(
           oldRoot,
           newRoot,
           ethers.utils.joinSignature(signature),
