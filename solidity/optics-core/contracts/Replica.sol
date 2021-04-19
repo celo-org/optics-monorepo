@@ -112,11 +112,11 @@ contract Replica is Common, QueueManager {
         bytes32 _pending;
         uint256 _timestamp = block.timestamp;
 
-        uint256 remaining = queue.length();
-        while (remaining > 0 && _timestamp >= confirmAt[queue.peek()]) {
+        uint256 _remaining = queue.length();
+        while (_remaining > 0 && _timestamp >= confirmAt[queue.peek()]) {
             _pending = queue.dequeue();
             delete confirmAt[_pending];
-            remaining -= 1;
+            _remaining -= 1;
         }
 
         // This condition is hit if the while loop is never executed, because
@@ -194,9 +194,9 @@ contract Replica is Common, QueueManager {
     {
         bytes29 _m = _message.ref(0);
 
-        uint32 sequence = _m.sequence();
+        uint32 _sequence = _m.sequence();
         require(_m.destination() == localDomain, "!destination");
-        require(sequence == lastProcessed + 1, "!sequence");
+        require(_sequence == lastProcessed + 1, "!sequence");
         require(
             messages[keccak256(_message)] == MessageStatus.Pending,
             "not pending"
@@ -235,7 +235,7 @@ contract Replica is Common, QueueManager {
             _result = _err;
         }
 
-        lastProcessed = sequence;
+        lastProcessed = _sequence;
     }
 
     /**
