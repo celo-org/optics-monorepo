@@ -87,7 +87,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
         _setUpdater(_updater);
     }
 
-    /// @notice sets a new updaterManager and changes to its updater
+    /// @notice sets a new updaterManager
     function setUpdaterManager(address _updaterManager) external onlyOwner {
         _setUpdaterManager(_updaterManager);
     }
