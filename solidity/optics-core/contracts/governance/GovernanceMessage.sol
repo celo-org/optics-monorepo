@@ -157,6 +157,7 @@ library GovernanceMessage {
     /*
         Message Type: CALL
         struct Call {
+            identifier, // message ID -- 1 byte
             addr,       // address to call -- 32 bytes
             dataLen,    // call data length -- 32 bytes,
             data        // call data -- 0+ bytes (length unknown)
