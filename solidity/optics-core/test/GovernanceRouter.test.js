@@ -8,9 +8,15 @@ const remoteDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
+const controller = null;
 
 describe('GovernanceRouter', async () => {
-  let governanceRouter, connectionManager, replica, signer, updater;
+  let governanceRouter,
+    connectionManager,
+    enrolledReplica,
+    unenrolledReplica,
+    signer,
+    updater;
 
   before(async () => {
     [signer] = provider.getWallets();
@@ -18,8 +24,6 @@ describe('GovernanceRouter', async () => {
   });
 
   beforeEach(async () => {
-    const controller = null;
-
     // Deploy XAppConnectionManager
     connectionManager = await optics.deployImplementation(
       'TestXAppConnectionManager',
@@ -47,12 +51,14 @@ describe('GovernanceRouter', async () => {
     // Set XAppConnectionManager's home
     await connectionManager.setHome(home.address);
 
-    // Deploy single replica
-    const { contracts } = await optics.deployUpgradeSetupAndProxy(
+    // Deploy single replica to enroll
+    const {
+      contracts: enrolledReplicaContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
       [localDomain],
       [
-        remoteDomain,
+        localDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
@@ -61,10 +67,13 @@ describe('GovernanceRouter', async () => {
       controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
     );
-    replica = contracts.proxyWithImplementation;
+    enrolledReplica = enrolledReplicaContracts.proxyWithImplementation;
 
     // Enroll replica
-    await connectionManager.ownerEnrollReplica(replica.address, localDomain);
+    await connectionManager.ownerEnrollReplica(
+      enrolledReplica.address,
+      localDomain,
+    );
 
     // Deploy governance router given XAppConnectionManager
     const {
@@ -79,5 +88,52 @@ describe('GovernanceRouter', async () => {
     governanceRouter = govRouterContracts.proxyWithImplementation;
   });
 
-  it('Receives message from enrolled replica', async () => {});
+  it('Rejects message from unenrolled replica', async () => {
+    const [sender, newGovernor] = provider.getWallets();
+
+    // Deploy single replica that will not be enrolled
+    const {
+      contracts: unenrolledReplicaContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
+      'TestReplica',
+      [localDomain],
+      [
+        localDomain,
+        updater.signer.address,
+        initialCurrentRoot,
+        optimisticSeconds,
+        initialLastProcessed,
+      ],
+      controller,
+      'initialize(uint32, address, bytes32, uint256, uint256)',
+    );
+    unenrolledReplica = unenrolledReplicaContracts.proxyWithImplementation;
+
+    const newDomain = 3000;
+    const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+      newDomain,
+      optics.ethersAddressToBytes32(newGovernor.address),
+    );
+
+    // Some sender on domain 3000 tries to send transferGovernorMsg to
+    // GovernanceRouter on domain 1000
+    const senderDomain = 3000;
+    const formattedMessage = optics.formatMessage(
+      senderDomain,
+      sender.address,
+      1,
+      localDomain,
+      governanceRouter.address,
+      transferGovernorMsg,
+    );
+
+    // Set message status to MessageStatus.Pending
+    await unenrolledReplica.setMessagePending(formattedMessage);
+
+    let [success, ret] = await unenrolledReplica.callStatic.testProcess(
+      formattedMessage,
+    );
+    expect(success).to.be.false;
+    expect(ret).to.equal('!replica');
+  });
 });

@@ -84,6 +84,15 @@ extendEnvironment((hre) => {
     }
   }
 
+  class GovernanceRouter {
+    static formatTransferGovernor(newDomain, newAddress) {
+      return ethers.utils.solidityPack(
+        ['bytes1', 'uint32', 'bytes32'],
+        [2, newDomain, newAddress],
+      );
+    }
+  }
+
   class Updater {
     constructor(signer, address, localDomain, disableWarn) {
       if (!disableWarn) {
@@ -171,6 +180,7 @@ extendEnvironment((hre) => {
     Common,
     Home,
     Replica,
+    GovernanceRouter,
     Updater,
     formatMessage,
     messageToLeaf,
