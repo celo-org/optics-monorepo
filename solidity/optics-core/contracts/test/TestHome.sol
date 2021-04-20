@@ -7,9 +7,7 @@ contract TestHome is Home {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
-    function setLocalDomain(uint32 _localDomain) external {
-        localDomain = _localDomain;
-    }
+    constructor(uint32 _localDomain) Home(_localDomain) {} // solhint-disable-line no-empty-blocks
 
     function nextLeafIndex() external view returns (uint256) {
         return count();

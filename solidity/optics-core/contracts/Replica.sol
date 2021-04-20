@@ -46,9 +46,7 @@ contract Replica is Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    constructor(uint32 _localDomain) {
-        localDomain = _localDomain;
-    }
+    constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
     function initialize(
         uint32 _remoteDomain,

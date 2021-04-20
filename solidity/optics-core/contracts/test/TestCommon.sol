@@ -4,6 +4,8 @@ pragma solidity >=0.6.11;
 import "../Common.sol";
 
 contract TestCommon is Common {
+    constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
+
     function setUpdater(address _updater) external {
         updater = _updater;
     }

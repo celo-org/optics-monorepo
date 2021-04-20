@@ -14,7 +14,7 @@ abstract contract Common {
     enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
-    uint32 public localDomain;
+    uint32 public immutable localDomain;
     /// @notice Address of bonded updater
     address public updater;
     /// @notice Current state of contract
@@ -52,10 +52,12 @@ abstract contract Common {
         bytes signature2
     );
 
-    function initialize(uint32 _localDomain, address _updater) public virtual {
-        require(state == States.UNINITIALIZED, "already initialized");
-
+    constructor(uint32 _localDomain) {
         localDomain = _localDomain;
+    }
+
+    function initialize(address _updater) public virtual {
+        require(state == States.UNINITIALIZED, "already initialized");
 
         updater = _updater;
 

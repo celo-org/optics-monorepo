@@ -96,8 +96,8 @@ async function deployUpdaterManager(updater) {
 async function deployHome(localDomain, controller, updaterManagerAddress) {
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     'Home',
-    [],
-    [localDomain, updaterManagerAddress],
+    [localDomain],
+    [updaterManagerAddress],
     controller,
   );
 

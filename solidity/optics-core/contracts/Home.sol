@@ -61,13 +61,10 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
      */
     event UpdaterSlashed(address indexed updater, address indexed reporter);
 
-    function initialize(uint32 _localDomain, address _updaterManager)
-        public
-        override
-    {
-        require(state == States.UNINITIALIZED, "already initialized");
+    constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
-        localDomain = _localDomain;
+    function initialize(address _updaterManager) public override {
+        require(state == States.UNINITIALIZED, "already initialized");
 
         _setUpdaterManager(_updaterManager);
         address _updater = updaterManager.updater();

@@ -214,11 +214,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "_localDomain",
-        "type": "uint32"
-      },
-      {
         "internalType": "address",
         "name": "_updater",
         "type": "address"
