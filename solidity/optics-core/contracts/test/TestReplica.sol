@@ -46,4 +46,31 @@ contract TestReplica is Replica {
     ) external pure returns (bytes32) {
         return MerkleLib.branchRoot(leaf, proof, index);
     }
+
+    function testProcess(bytes memory _message)
+        external
+        returns (bool _success, string memory _result)
+    {
+        bytes memory _res;
+        (_success, _res) = process(_message);
+        _result = getRevertMsg(_res);
+    }
+
+    function getRevertMsg(bytes memory _res)
+        internal
+        view
+        returns (string memory)
+    {
+        bytes29 _view = _res.ref(0);
+
+        // If the _res length is less than 68, then the transaction failed
+        // silently (without a revert message)
+        if (_view.len() < 68) return "Transaction reverted silently";
+
+        // Remove the selector which is the first 4 bytes
+        bytes memory _revertData = _view.slice(4, _res.length - 4, 0).clone();
+
+        // All that remains is the revert string
+        return abi.decode(_revertData, (string));
+    }
 }
