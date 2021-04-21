@@ -102,7 +102,7 @@ describe('Home', async () => {
       sequence,
     );
 
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       localDomain,
       signer.address,
       sequence,
@@ -110,7 +110,7 @@ describe('Home', async () => {
       recipient.address,
       message,
     );
-    const leaf = optics.messageToLeaf(formattedMessage);
+    const leaf = optics.messageToLeaf(opticsMessage);
     const leafIndex = await home.nextLeafIndex();
 
     // Send message with signer address as msg.sender
@@ -124,7 +124,7 @@ describe('Home', async () => {
         ),
     )
       .to.emit(home, 'Dispatch')
-      .withArgs(leafIndex, destinationAndSequence, leaf, formattedMessage);
+      .withArgs(leafIndex, destinationAndSequence, leaf, opticsMessage);
   });
 
   it('Suggests current root and latest root on suggestUpdate', async () => {

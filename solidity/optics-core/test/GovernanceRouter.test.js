@@ -125,7 +125,7 @@ describe('GovernanceRouter', async () => {
 
     // Some sender on governor domain tries to send transferGovernorMsg to
     // nonGovernorRouter
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
       1,
@@ -135,10 +135,10 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await unenrolledReplica.setMessagePending(formattedMessage);
+    await unenrolledReplica.setMessagePending(opticsMessage);
 
     let [success, ret] = await unenrolledReplica.callStatic.testProcess(
-      formattedMessage,
+      opticsMessage,
     );
     expect(success).to.be.false;
     expect(ret).to.equal('!replica');
@@ -156,7 +156,7 @@ describe('GovernanceRouter', async () => {
     // Some sender on domain 3000 tries to send transferGovernorMsg to
     // nonGovernorRouter (not governorRouter domain or governorRouter address)
     const senderDomain = 3000;
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       senderDomain,
       sender.address,
       1,
@@ -166,10 +166,10 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await enrolledReplica.setMessagePending(formattedMessage);
+    await enrolledReplica.setMessagePending(opticsMessage);
 
     let [success, ret] = await enrolledReplica.callStatic.testProcess(
-      formattedMessage,
+      opticsMessage,
     );
     expect(success).to.be.false;
     expect(ret).to.equal('!governorRouter');

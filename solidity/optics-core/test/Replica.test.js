@@ -315,7 +315,7 @@ describe('Replica', async () => {
     await mockRecipient.mock.handle.returns(mockVal);
 
     const sequence = (await replica.lastProcessed()).add(1);
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -325,14 +325,14 @@ describe('Replica', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(formattedMessage);
+    await replica.setMessagePending(opticsMessage);
 
     // Ensure proper static call return value
-    let [success, ret] = await replica.callStatic.process(formattedMessage);
+    let [success, ret] = await replica.callStatic.process(opticsMessage);
     expect(success).to.be.true;
     expect(ret).to.equal(mockVal);
 
-    await replica.process(formattedMessage);
+    await replica.process(opticsMessage);
     expect(await replica.lastProcessed()).to.equal(sequence);
   });
 
@@ -341,7 +341,7 @@ describe('Replica', async () => {
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -350,7 +350,7 @@ describe('Replica', async () => {
       body,
     );
 
-    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+    await expect(replica.process(opticsMessage)).to.be.revertedWith(
       'not pending',
     );
   });
@@ -362,7 +362,7 @@ describe('Replica', async () => {
     const sequence = (await replica.lastProcessed()).add(2);
     const body = ethers.utils.formatBytes32String('message');
 
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -371,7 +371,7 @@ describe('Replica', async () => {
       body,
     );
 
-    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+    await expect(replica.process(opticsMessage)).to.be.revertedWith(
       '!sequence',
     );
   });
@@ -381,7 +381,7 @@ describe('Replica', async () => {
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -391,7 +391,7 @@ describe('Replica', async () => {
       body,
     );
 
-    await expect(replica.process(formattedMessage)).to.be.revertedWith(
+    await expect(replica.process(opticsMessage)).to.be.revertedWith(
       '!destination',
     );
   });
@@ -401,7 +401,7 @@ describe('Replica', async () => {
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -411,11 +411,11 @@ describe('Replica', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(formattedMessage);
+    await replica.setMessagePending(opticsMessage);
 
     // Required gas is >= 510,000 (we provide 500,000)
     await expect(
-      replica.process(formattedMessage, { gasLimit: 500000 }),
+      replica.process(opticsMessage, { gasLimit: 500000 }),
     ).to.be.revertedWith('!gas');
   });
 
@@ -430,7 +430,7 @@ describe('Replica', async () => {
     await mockRecipient.mock.handle.reverts();
 
     const sequence = (await replica.lastProcessed()).add(1);
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -440,10 +440,10 @@ describe('Replica', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(formattedMessage);
+    await replica.setMessagePending(opticsMessage);
 
     // Ensure bad handler function causes process to return false
-    let [success] = await replica.callStatic.process(formattedMessage);
+    let [success] = await replica.callStatic.process(opticsMessage);
     expect(success).to.be.false;
   });
 
@@ -461,7 +461,7 @@ describe('Replica', async () => {
 
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -472,14 +472,14 @@ describe('Replica', async () => {
 
     // Assert above message and test case have matching leaves
     const { leaf, path, index } = proveAndProcessTestCases[0];
-    const messageLeaf = optics.messageToLeaf(formattedMessage);
+    const messageLeaf = optics.messageToLeaf(opticsMessage);
     expect(messageLeaf).to.equal(leaf);
 
     // Set replica's current root to match root given by proof
     const proofRoot = await replica.testBranchRoot(leaf, path, index);
     await replica.setCurrentRoot(proofRoot);
 
-    await replica.proveAndProcess(formattedMessage, path, index);
+    await replica.proveAndProcess(opticsMessage, path, index);
     expect;
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
@@ -496,7 +496,7 @@ describe('Replica', async () => {
     let { leaf, index, path } = testCase.proofs[0];
 
     // Create arbitrary message (contents not important)
-    const formattedMessage = optics.formatMessage(
+    const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
       sequence,
@@ -512,7 +512,7 @@ describe('Replica', async () => {
     expect(proofRoot).to.not.equal(actualRoot);
 
     await expect(
-      replica.proveAndProcess(formattedMessage, path, index),
+      replica.proveAndProcess(opticsMessage, path, index),
     ).to.be.revertedWith('!prove');
   });
 });
