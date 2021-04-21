@@ -99,14 +99,14 @@ describe('GovernanceRouter', async () => {
   it('Rejects message from unenrolled replica', async () => {
     const [newGovernor] = provider.getWallets();
 
-    // Deploy single replica that will not be enrolled
+    // Deploy single replica on nonGovernorDomain that will not be enrolled
     const {
       contracts: unenrolledReplicaContracts,
     } = await optics.deployUpgradeSetupAndProxy(
       'TestReplica',
-      [governorDomain],
+      [nonGovernorDomain],
       [
-        governorDomain,
+        nonGovernorDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
@@ -129,7 +129,7 @@ describe('GovernanceRouter', async () => {
       governorDomain,
       governorRouter.address,
       1,
-      governorDomain,
+      nonGovernorDomain,
       nonGovernorRouter.address,
       transferGovernorMsg,
     );
@@ -154,7 +154,8 @@ describe('GovernanceRouter', async () => {
     );
 
     // Some sender on domain 3000 tries to send transferGovernorMsg to
-    // nonGovernorRouter (not governorRouter domain or governorRouter address)
+    // nonGovernorRouter (should fail because sender domain not governorRouter
+    // domain and sender not governorRouter address)
     const senderDomain = 3000;
     const opticsMessage = optics.formatMessage(
       senderDomain,
@@ -173,5 +174,31 @@ describe('GovernanceRouter', async () => {
     );
     expect(success).to.be.false;
     expect(ret).to.equal('!governorRouter');
+  });
+
+  // TODO: nonGovernorRouter governorDomain being set to localDomain (incorrect behavior await fix)
+  it('Accepts a valid transfer governor message', async () => {
+    // const [newGovernor] = provider.getWallets();
+    // const newDomain = 3000;
+    // const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+    //   newDomain,
+    //   optics.ethersAddressToBytes32(newGovernor.address),
+    // );
+    // // Message sent from governorDomain and by governorRouter
+    // const opticsMessage = optics.formatMessage(
+    //   governorDomain,
+    //   governorRouter.address,
+    //   1,
+    //   nonGovernorDomain,
+    //   nonGovernorRouter.address,
+    //   transferGovernorMsg,
+    // );
+    // // Set message status to MessageStatus.Pending
+    // await enrolledReplica.setMessagePending(opticsMessage);
+    // let [success, ret] = await enrolledReplica.callStatic.testProcess(
+    //   opticsMessage,
+    // );
+    // console.log(ret);
+    // expect(success).to.be.true;
   });
 });
