@@ -52,6 +52,12 @@ describe('Home', async () => {
     home = contracts.proxyWithImplementation;
   });
 
+  it('Cannot be initialized twice', async () => {
+    await expect(home.initialize(signer.address)).to.be.revertedWith(
+      'Initializable: contract is already initialized',
+    );
+  });
+
   it('Halts on fail', async () => {
     await home.setFailed();
     expect(await home.state()).to.equal(optics.State.FAILED);

@@ -6,6 +6,7 @@ import "./Merkle.sol";
 import "./Queue.sol";
 import "../interfaces/IUpdaterManager.sol";
 
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -15,7 +16,13 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
  */
-contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
+contract Home is
+    Ownable,
+    Initializable,
+    MerkleTreeManager,
+    QueueManager,
+    Common
+{
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
@@ -63,9 +70,7 @@ contract Home is Ownable, MerkleTreeManager, QueueManager, Common {
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
-    function initialize(address _updaterManager) public override {
-        require(state == States.UNINITIALIZED, "already initialized");
-
+    function initialize(address _updaterManager) public override initializer {
         _setUpdaterManager(_updaterManager);
         address _updater = updaterManager.updater();
         _setUpdater(_updater);
