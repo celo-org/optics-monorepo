@@ -3,6 +3,7 @@ pragma solidity >=0.6.11;
 
 import "../libs/Message.sol";
 
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
@@ -10,7 +11,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
  **/
-abstract contract Common {
+abstract contract Common is Initializable {
     enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
@@ -56,9 +57,7 @@ abstract contract Common {
         localDomain = _localDomain;
     }
 
-    function initialize(address _updater) public virtual {
-        require(state == States.UNINITIALIZED, "already initialized");
-
+    function initialize(address _updater) public virtual initializer {
         updater = _updater;
 
         state = States.ACTIVE;

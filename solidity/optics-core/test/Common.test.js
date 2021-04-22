@@ -26,6 +26,12 @@ describe('Common', async () => {
     common = contracts.proxyWithImplementation;
   });
 
+  it('Cannot be initialized twice', async () => {
+    await expect(common.initialize(signer.address)).to.be.revertedWith(
+      'Initializable: contract is already initialized',
+    );
+  });
+
   it('Accepts updater signature', async () => {
     const oldRoot = ethers.utils.formatBytes32String('old root');
     const newRoot = ethers.utils.formatBytes32String('new root');
