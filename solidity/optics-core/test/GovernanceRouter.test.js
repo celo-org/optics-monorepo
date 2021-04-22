@@ -124,12 +124,12 @@ describe('GovernanceRouter', async () => {
 
     // Create TransferGovernor message
     const newDomain = 3000;
-    const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
       optics.ethersAddressToBytes32(newGovernor.address),
     );
 
-    // Some sender on governor domain tries to send transferGovernorMsg to
+    // Some sender on governor domain tries to send transferGovernorMessage to
     // nonGovernorRouter
     const opticsMessage = optics.formatMessage(
       governorDomain,
@@ -137,7 +137,7 @@ describe('GovernanceRouter', async () => {
       1,
       nonGovernorDomain,
       nonGovernorRouter.address,
-      transferGovernorMsg,
+      transferGovernorMessage,
     );
 
     // Set message status to MessageStatus.Pending
@@ -159,7 +159,7 @@ describe('GovernanceRouter', async () => {
     const newDomain = 3000;
 
     // Create TransferGovernor message
-    const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
       optics.ethersAddressToBytes32(newGovernor.address),
     );
@@ -173,7 +173,7 @@ describe('GovernanceRouter', async () => {
       1,
       nonGovernorDomain,
       nonGovernorRouter.address,
-      transferGovernorMsg,
+      transferGovernorMessage,
     );
 
     // Set message status to MessageStatus.Pending
@@ -202,7 +202,7 @@ describe('GovernanceRouter', async () => {
     );
 
     // Create TransferGovernor message
-    const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
       optics.ethersAddressToBytes32(newGovernor.address),
     );
@@ -215,14 +215,59 @@ describe('GovernanceRouter', async () => {
       1,
       nonGovernorDomain,
       nonGovernorRouter.address,
-      transferGovernorMsg,
+      transferGovernorMessage,
+    );
+
+    // Set message status to MessageStatus.Pending
+    await enrolledReplica.setMessagePending(opticsMessage);
+
+    // Expect successful tx on static call
+    let [success] = await enrolledReplica.callStatic.process(opticsMessage);
+    expect(success).to.be.true;
+
+    // Expect address(0) for governor since non-local and new domain to be 3000
+    await enrolledReplica.process(opticsMessage);
+    expect(await nonGovernorRouter.governor()).to.equal(
+      '0x0000000000000000000000000000000000000000',
+    );
+    expect(await nonGovernorRouter.governorDomain()).to.equal(newDomain);
+  });
+
+  it('Accepts valid set router message', async () => {
+    // Create address for router to enroll and domain for router
+    const [router] = provider.getWallets();
+    const routerDomain = 3000;
+
+    // Create SetRouter message
+    const setRouterMessage = optics.GovernanceRouter.formatSetRouter(
+      routerDomain,
+      optics.ethersAddressToBytes32(router.address),
+    );
+
+    // Create Optics message that is sent from the governor domain and governor
+    // to the nonGovernorRouter on the nonGovernorDomain
+    const opticsMessage = optics.formatMessage(
+      governorDomain,
+      governorRouter.address,
+      1,
+      nonGovernorDomain,
+      nonGovernorRouter.address,
+      setRouterMessage,
     );
 
     // Set message status to MessageStatus.Pending
     await enrolledReplica.setMessagePending(opticsMessage);
 
     // Expect successful tx
-    let [success] = await enrolledReplica.callStatic.testProcess(opticsMessage);
+    let [success] = await enrolledReplica.callStatic.process(opticsMessage);
     expect(success).to.be.true;
+
+    // Expect new router to be registered for domain and for new domain to be
+    // in domains array
+    await enrolledReplica.process(opticsMessage);
+    expect(await nonGovernorRouter.routers(routerDomain)).to.equal(
+      optics.ethersAddressToBytes32(router.address),
+    );
+    expect(await nonGovernorRouter.domainsContains(routerDomain)).to.be.true;
   });
 });

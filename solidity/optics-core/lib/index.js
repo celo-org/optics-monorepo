@@ -22,6 +22,12 @@ extendEnvironment((hre) => {
     FAILED: 2,
   };
 
+  const GovernanceMessage = {
+    CALL: 1,
+    TRANSFERGOVERNOR: 2,
+    SETROUTER: 3,
+  };
+
   const MessageStatus = {
     NONE: 0,
     PENDING: 1,
@@ -88,7 +94,14 @@ extendEnvironment((hre) => {
     static formatTransferGovernor(newDomain, newAddress) {
       return ethers.utils.solidityPack(
         ['bytes1', 'uint32', 'bytes32'],
-        [2, newDomain, newAddress],
+        [GovernanceMessage.TRANSFERGOVERNOR, newDomain, newAddress],
+      );
+    }
+
+    static formatSetRouter(domain, address) {
+      return ethers.utils.solidityPack(
+        ['bytes1', 'uint32', 'bytes32'],
+        [GovernanceMessage.SETROUTER, domain, address],
       );
     }
   }
