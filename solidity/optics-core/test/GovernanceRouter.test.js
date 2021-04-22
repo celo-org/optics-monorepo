@@ -44,8 +44,8 @@ describe('GovernanceRouter', async () => {
       contracts: homeContracts,
     } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
-      [],
-      [nonGovernorDomain, mockUpdaterManager.address],
+      [nonGovernorDomain],
+      [mockUpdaterManager.address],
     );
     home = homeContracts.proxyWithImplementation;
 
@@ -176,7 +176,7 @@ describe('GovernanceRouter', async () => {
     expect(ret).to.equal('!governorRouter');
   });
 
-  // TODO: nonGovernorRouter governorDomain being set to localDomain (incorrect behavior await fix)
+  // TODO: nonGovernorRouter governorDomain being set to localDomain
   it('Accepts a valid transfer governor message', async () => {
     // const [newGovernor] = provider.getWallets();
     // const newDomain = 3000;
