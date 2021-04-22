@@ -104,6 +104,25 @@ extendEnvironment((hre) => {
         [GovernanceMessage.SETROUTER, domain, address],
       );
     }
+
+    static formatCalls(tos, datas) {
+      if (tos.length != datas.length) {
+        throw new Error("Number of to addresses and data blocks don't match.");
+      }
+
+      let callBody = '';
+      for (let i = 0; i < tos.length; i++) {
+        callBody += ethers.utils.solidityPack(
+          ['bytes32', 'uint256', 'bytes'],
+          [tos[i], 100, datas[i]],
+        );
+      }
+
+      return ethers.utils.solidityPack(
+        ['bytes1', 'bytes'],
+        [GovernanceMessage.CALL, callBody],
+      );
+    }
   }
 
   class Updater {

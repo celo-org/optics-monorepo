@@ -270,4 +270,58 @@ describe('GovernanceRouter', async () => {
     );
     expect(await nonGovernorRouter.domainsContains(routerDomain)).to.be.true;
   });
+
+  // it('Accepts valid call message', async () => {
+  //   // Create address for router to enroll and domain for router
+  //   const mockRecipient = await optics.deployImplementation('MockRecipient');
+
+  //   const MockRecipient = await ethers.getContractFactory('MockRecipient');
+  //   const string = 'String!';
+  //   const receiveStringFunction = MockRecipient.interface.getFunction(
+  //     'receiveString',
+  //   );
+  //   const receiveStringData = MockRecipient.interface.encodeFunctionData(
+  //     receiveStringFunction,
+  //     [string],
+  //   );
+
+  //   // Create Call message to mockRecipient that calls receiveString
+  //   const callMessage = optics.GovernanceRouter.formatCalls(
+  //     [optics.ethersAddressToBytes32(mockRecipient.address)],
+  //     [receiveStringData],
+  //   );
+
+  //   // BUG: JS says length of data is 202 bytes but Solidity has entire message
+  //   // length as only 165 bytes
+  //   console.log(callMessage);
+  //   console.log(
+  //     'Solidity datalen: ',
+  //     await nonGovernorRouter.getCallDataLen(callMessage),
+  //   );
+  //   console.log(
+  //     'Solidity full msg len:',
+  //     await nonGovernorRouter.getCallFullLength(callMessage),
+  //   );
+
+  //   // Create Optics message that is sent from the governor domain and governor
+  //   // to the nonGovernorRouter on the nonGovernorDomain
+  //   const opticsMessage = optics.formatMessage(
+  //     governorDomain,
+  //     governorRouter.address,
+  //     1,
+  //     nonGovernorDomain,
+  //     nonGovernorRouter.address,
+  //     callMessage,
+  //   );
+
+  //   // Set message status to MessageStatus.Pending
+  //   await enrolledReplica.setMessagePending(opticsMessage);
+
+  //   // Expect successful tx
+  //   let [success, ret] = await enrolledReplica.callStatic.testProcess(
+  //     opticsMessage,
+  //   );
+  //   console.log(ret);
+  //   expect(success).to.be.true;
+  // });
 });
