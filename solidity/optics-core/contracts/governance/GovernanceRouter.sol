@@ -316,9 +316,9 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         address _newGov = _isLocalGovernor ? _newGovernor : address(0);
 
         governorDomain = _newDomain;
-        governor = _governor;
+        governor = _newGov;
 
-        emit TransferGovernor(governorDomain, _newDomain, governor, _governor);
+        emit TransferGovernor(governorDomain, _newDomain, governor, _newGov);
     }
 
     /**

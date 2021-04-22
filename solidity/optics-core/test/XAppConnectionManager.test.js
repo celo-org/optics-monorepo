@@ -43,8 +43,8 @@ describe('XAppConnectionManager', async () => {
       contracts: homeContracts,
     } = await optics.deployUpgradeSetupAndProxy(
       'TestHome',
-      [],
-      [localDomain, mockUpdaterManager.address],
+      [localDomain],
+      [mockUpdaterManager.address],
     );
     home = homeContracts.proxyWithImplementation;
 
