@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 pragma experimental ABIEncoderV2;
 
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 import {Home} from "../Home.sol";
@@ -9,7 +10,7 @@ import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is IMessageRecipient {
+contract GovernanceRouter is Initializable, IMessageRecipient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
@@ -39,13 +40,8 @@ contract GovernanceRouter is IMessageRecipient {
         localDomain = _localDomain;
     }
 
-    function initialize(address _xAppConnectionManager) public {
+    function initialize(address _xAppConnectionManager) public initializer {
         // initialize governor
-        require(
-            governorDomain == 0 && governor == address(0),
-            "governor already initialized"
-        );
-
         address _governorAddr = msg.sender;
         bool _isLocalGovernor = true;
         _transferGovernor(localDomain, _governorAddr, _isLocalGovernor);
