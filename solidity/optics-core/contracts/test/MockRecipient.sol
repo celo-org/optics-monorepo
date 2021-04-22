@@ -15,6 +15,14 @@ contract MockRecipient is IMessageRecipient {
         return bytes(message());
     }
 
+    function receiveString(string calldata str)
+        public
+        pure
+        returns (string memory)
+    {
+        return str;
+    }
+
     function message() public pure returns (string memory) {
         return "message received";
     }
