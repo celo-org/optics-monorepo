@@ -12,7 +12,8 @@ const initialLastProcessed = 0;
 const controller = null;
 
 describe('GovernanceRouter', async () => {
-  let nonGovernorRouter,
+  let governor,
+    nonGovernorRouter,
     connectionManager,
     enrolledReplica,
     unenrolledReplica,
@@ -20,6 +21,7 @@ describe('GovernanceRouter', async () => {
     updater;
 
   before(async () => {
+    [governor] = await ethers.getSigners();
     [signer] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, governorDomain);
   });
@@ -94,6 +96,9 @@ describe('GovernanceRouter', async () => {
       governorDomain,
       optics.ethersAddressToBytes32(governorRouter.address),
     );
+
+    // Transfer governorship from original msg.sender to `governor`
+    await nonGovernorRouter.transferGovernor(governorDomain, governor.address);
   });
 
   it('Rejects message from unenrolled replica', async () => {
@@ -117,6 +122,7 @@ describe('GovernanceRouter', async () => {
     );
     unenrolledReplica = unenrolledReplicaContracts.proxyWithImplementation;
 
+    // Create TransferGovernor message
     const newDomain = 3000;
     const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
@@ -137,6 +143,8 @@ describe('GovernanceRouter', async () => {
     // Set message status to MessageStatus.Pending
     await unenrolledReplica.setMessagePending(opticsMessage);
 
+    // Expect replica processing to fail when nonGovernorRouter reverts in
+    // handle
     let [success, ret] = await unenrolledReplica.callStatic.testProcess(
       opticsMessage,
     );
@@ -145,21 +153,23 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Rejects message not from governor router', async () => {
-    const [sender, newGovernor] = provider.getWallets();
-
+    // Create addresses for the invalid governor router and attempted
+    // newGovernor at newDomain 3000
+    const [fakeGovernorRouter, newGovernor] = provider.getWallets();
     const newDomain = 3000;
+
+    // Create TransferGovernor message
     const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
       optics.ethersAddressToBytes32(newGovernor.address),
     );
 
-    // Some sender on domain 3000 tries to send transferGovernorMsg to
-    // nonGovernorRouter (should fail because sender domain not governorRouter
-    // domain and sender not governorRouter address)
-    const senderDomain = 3000;
+    // Create Optics message where the fake governor router tries
+    // to send TransferGovernor message to the nonGovernorRouter
+    const fakeGovernorRouterDomain = 2000;
     const opticsMessage = optics.formatMessage(
-      senderDomain,
-      sender.address,
+      fakeGovernorRouterDomain,
+      fakeGovernorRouter.address,
       1,
       nonGovernorDomain,
       nonGovernorRouter.address,
@@ -169,6 +179,8 @@ describe('GovernanceRouter', async () => {
     // Set message status to MessageStatus.Pending
     await enrolledReplica.setMessagePending(opticsMessage);
 
+    // Expect replica processing to fail when nonGovernorRouter reverts in
+    // handle
     let [success, ret] = await enrolledReplica.callStatic.testProcess(
       opticsMessage,
     );
@@ -176,29 +188,41 @@ describe('GovernanceRouter', async () => {
     expect(ret).to.equal('!governorRouter');
   });
 
-  // TODO: nonGovernorRouter governorDomain being set to localDomain
   it('Accepts a valid transfer governor message', async () => {
-    // const [newGovernor] = provider.getWallets();
-    // const newDomain = 3000;
-    // const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
-    //   newDomain,
-    //   optics.ethersAddressToBytes32(newGovernor.address),
-    // );
-    // // Message sent from governorDomain and by governorRouter
-    // const opticsMessage = optics.formatMessage(
-    //   governorDomain,
-    //   governorRouter.address,
-    //   1,
-    //   nonGovernorDomain,
-    //   nonGovernorRouter.address,
-    //   transferGovernorMsg,
-    // );
-    // // Set message status to MessageStatus.Pending
-    // await enrolledReplica.setMessagePending(opticsMessage);
-    // let [success, ret] = await enrolledReplica.callStatic.testProcess(
-    //   opticsMessage,
-    // );
-    // console.log(ret);
-    // expect(success).to.be.true;
+    // Create addresses for the new governor and the governanceRouter for the
+    // new domain 3000
+    const [newGovernor, newDomainRouter] = provider.getWallets();
+    const newDomain = 3000;
+
+    // Enroll router for newDomain (in real setting this would
+    // be executed with an Optics message sent to the nonGovernorRouter)
+    await nonGovernorRouter.testSetRouter(
+      newDomain,
+      optics.ethersAddressToBytes32(newDomainRouter.address),
+    );
+
+    // Create TransferGovernor message
+    const transferGovernorMsg = optics.GovernanceRouter.formatTransferGovernor(
+      newDomain,
+      optics.ethersAddressToBytes32(newGovernor.address),
+    );
+
+    // Create Optics message that is sent from the governor domain and governor
+    // to the nonGovernorRouter on the nonGovernorDomain
+    const opticsMessage = optics.formatMessage(
+      governorDomain,
+      governorRouter.address,
+      1,
+      nonGovernorDomain,
+      nonGovernorRouter.address,
+      transferGovernorMsg,
+    );
+
+    // Set message status to MessageStatus.Pending
+    await enrolledReplica.setMessagePending(opticsMessage);
+
+    // Expect successful tx
+    let [success] = await enrolledReplica.callStatic.testProcess(opticsMessage);
+    expect(success).to.be.true;
   });
 });
