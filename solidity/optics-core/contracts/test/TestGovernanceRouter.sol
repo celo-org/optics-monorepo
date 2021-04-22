@@ -15,4 +15,12 @@ contract TestGovernanceRouter is GovernanceRouter {
 
         _sendToAllRemoteRouters(_setRouterMessage);
     }
+
+    function domainsContains(uint32 _domain) external view returns (bool) {
+        for (uint256 i = 0; i < domains.length; i++) {
+            if (domains[i] == _domain) return true;
+        }
+
+        return false;
+    }
 }

@@ -53,7 +53,9 @@ contract TestReplica is Replica {
     {
         bytes memory _res;
         (_success, _res) = process(_message);
-        _result = getRevertMsg(_res);
+
+        if (_success) _result = "Transaction succeeded";
+        else _result = getRevertMsg(_res);
     }
 
     function getRevertMsg(bytes memory _res)
