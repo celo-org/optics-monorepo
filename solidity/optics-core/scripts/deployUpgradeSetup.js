@@ -30,30 +30,45 @@ async function deployProxy(upgradeBeaconAddress, initializeData = '0x') {
   return proxy.deployed();
 }
 
+async function getInitializeData(
+  implementationName,
+  initializeArgs,
+  initializeIdentifier = 'initialize',
+) {
+  if (initializeArgs.length === 0) {
+    return '0x';
+  }
+
+  const Implementation = await ethers.getContractFactory(implementationName);
+
+  const initializeFunction = Implementation.interface.getFunction(
+    initializeIdentifier,
+  );
+
+  const initializeData = Implementation.interface.encodeFunctionData(
+    initializeFunction,
+    initializeArgs,
+  );
+
+  return initializeData;
+}
+
 async function deployProxyWithImplementation(
   upgradeBeaconAddress,
   implementationName,
   initializeArgs = [],
   initializeIdentifier = 'initialize',
 ) {
-  const Implementation = await ethers.getContractFactory(implementationName);
-
-  let initializeData;
-  if (initializeArgs.length === 0) {
-    initializeData = '0x';
-  } else {
-    const initializeFunction = Implementation.interface.getFunction(
-      initializeIdentifier,
-    );
-    initializeData = Implementation.interface.encodeFunctionData(
-      initializeFunction,
-      initializeArgs,
-    );
-  }
+  const initializeData = await getInitializeData(
+    implementationName,
+    initializeArgs,
+    initializeIdentifier,
+  );
 
   const proxy = await deployProxy(upgradeBeaconAddress, initializeData);
 
   // instantiate proxy with Proxy Contract address + Implementation interface
+  const Implementation = await ethers.getContractFactory(implementationName);
   const [signer] = await ethers.getSigners();
   const proxyWithImplementation = new ethers.Contract(
     proxy.address,
@@ -152,4 +167,5 @@ module.exports = {
   deployUpgradeSetupAndProxy,
   deployProxy,
   deployProxyWithImplementation,
+  getInitializeData,
 };

@@ -20,9 +20,12 @@ const localDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
+const replicaContractName = 'TestReplica';
+const replicaInitializeIdentifier =
+  'initialize(uint32, address, bytes32, uint256, uint256)';
 
 describe('Replica', async () => {
-  let replica, signer, fakeSigner, updater, fakeUpdater;
+  let replica, signer, fakeSigner, updater, fakeUpdater, initializeArgs;
 
   const enqueueValidUpdate = async (newRoot) => {
     let oldRoot;
@@ -45,21 +48,38 @@ describe('Replica', async () => {
 
   beforeEach(async () => {
     const controller = null;
+    initializeArgs = [
+      remoteDomain,
+      updater.signer.address,
+      initialCurrentRoot,
+      optimisticSeconds,
+      initialLastProcessed,
+    ];
+
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
-      'TestReplica',
+      replicaContractName,
       [localDomain],
-      [
-        remoteDomain,
-        updater.signer.address,
-        initialCurrentRoot,
-        optimisticSeconds,
-        initialLastProcessed,
-      ],
+      initializeArgs,
       controller,
-      'initialize(uint32, address, bytes32, uint256, uint256)',
+      replicaInitializeIdentifier,
     );
 
     replica = contracts.proxyWithImplementation;
+  });
+
+  it('Cannot be initialized twice', async () => {
+    const initializeData = await optics.getInitializeData(
+      replicaContractName,
+      initializeArgs,
+      replicaInitializeIdentifier,
+    );
+
+    await expect(
+      signer.sendTransaction({
+        to: replica.address,
+        data: initializeData,
+      }),
+    ).to.be.revertedWith('Initializable: contract is already initialized');
   });
 
   it('Halts on fail', async () => {
