@@ -39,7 +39,7 @@ contract TestGovernanceRouter is GovernanceRouter {
         return GovernanceMessage.dataLen(_msgPtr);
     }
 
-    function getCallFullLength(bytes memory _message)
+    function getMessageLength(bytes memory _message)
         external
         pure
         returns (uint256)
