@@ -14,7 +14,7 @@ use optics_core::{
 mock! {
     pub ReplicaContract {
         // Replica
-        pub fn _destination_domain(&self) -> u32 {}
+        pub fn _local_domain(&self) -> u32 {}
 
         pub fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
 
@@ -74,8 +74,8 @@ impl std::fmt::Debug for MockReplicaContract {
 
 #[async_trait]
 impl Replica for MockReplicaContract {
-    fn destination_domain(&self) -> u32 {
-        self._destination_domain()
+    fn local_domain(&self) -> u32 {
+        self._local_domain()
     }
 
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {

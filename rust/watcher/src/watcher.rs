@@ -290,7 +290,7 @@ impl Watcher {
         // TODO: submit signed failure notifications to XAppConnectionManager
         for replica in self.core.replicas.values() {
             let _signed = FailureNotification {
-                domain: replica.destination_domain(),
+                domain: replica.local_domain(),
                 updater: replica.updater().await.unwrap().into(),
             }
             .sign_with(self.signer.as_ref())

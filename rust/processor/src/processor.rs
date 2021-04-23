@@ -53,7 +53,7 @@ impl ReplicaProcessor {
 
     pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
-            let domain = self.replica.destination_domain();
+            let domain = self.replica.local_domain();
 
             let mut interval = self.interval();
 

@@ -183,7 +183,7 @@ impl<M> Replica for EthereumReplica<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn destination_domain(&self) -> u32 {
+    fn local_domain(&self) -> u32 {
         self.domain
     }
 

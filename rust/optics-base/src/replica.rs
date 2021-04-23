@@ -56,11 +56,11 @@ impl From<Box<dyn Replica>> for Replicas {
 
 #[async_trait]
 impl Replica for Replicas {
-    fn destination_domain(&self) -> u32 {
+    fn local_domain(&self) -> u32 {
         match self {
-            Replicas::Ethereum(replica) => replica.destination_domain(),
-            Replicas::Mock(mock_replica) => mock_replica.destination_domain(),
-            Replicas::Other(replica) => replica.destination_domain(),
+            Replicas::Ethereum(replica) => replica.local_domain(),
+            Replicas::Mock(mock_replica) => mock_replica.local_domain(),
+            Replicas::Other(replica) => replica.local_domain(),
         }
     }
 
