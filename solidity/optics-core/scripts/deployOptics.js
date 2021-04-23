@@ -211,6 +211,9 @@ async function deployOptics(local, remotes) {
   await upgradeBeaconController.transferOwnership(
     governanceRouter.proxy.address,
   );
+  await home.proxyWithImplementation.transferOwnership(
+    governanceRouter.proxy.address,
+  );
 
   const contracts = {
     upgradeBeaconController,

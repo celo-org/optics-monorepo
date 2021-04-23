@@ -7,7 +7,6 @@ import "./Queue.sol";
 import "../interfaces/IUpdaterManager.sol";
 
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
@@ -17,7 +16,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * holding custody of the updater bond.
  */
 contract Home is
-    Ownable,
     Initializable,
     MerkleTreeManager,
     QueueManager,
@@ -30,6 +28,7 @@ contract Home is
     mapping(uint32 => uint32) public sequences;
 
     IUpdaterManager public updaterManager;
+    address public owner;
 
     /**
      * @notice Event emitted when new message is enqueued
@@ -68,9 +67,21 @@ contract Home is
      */
     event UpdaterSlashed(address indexed updater, address indexed reporter);
 
+    /**
+     * @notice Event emitted when a new owner is set
+     * @param previousOwner The address of the previous owner
+     * @param newOwner The address of the new owner
+     */
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
     function initialize(address _updaterManager) public override initializer {
+        _transferOwnership(msg.sender);
+
         _setUpdaterManager(_updaterManager);
         address _updater = updaterManager.updater();
         _setUpdater(_updater);
@@ -84,6 +95,11 @@ contract Home is
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "!owner");
+        _;
+    }
+
     /// @notice Sets updater
     function setUpdater(address _updater) external onlyUpdaterManager {
         _setUpdater(_updater);
@@ -92,6 +108,11 @@ contract Home is
     /// @notice sets a new updaterManager
     function setUpdaterManager(address _updaterManager) external onlyOwner {
         _setUpdaterManager(_updaterManager);
+    }
+
+    /// @notice sets a new updaterManager
+    function transferOwnership(address _newOwner) external onlyOwner {
+        _transferOwnership(_newOwner);
     }
 
     /**
@@ -206,6 +227,15 @@ contract Home is
             return true;
         }
         return false;
+    }
+
+    /**
+     * @notice sets a new owner
+     * @param _newOwner Address of new owner
+     */
+    function _transferOwnership(address _newOwner) internal {
+        emit OwnershipTransferred(owner, _newOwner);
+        owner = _newOwner;
     }
 
     /**
