@@ -98,7 +98,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    local_domain: event.local_domain,
+                    domain: event.domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -125,7 +125,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    local_domain: event.local_domain,
+                    domain: event.domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -285,7 +285,7 @@ where
         }
 
         Ok(Some(Update {
-            local_domain: self.local_domain(),
+            domain: self.local_domain(),
             previous_root,
             new_root,
         }))

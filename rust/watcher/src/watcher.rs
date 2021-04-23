@@ -290,7 +290,7 @@ impl Watcher {
         // TODO: submit signed failure notifications to XAppConnectionManager
         for replica in self.core.replicas.values() {
             let _signed = FailureNotification {
-                local_domain: replica.destination_domain(),
+                domain: replica.destination_domain(),
                 updater: replica.updater().await.unwrap().into(),
             }
             .sign_with(self.signer.as_ref())
@@ -410,7 +410,7 @@ mod test {
         let second_root = H256::from([2; 32]);
 
         let signed_update = Update {
-            local_domain: 1,
+            domain: 1,
             previous_root: first_root,
             new_root: second_root,
         }
@@ -462,7 +462,7 @@ mod test {
 
         // Zero root to first root
         let first_signed_update = Update {
-            local_domain: 1,
+            domain: 1,
             previous_root: zero_root,
             new_root: first_root,
         }
@@ -472,7 +472,7 @@ mod test {
 
         // First root to second root
         let second_signed_update = Update {
-            local_domain: 1,
+            domain: 1,
             previous_root: first_root,
             new_root: second_root,
         }
@@ -543,7 +543,7 @@ mod test {
             let bad_third_root = H256::from([4; 32]);
 
             let first_update = Update {
-                local_domain: 1,
+                domain: 1,
                 previous_root: first_root,
                 new_root: second_root,
             }
@@ -552,7 +552,7 @@ mod test {
             .expect("!sign");
 
             let second_update = Update {
-                local_domain: 1,
+                domain: 1,
                 previous_root: second_root,
                 new_root: third_root,
             }
@@ -561,7 +561,7 @@ mod test {
             .expect("!sign");
 
             let bad_second_update = Update {
-                local_domain: 1,
+                domain: 1,
                 previous_root: second_root,
                 new_root: bad_third_root,
             }

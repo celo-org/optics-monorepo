@@ -242,7 +242,7 @@ mod test {
             let new_root = H256::from([2; 32]);
 
             let update = Update {
-                local_domain: 0,
+                domain: 0,
                 previous_root,
                 new_root,
             };
@@ -315,7 +315,7 @@ mod test {
             let new_root = H256::from([2; 32]);
 
             let update = Update {
-                local_domain: 0,
+                domain: 0,
                 previous_root,
                 new_root,
             };
