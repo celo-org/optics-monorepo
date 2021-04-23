@@ -271,7 +271,7 @@ impl StampedMessage {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Update {
     /// The origin chain
-    pub domain: u32,
+    pub local_domain: u32,
     /// The previous root
     pub previous_root: H256,
     /// The new root
@@ -283,7 +283,7 @@ impl Encode for Update {
     where
         W: std::io::Write,
     {
-        writer.write_all(&self.domain.to_be_bytes())?;
+        writer.write_all(&self.local_domain.to_be_bytes())?;
         writer.write_all(self.previous_root.as_ref())?;
         writer.write_all(self.new_root.as_ref())?;
         Ok(4 + 32 + 32)
@@ -296,8 +296,8 @@ impl Decode for Update {
         R: std::io::Read,
         Self: Sized,
     {
-        let mut domain = [0u8; 4];
-        reader.read_exact(&mut domain)?;
+        let mut local_domain = [0u8; 4];
+        reader.read_exact(&mut local_domain)?;
 
         let mut previous_root = H256::zero();
         reader.read_exact(previous_root.as_mut())?;
@@ -306,7 +306,7 @@ impl Decode for Update {
         reader.read_exact(new_root.as_mut())?;
 
         Ok(Self {
-            domain: u32::from_be_bytes(domain),
+            local_domain: u32::from_be_bytes(local_domain),
             previous_root,
             new_root,
         })
@@ -319,7 +319,7 @@ impl Update {
         // domain(origin) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
-                .chain(signature_domain(self.domain))
+                .chain(signature_domain(self.local_domain))
                 .chain(self.previous_root)
                 .chain(self.new_root)
                 .finalize()
@@ -393,7 +393,7 @@ impl SignedUpdate {
 #[derive(Debug)]
 pub struct FailureNotification {
     /// Domain of replica to unenroll
-    pub domain: u32,
+    pub local_domain: u32,
     /// Updater of replica to unenroll
     pub updater: OpticsIdentifier,
 }
@@ -402,8 +402,8 @@ impl FailureNotification {
     fn signing_hash(&self) -> H256 {
         H256::from_slice(
             Keccak256::new()
-                .chain(signature_domain(self.domain))
-                .chain(self.domain.to_be_bytes())
+                .chain(signature_domain(self.local_domain))
+                .chain(self.local_domain.to_be_bytes())
                 .chain(self.updater.as_ref_local())
                 .finalize()
                 .as_slice(),
@@ -463,7 +463,7 @@ mod test {
                     .parse()
                     .unwrap();
             let message = Update {
-                domain: 5,
+                local_domain: 5,
                 new_root: H256::repeat_byte(1),
                 previous_root: H256::repeat_byte(2),
             };

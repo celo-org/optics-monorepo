@@ -137,7 +137,7 @@ mod test {
         let second_root = H256::from([2; 32]);
 
         let signed_update = Update {
-            domain: 1,
+            local_domain: 1,
             previous_root: first_root,
             new_root: second_root,
         }
