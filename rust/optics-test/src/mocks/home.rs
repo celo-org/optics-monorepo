@@ -17,7 +17,7 @@ mock! {
         // Home
         pub fn _local_domain(&self) -> u32 {}
 
-        pub fn _domain_hash(&self) -> H256 {}
+        pub fn _signature_domain(&self) -> H256 {}
 
         pub fn _raw_message_by_sequence(
             &self,
@@ -91,8 +91,8 @@ impl Home for MockHomeContract {
         self._local_domain()
     }
 
-    fn domain_hash(&self) -> H256 {
-        self._domain_hash()
+    fn signature_domain(&self) -> H256 {
+        self._signature_domain()
     }
 
     async fn raw_message_by_sequence(
