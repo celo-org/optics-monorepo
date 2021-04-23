@@ -98,7 +98,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    origin_domain: event.local_domain,
+                    domain: event.local_domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -125,7 +125,7 @@ where
                     .expect("chain accepted invalid signature");
 
                 let update = Update {
-                    origin_domain: event.local_domain,
+                    domain: event.local_domain,
                     previous_root: event.old_root.into(),
                     new_root: event.new_root.into(),
                 };
@@ -179,7 +179,7 @@ impl<M> Home for EthereumHome<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn origin_domain(&self) -> u32 {
+    fn local_domain(&self) -> u32 {
         self.domain
     }
 
@@ -285,7 +285,7 @@ where
         }
 
         Ok(Some(Update {
-            origin_domain: self.origin_domain(),
+            domain: self.local_domain(),
             previous_root,
             new_root,
         }))

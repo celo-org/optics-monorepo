@@ -271,7 +271,7 @@ impl StampedMessage {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Update {
     /// The origin chain
-    pub origin_domain: u32,
+    pub domain: u32,
     /// The previous root
     pub previous_root: H256,
     /// The new root
@@ -283,7 +283,7 @@ impl Encode for Update {
     where
         W: std::io::Write,
     {
-        writer.write_all(&self.origin_domain.to_be_bytes())?;
+        writer.write_all(&self.domain.to_be_bytes())?;
         writer.write_all(self.previous_root.as_ref())?;
         writer.write_all(self.new_root.as_ref())?;
         Ok(4 + 32 + 32)
@@ -296,8 +296,8 @@ impl Decode for Update {
         R: std::io::Read,
         Self: Sized,
     {
-        let mut origin_domain = [0u8; 4];
-        reader.read_exact(&mut origin_domain)?;
+        let mut domain = [0u8; 4];
+        reader.read_exact(&mut domain)?;
 
         let mut previous_root = H256::zero();
         reader.read_exact(previous_root.as_mut())?;
@@ -306,7 +306,7 @@ impl Decode for Update {
         reader.read_exact(new_root.as_mut())?;
 
         Ok(Self {
-            origin_domain: u32::from_be_bytes(origin_domain),
+            domain: u32::from_be_bytes(domain),
             previous_root,
             new_root,
         })
@@ -319,7 +319,7 @@ impl Update {
         // domain(origin) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
-                .chain(domain_hash(self.origin_domain))
+                .chain(domain_hash(self.domain))
                 .chain(self.previous_root)
                 .chain(self.new_root)
                 .finalize()
@@ -463,7 +463,7 @@ mod test {
                     .parse()
                     .unwrap();
             let message = Update {
-                origin_domain: 5,
+                domain: 5,
                 new_root: H256::repeat_byte(1),
                 previous_root: H256::repeat_byte(2),
             };

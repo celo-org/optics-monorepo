@@ -410,7 +410,7 @@ mod test {
         let second_root = H256::from([2; 32]);
 
         let signed_update = Update {
-            origin_domain: 1,
+            domain: 1,
             previous_root: first_root,
             new_root: second_root,
         }
@@ -462,7 +462,7 @@ mod test {
 
         // Zero root to first root
         let first_signed_update = Update {
-            origin_domain: 1,
+            domain: 1,
             previous_root: zero_root,
             new_root: first_root,
         }
@@ -472,7 +472,7 @@ mod test {
 
         // First root to second root
         let second_signed_update = Update {
-            origin_domain: 1,
+            domain: 1,
             previous_root: first_root,
             new_root: second_root,
         }
@@ -543,7 +543,7 @@ mod test {
             let bad_third_root = H256::from([4; 32]);
 
             let first_update = Update {
-                origin_domain: 1,
+                domain: 1,
                 previous_root: first_root,
                 new_root: second_root,
             }
@@ -552,7 +552,7 @@ mod test {
             .expect("!sign");
 
             let second_update = Update {
-                origin_domain: 1,
+                domain: 1,
                 previous_root: second_root,
                 new_root: third_root,
             }
@@ -561,7 +561,7 @@ mod test {
             .expect("!sign");
 
             let bad_second_update = Update {
-                origin_domain: 1,
+                domain: 1,
                 previous_root: second_root,
                 new_root: bad_third_root,
             }

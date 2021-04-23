@@ -49,11 +49,11 @@ impl TryFrom<RawCommittedMessage> for CommittedMessage {
 #[async_trait]
 pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// Return the domain ID
-    fn origin_domain(&self) -> u32;
+    fn local_domain(&self) -> u32;
 
     /// Return the domain hash
     fn domain_hash(&self) -> H256 {
-        domain_hash(self.origin_domain())
+        domain_hash(self.local_domain())
     }
 
     /// Fetch the message to destination at the sequence number (or error).

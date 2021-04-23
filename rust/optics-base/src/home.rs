@@ -57,11 +57,11 @@ impl From<Box<dyn Home>> for Homes {
 
 #[async_trait]
 impl Home for Homes {
-    fn origin_domain(&self) -> u32 {
+    fn local_domain(&self) -> u32 {
         match self {
-            Homes::Ethereum(home) => home.origin_domain(),
-            Homes::Mock(mock_home) => mock_home.origin_domain(),
-            Homes::Other(home) => home.origin_domain(),
+            Homes::Ethereum(home) => home.local_domain(),
+            Homes::Mock(mock_home) => mock_home.local_domain(),
+            Homes::Other(home) => home.local_domain(),
         }
     }
 
