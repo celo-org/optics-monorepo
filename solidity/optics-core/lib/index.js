@@ -105,16 +105,18 @@ extendEnvironment((hre) => {
       );
     }
 
-    static formatCalls(tos, datas) {
-      if (tos.length != datas.length) {
-        throw new Error("Number of to addresses and data blocks don't match.");
+    static formatCalls(tos, dataLens, datas) {
+      if (!(tos.length == dataLens.length && dataLens.length == datas.length)) {
+        throw new Error(
+          "Number of to addresses, data lengths, and data blocks don't match.",
+        );
       }
 
       let callBody = '';
       for (let i = 0; i < tos.length; i++) {
         callBody += ethers.utils.solidityPack(
           ['bytes32', 'uint256', 'bytes'],
-          [tos[i], 100, datas[i]],
+          [tos[i], dataLens[i], datas[i]],
         );
       }
 

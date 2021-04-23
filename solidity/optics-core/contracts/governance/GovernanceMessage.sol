@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
+pragma experimental ABIEncoderV2;
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -94,8 +95,14 @@ library GovernanceMessage {
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
-            _calls[counter] = Call({to: to(_msgPtr), data: data(_msgPtr)});
+            Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
 
+            // BUG: can create Call struct fine but storing in array of Call
+            // structs reverts silently (comment out first revert to see in
+            // tests)
+            revert("created call");
+            _calls[counter] = _call;
+            revert("stored call");
             _msgPtr = nextCall(_msgPtr);
             counter++;
         }

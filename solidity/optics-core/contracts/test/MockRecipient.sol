@@ -7,6 +7,10 @@ contract MockRecipient is IMessageRecipient {
     // solhint-disable-next-line no-empty-blocks
     constructor() {}
 
+    fallback() external {
+        revert("Fallback");
+    }
+
     function handle(
         uint32,
         bytes32,
