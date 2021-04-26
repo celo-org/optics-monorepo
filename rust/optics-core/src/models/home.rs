@@ -45,14 +45,14 @@ impl Failed {
 }
 
 fn format_message(
-    origin: u32,
+    remote: u32,
     sender: H256,
     destination: u32,
     recipient: H256,
     body: &[u8],
 ) -> Vec<u8> {
     let mut buf = vec![];
-    buf.write_all(&origin.to_be_bytes()).unwrap();
+    buf.write_all(&remote.to_be_bytes()).unwrap();
     buf.write_all(sender.as_ref()).unwrap();
     buf.write_all(&destination.to_be_bytes()).unwrap();
     buf.write_all(recipient.as_ref()).unwrap();
@@ -63,7 +63,7 @@ fn format_message(
 /// The Home-chain Optics object
 #[derive(Debug, Clone)]
 pub struct Home<S> {
-    origin: u32,
+    local: u32,
     updater: Address,
     current_root: H256,
     state: S,
@@ -71,8 +71,8 @@ pub struct Home<S> {
 
 impl<S> Home<S> {
     /// SLIP-44 id of the Home chain
-    pub fn origin(&self) -> u32 {
-        self.origin
+    pub fn local(&self) -> u32 {
+        self.local
     }
 
     /// Ethereum address of the updater
@@ -93,7 +93,7 @@ impl<S> Home<S> {
 impl From<Home<Waiting>> for Home<Failed> {
     fn from(h: Home<Waiting>) -> Self {
         Self {
-            origin: h.origin,
+            local: h.local,
             updater: h.updater,
             current_root: h.current_root,
             state: Failed {
@@ -111,9 +111,9 @@ impl Home<Waiting> {
     }
 
     /// Instantiate a new Home.
-    pub fn init(origin: u32, updater: Address) -> Home<Waiting> {
+    pub fn init(local: u32, updater: Address) -> Home<Waiting> {
         Self {
-            origin,
+            local,
             updater,
             current_root: Default::default(),
             state: Waiting::default(),
@@ -122,7 +122,7 @@ impl Home<Waiting> {
 
     /// Enqueue a message
     pub fn enqueue(&mut self, sender: H256, destination: u32, recipient: H256, body: &[u8]) {
-        let message = format_message(self.origin, sender, destination, recipient, body);
+        let message = format_message(self.local, sender, destination, recipient, body);
         let message_hash = hash(&message);
         self.state.accumulator.ingest(message_hash);
         self.state.queue.push_back(self.state.accumulator.root());
@@ -151,7 +151,7 @@ impl Home<Waiting> {
     /// Produce an update from the current root to the new root.
     pub fn produce_update(&self) -> Update {
         Update {
-            domain: self.origin,
+            domain: self.local,
             previous_root: self.current_root,
             new_root: self.state.accumulator.root(),
         }

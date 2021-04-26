@@ -65,11 +65,11 @@ impl Home for Homes {
         }
     }
 
-    fn signature_domain(&self) -> H256 {
+    fn domain_hash(&self) -> H256 {
         match self {
-            Homes::Ethereum(home) => home.signature_domain(),
-            Homes::Mock(mock_home) => mock_home.signature_domain(),
-            Homes::Other(home) => home.signature_domain(),
+            Homes::Ethereum(home) => home.domain_hash(),
+            Homes::Mock(mock_home) => mock_home.domain_hash(),
+            Homes::Other(home) => home.domain_hash(),
         }
     }
 

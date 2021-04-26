@@ -4,8 +4,8 @@ const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
 const {
-  testCases: signatureDomainTestCases,
-} = require('../../../vectors/signatureDomainTestCases.json');
+  testCases: domainHashTestCases,
+} = require('../../../vectors/domainHashTestCases.json');
 const {
   testCases,
 } = require('../../../vectors/destinationSequenceTestCases.json');
@@ -72,28 +72,13 @@ describe('Home', async () => {
     ).to.be.revertedWith('failed state');
   });
 
-  it('Calculates signatureDomain from localDomain', async () => {
-    const mockUpdaterManager = await deployMockContract(
-      signer,
-      UpdaterManager.abi,
-    );
-    await mockUpdaterManager.mock.updater.returns(signer.address);
-    await mockUpdaterManager.mock.slashUpdater.returns();
-
-    // Compare Rust output in json file to solidity output
-    for (let testCase of signatureDomainTestCases) {
-      const { domain: localDomain, expectedSignatureDomain } = testCase;
-
-      const { contracts } = await optics.deployUpgradeSetupAndProxy(
-        'TestHome',
-        [localDomain],
-        [mockUpdaterManager.address],
-      );
-      const home = contracts.proxyWithImplementation;
-
-      const signatureDomain = await home.testSignatureDomain();
-      expect(signatureDomain).to.equal(expectedSignatureDomain);
-    }
+  it('Calculated domain hash matches Rust-produced domain hash', async () => {
+    // Compare Rust output in json file to solidity output (json file matches
+    // hash for local domain of 1000)
+    const testCase = domainHashTestCases[0];
+    const { expectedDomainHash } = testCase;
+    const domainHash = await home.testdomainHash();
+    expect(domainHash).to.equal(expectedDomainHash);
   });
 
   it('Enqueues a message', async () => {

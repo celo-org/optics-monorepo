@@ -22,7 +22,7 @@ pub struct Failed {}
 /// The Replica-chain Optics object
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Replica<S> {
-    origin: u32,
+    remote: u32,
     local: u32,
     updater: Address,
     optimistic_wait: U256,
@@ -31,8 +31,8 @@ pub struct Replica<S> {
 
 impl<S> Replica<S> {
     /// SLIP-44 id of the Home chain
-    pub fn origin(&self) -> u32 {
-        self.origin
+    pub fn remote(&self) -> u32 {
+        self.remote
     }
 
     /// SLIP-44 id of this Replica chain
@@ -70,7 +70,7 @@ impl<S> Replica<S> {
             Err(self)
         } else {
             Ok(Replica {
-                origin: self.origin,
+                remote: self.remote,
                 local: self.local,
                 updater: self.updater,
                 optimistic_wait: self.optimistic_wait,
@@ -87,9 +87,9 @@ impl Replica<Waiting> {
     }
 
     /// Instantiate a new Replica.
-    pub fn init(origin: u32, local: u32, updater: Address, optimistic_wait: U256) -> Self {
+    pub fn init(remote: u32, local: u32, updater: Address, optimistic_wait: U256) -> Self {
         Self {
-            origin,
+            remote,
             local,
             updater,
             optimistic_wait,
@@ -108,7 +108,7 @@ impl Replica<Waiting> {
         }
 
         Ok(Replica {
-            origin: self.origin,
+            remote: self.remote,
             local: self.local,
             updater: self.updater,
             optimistic_wait: self.optimistic_wait,
@@ -135,7 +135,7 @@ impl Replica<Pending> {
         }
 
         Ok(Replica {
-            origin: self.origin,
+            remote: self.remote,
             local: self.local,
             updater: self.updater,
             optimistic_wait: self.optimistic_wait,

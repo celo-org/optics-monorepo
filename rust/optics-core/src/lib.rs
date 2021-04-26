@@ -319,7 +319,7 @@ impl Update {
         // domain(origin) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
-                .chain(signature_domain(self.domain))
+                .chain(domain_hash(self.domain))
                 .chain(self.previous_root)
                 .chain(self.new_root)
                 .finalize()
@@ -402,7 +402,7 @@ impl FailureNotification {
     fn signing_hash(&self) -> H256 {
         H256::from_slice(
             Keccak256::new()
-                .chain(signature_domain(self.local_domain))
+                .chain(home_domain_hash(self.local_domain))
                 .chain(self.local_domain.to_be_bytes())
                 .chain(self.updater.as_ref_local())
                 .finalize()

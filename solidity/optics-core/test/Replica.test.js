@@ -6,8 +6,8 @@ const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
 const {
-  testCases: signatureDomainTestCases,
-} = require('../../../vectors/signatureDomainTestCases.json');
+  testCases: domainHashTestCases,
+} = require('../../../vectors/domainHashTestCases.json');
 const {
   testCases: merkleTestCases,
 } = require('../../../vectors/merkleTestCases.json');
@@ -92,14 +92,13 @@ describe('Replica', async () => {
     );
   });
 
-  it('Calculates signatureDomain from remoteDomain', async () => {
-    // Compare Rust output in json file to solidity output
-    for (let testCase of signatureDomainTestCases) {
-      const { domain, expectedSignatureDomain } = testCase;
-      replica.setRemoteDomain(domain);
-      const signatureDomain = await replica.testSignatureDomain();
-      expect(signatureDomain).to.equal(expectedSignatureDomain);
-    }
+  it('Calculated domain hash matches Rust-produced domain hash', async () => {
+    // Compare Rust output in json file to solidity output (json file matches
+    // hash for remote domain of 1000)
+    const testCase = domainHashTestCases[0];
+    const { expectedDomainHash } = testCase;
+    const domainHash = await replica.testdomainHash();
+    expect(domainHash).to.equal(expectedDomainHash);
   });
 
   it('Enqueues pending updates', async () => {

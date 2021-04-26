@@ -13,8 +13,8 @@ contract TestHome is Home {
         return count();
     }
 
-    function testSignatureDomain() external view returns (bytes32) {
-        return signatureDomain();
+    function testdomainHash() external view returns (bytes32) {
+        return domainHash();
     }
 
     function testDestinationAndSequence(uint32 _destination, uint32 _sequence)
