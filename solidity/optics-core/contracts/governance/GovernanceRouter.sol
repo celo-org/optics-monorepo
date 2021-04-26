@@ -174,11 +174,14 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @param _domain The domain
      * @param _router The address of the new router
      */
-    function setRouter(uint32 _domain, bytes32 _router) external onlyGovernor {
-        _setRouter(_domain, _router); // set the router locally
+    function setRouter(uint32 _domain, address _router) external onlyGovernor {
+        _setRouter(_domain, TypeCasts.addressToBytes32(_router)); // set the router locally
 
         bytes memory _setRouterMessage =
-            GovernanceMessage.formatSetRouter(_domain, _router);
+            GovernanceMessage.formatSetRouter(
+                _domain,
+                TypeCasts.addressToBytes32(_router)
+            );
 
         _sendToAllRemoteRouters(_setRouterMessage);
     }
