@@ -27,6 +27,10 @@ pub mod identifiers;
 /// Testing utilities
 pub mod test_utils;
 
+/// Test functions that output json files for Solidity tests
+#[cfg(feature = "output")]
+pub mod test_output;
+
 mod utils;
 
 use std::convert::Infallible;
@@ -450,8 +454,6 @@ impl SignedFailureNotification {
 #[cfg(test)]
 mod test {
     use super::*;
-    use serde_json::{json, Value};
-    use std::{fs::OpenOptions, io::Write};
 
     #[test]
     fn it_sign() {
@@ -469,109 +471,6 @@ mod test {
             let signed = message.sign_with(&signer).await.expect("!sign_with");
             signed.verify(signer.address()).expect("!verify");
         };
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(t)
-    }
-
-    /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
-    #[allow(dead_code)]
-    fn it_outputs_signed_updates() {
-        let t = async {
-            let signer: ethers::signers::LocalWallet =
-                "1111111111111111111111111111111111111111111111111111111111111111"
-                    .parse()
-                    .unwrap();
-
-            let mut test_cases: Vec<Value> = Vec::new();
-
-            // `origin_domain` MUST BE 1000 to match origin domain of Commmon
-            // test suite
-            for i in 1..=3 {
-                let signed_update = Update {
-                    origin_domain: 1000,
-                    new_root: H256::repeat_byte(i + 1),
-                    previous_root: H256::repeat_byte(i),
-                }
-                .sign_with(&signer)
-                .await
-                .expect("!sign_with");
-
-                test_cases.push(json!({
-                    "originDomain": signed_update.update.origin_domain,
-                    "oldRoot": signed_update.update.previous_root,
-                    "newRoot": signed_update.update.new_root,
-                    "signature": signed_update.signature,
-                    "signer": signer.address(),
-                }))
-            }
-
-            let json = json!({ "testCases": test_cases }).to_string();
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open("../../vectors/signedUpdateTestCases.json")
-                .expect("Failed to open/create file");
-
-            file.write_all(json.as_bytes())
-                .expect("Failed to write to file");
-        };
-
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(t)
-    }
-
-    /// Outputs signed update test cases in /vector/signedFailureTestCases.json
-    #[allow(dead_code)]
-    fn it_outputs_signed_failure_notifications() {
-        let t = async {
-            let signer: ethers::signers::LocalWallet =
-                "1111111111111111111111111111111111111111111111111111111111111111"
-                    .parse()
-                    .unwrap();
-
-            let updater: ethers::signers::LocalWallet =
-                "2222222222222222222222222222222222222222222222222222222222222222"
-                    .parse()
-                    .unwrap();
-
-            // `domain` MUST BE 2000 to match origin domain of
-            // XAppConnectionManager test suite
-            let signed_failure = FailureNotification {
-                domain: 2000,
-                updater: updater.address().into(),
-            }
-            .sign_with(&signer)
-            .await
-            .expect("!sign_with");
-
-            let signed_json = json!({
-                "domain": signed_failure.notification.domain,
-                "updater": signed_failure.notification.updater.as_ethereum_address(),
-                "signature": signed_failure.signature,
-                "signer": signer.address()
-            });
-
-            let json = json!({ "testCases": vec!(signed_json) }).to_string();
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open("../../vectors/signedFailureTestCases.json")
-                .expect("Failed to open/create file");
-
-            file.write_all(json.as_bytes())
-                .expect("Failed to write to file");
-        };
-
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()

@@ -22,6 +22,17 @@ color-eyre = "0.5.0"
 [dev-dependencies]
 tokio = {version = "1.0.1", features = ["rt", "time"]}
 
+[features]
+output = []
+
 [[example]]
 name = "toy"
 path = "./bin/toy.rs"
+
+[[bin]]
+name = "lib_test_output"
+path = "bin/lib_test_output.rs"
+
+[[bin]]
+name = "utils_test_output"
+path = "bin/utils_test_output.rs"
