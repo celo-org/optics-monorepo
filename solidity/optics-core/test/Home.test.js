@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
 const {
-  testCases: domainHashTestCases,
+  testCases: homeDomainHashTestCases,
 } = require('../../../vectors/domainHashTestCases.json');
 const {
   testCases,
@@ -75,10 +75,10 @@ describe('Home', async () => {
   it('Calculated domain hash matches Rust-produced domain hash', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for local domain of 1000)
-    const testCase = domainHashTestCases[0];
-    const { expectedDomainHash } = testCase;
-    const domainHash = await home.testdomainHash();
-    expect(domainHash).to.equal(expectedDomainHash);
+    const testCase = homeDomainHashTestCases[0];
+    const { expectedhomeDomainHash } = testCase;
+    const homeDomainHash = await home.testhomeDomainHash();
+    expect(homeDomainHash).to.equal(expectedhomeDomainHash);
   });
 
   it('Enqueues a message', async () => {

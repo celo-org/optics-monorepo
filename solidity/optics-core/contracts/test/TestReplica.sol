@@ -35,8 +35,8 @@ contract TestReplica is Replica {
         return block.timestamp;
     }
 
-    function testdomainHash() external view returns (bytes32) {
-        return domainHash();
+    function testhomeDomainHash() external view returns (bytes32) {
+        return homeDomainHash();
     }
 
     function testBranchRoot(

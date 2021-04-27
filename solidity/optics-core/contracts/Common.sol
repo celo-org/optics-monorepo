@@ -97,7 +97,7 @@ abstract contract Common is Initializable {
     }
 
     /// @notice Hash of Home domain concatenated with "OPTICS"
-    function domainHash() public view virtual returns (bytes32);
+    function homeDomainHash() public view virtual returns (bytes32);
 
     /// @notice Sets contract state to FAILED
     function _setFailed() internal {
@@ -121,7 +121,7 @@ abstract contract Common is Initializable {
         bytes memory _signature
     ) internal view returns (bool) {
         bytes32 _digest =
-            keccak256(abi.encodePacked(domainHash(), _oldRoot, _newRoot));
+            keccak256(abi.encodePacked(homeDomainHash(), _oldRoot, _newRoot));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return (ECDSA.recover(_digest, _signature) == updater);
     }

@@ -174,8 +174,8 @@ contract Home is
         }
     }
 
-    /// @notice Hash of `localDomain` concatenated with "OPTICS"
-    function domainHash() public view override returns (bytes32) {
+    /// @notice Hash of home's domain concatenated with "OPTICS"
+    function homeDomainHash() public view override returns (bytes32) {
         return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }
 

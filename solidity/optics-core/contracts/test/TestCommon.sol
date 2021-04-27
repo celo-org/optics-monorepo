@@ -19,7 +19,7 @@ contract TestCommon is Common {
     }
 
     /// @notice Hash of `localDomain` concatenated with "OPTICS"
-    function domainHash() public view override returns (bytes32) {
+    function homeDomainHash() public view override returns (bytes32) {
         return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }
 

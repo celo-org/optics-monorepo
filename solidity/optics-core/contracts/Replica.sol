@@ -267,7 +267,7 @@ contract Replica is Initializable, Common, QueueManager {
     }
 
     /// @notice Hash of `remoteDomain` concatenated with "OPTICS"
-    function domainHash() public view override returns (bytes32) {
+    function homeDomainHash() public view override returns (bytes32) {
         return keccak256(abi.encodePacked(remoteDomain, "OPTICS"));
     }
 

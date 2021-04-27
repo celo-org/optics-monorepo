@@ -6,7 +6,7 @@ const testUtils = require('./utils');
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
 const {
-  testCases: domainHashTestCases,
+  testCases: homeDomainHashTestCases,
 } = require('../../../vectors/domainHashTestCases.json');
 const {
   testCases: merkleTestCases,
@@ -95,10 +95,10 @@ describe('Replica', async () => {
   it('Calculated domain hash matches Rust-produced domain hash', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for remote domain of 1000)
-    const testCase = domainHashTestCases[0];
-    const { expectedDomainHash } = testCase;
-    const domainHash = await replica.testdomainHash();
-    expect(domainHash).to.equal(expectedDomainHash);
+    const testCase = homeDomainHashTestCases[0];
+    const { expectedhomeDomainHash } = testCase;
+    const homeDomainHash = await replica.testhomeDomainHash();
+    expect(homeDomainHash).to.equal(expectedhomeDomainHash);
   });
 
   it('Enqueues pending updates', async () => {
