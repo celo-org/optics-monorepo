@@ -400,7 +400,7 @@ impl FailureNotification {
             Keccak256::new()
                 .chain(domain_hash(self.domain))
                 .chain(self.domain.to_be_bytes())
-                .chain(self.updater.as_ref())
+                .chain(self.updater.as_ref_local())
                 .finalize()
                 .as_slice(),
         )
