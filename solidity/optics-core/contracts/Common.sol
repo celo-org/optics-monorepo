@@ -26,13 +26,13 @@ abstract contract Common is Initializable {
     /**
      * @notice Event emitted when update is made on Home or unconfirmed update
      * root is enqueued on Replica
-     * @param domain Domain of contract's chain
+     * @param homeDomain Domain of home contract
      * @param oldRoot Old merkle root
      * @param newRoot New merkle root
      * @param signature Updater's signature on `oldRoot` and `newRoot`
      **/
     event Update(
-        uint32 indexed domain,
+        uint32 indexed homeDomain,
         bytes32 indexed oldRoot,
         bytes32 indexed newRoot,
         bytes signature

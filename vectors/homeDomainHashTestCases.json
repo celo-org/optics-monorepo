@@ -1,0 +1,8 @@
+{
+  "testCases": [
+    {
+      "domain": 1000,
+      "expectedHomeDomainHash": "0x37064202a7c6a95d9ca7da3cf2b78a0be08f6d2bc926919f717c7ba7f4f16a91"
+    }
+  ]
+}

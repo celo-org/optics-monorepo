@@ -18,7 +18,7 @@ contract TestCommon is Common {
         return _isUpdaterSignature(_oldRoot, _newRoot, _signature);
     }
 
-    /// @notice Hash of `localDomain` concatenated with "OPTICS"
+    /// @notice Hash of `homeDomain` concatenated with "OPTICS"
     function homeDomainHash() public view override returns (bytes32) {
         return keccak256(abi.encodePacked(localDomain, "OPTICS"));
     }

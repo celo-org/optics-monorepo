@@ -47,7 +47,7 @@
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "domain",
+        "name": "homeDomain",
         "type": "uint32"
       },
       {

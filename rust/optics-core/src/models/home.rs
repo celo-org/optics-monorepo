@@ -151,7 +151,7 @@ impl Home<Waiting> {
     /// Produce an update from the current root to the new root.
     pub fn produce_update(&self) -> Update {
         Update {
-            domain: self.local,
+            home_domain: self.local,
             previous_root: self.current_root,
             new_root: self.state.accumulator.root(),
         }
