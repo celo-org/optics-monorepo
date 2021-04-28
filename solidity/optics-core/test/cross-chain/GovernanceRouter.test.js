@@ -1,8 +1,10 @@
 const { ethers } = require('hardhat');
+const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const {
   deployMultipleChains,
+  getHome,
   getGovernanceRouter,
 } = require('./deployCrossChainTest');
 
@@ -11,8 +13,10 @@ const {
  */
 describe('GovernanceRouter', async () => {
   const domains = [1000, 2000];
-  let govRouter1;
-  let govRouter2;
+  let govRouterA;
+  let govRouterB;
+  let homeA;
+  let updater;
 
   before(async () => {
     // generate TestChainConfigs for the given domains
@@ -21,43 +25,48 @@ describe('GovernanceRouter', async () => {
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
 
+    // set updater
+    [signer] = provider.getWallets();
+    updater = await optics.Updater.fromSigner(signer, domains[0]);
+
     // get both governanceRouters
-    govRouter1 = getGovernanceRouter(chainDetails, domains[0]);
-    govRouter2 = getGovernanceRouter(chainDetails, domains[1]);
+    govRouterA = getGovernanceRouter(chainDetails, domains[0]);
+    govRouterB = getGovernanceRouter(chainDetails, domains[1]);
 
     // set routers
-    govRouter1.setRouterAddress(domains[1], govRouter2.address);
-    govRouter2.setRouterAddress(domains[0], govRouter1.address);
+    govRouterA.setRouterAddress(domains[1], govRouterB.address);
+    govRouterB.setRouterAddress(domains[0], govRouterA.address);
 
-    // assign govRouter1 to governor
-    const governor = await govRouter1.governor();
-    govRouter2.transferGovernor(domains[0], governor);
+    // assign govRouterA to governor
+    const governor = await govRouterA.governor();
+    govRouterB.transferGovernor(domains[0], governor);
+
+    homeA = getHome(chainDetails, domains[0]);
   });
 
   it('Transfers governorship', async () => {
-    console.log('gov 1 govDomain', await govRouter1.governorDomain());
-    console.log('gov 1 govAddr', await govRouter1.governor());
-    console.log('gov 2 govDomain', await govRouter2.governorDomain());
-    console.log('gov 2 govAddr', await govRouter2.governor());
+    const currentRoot = await homeA.current();
 
-    const governor = await govRouter1.governor();
-    await govRouter1.transferGovernor(domains[1], governor);
+    const governor = await govRouterA.governor();
+    await govRouterA.transferGovernor(domains[1], governor);
 
-    console.log('gov 1 govDomain', await govRouter1.governorDomain());
-    console.log('gov 1 govAddr', await govRouter1.governor());
-    console.log('gov 2 govDomain', await govRouter2.governorDomain());
-    console.log('gov 2 govAddr', await govRouter2.governor());
+    const newRoot = await homeA.queueEnd();
+
+    const { signature } = await updater.signUpdate(currentRoot, newRoot);
+
+    // const [suggestedCurrent, suggestedNew] = await homeA.suggestUpdate();
+    homeA.update(currentRoot, newRoot, signature);
 
     expect(
-      govRouter1.interface.events[
+      govRouterA.interface.events[
         'TransferGovernor(uint32,uint32,address,address)'
       ].name,
     ).to.equal('TransferGovernor');
 
-    expect(await govRouter1.governorDomain()).to.equal(domains[1]);
-    expect(await govRouter1.governor()).to.equal(ethers.constants.AddressZero);
-    expect(await govRouter2.governorDomain()).to.equal(domains[1]);
-    expect(await govRouter2.governor()).to.not.equal(
+    expect(await govRouterA.governorDomain()).to.equal(domains[1]);
+    expect(await govRouterA.governor()).to.equal(ethers.constants.AddressZero);
+    expect(await govRouterB.governorDomain()).to.equal(domains[1]);
+    expect(await govRouterB.governor()).to.not.equal(
       ethers.constants.AddressZero,
     );
   });
