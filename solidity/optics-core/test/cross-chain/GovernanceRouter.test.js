@@ -5,6 +5,7 @@ const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const {
   deployMultipleChains,
   getHome,
+  getReplica,
   getGovernanceRouter,
 } = require('./deployCrossChainTest');
 
@@ -13,10 +14,7 @@ const {
  */
 describe('GovernanceRouter', async () => {
   const domains = [1000, 2000];
-  let govRouterA;
-  let govRouterB;
-  let homeA;
-  let updater;
+  let govRouterA, govRouterB, home, replica, updater;
 
   before(async () => {
     // generate TestChainConfigs for the given domains
@@ -41,21 +39,45 @@ describe('GovernanceRouter', async () => {
     const governor = await govRouterA.governor();
     govRouterB.transferGovernor(domains[0], governor);
 
-    homeA = getHome(chainDetails, domains[0]);
+    home = getHome(chainDetails, domains[0]);
+    replica = getReplica(chainDetails, domains[0], domains[1]);
+    replicaB = getReplica(chainDetails, domains[1], domains[0]);
   });
 
   it('Transfers governorship', async () => {
-    const currentRoot = await homeA.current();
+    const currentRoot = await home.current();
 
+    // transfer governorship to govRouterB
     const governor = await govRouterA.governor();
     await govRouterA.transferGovernor(domains[1], governor);
 
-    const newRoot = await homeA.queueEnd();
-
+    // get new root and signed update
+    const newRoot = await home.queueEnd();
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
 
-    // const [suggestedCurrent, suggestedNew] = await homeA.suggestUpdate();
-    homeA.update(currentRoot, newRoot, signature);
+    // update home
+    home.update(currentRoot, newRoot, signature);
+
+    // get current sequence
+    const sequence = (await replica.lastProcessed()).add(1);
+
+    // formatMessage
+    const formattedMessage = optics.formatMessage(
+      domains[1],
+      govRouterA.address,
+      sequence,
+      domains[0],
+      govRouterB.address,
+      '0x',
+    );
+
+    // Set message status to MessageStatus.Pending
+    await replica.setMessagePending(formattedMessage);
+    // Set current root on replica
+    await replica.setCurrentRoot(newRoot);
+
+    // TODO: prove
+    await replica.process(formattedMessage);
 
     expect(
       govRouterA.interface.events[
@@ -70,6 +92,4 @@ describe('GovernanceRouter', async () => {
       ethers.constants.AddressZero,
     );
   });
-
-  // it('Formats')
 });
