@@ -27,7 +27,7 @@ pub mod identifiers;
 /// Testing utilities
 pub mod test_utils;
 
-/// Test functions that output json files for Solidity tests
+/// Test functions that output json files used in Solidity tests
 #[cfg(feature = "output")]
 pub mod test_output;
 

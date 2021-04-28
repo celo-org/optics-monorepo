@@ -20,10 +20,23 @@ trap 'abort' 0
 set -e
 git update-index -q --refresh
 
-VECTORS_MODIFIED=false
+# Conditionally compile and update optics-core abis
+if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
+    cd ./solidity/optics-core
+    npm run compile
+    cd ../..
+fi
 
+# Conditionally compile and update optics-bridge abis
+if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
+    cd ./solidity/optics-bridge
+    npm run compile
+    cd ../..
+fi
+
+# Run rust tests, clippy, and formatting
 if ! git diff-index --quiet HEAD -- ./rust ./abis; then
-    cd ./rust
+    cd rust
     echo '+cargo test'
     cargo test
     echo '+cargo clippy -- -D warnings'
@@ -33,6 +46,9 @@ if ! git diff-index --quiet HEAD -- ./rust ./abis; then
     cd ..
 fi
 
+VECTORS_MODIFIED=false
+
+# Conditionally run Rust bins to output into vector JSON files
 if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/lib.rs; then
     cd ./rust/optics-core
     echo '+cargo run --bin lib_test_output --features output'
@@ -41,6 +57,7 @@ if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/lib.rs; then
     VECTORS_MODIFIED=true
 fi
 
+# Conditionally run Rust bins to output into vector JSON files
 if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/utils.rs; then
     cd ./rust/optics-core
     echo '+cargo run --bin utils_test_output --features output'
@@ -49,15 +66,17 @@ if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/utils.rs; then
     VECTORS_MODIFIED=true
 fi
 
-if ! git diff-index --quiet HEAD -- ./solidity/optics-core || [ "$VECTORS_MODIFIED" = true ]; then
-    cd solidity/optics-core
-    npm test
-    npm run lint
-    cd ../..
-fi
+# Run solidity/optics-core tests and lint
+# if ! git diff-index --quiet HEAD -- ./solidity/optics-core || [ "$VECTORS_MODIFIED" = true ]; then
+#     cd ./solidity/optics-core
+#     npm test
+#     npm run lint
+#     cd ../..
+# fi
 
+# Run solidity/optics-bridge tests and lint
 if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
-    cd solidity/optics-bridge
+    cd ./solidity/optics-bridge
     npm test
     npm run lint
     cd ../..
@@ -71,8 +90,12 @@ trap : 0
 
 trap : 0
 
-# Only add updated vectors if checks passed
+# If checks passed, format and git add JSON files
 if [ "$VECTORS_MODIFIED" = true ]; then
+    for file in vectors/*.json; do
+        jq . "$file"
+    done
+
     echo '+git add ./vectors/*'
     git add ./vectors/*
 fi
