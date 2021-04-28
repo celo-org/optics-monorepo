@@ -67,12 +67,12 @@ if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/utils.rs; then
 fi
 
 # Run solidity/optics-core tests and lint
-# if ! git diff-index --quiet HEAD -- ./solidity/optics-core || [ "$VECTORS_MODIFIED" = true ]; then
-#     cd ./solidity/optics-core
-#     npm test
-#     npm run lint
-#     cd ../..
-# fi
+if ! git diff-index --quiet HEAD -- ./solidity/optics-core || [ "$VECTORS_MODIFIED" = true ]; then
+    cd ./solidity/optics-core
+    npm test
+    npm run lint
+    cd ../..
+fi
 
 # Run solidity/optics-bridge tests and lint
 if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
@@ -93,7 +93,9 @@ trap : 0
 # If checks passed, format and git add JSON files
 if [ "$VECTORS_MODIFIED" = true ]; then
     for file in vectors/*.json; do
-        jq . "$file"
+        temp=$(mktemp)
+        jq . "$file" > "$temp"
+        mv -f "$temp" "$file"
     done
 
     echo '+git add ./vectors/*'

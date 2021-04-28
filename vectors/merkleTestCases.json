@@ -3,7 +3,11 @@
     {
       "testName": "three leaves",
       "expectedRoot": "0x18f2f1646fee335a1eaf5191a8ce58ea772080057d0fda687df59c45e47e6f68",
-      "leaves": ["one", "two", "three"],
+      "leaves": [
+        "one",
+        "two",
+        "three"
+      ],
       "proofs": [
         {
           "leaf": "0xf0fe7c99ef23ace1835385e83dd61c9ecb6192d6514fcc13356ef912788eaa8a",
@@ -124,7 +128,9 @@
     {
       "testName": "one leaf",
       "expectedRoot": "0x54fea87823728b754368018753f79a24e5f5cacee26c8785f3d33aabfd03372e",
-      "leaves": ["one"],
+      "leaves": [
+        "one"
+      ],
       "proofs": [
         {
           "leaf": "0xf0fe7c99ef23ace1835385e83dd61c9ecb6192d6514fcc13356ef912788eaa8a",
@@ -1821,7 +1827,13 @@
     {
       "testName": "containing empty leaf",
       "expectedRoot": "0x1841827275d59b7515da81fb121637567b70ebd8b38ec5aadb51f4300976cba1",
-      "leaves": ["anna", "james", "", "luke", "erin"],
+      "leaves": [
+        "anna",
+        "james",
+        "",
+        "luke",
+        "erin"
+      ],
       "proofs": [
         {
           "leaf": "0x8bffab2351d4f65868fcdbb6d31e19d67f61d10c49b1bcc90d60fed54d9ec259",
