@@ -97,10 +97,10 @@ pub mod output_functions {
                     .parse()
                     .unwrap();
 
-            // `domain` MUST BE 2000 to match origin domain of
+            // `home_domain` MUST BE 2000 to match origin domain of
             // XAppConnectionManager test suite
             let signed_failure = FailureNotification {
-                domain: 2000,
+                home_domain: 2000,
                 updater: updater.address().into(),
             }
             .sign_with(&signer)
