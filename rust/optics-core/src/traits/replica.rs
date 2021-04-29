@@ -13,6 +13,9 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     /// Return the replica domain ID
     fn local_domain(&self) -> u32;
 
+    /// Return the domain of the replica's linked home
+    async fn remote_domain(&self) -> Result<u32, ChainCommunicationError>;
+
     /// Return the pending root and time, if any
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError>;
 

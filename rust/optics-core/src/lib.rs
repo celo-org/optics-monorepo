@@ -392,9 +392,9 @@ impl SignedUpdate {
 /// Failure notification produced by watcher
 #[derive(Debug)]
 pub struct FailureNotification {
-    /// Domain of replica to unenroll
+    /// Domain of failed home
     pub home_domain: u32,
-    /// Updater of replica to unenroll
+    /// Failed home's updater
     pub updater: OpticsIdentifier,
 }
 
