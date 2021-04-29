@@ -100,7 +100,7 @@ abstract contract Common is Initializable {
     function homeDomainHash() public view virtual returns (bytes32);
 
     /// @notice Hash of Home's domain concatenated with "OPTICS"
-    function _signatureHash(uint32 homeDomain) internal view returns (bytes32) {
+    function _homeDomainHash(uint32 homeDomain) internal view returns (bytes32) {
         return keccak256(abi.encodePacked(homeDomain, "OPTICS"));
     }
 

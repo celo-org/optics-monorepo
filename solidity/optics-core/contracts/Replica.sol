@@ -268,7 +268,7 @@ contract Replica is Initializable, Common, QueueManager {
 
     /// @notice Hash of Home's domain concatenated with "OPTICS"
     function homeDomainHash() public view override returns (bytes32) {
-        return _signatureHash(remoteDomain);
+        return _homeDomainHash(remoteDomain);
     }
 
     /// @notice Sets contract state to FAILED
