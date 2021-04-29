@@ -402,15 +402,9 @@ impl FailureNotification {
     fn signing_hash(&self) -> H256 {
         H256::from_slice(
             Keccak256::new()
-<<<<<<< HEAD
-                .chain(home_domain_hash(self.local_domain))
-                .chain(self.local_domain.to_be_bytes())
-                .chain(self.updater.as_ref_local())
-=======
                 .chain(home_domain_hash(self.home_domain))
                 .chain(self.home_domain.to_be_bytes())
-                .chain(self.updater.as_ref())
->>>>>>> fix: variable names and casing
+                .chain(self.updater.as_ref_local())
                 .finalize()
                 .as_slice(),
         )
@@ -483,110 +477,4 @@ mod test {
             .unwrap()
             .block_on(t)
     }
-<<<<<<< HEAD
-=======
-
-    /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
-    #[allow(dead_code)]
-    fn it_outputs_signed_updates() {
-        let t = async {
-            let signer: ethers::signers::LocalWallet =
-                "1111111111111111111111111111111111111111111111111111111111111111"
-                    .parse()
-                    .unwrap();
-
-            let mut test_cases: Vec<Value> = Vec::new();
-
-            // test suite
-            for i in 1..=3 {
-                let signed_update = Update {
-                    home_domain: 1000,
-                    new_root: H256::repeat_byte(i + 1),
-                    previous_root: H256::repeat_byte(i),
-                }
-                .sign_with(&signer)
-                .await
-                .expect("!sign_with");
-
-                test_cases.push(json!({
-                    "home_domain": signed_update.update.home_domain,
-                    "oldRoot": signed_update.update.previous_root,
-                    "newRoot": signed_update.update.new_root,
-                    "signature": signed_update.signature,
-                    "signer": signer.address(),
-                }))
-            }
-
-            let json = json!({ "testCases": test_cases }).to_string();
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open("../../vectors/signedUpdateTestCases.json")
-                .expect("Failed to open/create file");
-
-            file.write_all(json.as_bytes())
-                .expect("Failed to write to file");
-        };
-
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(t)
-    }
-
-    /// TODO: fix appended zeros bug for Ethereum address
-    /// Outputs signed update test cases in /vector/signedFailureTestCases.json
-    #[allow(dead_code)]
-    fn it_outputs_signed_failure_notifications() {
-        let t = async {
-            let signer: ethers::signers::LocalWallet =
-                "1111111111111111111111111111111111111111111111111111111111111111"
-                    .parse()
-                    .unwrap();
-
-            let updater: ethers::signers::LocalWallet =
-                "2222222222222222222222222222222222222222222222222222222222222222"
-                    .parse()
-                    .unwrap();
-
-            // XAppConnectionManager test suite
-            let signed_failure = FailureNotification {
-                home_domain: 1000,
-                updater: updater.address().into(),
-            }
-            .sign_with(&signer)
-            .await
-            .expect("!sign_with");
-
-            let updater = signed_failure.notification.updater;
-            let signed_json = json!({
-                "home_domain": signed_failure.notification.home_domain,
-                "updater": updater,
-                "signature": signed_failure.signature,
-                "signer": signer.address()
-            });
-
-            let json = json!({ "testCases": vec!(signed_json) }).to_string();
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open("../../vectors/signedFailureTestCases.json")
-                .expect("Failed to open/create file");
-
-            file.write_all(json.as_bytes())
-                .expect("Failed to write to file");
-        };
-
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(t)
-    }
->>>>>>> fix: rust json testcase output field renames
 }

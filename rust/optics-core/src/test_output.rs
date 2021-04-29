@@ -1,4 +1,4 @@
-use crate::{utils::domain_hash, FailureNotification, Update};
+use crate::{utils::home_domain_hash, FailureNotification, Update};
 use ethers::core::types::H256;
 
 use serde_json::{json, Value};
@@ -10,12 +10,12 @@ pub mod output_functions {
     use super::*;
 
     /// Outputs domain hash test cases in /vector/domainHashTestCases.json
-    pub fn output_domain_hashes() {
+    pub fn output_home_domain_hashes() {
         let test_cases: Vec<Value> = (1..=3)
             .map(|i| {
                 json!({
                     "originDomain": i,
-                    "expectedDomainHash": domain_hash(i)
+                    "expectedDomainHash": home_domain_hash(i)
                 })
             })
             .collect();
@@ -43,11 +43,10 @@ pub mod output_functions {
 
             let mut test_cases: Vec<Value> = Vec::new();
 
-            // `origin_domain` MUST BE 1000 to match origin domain of Commmon
             // test suite
             for i in 1..=3 {
                 let signed_update = Update {
-                    origin_domain: 1000,
+                    home_domain: 1000,
                     new_root: H256::repeat_byte(i + 1),
                     previous_root: H256::repeat_byte(i),
                 }
@@ -56,7 +55,7 @@ pub mod output_functions {
                 .expect("!sign_with");
 
                 test_cases.push(json!({
-                    "originDomain": signed_update.update.origin_domain,
+                    "originDomain": signed_update.update.home_domain,
                     "oldRoot": signed_update.update.previous_root,
                     "newRoot": signed_update.update.new_root,
                     "signature": signed_update.signature,
@@ -100,7 +99,7 @@ pub mod output_functions {
             // `domain` MUST BE 2000 to match origin domain of
             // XAppConnectionManager test suite
             let signed_failure = FailureNotification {
-                domain: 2000,
+                home_domain: 2000,
                 updater: updater.address().into(),
             }
             .sign_with(&signer)
@@ -108,7 +107,7 @@ pub mod output_functions {
             .expect("!sign_with");
 
             let signed_json = json!({
-                "domain": signed_failure.notification.domain,
+                "domain": signed_failure.notification.home_domain,
                 "updater": signed_failure.notification.updater.as_ethereum_address(),
                 "signature": signed_failure.signature,
                 "signer": signer.address()
