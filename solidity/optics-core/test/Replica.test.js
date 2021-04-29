@@ -7,7 +7,7 @@ const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/Moc
 
 const {
   testCases: homeDomainHashTestCases,
-} = require('../../../vectors/domainHashTestCases.json');
+} = require('../../../vectors/homeDomainHashTestCases.json');
 const {
   testCases: merkleTestCases,
 } = require('../../../vectors/merkleTestCases.json');

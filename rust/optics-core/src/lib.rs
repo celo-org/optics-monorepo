@@ -509,7 +509,7 @@ mod test {
                 .expect("!sign_with");
 
                 test_cases.push(json!({
-                    "domain": signed_update.update.home_domain,
+                    "home_domain": signed_update.update.home_domain,
                     "oldRoot": signed_update.update.previous_root,
                     "newRoot": signed_update.update.new_root,
                     "signature": signed_update.signature,
@@ -563,7 +563,7 @@ mod test {
 
             let updater = signed_failure.notification.updater;
             let signed_json = json!({
-                "domain": signed_failure.notification.home_domain,
+                "home_domain": signed_failure.notification.home_domain,
                 "updater": updater,
                 "signature": signed_failure.signature,
                 "signer": signer.address()

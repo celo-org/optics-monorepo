@@ -5,7 +5,7 @@ const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/Update
 
 const {
   testCases: homeDomainHashTestCases,
-} = require('../../../vectors/domainHashTestCases.json');
+} = require('../../../vectors/homeDomainHashTestCases.json');
 const {
   testCases,
 } = require('../../../vectors/destinationSequenceTestCases.json');
