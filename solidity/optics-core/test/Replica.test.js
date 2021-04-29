@@ -95,10 +95,26 @@ describe('Replica', async () => {
   it('Calculated domain hash matches Rust-produced domain hash', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for remote domain of 1000)
-    const testCase = homeDomainHashTestCases[0];
-    const { expectedHomeDomainHash } = testCase;
-    const homeDomainHash = await replica.testHomeDomainHash();
-    expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+    for (let testCase of homeDomainHashTestCases) {
+      const { contracts } = await optics.deployUpgradeSetupAndProxy(
+        'TestReplica',
+        [testCase.domain],
+        [
+          remoteDomain,
+          updater.signer.address,
+          initialCurrentRoot,
+          optimisticSeconds,
+          initialLastProcessed,
+        ],
+        null,
+        'initialize(uint32, address, bytes32, uint256, uint256)',
+      );
+      const tempReplica = contracts.proxyWithImplementation;
+
+      const { expectedHomeDomainHash } = testCase;
+      const homeDomainHash = await tempReplica.testHomeDomainHash();
+      expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+    }
   });
 
   it('Enqueues pending updates', async () => {

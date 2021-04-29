@@ -14,7 +14,13 @@ const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
-  let home, signer, fakeSigner, updater, fakeUpdater, recipient;
+  let home,
+    signer,
+    fakeSigner,
+    updater,
+    fakeUpdater,
+    recipient,
+    mockUpdaterManager;
 
   // Helper function that enqueues message and returns its root.
   // The message recipient is the same for all messages enqueued.
@@ -33,13 +39,10 @@ describe('Home', async () => {
     [signer, fakeSigner, recipient] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, localDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
+    mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
   });
 
   beforeEach(async () => {
-    const mockUpdaterManager = await deployMockContract(
-      signer,
-      UpdaterManager.abi,
-    );
     await mockUpdaterManager.mock.updater.returns(signer.address);
     await mockUpdaterManager.mock.slashUpdater.returns();
 
@@ -75,10 +78,18 @@ describe('Home', async () => {
   it('Calculated domain hash matches Rust-produced domain hash', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for local domain of 1000)
-    const testCase = homeDomainHashTestCases[0];
-    const { expectedHomeDomainHash } = testCase;
-    const homeDomainHash = await home.testHomeDomainHash();
-    expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+    for (let testCase of homeDomainHashTestCases) {
+      const { contracts } = await optics.deployUpgradeSetupAndProxy(
+        'TestHome',
+        [testCase.domain],
+        [mockUpdaterManager.address],
+      );
+      const tempHome = contracts.proxyWithImplementation;
+
+      const { expectedHomeDomainHash } = testCase;
+      const homeDomainHash = await tempHome.testHomeDomainHash();
+      expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+    }
   });
 
   it('Enqueues a message', async () => {
