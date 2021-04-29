@@ -392,9 +392,9 @@ impl SignedUpdate {
 /// Failure notification produced by watcher
 #[derive(Debug)]
 pub struct FailureNotification {
-    /// Domain of replica to unenroll
-    pub domain: u32,
-    /// Updater of replica to unenroll
+    /// Domain of failed home
+    pub home_domain: u32,
+    /// Failed home's updater
     pub updater: OpticsIdentifier,
 }
 
@@ -402,8 +402,8 @@ impl FailureNotification {
     fn signing_hash(&self) -> H256 {
         H256::from_slice(
             Keccak256::new()
-                .chain(domain_hash(self.domain))
-                .chain(self.domain.to_be_bytes())
+                .chain(domain_hash(self.home_domain))
+                .chain(self.home_domain.to_be_bytes())
                 .chain(self.updater.as_ref_local())
                 .finalize()
                 .as_slice(),

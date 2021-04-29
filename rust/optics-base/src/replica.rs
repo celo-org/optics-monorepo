@@ -64,6 +64,14 @@ impl Replica for Replicas {
         }
     }
 
+    async fn remote_domain(&self) -> Result<u32, ChainCommunicationError> {
+        match self {
+            Replicas::Ethereum(replica) => replica.remote_domain().await,
+            Replicas::Mock(mock_replica) => mock_replica.remote_domain().await,
+            Replicas::Other(replica) => replica.remote_domain().await,
+        }
+    }
+
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
         match self {
             Replicas::Ethereum(replica) => replica.next_pending().await,

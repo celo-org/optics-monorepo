@@ -187,6 +187,10 @@ where
         self.domain
     }
 
+    async fn remote_domain(&self) -> Result<u32, ChainCommunicationError> {
+        Ok(self.contract.remote_domain().call().await?)
+    }
+
     #[tracing::instrument(err)]
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
         let (pending, confirm_at) = self.contract.next_pending().call().await?;

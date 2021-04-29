@@ -23,10 +23,8 @@ use optics_base::{
     xapp::ConnectionManagers,
 };
 use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Replica, TxOutcome,
-    },
-    FailureNotification, SignedFailureNotification, SignedUpdate, Signers,
+    traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
+    FailureNotification, SignedUpdate, Signers,
 };
 
 use crate::settings::Settings;
@@ -286,27 +284,6 @@ impl Watcher {
         }
     }
 
-    // Create signed failure notifications for all replicas in AgentCore
-    #[tracing::instrument]
-    async fn create_signed_failures(&self) -> Vec<SignedFailureNotification> {
-        let signed_failure_futs: Vec<_> = self
-            .core
-            .replicas
-            .values()
-            .map(|replica| async move {
-                FailureNotification {
-                    domain: replica.destination_domain(),
-                    updater: replica.updater().await.unwrap().into(),
-                }
-                .sign_with(self.signer.as_ref())
-                .await
-                .expect("!sign")
-            })
-            .collect();
-
-        join_all(signed_failure_futs).await
-    }
-
     // Handle a double-update once it has been detected.
     #[tracing::instrument]
     async fn handle_failure(
@@ -322,17 +299,20 @@ impl Watcher {
             .collect();
         double_update_futs.push(self.core.home.double_update(double));
 
-        let signed_failures = self.create_signed_failures().await;
+        // Created signed failure notification
+        let signed_failure = FailureNotification {
+            home_domain: self.home().origin_domain(),
+            updater: self.home().updater().await.unwrap().into(),
+        }
+        .sign_with(self.signer.as_ref())
+        .await
+        .expect("!sign");
 
-        // Create vector of unenroll futures. For each ConnectionManager,
-        // submit all signed failure notifications. If signed failure
-        // notification for replica is submitted to a ConnectionManager that
-        // has no knowledge of given replica, it is OK if tx reverts.
+        // Create vector of futures for unenrolling replicas (one per
+        // connection manager)
         let mut unenroll_futs = Vec::new();
         for connection_manager in self.connection_managers.iter() {
-            for signed_failure in signed_failures.iter() {
-                unenroll_futs.push(connection_manager.unenroll_replica(&signed_failure));
-            }
+            unenroll_futs.push(connection_manager.unenroll_replica(&signed_failure));
         }
 
         // Join both vectors of double update and unenroll futures and

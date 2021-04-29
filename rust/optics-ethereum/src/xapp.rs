@@ -144,7 +144,7 @@ where
         Ok(self
             .contract
             .unenroll_replica(
-                signed_failure.notification.domain,
+                signed_failure.notification.home_domain,
                 signed_failure.notification.updater.as_ethereum_address(),
                 signed_failure.signature.to_vec(),
             )
