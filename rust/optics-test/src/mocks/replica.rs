@@ -16,6 +16,8 @@ mock! {
         // Replica
         pub fn _local_domain(&self) -> u32 {}
 
+        pub fn _remote_domain(&self) -> Result<u32, ChainCommunicationError> {}
+
         pub fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
 
         pub fn _can_confirm(&self) -> Result<bool, ChainCommunicationError> {}
@@ -76,6 +78,10 @@ impl std::fmt::Debug for MockReplicaContract {
 impl Replica for MockReplicaContract {
     fn local_domain(&self) -> u32 {
         self._local_domain()
+    }
+
+    async fn remote_domain(&self) -> Result<u32, ChainCommunicationError> {
+        self._remote_domain()
     }
 
     async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
