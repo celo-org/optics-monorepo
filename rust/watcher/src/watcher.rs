@@ -284,7 +284,7 @@ impl Watcher {
         }
     }
 
-    // Create signed failure notifications for all replicas in AgentCore
+    // Handle a double-update once it has been detected.
     #[tracing::instrument]
     async fn handle_failure(
         &self,
