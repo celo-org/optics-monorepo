@@ -99,6 +99,11 @@ abstract contract Common is Initializable {
     /// @notice Hash of Home domain concatenated with "OPTICS"
     function homeDomainHash() public view virtual returns (bytes32);
 
+    /// @notice Hash of Home's domain concatenated with "OPTICS"
+    function _signatureHash(uint32 homeDomain) internal view returns (bytes32) {
+        return keccak256(abi.encodePacked(homeDomain, "OPTICS"));
+    }
+
     /// @notice Sets contract state to FAILED
     function _setFailed() internal {
         state = States.FAILED;
