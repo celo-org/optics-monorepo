@@ -14,7 +14,7 @@ pub mod output_functions {
         let test_cases: Vec<Value> = (1..=3)
             .map(|i| {
                 json!({
-                    "originDomain": i,
+                    "homeDomain": i,
                     "expectedDomainHash": home_domain_hash(i)
                 })
             })
@@ -55,7 +55,7 @@ pub mod output_functions {
                 .expect("!sign_with");
 
                 test_cases.push(json!({
-                    "originDomain": signed_update.update.home_domain,
+                    "homeDomain": signed_update.update.home_domain,
                     "oldRoot": signed_update.update.previous_root,
                     "newRoot": signed_update.update.new_root,
                     "signature": signed_update.signature,
