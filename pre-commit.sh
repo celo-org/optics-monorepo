@@ -36,7 +36,7 @@ fi
 
 # Run rust tests, clippy, and formatting
 if ! git diff-index --quiet HEAD -- ./rust ./abis; then
-    cd rust
+    cd ./rust
     echo '+cargo test'
     cargo test
     echo '+cargo clippy -- -D warnings'
@@ -46,15 +46,12 @@ if ! git diff-index --quiet HEAD -- ./rust ./abis; then
     cd ..
 fi
 
-VECTORS_MODIFIED=false
-
 # Conditionally run Rust bins to output into vector JSON files
 if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/lib.rs; then
     cd ./rust/optics-core
     echo '+cargo run --bin lib_test_output --features output'
     cargo run --bin lib_test_output --features output
     cd ../..
-    VECTORS_MODIFIED=true
 fi
 
 # Conditionally run Rust bins to output into vector JSON files
@@ -63,11 +60,10 @@ if ! git diff-index --quiet HEAD -- ./rust/optics-core/src/utils.rs; then
     echo '+cargo run --bin utils_test_output --features output'
     cargo run --bin utils_test_output --features output
     cd ../..
-    VECTORS_MODIFIED=true
 fi
 
 # Run solidity/optics-core tests and lint
-if ! git diff-index --quiet HEAD -- ./solidity/optics-core || [ "$VECTORS_MODIFIED" = true ]; then
+if ! git diff-index --quiet HEAD -- ./solidity/optics-core ./vectors; then
     cd ./solidity/optics-core
     npm test
     npm run lint
@@ -82,16 +78,8 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
     cd ../..
 fi
 
-trap : 0
-
-trap : 0
-
-trap : 0
-
-trap : 0
-
-# If checks passed, format and git add JSON files
-if [ "$VECTORS_MODIFIED" = true ]; then
+# Format and git add JSON files
+if ! git diff-index --quiet HEAD -- ./vectors; then
     for file in vectors/*.json; do
         temp=$(mktemp)
         jq . "$file" > "$temp"
@@ -101,6 +89,8 @@ if [ "$VECTORS_MODIFIED" = true ]; then
     echo '+git add ./vectors/*'
     git add ./vectors/*
 fi
+
+trap : 0
 
 echo >&2 '
 ************
