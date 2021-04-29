@@ -78,7 +78,13 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
     cd ../..
 fi
 
-# Format and git add JSON files
+# Git add abis if updated
+if ! git diff-index --quiet HEAD -- ./abis; then
+    echo '+git add ./abis/*'
+    git add ./abis/*
+fi
+
+# Format and git add JSON files if updated
 if ! git diff-index --quiet HEAD -- ./vectors; then
     for file in vectors/*.json; do
         temp=$(mktemp)
