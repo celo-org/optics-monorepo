@@ -45,14 +45,14 @@ impl Failed {
 }
 
 fn format_message(
-    remote: u32,
+    origin: u32,
     sender: H256,
     destination: u32,
     recipient: H256,
     body: &[u8],
 ) -> Vec<u8> {
     let mut buf = vec![];
-    buf.write_all(&remote.to_be_bytes()).unwrap();
+    buf.write_all(&origin.to_be_bytes()).unwrap();
     buf.write_all(sender.as_ref()).unwrap();
     buf.write_all(&destination.to_be_bytes()).unwrap();
     buf.write_all(recipient.as_ref()).unwrap();

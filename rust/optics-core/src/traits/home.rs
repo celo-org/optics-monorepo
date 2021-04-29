@@ -5,7 +5,7 @@ use ethers::core::types::H256;
 
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
-    utils::domain_hash,
+    utils::home_domain_hash,
     Decode, Message, OpticsError, SignedUpdate, StampedMessage, Update,
 };
 
@@ -52,8 +52,8 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     fn local_domain(&self) -> u32;
 
     /// Return the domain hash
-    fn domain_hash(&self) -> H256 {
-        domain_hash(self.local_domain())
+    fn home_domain_hash(&self) -> H256 {
+        home_domain_hash(self.local_domain())
     }
 
     /// Fetch the message to destination at the sequence number (or error).

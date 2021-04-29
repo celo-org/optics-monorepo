@@ -76,9 +76,9 @@ describe('Home', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for local domain of 1000)
     const testCase = homeDomainHashTestCases[0];
-    const { expectedhomeDomainHash } = testCase;
-    const homeDomainHash = await home.testhomeDomainHash();
-    expect(homeDomainHash).to.equal(expectedhomeDomainHash);
+    const { expectedHomeDomainHash } = testCase;
+    const homeDomainHash = await home.testHomeDomainHash();
+    expect(homeDomainHash).to.equal(expectedHomeDomainHash);
   });
 
   it('Enqueues a message', async () => {

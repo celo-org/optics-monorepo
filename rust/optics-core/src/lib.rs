@@ -319,7 +319,7 @@ impl Update {
         // domain(origin) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
-                .chain(domain_hash(self.home_domain))
+                .chain(home_domain_hash(self.home_domain))
                 .chain(self.previous_root)
                 .chain(self.new_root)
                 .finalize()
@@ -393,7 +393,7 @@ impl SignedUpdate {
 #[derive(Debug)]
 pub struct FailureNotification {
     /// Domain of replica to unenroll
-    pub domain: u32,
+    pub home_domain: u32,
     /// Updater of replica to unenroll
     pub updater: OpticsIdentifier,
 }
@@ -402,9 +402,15 @@ impl FailureNotification {
     fn signing_hash(&self) -> H256 {
         H256::from_slice(
             Keccak256::new()
+<<<<<<< HEAD
                 .chain(home_domain_hash(self.local_domain))
                 .chain(self.local_domain.to_be_bytes())
                 .chain(self.updater.as_ref_local())
+=======
+                .chain(home_domain_hash(self.home_domain))
+                .chain(self.home_domain.to_be_bytes())
+                .chain(self.updater.as_ref())
+>>>>>>> fix: variable names and casing
                 .finalize()
                 .as_slice(),
         )
@@ -491,7 +497,6 @@ mod test {
 
             let mut test_cases: Vec<Value> = Vec::new();
 
-            // `domain` MUST BE 1000 to match local domain of Commmon
             // test suite
             for i in 1..=3 {
                 let signed_update = Update {
@@ -532,7 +537,7 @@ mod test {
             .block_on(t)
     }
 
-    /// BUG: fix appended zeros bug for Ethereum address
+    /// TODO: fix appended zeros bug for Ethereum address
     /// Outputs signed update test cases in /vector/signedFailureTestCases.json
     #[allow(dead_code)]
     fn it_outputs_signed_failure_notifications() {
@@ -547,10 +552,9 @@ mod test {
                     .parse()
                     .unwrap();
 
-            // `domain` MUST BE 1000 to match local domain of
             // XAppConnectionManager test suite
             let signed_failure = FailureNotification {
-                domain: 1000,
+                home_domain: 1000,
                 updater: updater.address().into(),
             }
             .sign_with(&signer)
@@ -559,7 +563,7 @@ mod test {
 
             let updater = signed_failure.notification.updater;
             let signed_json = json!({
-                "domain": signed_failure.notification.domain,
+                "domain": signed_failure.notification.home_domain,
                 "updater": updater,
                 "signature": signed_failure.signature,
                 "signer": signer.address()

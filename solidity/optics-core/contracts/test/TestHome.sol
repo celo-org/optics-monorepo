@@ -13,7 +13,7 @@ contract TestHome is Home {
         return count();
     }
 
-    function testhomeDomainHash() external view returns (bytes32) {
+    function testHomeDomainHash() external view returns (bytes32) {
         return homeDomainHash();
     }
 

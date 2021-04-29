@@ -96,9 +96,9 @@ describe('Replica', async () => {
     // Compare Rust output in json file to solidity output (json file matches
     // hash for remote domain of 1000)
     const testCase = homeDomainHashTestCases[0];
-    const { expectedhomeDomainHash } = testCase;
-    const homeDomainHash = await replica.testhomeDomainHash();
-    expect(homeDomainHash).to.equal(expectedhomeDomainHash);
+    const { expectedHomeDomainHash } = testCase;
+    const homeDomainHash = await replica.testHomeDomainHash();
+    expect(homeDomainHash).to.equal(expectedHomeDomainHash);
   });
 
   it('Enqueues pending updates', async () => {
