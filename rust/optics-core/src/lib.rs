@@ -186,8 +186,8 @@ impl Signer for Signers {
 #[derive(Debug, Default, Clone)]
 pub struct StampedMessage {
     /// 4   SLIP-44 ID
-    pub origin: u32,
-    /// 32  Address in origin convention
+    pub home_domain: u32,
+    /// 32  Address in home convention
     pub sender: H256,
     /// 4   SLIP-44 ID
     pub destination: u32,
@@ -215,7 +215,7 @@ impl Encode for StampedMessage {
     where
         W: std::io::Write,
     {
-        writer.write_all(&self.origin.to_be_bytes())?;
+        writer.write_all(&self.home_domain.to_be_bytes())?;
         writer.write_all(self.sender.as_ref())?;
         writer.write_all(&self.destination.to_be_bytes())?;
         writer.write_all(self.recipient.as_ref())?;
@@ -229,8 +229,8 @@ impl Decode for StampedMessage {
     where
         R: std::io::Read,
     {
-        let mut origin = [0u8; 4];
-        reader.read_exact(&mut origin)?;
+        let mut home_domain = [0u8; 4];
+        reader.read_exact(&mut home_domain)?;
 
         let mut sender = H256::zero();
         reader.read_exact(sender.as_mut())?;
@@ -248,7 +248,7 @@ impl Decode for StampedMessage {
         reader.read_to_end(&mut body)?;
 
         Ok(Self {
-            origin: u32::from_be_bytes(origin),
+            home_domain: u32::from_be_bytes(home_domain),
             sender,
             destination: u32::from_be_bytes(destination),
             recipient,
@@ -270,7 +270,7 @@ impl StampedMessage {
 /// An Optics update message
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Update {
-    /// The origin chain
+    /// The home chain
     pub home_domain: u32,
     /// The previous root
     pub previous_root: H256,
@@ -316,7 +316,7 @@ impl Decode for Update {
 impl Update {
     fn signing_hash(&self) -> H256 {
         // sign:
-        // domain(origin) || previous_root || new_root
+        // domain(home_domain) || previous_root || new_root
         H256::from_slice(
             Keccak256::new()
                 .chain(home_domain_hash(self.home_domain))
