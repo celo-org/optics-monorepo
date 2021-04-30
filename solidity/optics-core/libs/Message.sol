@@ -17,7 +17,7 @@ library Message {
 
     /**
      * @notice Returns formatted (packed) message with provided fields
-     * @param _homeDomain Domain of home chain
+     * @param _origin Domain of home chain
      * @param _sender Address of sender as bytes32
      * @param _sequence Destination-specific sequence number
      * @param _destination Domain of destination chain
@@ -26,7 +26,7 @@ library Message {
      * @return Formatted message
      **/
     function formatMessage(
-        uint32 _homeDomain,
+        uint32 _origin,
         bytes32 _sender,
         uint32 _sequence,
         uint32 _destination,
@@ -35,7 +35,7 @@ library Message {
     ) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
-                _homeDomain,
+                _origin,
                 _sender,
                 _sequence,
                 _destination,
@@ -46,7 +46,7 @@ library Message {
 
     /**
      * @notice Returns leaf of formatted message with provided fields.
-     * @param _homeDomain Domain of home chain
+     * @param _origin Domain of home chain
      * @param _sender Address of sender as bytes32
      * @param _sequence Destination-specific sequence number
      * @param _destination Domain of destination chain
@@ -55,7 +55,7 @@ library Message {
      * @return Leaf (hash) of formatted message
      **/
     function messageHash(
-        uint32 _homeDomain,
+        uint32 _origin,
         bytes32 _sender,
         uint32 _sequence,
         uint32 _destination,
@@ -65,7 +65,7 @@ library Message {
         return
             keccak256(
                 formatMessage(
-                    _homeDomain,
+                    _origin,
                     _sender,
                     _sequence,
                     _destination,

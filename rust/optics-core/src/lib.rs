@@ -186,7 +186,7 @@ impl Signer for Signers {
 #[derive(Debug, Default, Clone)]
 pub struct StampedMessage {
     /// 4   SLIP-44 ID
-    pub home_domain: u32,
+    pub origin: u32,
     /// 32  Address in home convention
     pub sender: H256,
     /// 4   SLIP-44 ID
@@ -215,7 +215,7 @@ impl Encode for StampedMessage {
     where
         W: std::io::Write,
     {
-        writer.write_all(&self.home_domain.to_be_bytes())?;
+        writer.write_all(&self.origin.to_be_bytes())?;
         writer.write_all(self.sender.as_ref())?;
         writer.write_all(&self.destination.to_be_bytes())?;
         writer.write_all(self.recipient.as_ref())?;
@@ -229,8 +229,8 @@ impl Decode for StampedMessage {
     where
         R: std::io::Read,
     {
-        let mut home_domain = [0u8; 4];
-        reader.read_exact(&mut home_domain)?;
+        let mut origin = [0u8; 4];
+        reader.read_exact(&mut origin)?;
 
         let mut sender = H256::zero();
         reader.read_exact(sender.as_mut())?;
@@ -248,7 +248,7 @@ impl Decode for StampedMessage {
         reader.read_to_end(&mut body)?;
 
         Ok(Self {
-            home_domain: u32::from_be_bytes(home_domain),
+            origin: u32::from_be_bytes(origin),
             sender,
             destination: u32::from_be_bytes(destination),
             recipient,
