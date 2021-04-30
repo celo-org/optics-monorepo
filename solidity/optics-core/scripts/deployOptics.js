@@ -120,7 +120,7 @@ async function deployGovernanceRouter(
   xAppConnectionManagerAddress,
 ) {
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
-    'GovernanceRouter',
+    'TestGovernanceRouter',
     [localDomain],
     [xAppConnectionManagerAddress],
     controller,

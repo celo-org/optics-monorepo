@@ -3,6 +3,7 @@ pragma solidity >=0.6.11;
 pragma experimental ABIEncoderV2;
 
 import "../governance/GovernanceRouter.sol";
+import {TypeCasts} from "../XAppConnectionManager.sol";
 
 contract TestGovernanceRouter is GovernanceRouter {
     using TypedMemView for bytes;
@@ -18,6 +19,10 @@ contract TestGovernanceRouter is GovernanceRouter {
             GovernanceMessage.formatSetRouter(_domain, _router);
 
         _sendToAllRemoteRouters(_setRouterMessage);
+    }
+
+    function setRouterAddress(uint32 _domain, address _router) external {
+        _setRouter(_domain, TypeCasts.addressToBytes32(_router));
     }
 
     function domainsContains(uint32 _domain) external view returns (bool) {
