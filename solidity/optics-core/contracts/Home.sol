@@ -110,7 +110,7 @@ contract Home is
         _setUpdaterManager(_updaterManager);
     }
 
-    /// @notice sets a new updaterManager
+    /// @notice transfer owner role
     function transferOwnership(address _newOwner) external onlyOwner {
         _transferOwnership(_newOwner);
     }
