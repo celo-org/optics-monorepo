@@ -301,7 +301,7 @@ impl Watcher {
 
         // Created signed failure notification
         let signed_failure = FailureNotification {
-            home_domain: self.home().origin_domain(),
+            home_domain: self.home().local_domain(),
             updater: self.home().updater().await.unwrap().into(),
         }
         .sign_with(self.signer.as_ref())
