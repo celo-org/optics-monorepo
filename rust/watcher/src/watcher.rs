@@ -410,12 +410,12 @@ impl OpticsAgent for Watcher {
         cancel_task!(home_sync);
         self.shutdown().await;
 
-        let double_update_res = join_result??;
+        let double_update = join_result??;
 
         tracing::error!(
             "Double update detected! Notifying all contracts and unenrolling replicas!"
         );
-        self.handle_failure(&double_update_res)
+        self.handle_failure(&double_update)
             .await
             .iter()
             .for_each(|res| tracing::info!("{:#?}", res));
