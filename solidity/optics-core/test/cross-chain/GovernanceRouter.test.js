@@ -20,7 +20,6 @@ describe('GovernanceRouter', async () => {
     governorHome,
     governorReplicaOnNonGovernorChain,
     nonGovernorRouter,
-    nonGovernorHome,
     nonGovernorReplicaOnGovernorChain,
     firstGovernor,
     secondGovernor,
@@ -67,7 +66,6 @@ describe('GovernanceRouter', async () => {
 
     secondGovernor = await secondGovernorSigner.getAddress();
 
-    nonGovernorHome = getHome(chainDetails, nonGovernorDomain);
     governorHome = getHome(chainDetails, governorDomain);
     governorReplicaOnNonGovernorChain = getReplica(
       chainDetails,

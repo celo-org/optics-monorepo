@@ -110,7 +110,6 @@ library Message {
         pure
         returns (address)
     {
-        // return address(uint160(uint256(recipient(_message))));
         return TypeCasts.bytes32ToAddress(recipient(_message));
     }
 
