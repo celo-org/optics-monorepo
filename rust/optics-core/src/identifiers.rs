@@ -47,11 +47,7 @@ impl From<H160> for OpticsIdentifier {
 
 impl AsRef<[u8]> for OpticsIdentifier {
     fn as_ref(&self) -> &[u8] {
-        if self.is_ethereum_address() {
-            self.0[12..].as_ref()
-        } else {
-            self.0.as_ref()
-        }
+        self.0.as_ref()
     }
 }
 
