@@ -9,7 +9,7 @@
  */
 async function deployReplicaUpgradeSetup(localDomain, controller) {
   const contracts = await optics.deployUpgradeSetup(
-    'Replica',
+    'TestReplica',
     [localDomain],
     controller,
   );
@@ -49,7 +49,7 @@ async function deployReplicaProxy(upgradeBeaconAddress, remote) {
     proxyWithImplementation,
   } = await optics.deployProxyWithImplementation(
     upgradeBeaconAddress,
-    'Replica',
+    'TestReplica',
     proxyInitializeArgs,
     'initialize(uint32, address, bytes32, uint256, uint256)',
   );

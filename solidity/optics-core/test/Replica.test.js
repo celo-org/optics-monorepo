@@ -480,7 +480,7 @@ describe('Replica', async () => {
     await replica.setCurrentRoot(proofRoot);
 
     await replica.proveAndProcess(opticsMessage, path, index);
-    expect;
+
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );

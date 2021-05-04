@@ -97,8 +97,8 @@ library GovernanceMessage {
         while (_msgPtr.len() > 0) {
             Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
 
-            // BUG: can create Call struct fine but storing in array of Call 
-            // structs reverts silently (comment out first revert to see in 
+            // BUG: can create Call struct fine but storing in array of Call
+            // structs reverts silently (comment out first revert to see in
             // tests)
             revert("created call");
             _calls[counter] = _call;

@@ -61,7 +61,7 @@ describe('GovernanceRouter', async () => {
       'TestReplica',
       [nonGovernorDomain],
       [
-        nonGovernorDomain,
+        governorDomain,
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
