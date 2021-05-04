@@ -16,12 +16,7 @@ describe('GovernanceRouter', async () => {
   const domains = [1000, 2000];
   const nonGovernorDomain = 2000;
   const governorDomain = 1000;
-  let governorRouter,
-    nonGovernorRouter,
-    home,
-    replica,
-    replicaB,
-    updater;
+  let governorRouter, nonGovernorRouter, home, replica, replicaB, updater;
 
   before(async () => {
     // generate TestChainConfigs for the given domains
@@ -197,12 +192,14 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(router.address),
     );
 
+    const sequence = (await replica.lastProcessed()).add(1);
+
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
     const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
-      2,
+      sequence,
       nonGovernorDomain,
       nonGovernorRouter.address,
       setRouterMessage,

@@ -3,6 +3,10 @@ pragma solidity >=0.6.11;
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
+import {
+    TypeCasts
+} from "./TypeCasts.sol";
+
 /**
  * @title Message Library
  * @author Celo Labs Inc.
@@ -106,7 +110,8 @@ library Message {
         pure
         returns (address)
     {
-        return address(uint160(uint256(recipient(_message))));
+        // return address(uint160(uint256(recipient(_message))));
+        return TypeCasts.bytes32ToAddress(recipient(_message));
     }
 
     /// @notice Returns message's body field as bytes29 (refer to TypedMemView library for details on bytes29 type)
