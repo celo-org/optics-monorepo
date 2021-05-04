@@ -16,9 +16,29 @@ describe('GovernanceRouter', async () => {
   const domains = [1000, 2000];
   const nonGovernorDomain = 2000;
   const governorDomain = 1000;
-  let governorRouter, nonGovernorRouter, home, replica, replicaB, updater;
+  let governorRouter,
+    governorHome,
+    governorReplicaOnNonGovernorChain,
+    nonGovernorRouter,
+    nonGovernorHome,
+    nonGovernorReplicaOnGovernorChain,
+    firstGovernor,
+    secondGovernor,
+    updater,
+    chainDetails;
 
-  before(async () => {
+  async function expectGovernor(
+    governanceRouter,
+    expectedGovernorDomain,
+    expectedGovernor,
+  ) {
+    expect(await governanceRouter.governorDomain()).to.equal(
+      expectedGovernorDomain,
+    );
+    expect(await governanceRouter.governor()).to.equal(expectedGovernor);
+  }
+
+  beforeEach(async () => {
     // generate TestChainConfigs for the given domains
     const configs = await domainsToTestConfigs(domains);
 
@@ -26,24 +46,39 @@ describe('GovernanceRouter', async () => {
     chainDetails = await deployMultipleChains(configs);
 
     // set updater
-    [signer] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, domains[0]);
+    let secondGovernorSigner;
+    [signer, secondGovernorSigner] = provider.getWallets();
+    updater = await optics.Updater.fromSigner(signer, governorDomain);
 
     // get both governanceRouters
-    governorRouter = getGovernanceRouter(chainDetails, domains[0]);
-    nonGovernorRouter = getGovernanceRouter(chainDetails, domains[1]);
+    governorRouter = getGovernanceRouter(chainDetails, governorDomain);
+    nonGovernorRouter = getGovernanceRouter(chainDetails, nonGovernorDomain);
 
-    // set routers
-    governorRouter.setRouterAddress(domains[1], nonGovernorRouter.address);
-    nonGovernorRouter.setRouterAddress(domains[0], governorRouter.address);
+    // set remote governance router addresses
+    governorRouter.setRouterAddress(
+      nonGovernorDomain,
+      nonGovernorRouter.address,
+    );
+    nonGovernorRouter.setRouterAddress(governorDomain, governorRouter.address);
 
-    // assign governorRouter to governor
-    const governor = await governorRouter.governor();
-    nonGovernorRouter.transferGovernor(domains[0], governor);
+    // transfer governorship to governor router on non governor router
+    firstGovernor = await governorRouter.governor();
+    nonGovernorRouter.transferGovernor(governorDomain, firstGovernor);
 
-    home = getHome(chainDetails, domains[1]);
-    replicaB = getReplica(chainDetails, domains[0], domains[1]);
-    replica = getReplica(chainDetails, domains[1], domains[0]);
+    secondGovernor = await secondGovernorSigner.getAddress();
+
+    nonGovernorHome = getHome(chainDetails, nonGovernorDomain);
+    governorHome = getHome(chainDetails, governorDomain);
+    governorReplicaOnNonGovernorChain = getReplica(
+      chainDetails,
+      nonGovernorDomain,
+      governorDomain,
+    );
+    nonGovernorReplicaOnGovernorChain = getReplica(
+      chainDetails,
+      governorDomain,
+      nonGovernorDomain,
+    );
   });
 
   it('Rejects message from unenrolled replica', async () => {
@@ -51,8 +86,6 @@ describe('GovernanceRouter', async () => {
     const initialCurrentRoot = ethers.utils.formatBytes32String('current');
     const initialLastProcessed = 0;
     const controller = null;
-
-    const [newGovernor] = provider.getWallets();
 
     // Deploy single replica on nonGovernorDomain that will not be enrolled
     const {
@@ -70,13 +103,13 @@ describe('GovernanceRouter', async () => {
       controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
     );
-    unenrolledReplica = unenrolledReplicaContracts.proxyWithImplementation;
+    const unenrolledReplica = unenrolledReplicaContracts.proxyWithImplementation;
 
     // Create TransferGovernor message
     const newDomain = 3000;
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
       newDomain,
-      optics.ethersAddressToBytes32(newGovernor.address),
+      optics.ethersAddressToBytes32(secondGovernor),
     );
 
     // Some sender on governor domain tries to send transferGovernorMessage to
@@ -127,11 +160,16 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replicaB.setMessagePending(opticsMessage);
+    await nonGovernorReplicaOnGovernorChain.setMessagePending(opticsMessage);
 
     // Expect replica processing to fail when nonGovernorRouter reverts in
     // handle
-    let [success, ret] = await replicaB.callStatic.testProcess(opticsMessage);
+    let [
+      success,
+      ret,
+    ] = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
+      opticsMessage,
+    );
     expect(success).to.be.false;
     expect(ret).to.equal('!governorRouter');
   });
@@ -167,14 +205,16 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(opticsMessage);
+    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx on static call
-    let [success] = await replica.callStatic.process(opticsMessage);
+    let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
+      opticsMessage,
+    );
     expect(success).to.be.true;
 
     // Expect address(0) for governor since non-local and new domain to be 3000
-    await replica.process(opticsMessage);
+    await governorReplicaOnNonGovernorChain.process(opticsMessage);
     expect(await nonGovernorRouter.governor()).to.equal(
       ethers.constants.AddressZero,
     );
@@ -192,7 +232,9 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(router.address),
     );
 
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = (
+      await governorReplicaOnNonGovernorChain.lastProcessed()
+    ).add(1);
 
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
@@ -206,15 +248,17 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(opticsMessage);
+    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx
-    let [success] = await replica.callStatic.process(opticsMessage);
+    let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
+      opticsMessage,
+    );
     expect(success).to.be.true;
 
     // Expect new router to be registered for domain and for new domain to be
     // in domains array
-    await replica.process(opticsMessage);
+    await governorReplicaOnNonGovernorChain.process(opticsMessage);
     expect(await nonGovernorRouter.routers(routerDomain)).to.equal(
       optics.ethersAddressToBytes32(router.address),
     );
@@ -271,10 +315,13 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set message status to MessageStatus.Pending
-    await enrolledReplica.setMessagePending(opticsMessage);
+    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx
-    let [success, ret] = await enrolledReplica.callStatic.testProcess(
+    let [
+      success,
+      ret,
+    ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
       opticsMessage,
     );
     console.log(ret);
@@ -282,61 +329,90 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Transfers governorship', async () => {
-    // const currentRoot = await home.current();
+    // Transfer governor on current governor chain
+    // get root on governor chain before transferring governor
+    const currentRoot = await governorHome.current();
+
+    // Governor HAS NOT been transferred on original governor domain
+    await expectGovernor(governorRouter, governorDomain, firstGovernor);
+    // Governor HAS NOT been transferred on original non-governor domain
+    await expectGovernor(
+      nonGovernorRouter,
+      governorDomain,
+      ethers.constants.AddressZero,
+    );
 
     // transfer governorship to nonGovernorRouter
-    const governor = await governorRouter.governor();
-    await governorRouter.transferGovernor(domains[1], governor);
+    await governorRouter.transferGovernor(nonGovernorDomain, secondGovernor);
 
-    // // get new root and signed update
-    const newRoot = await home.queueEnd();
-    // console.log(currentRoot, newRoot);
-    // const { signature } = await updater.signUpdate(currentRoot, newRoot);
+    // Governor HAS been transferred on original governor domain
+    await expectGovernor(
+      governorRouter,
+      nonGovernorDomain,
+      ethers.constants.AddressZero,
+    );
+    // Governor HAS NOT been transferred on original non-governor domain
+    await expectGovernor(
+      nonGovernorRouter,
+      governorDomain,
+      ethers.constants.AddressZero,
+    );
 
-    // // update home
-    // home.update(currentRoot, newRoot, signature);
+    // get new root and signed update
+    const newRoot = await governorHome.queueEnd();
+    const { signature } = await updater.signUpdate(currentRoot, newRoot);
 
-    // get current sequence
-    const sequence = (await replica.lastProcessed()).add(1);
+    // update governor chain home
+    await governorHome.update(currentRoot, newRoot, signature);
+
+    // get current sequence on governor replica
+    const sequence = (
+      await governorReplicaOnNonGovernorChain.lastProcessed()
+    ).add(1);
 
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      2000,
-      optics.ethersAddressToBytes32(nonGovernorRouter.address),
+      nonGovernorDomain,
+      optics.ethersAddressToBytes32(secondGovernor),
     );
 
     // format optics message
     const opticsMessage = optics.formatMessage(
-      domains[1],
+      governorDomain,
       governorRouter.address,
       sequence,
-      domains[0],
+      nonGovernorDomain,
       nonGovernorRouter.address,
       transferGovernorMessage,
     );
 
     // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(opticsMessage);
+    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
     // Set current root on replica
-    await replica.setCurrentRoot(newRoot);
+    await governorReplicaOnNonGovernorChain.setCurrentRoot(newRoot);
 
-    // TODO: prove
-    let [success, ret] = await replica.callStatic.process(opticsMessage);
-    expect(success).to.be.true;
-    expect(ret).to.equal('hi');
-
-    expect(
-      governorRouter.interface.events[
-        'TransferGovernor(uint32,uint32,address,address)'
-      ].name,
-    ).to.equal('TransferGovernor');
-
-    expect(await governorRouter.governorDomain()).to.equal(domains[1]);
-    expect(await governorRouter.governor()).to.equal(
+    // Governor HAS been transferred on original governor domain
+    await expectGovernor(
+      governorRouter,
+      nonGovernorDomain,
       ethers.constants.AddressZero,
     );
-    expect(await nonGovernorRouter.governorDomain()).to.equal(domains[1]);
-    expect(await nonGovernorRouter.governor()).to.not.equal(
+    // Governor HAS NOT been transferred on original non-governor domain
+    await expectGovernor(
+      nonGovernorRouter,
+      governorDomain,
       ethers.constants.AddressZero,
     );
+
+    // Process transfer governor message on Replica
+    await governorReplicaOnNonGovernorChain.process(opticsMessage);
+
+    // Governor HAS been transferred on original governor domain
+    await expectGovernor(
+      governorRouter,
+      nonGovernorDomain,
+      ethers.constants.AddressZero,
+    );
+    // Governor HAS been transferred on original non-governor domain
+    await expectGovernor(nonGovernorRouter, nonGovernorDomain, secondGovernor);
   });
 });
