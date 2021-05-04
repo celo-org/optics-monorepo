@@ -18,6 +18,19 @@ pub enum ConnectionManagers {
     Other(Box<dyn ConnectionManager>),
 }
 
+impl ConnectionManagers {
+    /// Calls checkpoint on mock variant. Should
+    /// only be used during tests.
+    #[doc(hidden)]
+    pub fn checkpoint(&mut self) {
+        if let ConnectionManagers::Mock(connection_manager) = self {
+            connection_manager.checkpoint();
+        } else {
+            panic!("Home should be mock variant!");
+        }
+    }
+}
+
 impl<M> From<EthereumConnectionManager<M>> for ConnectionManagers
 where
     M: ethers::providers::Middleware + 'static,

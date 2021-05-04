@@ -440,7 +440,7 @@ mod test {
     use ethers::signers::LocalWallet;
 
     use optics_base::{agent::AgentCore, replica::Replicas};
-    use optics_core::{traits::DoubleUpdate, Update};
+    use optics_core::{traits::DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
         test_utils,
@@ -649,31 +649,177 @@ mod test {
     #[tokio::test]
     async fn it_fails_contracts_and_unenrolls_replicas_on_double_update() {
         test_utils::run_test_db(|db| async move {
-            let signer: LocalWallet =
+            let home_domain = 1;
+
+            let updater: LocalWallet =
                 "1111111111111111111111111111111111111111111111111111111111111111"
                     .parse()
                     .unwrap();
 
-            let connection_manager_1 = MockConnectionManagerContract::new();
-            let connection_manager_2 = MockConnectionManagerContract::new();
-            let connection_managers: Vec<ConnectionManagers> =
-                vec![connection_manager_1.into(), connection_manager_2.into()];
+            // Double update setup
+            let first_root = H256::from([1; 32]);
+            let second_root = H256::from([2; 32]);
+            let bad_second_root = H256::from([3; 32]);
 
-            let mock_home = MockHomeContract::new();
-            let mock_replica_1 = MockReplicaContract::new();
-            let mock_replica_2 = MockReplicaContract::new();
+            let update = Update {
+                home_domain,
+                previous_root: first_root,
+                new_root: second_root,
+            }
+            .sign_with(&updater)
+            .await
+            .expect("!sign");
+
+            let bad_update = Update {
+                home_domain,
+                previous_root: first_root,
+                new_root: bad_second_root,
+            }
+            .sign_with(&updater)
+            .await
+            .expect("!sign");
+
+            let double = DoubleUpdate(update, bad_update);
+            let signed_failure = FailureNotification {
+                home_domain,
+                updater: updater.address().into(),
+            }
+            .sign_with(&updater)
+            .await
+            .expect("!sign");
+
+            // Contract setup
+            let mut mock_connection_manager_1 = MockConnectionManagerContract::new();
+            let mut mock_connection_manager_2 = MockConnectionManagerContract::new();
+
+            let mut mock_home = MockHomeContract::new();
+            let mut mock_replica_1 = MockReplicaContract::new();
+            let mut mock_replica_2 = MockReplicaContract::new();
+
+            // Home and replica expectations
+            {
+                // home.local_domain returns `home_domain`
+                mock_home
+                    .expect__local_domain()
+                    .times(1)
+                    .return_once(move || home_domain);
+
+                // home.updater returns `updater` address
+                let updater = updater.clone();
+                mock_home
+                    .expect__updater()
+                    .times(1)
+                    .return_once(move || Ok(updater.address().into()));
+
+                // home.double_update called once
+                let double = double.clone();
+                mock_home
+                    .expect__double_update()
+                    .withf(move |d: &DoubleUpdate| *d == double)
+                    .times(1)
+                    .return_once(move |_| {
+                        Ok(TxOutcome {
+                            txid: H256::default(),
+                            executed: true,
+                        })
+                    });
+            }
+            {
+                // replica_1.double_update called once
+                let double = double.clone();
+                mock_replica_1
+                    .expect__double_update()
+                    .withf(move |d: &DoubleUpdate| *d == double)
+                    .times(1)
+                    .return_once(move |_| {
+                        Ok(TxOutcome {
+                            txid: H256::default(),
+                            executed: true,
+                        })
+                    });
+            }
+            {
+                // replica_2.double_update called once
+                let double = double.clone();
+                mock_replica_2
+                    .expect__double_update()
+                    .withf(move |d: &DoubleUpdate| *d == double)
+                    .times(1)
+                    .return_once(move |_| {
+                        Ok(TxOutcome {
+                            txid: H256::default(),
+                            executed: true,
+                        })
+                    });
+            }
+
+            // Connection manager expectations
+            {
+                // connection_manager_1.unenroll_replica called once
+                let signed_failure = signed_failure.clone();
+                mock_connection_manager_1
+                    .expect__unenroll_replica()
+                    .withf(move |f: &SignedFailureNotification| *f == signed_failure)
+                    .times(1)
+                    .return_once(move |_| {
+                        Ok(TxOutcome {
+                            txid: H256::default(),
+                            executed: true,
+                        })
+                    });
+            }
+            {
+                // connection_manager_1.unenroll_replica called once
+                let signed_failure = signed_failure.clone();
+                mock_connection_manager_2
+                    .expect__unenroll_replica()
+                    .withf(move |f: &SignedFailureNotification| *f == signed_failure)
+                    .times(1)
+                    .return_once(move |_| {
+                        Ok(TxOutcome {
+                            txid: H256::default(),
+                            executed: true,
+                        })
+                    });
+            }
+
+            // Watcher agent setup
+            let connection_managers: Vec<ConnectionManagers> = vec![
+                mock_connection_manager_1.into(),
+                mock_connection_manager_2.into(),
+            ];
+
+            let home = Arc::new(mock_home.into());
+            let replica_1 = Arc::new(mock_replica_1.into());
+            let replica_2 = Arc::new(mock_replica_2.into());
 
             let mut replica_map: HashMap<String, Arc<Replicas>> = HashMap::new();
-            replica_map.insert("replica_1".into(), Arc::new(mock_replica_1.into()));
-            replica_map.insert("replica_2".into(), Arc::new(mock_replica_2.into()));
+            replica_map.insert("replica_1".into(), replica_1);
+            replica_map.insert("replica_2".into(), replica_2);
 
             let core = AgentCore {
-                home: Arc::new(mock_home.into()),
+                home,
                 replicas: replica_map,
                 db: Arc::new(db),
             };
 
-            let watcher = Watcher::new(signer.into(), 1, connection_managers, core);
+            let mut watcher = Watcher::new(updater.into(), 1, connection_managers, core);
+
+            watcher.handle_failure(&double).await;
+
+            // Checkpoint connection managers
+            for connection_manager in watcher.connection_managers.iter_mut() {
+                connection_manager.checkpoint();
+            }
+
+            // Checkpoint home
+            let mock_home = Arc::get_mut(&mut watcher.core.home).unwrap();
+            mock_home.checkpoint();
+
+            // Checkpoint replicas
+            for replica in watcher.core.replicas.values_mut() {
+                Arc::get_mut(replica).unwrap().checkpoint();
+            }
         })
         .await
     }

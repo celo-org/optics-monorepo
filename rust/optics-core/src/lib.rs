@@ -404,7 +404,7 @@ impl SignedUpdate {
 }
 
 /// Failure notification produced by watcher
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FailureNotification {
     /// Domain of failed home
     pub home_domain: u32,
@@ -442,7 +442,7 @@ impl FailureNotification {
 }
 
 /// Signed failure notification produced by watcher
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SignedFailureNotification {
     /// Failure notification
     pub notification: FailureNotification,
