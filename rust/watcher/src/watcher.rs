@@ -439,8 +439,12 @@ mod test {
     use ethers::core::types::H256;
     use ethers::signers::LocalWallet;
 
+    use optics_base::{agent::AgentCore, replica::Replicas};
     use optics_core::{traits::DoubleUpdate, Update};
-    use optics_test::{mocks::MockHomeContract, test_utils};
+    use optics_test::{
+        mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
+        test_utils,
+    };
 
     use super::*;
 
@@ -638,6 +642,38 @@ mod test {
                     DoubleUpdate(second_update, bad_second_update)
                 );
             }
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn it_fails_contracts_and_unenrolls_replicas_on_double_update() {
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
+
+            let connection_manager_1 = MockConnectionManagerContract::new();
+            let connection_manager_2 = MockConnectionManagerContract::new();
+            let connection_managers: Vec<ConnectionManagers> =
+                vec![connection_manager_1.into(), connection_manager_2.into()];
+
+            let mock_home = MockHomeContract::new();
+            let mock_replica_1 = MockReplicaContract::new();
+            let mock_replica_2 = MockReplicaContract::new();
+
+            let mut replica_map: HashMap<String, Arc<Replicas>> = HashMap::new();
+            replica_map.insert("replica_1".into(), Arc::new(mock_replica_1.into()));
+            replica_map.insert("replica_2".into(), Arc::new(mock_replica_2.into()));
+
+            let core = AgentCore {
+                home: Arc::new(mock_home.into()),
+                replicas: replica_map,
+                db: Arc::new(db),
+            };
+
+            let watcher = Watcher::new(signer.into(), 1, connection_managers, core);
         })
         .await
     }
