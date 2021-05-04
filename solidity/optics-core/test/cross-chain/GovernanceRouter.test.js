@@ -103,7 +103,8 @@ describe('GovernanceRouter', async () => {
       controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
     );
-    const unenrolledReplica = unenrolledReplicaContracts.proxyWithImplementation;
+    const unenrolledReplica =
+      unenrolledReplicaContracts.proxyWithImplementation;
 
     // Create TransferGovernor message
     const newDomain = 3000;
@@ -147,13 +148,17 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(nonGovernorRouter.address),
     );
 
+    const sequence = (
+      await governorReplicaOnNonGovernorChain.lastProcessed()
+    ).add(1);
+
     // Create Optics message where the fake governor router tries
     // to send TransferGovernor message to the nonGovernorRouter
     // const fakeGovernorRouterDomain = 2000;
     const opticsMessage = optics.formatMessage(
       2000,
       nonGovernorRouter.address,
-      1,
+      sequence,
       1000,
       governorRouter.address,
       transferGovernorMessage,
@@ -193,12 +198,16 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(newGovernor.address),
     );
 
+    const sequence = (
+      await governorReplicaOnNonGovernorChain.lastProcessed()
+    ).add(1);
+
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
     const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
-      1,
+      sequence,
       nonGovernorDomain,
       nonGovernorRouter.address,
       transferGovernorMessage,
@@ -286,29 +295,17 @@ describe('GovernanceRouter', async () => {
       [receiveStringEncoded],
     );
 
-    // BUG: JS says length of data is 202 bytes but Solidity has data length
-    // as only 100 bytes (this is why we have to call out to test contract
-    // function getMessageLength)
-    console.log(callMessage);
-    console.log(
-      'Solidity datalen: ',
-      await nonGovernorRouter.getCallDataLen(callMessage),
-    );
-    console.log(
-      'Solidity full msg len:',
-      await nonGovernorRouter.getMessageLength(callMessage),
-    );
-    console.log(
-      'Solidity datalen:',
-      await nonGovernorRouter.getMessageLength(receiveStringEncoded),
-    );
+    // get current sequence on governor replica
+    const sequence = (
+      await governorReplicaOnNonGovernorChain.lastProcessed()
+    ).add(1);
 
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
     const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
-      1,
+      sequence,
       nonGovernorDomain,
       nonGovernorRouter.address,
       callMessage,

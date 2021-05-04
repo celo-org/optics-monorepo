@@ -93,16 +93,14 @@ library GovernanceMessage {
         // Skip 1 byte identifier
         bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
 
+        // TODO: this WILL fail, need to pass in correct number of calls
+        Call[] memory _calls = new Call[](3);
+
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
             Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
 
-            // BUG: can create Call struct fine but storing in array of Call
-            // structs reverts silently (comment out first revert to see in
-            // tests)
-            revert("created call");
             _calls[counter] = _call;
-            revert("stored call");
             _msgPtr = nextCall(_msgPtr);
             counter++;
         }
