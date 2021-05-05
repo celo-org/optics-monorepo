@@ -26,7 +26,7 @@ impl ConnectionManagers {
         if let ConnectionManagers::Mock(connection_manager) = self {
             connection_manager.checkpoint();
         } else {
-            panic!("Home should be mock variant!");
+            panic!("ConnectionManager should be mock variant!");
         }
     }
 }

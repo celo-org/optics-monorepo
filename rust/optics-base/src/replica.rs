@@ -28,7 +28,7 @@ impl Replicas {
         if let Replicas::Mock(replica) = self {
             replica.checkpoint();
         } else {
-            panic!("Home should be mock variant!");
+            panic!("Replica should be mock variant!");
         }
     }
 }
