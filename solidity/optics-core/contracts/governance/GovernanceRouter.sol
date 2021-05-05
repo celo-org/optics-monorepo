@@ -102,7 +102,8 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         bytes29 _msg = _message.ref(0);
 
         if (_msg.isValidCall()) {
-            return _handleCall(_msg.tryAsCall());
+            uint8 _numCalls = uint8(_message[1]);
+            return _handleCall(_msg.tryAsCall(), _numCalls);
         } else if (_msg.isValidTransferGovernor()) {
             return _handleTransferGovernor(_msg.tryAsTransferGovernor());
         } else if (_msg.isValidSetRouter()) {
@@ -215,12 +216,12 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @param _msg The message
      * @return _ret
      */
-    function _handleCall(bytes29 _msg)
+    function _handleCall(bytes29 _msg, uint8 _numCalls)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory)
     {
-        GovernanceMessage.Call[] memory _calls = _msg.getCalls();
+        GovernanceMessage.Call[] memory _calls = _msg.getCalls(_numCalls);
         for (uint256 i = 0; i < _calls.length; i++) {
             _dispatchCall(_calls[i]);
         }

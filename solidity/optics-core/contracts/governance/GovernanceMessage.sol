@@ -31,9 +31,7 @@ library GovernanceMessage {
 
     // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
-        _data = TypedMemView.clone(
-            _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
-        );
+        _data = TypedMemView.clone(_view);
     }
 
     function formatCalls(Call[] memory _calls)
@@ -41,10 +39,11 @@ library GovernanceMessage {
         view
         returns (bytes memory _msg)
     {
-        bytes29[] memory _encodedCalls = new bytes29[](_calls.length + 1);
+        bytes29[] memory _encodedCalls = new bytes29[](_calls.length + 2);
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
+        _encodedCalls[1] = bytes1(uint8(_calls.length));
 
         for (uint256 i = 0; i < _calls.length; i++) {
             Call memory _call = _calls[i];
@@ -53,7 +52,7 @@ library GovernanceMessage {
                     0
                 );
 
-            _encodedCalls[i + 1] = _callMsg;
+            _encodedCalls[i + 2] = _callMsg;
         }
 
         _msg = TypedMemView.join(_encodedCalls);
@@ -85,16 +84,15 @@ library GovernanceMessage {
         );
     }
 
-    function getCalls(bytes29 _msg)
+    function getCalls(bytes29 _msg, uint8 _numCalls)
         internal
         view
         returns (Call[] memory _calls)
     {
-        // Skip 1 byte identifier
-        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
+        // Skip 2 bytes: identifier and number of calls
+        bytes29 _msgPtr = _msg.slice(2, _msg.len() - 2, uint40(Types.Call));
 
-        // TODO: this WILL fail, need to pass in correct number of calls
-        Call[] memory _calls = new Call[](3);
+        Call[] memory _calls = new Call[](_numCalls);
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
@@ -161,10 +159,13 @@ library GovernanceMessage {
     /*
         Message Type: CALL
         struct Call {
-            identifier, // message ID -- 1 byte
-            to,       // address to call -- 32 bytes
-            dataLen,    // call data length -- 32 bytes,
-            data        // call data -- 0+ bytes (length unknown)
+            identifier,     // message ID -- 1 byte
+            numCalls,       // number of calls -- 1 byte
+            calls[], {
+                to,         // address to call -- 32 bytes
+                dataLen,    // call data length -- 32 bytes,
+                data        // call data -- 0+ bytes (length unknown)
+            }
         }
     */
 

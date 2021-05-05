@@ -121,8 +121,8 @@ extendEnvironment((hre) => {
       }
 
       return ethers.utils.solidityPack(
-        ['bytes1', 'bytes'],
-        [GovernanceMessage.CALL, callBody],
+        ['bytes1', 'bytes1', 'bytes'],
+        [GovernanceMessage.CALL, tos.length, callBody],
       );
     }
   }
