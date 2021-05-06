@@ -1,3 +1,5 @@
+const { devDeployOptics } = require('../../scripts/deployOpticsUtils');
+
 /*
  * Get the Home contract for the given domain
  *
@@ -77,7 +79,7 @@ async function deployMultipleChains(chainConfigs) {
 
     // deploy contract suite for this chain
     // note: we will be working with a persistent set of contracts across each test
-    const contracts = await optics.deployOptics(local, remotes);
+    const contracts = await devDeployOptics(local, remotes, true);
 
     chainDetails[domain] = {
       ...config,
