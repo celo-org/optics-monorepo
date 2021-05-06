@@ -99,7 +99,6 @@ library GovernanceMessage {
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
             Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
-
             _calls[counter] = _call;
             _msgPtr = nextCall(_msgPtr);
             counter++;

@@ -14,8 +14,10 @@ const {
  */
 describe('GovernanceRouter', async () => {
   const domains = [1000, 2000];
-  const nonGovernorDomain = 2000;
   const governorDomain = 1000;
+  const nonGovernorDomain = 2000;
+  const thirdDomain = 3000;
+  const [thirdRouter] = provider.getWallets();
   let governorRouter,
     governorHome,
     governorReplicaOnNonGovernorChain,
@@ -105,9 +107,8 @@ describe('GovernanceRouter', async () => {
       unenrolledReplicaContracts.proxyWithImplementation;
 
     // Create TransferGovernor message
-    const newDomain = 3000;
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      newDomain,
+      thirdDomain,
       optics.ethersAddressToBytes32(secondGovernor),
     );
 
@@ -135,14 +136,9 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Rejects message not from governor router', async () => {
-    // Create addresses for the invalid governor router and attempted
-    // newGovernor at newDomain 3000
-    // const [fakeGovernorRouter, newGovernor] = provider.getWallets();
-    // const newDomain = 3000;
-
     // Create TransferGovernor message
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      2000,
+      nonGovernorDomain,
       optics.ethersAddressToBytes32(nonGovernorRouter.address),
     );
 
@@ -152,12 +148,11 @@ describe('GovernanceRouter', async () => {
 
     // Create Optics message where the fake governor router tries
     // to send TransferGovernor message to the nonGovernorRouter
-    // const fakeGovernorRouterDomain = 2000;
     const opticsMessage = optics.formatMessage(
-      2000,
+      nonGovernorDomain,
       nonGovernorRouter.address,
       sequence,
-      1000,
+      governorDomain,
       governorRouter.address,
       transferGovernorMessage,
     );
@@ -178,22 +173,17 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Accepts a valid transfer governor message', async () => {
-    // Create addresses for the new governor and the governanceRouter for the
-    // new domain 3000
-    const [newGovernor, newDomainRouter] = provider.getWallets();
-    const newDomain = 3000;
-
-    // Enroll router for newDomain (in real setting this would
+    // Enroll router for new domain (in real setting this would
     // be executed with an Optics message sent to the nonGovernorRouter)
     await nonGovernorRouter.testSetRouter(
-      newDomain,
-      optics.ethersAddressToBytes32(newDomainRouter.address),
+      thirdDomain,
+      optics.ethersAddressToBytes32(thirdRouter.address),
     );
 
     // Create TransferGovernor message
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      newDomain,
-      optics.ethersAddressToBytes32(newGovernor.address),
+      thirdDomain,
+      optics.ethersAddressToBytes32(thirdRouter.address),
     );
 
     const sequence = (
@@ -220,22 +210,21 @@ describe('GovernanceRouter', async () => {
     );
     expect(success).to.be.true;
 
-    // Expect address(0) for governor since non-local and new domain to be 3000
     await governorReplicaOnNonGovernorChain.process(opticsMessage);
-    expect(await nonGovernorRouter.governor()).to.equal(
+    await expectGovernor(
+      nonGovernorRouter,
+      thirdDomain,
       ethers.constants.AddressZero,
     );
-    expect(await nonGovernorRouter.governorDomain()).to.equal(newDomain);
   });
 
   it('Accepts valid set router message', async () => {
     // Create address for router to enroll and domain for router
     const [router] = provider.getWallets();
-    const routerDomain = 3000;
 
     // Create SetRouter message
     const setRouterMessage = optics.GovernanceRouter.formatSetRouter(
-      routerDomain,
+      thirdDomain,
       optics.ethersAddressToBytes32(router.address),
     );
 
@@ -266,10 +255,10 @@ describe('GovernanceRouter', async () => {
     // Expect new router to be registered for domain and for new domain to be
     // in domains array
     await governorReplicaOnNonGovernorChain.process(opticsMessage);
-    expect(await nonGovernorRouter.routers(routerDomain)).to.equal(
+    expect(await nonGovernorRouter.routers(thirdDomain)).to.equal(
       optics.ethersAddressToBytes32(router.address),
     );
-    expect(await nonGovernorRouter.domainsContains(routerDomain)).to.be.true;
+    expect(await nonGovernorRouter.containsDomain(thirdDomain)).to.be.true;
   });
 
   it('Accepts valid call message', async () => {
@@ -285,11 +274,14 @@ describe('GovernanceRouter', async () => {
       receiveStringFunction,
       [string],
     );
+    const receiveStringEncodedLength = await nonGovernorRouter.getMessageLength(
+      receiveStringEncoded,
+    );
 
     // Create Call message to mockRecipient that calls receiveString
     const callMessage = optics.GovernanceRouter.formatCalls(
       [optics.ethersAddressToBytes32(mockRecipient.address)],
-      [await nonGovernorRouter.getMessageLength(receiveStringEncoded)],
+      [receiveStringEncodedLength],
       [receiveStringEncoded],
     );
 
@@ -319,8 +311,8 @@ describe('GovernanceRouter', async () => {
     ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
       opticsMessage,
     );
-    console.log(ret);
     expect(success).to.be.true;
+    expect(ret).to.equal('Transaction succeeded');
   });
 
   it('Transfers governorship', async () => {

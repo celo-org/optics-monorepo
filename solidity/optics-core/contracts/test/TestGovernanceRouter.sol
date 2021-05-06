@@ -25,7 +25,7 @@ contract TestGovernanceRouter is GovernanceRouter {
         _setRouter(_domain, TypeCasts.addressToBytes32(_router));
     }
 
-    function domainsContains(uint32 _domain) external view returns (bool) {
+    function containsDomain(uint32 _domain) external view returns (bool) {
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] == _domain) return true;
         }
