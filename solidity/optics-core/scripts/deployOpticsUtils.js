@@ -174,43 +174,27 @@ async function devDeployOptics(local, remotes, test) {
     domain,
     upgradeBeaconController,
     updaterManager.address,
+    test,
   );
 
   await xAppConnectionManager.setHome(home.proxy.address);
   await updaterManager.setHome(home.proxy.address);
 
-  let governanceRouter, replicaSetup;
-  if (test) {
-    // Deploy GovernanceRouter
-    // Note: initial governor will be the signer that's deploying
-    governanceRouter = await devDeployGovernanceRouter(
-      domain,
-      upgradeBeaconController,
-      xAppConnectionManager.address,
-      true,
-    );
+  // Deploy GovernanceRouter
+  // Note: initial governor will be the signer that's deploying
+  const governanceRouter = await devDeployGovernanceRouter(
+    domain,
+    upgradeBeaconController,
+    xAppConnectionManager.address,
+    test,
+  );
 
-    // Deploy Replica Upgrade Setup
-    replicaSetup = await devDeployReplicaUpgradeSetup(
-      domain,
-      upgradeBeaconController,
-      true,
-    );
-  } else {
-    governanceRouter = await optics.devDeployGovernanceRouter(
-      domain,
-      upgradeBeaconController,
-      xAppConnectionManager.address,
-      true,
-    );
-
-    // Deploy Replica Upgrade Setup
-    replicaSetup = await optics.devDeployReplicaUpgradeSetup(
-      domain,
-      upgradeBeaconController,
-      true,
-    );
-  }
+  // Deploy Replica Upgrade Setup
+  const replicaSetup = await devDeployReplicaUpgradeSetup(
+    domain,
+    upgradeBeaconController,
+    test,
+  );
 
   // Deploy Replica Proxies and enroll in XAppConnectionManager
   const replicaProxies = {};
@@ -220,7 +204,7 @@ async function devDeployOptics(local, remotes, test) {
     const replica = await devDeployReplicaProxy(
       replicaSetup.upgradeBeacon.address,
       remote,
-      true,
+      test,
     );
 
     replicaProxies[remoteDomain] = replica;
@@ -245,6 +229,9 @@ async function devDeployOptics(local, remotes, test) {
   await updaterManager.transferOwnership(governanceRouter.proxy.address);
   await xAppConnectionManager.transferOwnership(governanceRouter.proxy.address);
   await upgradeBeaconController.transferOwnership(
+    governanceRouter.proxy.address,
+  );
+  await home.proxyWithImplementation.transferOwnership(
     governanceRouter.proxy.address,
   );
 
