@@ -2,6 +2,7 @@ const { ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
+const { formatOpticsMessage } = require('./crossChainTestUtils');
 const {
   deployMultipleChains,
   getHome,
@@ -37,26 +38,6 @@ describe('GovernanceRouter', async () => {
       expectedGovernorDomain,
     );
     expect(await governanceRouter.governor()).to.equal(expectedGovernor);
-  }
-
-  async function formatOpticsMessage(replica, message) {
-    const sequence = (await replica.lastProcessed()).add(1);
-
-    // Create Optics message that is sent from the governor domain and governor
-    // to the nonGovernorRouter on the nonGovernorDomain
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      sequence,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
-      message,
-    );
-
-    // Set message status to MessageStatus.Pending
-    await replica.setMessagePending(opticsMessage);
-
-    return opticsMessage;
   }
 
   beforeEach(async () => {
@@ -134,6 +115,8 @@ describe('GovernanceRouter', async () => {
 
     const opticsMessage = await formatOpticsMessage(
       unenrolledReplica,
+      governorRouter,
+      nonGovernorRouter,
       transferGovernorMessage,
     );
 
@@ -153,18 +136,10 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(nonGovernorRouter.address),
     );
 
-    const sequence = (
-      await governorReplicaOnNonGovernorChain.lastProcessed()
-    ).add(1);
-
-    // Create Optics message where the fake governor router tries
-    // to send TransferGovernor message to the nonGovernorRouter
-    const opticsMessage = optics.formatMessage(
-      nonGovernorDomain,
-      nonGovernorRouter.address,
-      sequence,
-      governorDomain,
-      governorRouter.address,
+    const opticsMessage = await formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
+      nonGovernorRouter,
+      governorRouter,
       transferGovernorMessage,
     );
 
@@ -199,6 +174,8 @@ describe('GovernanceRouter', async () => {
 
     const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
       transferGovernorMessage,
     );
 
@@ -228,6 +205,8 @@ describe('GovernanceRouter', async () => {
 
     const opticsMessage = formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
       setRouterMessage,
     );
 
@@ -272,6 +251,8 @@ describe('GovernanceRouter', async () => {
 
     const opticsMessage = formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
       callMessage,
     );
 
@@ -330,6 +311,8 @@ describe('GovernanceRouter', async () => {
 
     const opticsMessage = formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
       transferGovernorMessage,
     );
 

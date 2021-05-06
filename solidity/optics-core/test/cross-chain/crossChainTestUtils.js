@@ -153,8 +153,36 @@ function formatMessage(
   return message;
 }
 
+async function formatOpticsMessage(
+  replica,
+  governorRouter,
+  destinationRouter,
+  message,
+) {
+  const sequence = (await replica.lastProcessed()).add(1);
+  const governorDomain = await governorRouter.localDomain();
+  const destinationDomain = await destinationRouter.localDomain();
+
+  // Create Optics message that is sent from the governor domain and governor
+  // to the nonGovernorRouter on the nonGovernorDomain
+  const opticsMessage = optics.formatMessage(
+    governorDomain,
+    governorRouter.address,
+    sequence,
+    destinationDomain,
+    destinationRouter.address,
+    message,
+  );
+
+  // Set message status to MessageStatus.Pending
+  await replica.setMessagePending(opticsMessage);
+
+  return opticsMessage;
+}
+
 module.exports = {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   formatMessage,
+  formatOpticsMessage,
 };
