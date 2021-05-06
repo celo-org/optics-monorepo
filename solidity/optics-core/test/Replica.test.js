@@ -1,9 +1,7 @@
 const { waffle, ethers } = require('hardhat');
-const { provider, deployMockContract } = waffle;
+const { provider } = waffle;
 const { expect } = require('chai');
-
 const testUtils = require('./utils');
-const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
 const {
   testCases: homeDomainHashTestCases,
@@ -305,11 +303,10 @@ describe('Replica', async () => {
   });
 
   it('Processes a proved message', async () => {
-    const [sender, recipient] = provider.getWallets();
-    const mockRecipient = await deployMockContract(
-      recipient,
-      MockRecipient.abi,
-    );
+    const [sender, mockRecipient] = [
+      testUtils.opticsMessageSender,
+      await testUtils.mockRecipientPromise,
+    ];
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
@@ -420,11 +417,10 @@ describe('Replica', async () => {
   });
 
   it('Returns false when processing message for bad handler function', async () => {
-    const [sender, recipient] = provider.getWallets();
-    const mockRecipient = await deployMockContract(
-      recipient,
-      MockRecipient.abi,
-    );
+    const [sender, mockRecipient] = [
+      testUtils.opticsMessageSender,
+      await testUtils.mockRecipientPromise,
+    ];
 
     // Recipient handler function reverts
     await mockRecipient.mock.handle.reverts();
@@ -448,11 +444,10 @@ describe('Replica', async () => {
   });
 
   it('Proves and processes a message', async () => {
-    const [sender, recipient] = provider.getWallets();
-    const mockRecipient = await deployMockContract(
-      recipient,
-      MockRecipient.abi,
-    );
+    const [sender, mockRecipient] = [
+      testUtils.opticsMessageSender,
+      await testUtils.mockRecipientPromise,
+    ];
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
@@ -475,7 +470,11 @@ describe('Replica', async () => {
     const messageLeaf = optics.messageToLeaf(opticsMessage);
     expect(messageLeaf).to.equal(leaf);
 
-    // Set replica's current root to match root given by proof
+    // Set replica's current root to match newly computed root that includes
+    // the new leaf (normally root will have already been computed and path
+    // simply verifies leaf is in tree but because it is cryptographically
+    // impossible to find the inputs that create a pre-determined root, we
+    // simply recalculate root with the leaf using branchRoot)
     const proofRoot = await replica.testBranchRoot(leaf, path, index);
     await replica.setCurrentRoot(proofRoot);
 
