@@ -39,6 +39,26 @@ describe('GovernanceRouter', async () => {
     expect(await governanceRouter.governor()).to.equal(expectedGovernor);
   }
 
+  async function formatOpticsMessage(replica, message) {
+    const sequence = (await replica.lastProcessed()).add(1);
+
+    // Create Optics message that is sent from the governor domain and governor
+    // to the nonGovernorRouter on the nonGovernorDomain
+    const opticsMessage = optics.formatMessage(
+      governorDomain,
+      governorRouter.address,
+      sequence,
+      nonGovernorDomain,
+      nonGovernorRouter.address,
+      message,
+    );
+
+    // Set message status to MessageStatus.Pending
+    await replica.setMessagePending(opticsMessage);
+
+    return opticsMessage;
+  }
+
   beforeEach(async () => {
     // generate TestChainConfigs for the given domains
     const configs = await domainsToTestConfigs(domains);
@@ -112,19 +132,10 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(secondGovernor),
     );
 
-    // Some sender on governor domain tries to send transferGovernorMessage to
-    // nonGovernorRouter
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      1,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
+    const opticsMessage = await formatOpticsMessage(
+      unenrolledReplica,
       transferGovernorMessage,
     );
-
-    // Set message status to MessageStatus.Pending
-    await unenrolledReplica.setMessagePending(opticsMessage);
 
     // Expect replica processing to fail when nonGovernorRouter reverts in
     // handle
@@ -186,23 +197,10 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(thirdRouter.address),
     );
 
-    const sequence = (
-      await governorReplicaOnNonGovernorChain.lastProcessed()
-    ).add(1);
-
-    // Create Optics message that is sent from the governor domain and governor
-    // to the nonGovernorRouter on the nonGovernorDomain
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      sequence,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
+    const opticsMessage = await formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
       transferGovernorMessage,
     );
-
-    // Set message status to MessageStatus.Pending
-    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx on static call
     let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
@@ -228,23 +226,10 @@ describe('GovernanceRouter', async () => {
       optics.ethersAddressToBytes32(router.address),
     );
 
-    const sequence = (
-      await governorReplicaOnNonGovernorChain.lastProcessed()
-    ).add(1);
-
-    // Create Optics message that is sent from the governor domain and governor
-    // to the nonGovernorRouter on the nonGovernorDomain
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      sequence,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
+    const opticsMessage = formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
       setRouterMessage,
     );
-
-    // Set message status to MessageStatus.Pending
-    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx
     let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
@@ -285,24 +270,10 @@ describe('GovernanceRouter', async () => {
       [receiveStringEncoded],
     );
 
-    // get current sequence on governor replica
-    const sequence = (
-      await governorReplicaOnNonGovernorChain.lastProcessed()
-    ).add(1);
-
-    // Create Optics message that is sent from the governor domain and governor
-    // to the nonGovernorRouter on the nonGovernorDomain
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      sequence,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
+    const opticsMessage = formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
       callMessage,
     );
-
-    // Set message status to MessageStatus.Pending
-    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
 
     // Expect successful tx
     let [
@@ -352,28 +323,16 @@ describe('GovernanceRouter', async () => {
     // update governor chain home
     await governorHome.update(currentRoot, newRoot, signature);
 
-    // get current sequence on governor replica
-    const sequence = (
-      await governorReplicaOnNonGovernorChain.lastProcessed()
-    ).add(1);
-
     const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
       nonGovernorDomain,
       optics.ethersAddressToBytes32(secondGovernor),
     );
 
-    // format optics message
-    const opticsMessage = optics.formatMessage(
-      governorDomain,
-      governorRouter.address,
-      sequence,
-      nonGovernorDomain,
-      nonGovernorRouter.address,
+    const opticsMessage = formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
       transferGovernorMessage,
     );
 
-    // Set message status to MessageStatus.Pending
-    await governorReplicaOnNonGovernorChain.setMessagePending(opticsMessage);
     // Set current root on replica
     await governorReplicaOnNonGovernorChain.setCurrentRoot(newRoot);
 
