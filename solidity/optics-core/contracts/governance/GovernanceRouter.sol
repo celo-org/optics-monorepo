@@ -9,6 +9,7 @@ import {Home} from "../Home.sol";
 import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
+import "hardhat/console.sol";
 
 contract GovernanceRouter is Initializable, IMessageRecipient {
     using TypedMemView for bytes;
@@ -100,10 +101,10 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         returns (bytes memory _ret)
     {
         bytes29 _msg = _message.ref(0);
+        console.logBytes29(_msg);
 
         if (_msg.isValidCall()) {
-            uint8 _numCalls = uint8(_message[1]);
-            return _handleCall(_msg.tryAsCall(), _numCalls);
+            return _handleCall(_msg.tryAsCall());
         } else if (_msg.isValidTransferGovernor()) {
             return _handleTransferGovernor(_msg.tryAsTransferGovernor());
         } else if (_msg.isValidSetRouter()) {
@@ -216,12 +217,12 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @param _msg The message
      * @return _ret
      */
-    function _handleCall(bytes29 _msg, uint8 _numCalls)
+    function _handleCall(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
         returns (bytes memory)
     {
-        GovernanceMessage.Call[] memory _calls = _msg.getCalls(_numCalls);
+        GovernanceMessage.Call[] memory _calls = _msg.getCalls();
         for (uint256 i = 0; i < _calls.length; i++) {
             _dispatchCall(_calls[i]);
         }

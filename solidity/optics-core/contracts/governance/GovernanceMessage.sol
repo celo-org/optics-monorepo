@@ -9,6 +9,7 @@ library GovernanceMessage {
     using TypedMemView for bytes29;
 
     uint256 private constant CALL_PREFIX_LEN = 64;
+    uint256 private constant MSG_PREFIX_LEN = 2;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -43,6 +44,7 @@ library GovernanceMessage {
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
+        // Add number of calls
         _encodedCalls[1] = bytes1(uint8(_calls.length));
 
         for (uint256 i = 0; i < _calls.length; i++) {
@@ -52,7 +54,7 @@ library GovernanceMessage {
                     0
                 );
 
-            _encodedCalls[i + 2] = _callMsg;
+            _encodedCalls[i + MSG_PREFIX_LEN] = _callMsg;
         }
 
         _msg = TypedMemView.join(_encodedCalls);
@@ -84,13 +86,20 @@ library GovernanceMessage {
         );
     }
 
-    function getCalls(bytes29 _msg, uint8 _numCalls)
+    function getCalls(bytes29 _msg)
         internal
         view
         returns (Call[] memory _calls)
     {
-        // Skip 2 bytes: identifier and number of calls
-        bytes29 _msgPtr = _msg.slice(2, _msg.len() - 2, uint40(Types.Call));
+        uint8 _numCalls = uint8(_msg[1]);
+
+        // Skip message prefi
+        bytes29 _msgPtr =
+            _msg.slice(
+                MSG_PREFIX_LEN,
+                _msg.len() - MSG_PREFIX_LEN,
+                uint40(Types.Call)
+            );
 
         Call[] memory _calls = new Call[](_numCalls);
 
