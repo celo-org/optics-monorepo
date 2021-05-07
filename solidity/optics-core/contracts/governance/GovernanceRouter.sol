@@ -9,7 +9,6 @@ import {Home} from "../Home.sol";
 import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
-import "hardhat/console.sol";
 
 contract GovernanceRouter is Initializable, IMessageRecipient {
     using TypedMemView for bytes;

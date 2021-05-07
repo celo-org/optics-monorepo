@@ -42,7 +42,8 @@ library GovernanceMessage {
         view
         returns (bytes memory _msg)
     {
-        bytes29[] memory _encodedCalls = new bytes29[](_calls.length + MSG_PREFIX_LEN);
+        bytes29[] memory _encodedCalls =
+            new bytes29[](_calls.length + MSG_PREFIX_LEN);
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
