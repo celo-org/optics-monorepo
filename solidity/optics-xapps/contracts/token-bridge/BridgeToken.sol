@@ -6,7 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
+import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     function burn(address _from, uint256 _amnt) external override onlyOwner {

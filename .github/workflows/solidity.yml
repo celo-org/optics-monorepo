@@ -30,12 +30,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  optics-bridge:
+  optics-xapps:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: ./solidity/optics-bridge
+        working-directory: ./solidity/optics-xapps
 
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +52,7 @@ jobs:
 
   complete:
     runs-on: ubuntu-latest
-    needs: [optics-core, optics-bridge]
+    needs: [optics-core, optics-xapps]
 
     steps:
       - name: Solidity tests successful

@@ -31,14 +31,14 @@ else
     echo "+Skipping core ABI updates"
 fi
 
-# Conditionally compile and update optics-bridge abis
-if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
-    echo "+Updating bridge ABIs"
-    cd ./solidity/optics-bridge
+# Conditionally compile and update optics-xapps abis
+    echo "+Updating xapps ABIs"
+if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
+    cd ./solidity/optics-xapps
     npm run compile
     cd ../..
 else
-    echo "+Skipping bridge ABI updates"
+    echo "+Skipping xapps ABI updates"
 fi
 
 # Conditionally run Rust bins to output into vector JSON files
@@ -89,10 +89,17 @@ else
     echo "+Skipping optics core tests"
 fi
 
+<<<<<<< HEAD
 # Run solidity/optics-bridge tests and lint
 if ! git diff-index --quiet HEAD -- ./solidity/optics-bridge; then
     echo "+Running optics bridge tests"
     cd ./solidity/optics-bridge
+=======
+# Run solidity/optics-xapps tests and lint
+if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
+    cd ./solidity/optics-xapps
+    npm test
+>>>>>>> d84ef94 (Refactor/rename optics-bridge directory to optics-xapps/token-bridge)
     npm run lint
     npm test
     cd ../..

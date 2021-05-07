@@ -1,5 +1,5 @@
 {
-  "name": "@celo-org/optics-bridge-sol",
+  "name": "@celo-org/optics-xapps-sol",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -22,7 +22,7 @@
     "test": "test"
   },
   "scripts": {
-    "prettier": "prettier --write './contracts' ./test ./scripts",
+    "prettier": "prettier --write './contracts' ./test",
     "compile": "hardhat compile && npm run prettier",
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat test",

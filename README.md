@@ -20,7 +20,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
    ```bash
    cd solidity/optics-core
    npm i
-   cd ../optics-bridge
+   cd ../optics-xapps
    npm i
    ```
 

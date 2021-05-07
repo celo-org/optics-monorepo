@@ -4,7 +4,7 @@ pragma solidity >=0.6.11;
 import {BridgeMessage} from "./BridgeMessage.sol";
 import {TokenRegistry} from "./TokenRegistry.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {IBridgeToken} from "../interfaces/IBridgeToken.sol";
+import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
 
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {
