@@ -101,7 +101,6 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         returns (bytes memory _ret)
     {
         bytes29 _msg = _message.ref(0);
-        console.logBytes29(_msg);
 
         if (_msg.isValidCall()) {
             return _handleCall(_msg.tryAsCall());

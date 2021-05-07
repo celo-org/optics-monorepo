@@ -32,7 +32,9 @@ library GovernanceMessage {
 
     // Types.Call
     function data(bytes29 _view) internal view returns (bytes memory _data) {
-        _data = TypedMemView.clone(_view);
+        _data = TypedMemView.clone(
+            _view.slice(CALL_PREFIX_LEN, dataLen(_view), uint40(Types.Data))
+        );
     }
 
     function formatCalls(Call[] memory _calls)
@@ -91,7 +93,7 @@ library GovernanceMessage {
         view
         returns (Call[] memory _calls)
     {
-        uint8 _numCalls = uint8(_msg[1]);
+        uint8 _numCalls = uint8(_msg.indexUint(1, 1));
 
         // Skip message prefi
         bytes29 _msgPtr =
@@ -105,7 +107,9 @@ library GovernanceMessage {
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
-            Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
+            Call memory _call =
+                Call({to: to(_msgPtr), data: TypedMemView.clone(_msgPtr)});
+
             _calls[counter] = _call;
             _msgPtr = nextCall(_msgPtr);
             counter++;
