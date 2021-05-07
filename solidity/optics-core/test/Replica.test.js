@@ -303,10 +303,8 @@ describe('Replica', async () => {
   });
 
   it('Processes a proved message', async () => {
-    const [sender, mockRecipient] = [
-      testUtils.opticsMessageSender,
-      await testUtils.mockRecipientPromise,
-    ];
+    const sender = testUtils.opticsMessageSender;
+    const mockRecipient = await testUtils.mockRecipientPromise;
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
@@ -417,10 +415,8 @@ describe('Replica', async () => {
   });
 
   it('Returns false when processing message for bad handler function', async () => {
-    const [sender, mockRecipient] = [
-      testUtils.opticsMessageSender,
-      await testUtils.mockRecipientPromise,
-    ];
+    const sender = testUtils.opticsMessageSender;
+    const mockRecipient = await testUtils.mockRecipientPromise;
 
     // Recipient handler function reverts
     await mockRecipient.mock.handle.reverts();
@@ -444,10 +440,8 @@ describe('Replica', async () => {
   });
 
   it('Proves and processes a message', async () => {
-    const [sender, mockRecipient] = [
-      testUtils.opticsMessageSender,
-      await testUtils.mockRecipientPromise,
-    ];
+    const sender = testUtils.opticsMessageSender;
+    const mockRecipient = await testUtils.mockRecipientPromise;
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
