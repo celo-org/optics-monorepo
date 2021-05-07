@@ -106,7 +106,7 @@ extendEnvironment((hre) => {
     }
 
     static formatCalls(tos, dataLens, datas) {
-      if (!(tos.length == dataLens.length && dataLens.length == datas.length)) {
+      if (tos.length !== dataLens.length || dataLens.length !== datas.length) {
         throw new Error(
           "Number of to addresses, data lengths, and data blocks don't match.",
         );
@@ -114,16 +114,21 @@ extendEnvironment((hre) => {
 
       let callBody = '';
       for (let i = 0; i < tos.length; i++) {
-        callBody += ethers.utils.solidityPack(
+        let hexBytes = ethers.utils.solidityPack(
           ['bytes32', 'uint256', 'bytes'],
           [tos[i], dataLens[i], datas[i]],
         );
+        if (i > 0) {
+          hexBytes = hexBytes.slice(2);
+        }
+        callBody += hexBytes;
       }
 
-      return ethers.utils.solidityPack(
+      const res = ethers.utils.solidityPack(
         ['bytes1', 'bytes1', 'bytes'],
         [GovernanceMessage.CALL, tos.length, callBody],
       );
+      return res;
     }
   }
 

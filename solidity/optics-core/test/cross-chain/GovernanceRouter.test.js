@@ -225,7 +225,7 @@ describe('GovernanceRouter', async () => {
     expect(await nonGovernorRouter.containsDomain(thirdDomain)).to.be.true;
   });
 
-  it('Accepts valid call message', async () => {
+  it('Accepts valid call messages', async () => {
     // Create address for router to enroll and domain for router
     const mockRecipient = await optics.deployImplementation('MockRecipient');
 
@@ -244,9 +244,12 @@ describe('GovernanceRouter', async () => {
 
     // Create Call message to mockRecipient that calls receiveString
     const callMessage = optics.GovernanceRouter.formatCalls(
-      [optics.ethersAddressToBytes32(mockRecipient.address)],
-      [receiveStringEncodedLength],
-      [receiveStringEncoded],
+      [
+        optics.ethersAddressToBytes32(mockRecipient.address),
+        optics.ethersAddressToBytes32(mockRecipient.address),
+      ],
+      [receiveStringEncodedLength, receiveStringEncodedLength],
+      [receiveStringEncoded, receiveStringEncoded],
     );
 
     const opticsMessage = formatOpticsMessage(
