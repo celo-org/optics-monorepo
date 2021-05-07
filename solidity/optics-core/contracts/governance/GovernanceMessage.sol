@@ -89,14 +89,10 @@ library GovernanceMessage {
         );
     }
 
-    function getCalls(bytes29 _msg)
-        internal
-        view
-        returns (Call[] memory _calls)
-    {
+    function getCalls(bytes29 _msg) internal view returns (Call[] memory) {
         uint8 _numCalls = uint8(_msg.indexUint(1, 1));
 
-        // Skip message prefi
+        // Skip message prefix
         bytes29 _msgPtr =
             _msg.slice(
                 MSG_PREFIX_LEN,
@@ -108,13 +104,14 @@ library GovernanceMessage {
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
-            Call memory _call =
-                Call({to: to(_msgPtr), data: TypedMemView.clone(_msgPtr)});
+            _calls[counter].to = to(_msgPtr);
+            _calls[counter].data = data(_msgPtr);
 
-            _calls[counter] = _call;
             _msgPtr = nextCall(_msgPtr);
             counter++;
         }
+
+        return _calls;
     }
 
     function nextCall(bytes29 _view)
