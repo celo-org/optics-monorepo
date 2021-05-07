@@ -242,15 +242,17 @@ describe('GovernanceRouter', async () => {
       receiveStringEncoded,
     );
 
+    const callData = {
+      to: optics.ethersAddressToBytes32(mockRecipient.address),
+      dataLen: receiveStringEncodedLength,
+      data: receiveStringEncoded,
+    };
+
     // Create Call message to mockRecipient that calls receiveString
-    const callMessage = optics.GovernanceRouter.formatCalls(
-      [
-        optics.ethersAddressToBytes32(mockRecipient.address),
-        optics.ethersAddressToBytes32(mockRecipient.address),
-      ],
-      [receiveStringEncodedLength, receiveStringEncodedLength],
-      [receiveStringEncoded, receiveStringEncoded],
-    );
+    const callMessage = optics.GovernanceRouter.formatCalls([
+      callData,
+      callData,
+    ]);
 
     const opticsMessage = formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
