@@ -296,9 +296,9 @@
         "type": "uint32"
       },
       {
-        "internalType": "address",
+        "internalType": "bytes32",
         "name": "_updater",
-        "type": "address"
+        "type": "bytes32"
       },
       {
         "internalType": "bytes",

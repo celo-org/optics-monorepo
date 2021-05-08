@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "../XAppConnectionManager.sol";
+import "../../libs/TypeCasts.sol";
 
 contract TestXAppConnectionManager is XAppConnectionManager {
     constructor() XAppConnectionManager() {} // solhint-disable-line no-empty-blocks
@@ -12,6 +13,12 @@ contract TestXAppConnectionManager is XAppConnectionManager {
         address _updater,
         bytes memory _signature
     ) external view returns (address) {
-        return recoverWatcherFromSig(_domain, _replica, _updater, _signature);
+        return
+            recoverWatcherFromSig(
+                _domain,
+                TypeCasts.addressToBytes32(_replica),
+                TypeCasts.addressToBytes32(_updater),
+                _signature
+            );
     }
 }

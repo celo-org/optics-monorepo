@@ -20,15 +20,6 @@ impl OpticsIdentifier {
     pub fn as_ethereum_address(&self) -> H160 {
         H160::from_slice(&self.0.as_ref()[12..])
     }
-
-    /// Cast address into local chain size and return array of bytes ref
-    pub fn as_ref_local(&self) -> &[u8] {
-        if self.is_ethereum_address() {
-            self.0[12..].as_ref()
-        } else {
-            self.0.as_ref()
-        }
-    }
 }
 
 impl From<H256> for OpticsIdentifier {
@@ -60,6 +51,12 @@ impl AsMut<[u8]> for OpticsIdentifier {
 impl From<OpticsIdentifier> for H256 {
     fn from(addr: OpticsIdentifier) -> Self {
         addr.0
+    }
+}
+
+impl From<OpticsIdentifier> for [u8; 32] {
+    fn from(addr: OpticsIdentifier) -> Self {
+        addr.0.into()
     }
 }
 

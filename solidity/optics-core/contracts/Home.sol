@@ -15,12 +15,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
  */
-contract Home is
-    Initializable,
-    MerkleTreeManager,
-    QueueManager,
-    Common
-{
+contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 

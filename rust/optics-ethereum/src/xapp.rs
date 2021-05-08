@@ -145,7 +145,7 @@ where
             .contract
             .unenroll_replica(
                 signed_failure.notification.home_domain,
-                signed_failure.notification.updater.as_ethereum_address(),
+                signed_failure.notification.updater.into(),
                 signed_failure.signature.to_vec(),
             )
             .send()
