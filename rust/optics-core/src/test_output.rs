@@ -1,4 +1,7 @@
-use crate::{utils::home_domain_hash, FailureNotification, Update};
+use crate::{
+    utils::{destination_and_sequence, home_domain_hash},
+    FailureNotification, Update,
+};
 use ethers::core::types::H256;
 
 use serde_json::{json, Value};
@@ -27,6 +30,32 @@ pub mod output_functions {
             .create(true)
             .truncate(true)
             .open("../../vectors/domainHashTestCases.json")
+            .expect("Failed to open/create file");
+
+        file.write_all(json.as_bytes())
+            .expect("Failed to write to file");
+    }
+
+    /// Outputs combined destination and sequence test cases in /vector/
+    /// destinationSequenceTestCases.json
+    pub fn output_destination_and_sequences() {
+        let test_cases: Vec<Value> = (1..=5)
+            .map(|i| {
+                json!({
+                    "destination": i,
+                    "sequence": i + 1,
+                    "expectedDestinationAndSequence": destination_and_sequence(i, i + 1)
+                })
+            })
+            .collect();
+
+        let json = json!({ "testCases": test_cases }).to_string();
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open("../../vectors/destinationSequenceTestCases.json")
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())

@@ -16,9 +16,6 @@ mod replica;
 #[cfg(not(doctest))]
 mod xapp;
 
-/// Base trait for an agent
-mod utils;
-
 /// Configuration structs
 pub mod settings;
 

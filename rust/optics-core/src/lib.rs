@@ -24,14 +24,15 @@ pub mod encode;
 /// 20-byte ids (e.g ethereum addresses)
 pub mod identifiers;
 
+/// Utilities to match contract values
+pub mod utils;
+
 /// Testing utilities
 pub mod test_utils;
 
 /// Test functions that output json files for Solidity tests
 #[cfg(feature = "output")]
 pub mod test_output;
-
-mod utils;
 
 use std::convert::Infallible;
 

@@ -5,10 +5,8 @@ use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
-    Message, SignedUpdate, Update,
+    utils, Message, SignedUpdate, Update,
 };
-
-use crate::utils::*;
 
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
@@ -189,7 +187,7 @@ where
         destination: u32,
         sequence: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        let dest_and_seq = destination_and_sequence(destination, sequence);
+        let dest_and_seq = utils::destination_and_sequence(destination, sequence);
 
         let events = self
             .contract
