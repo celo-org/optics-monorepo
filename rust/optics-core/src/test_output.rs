@@ -29,7 +29,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/domainHashTestCases.json")
+            .open("../../vectors/homeDomainHashTestCases.json")
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
