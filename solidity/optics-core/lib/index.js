@@ -105,24 +105,29 @@ extendEnvironment((hre) => {
       );
     }
 
-    static formatCalls(tos, dataLens, datas) {
-      if (!(tos.length == dataLens.length && dataLens.length == datas.length)) {
-        throw new Error(
-          "Number of to addresses, data lengths, and data blocks don't match.",
-        );
-      }
+    static formatCalls(callsData) {
+      let callBody = '0x';
+      const numCalls = callsData.length;
 
-      let callBody = '';
-      for (let i = 0; i < tos.length; i++) {
-        callBody += ethers.utils.solidityPack(
+      for (let i = 0; i < numCalls; i++) {
+        const { to, dataLen, data } = callsData[i];
+
+        if (!to || !dataLen || !data) {
+          throw new Error(`Missing data in Call ${i + 1}: \n  ${callsData[i]}`);
+        }
+
+        let hexBytes = ethers.utils.solidityPack(
           ['bytes32', 'uint256', 'bytes'],
-          [tos[i], dataLens[i], datas[i]],
+          [to, dataLen, data],
         );
+
+        // remove 0x before appending
+        callBody += hexBytes.slice(2);
       }
 
       return ethers.utils.solidityPack(
-        ['bytes1', 'bytes'],
-        [GovernanceMessage.CALL, callBody],
+        ['bytes1', 'bytes1', 'bytes'],
+        [GovernanceMessage.CALL, numCalls, callBody],
       );
     }
   }

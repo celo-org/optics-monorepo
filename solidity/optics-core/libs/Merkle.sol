@@ -3,8 +3,6 @@ pragma solidity >=0.6.11;
 
 // work based on eth2 deposit contract, which is used under CC0-1.0
 
-import "hardhat/console.sol";
-
 /**
  * @title MerkleLib
  * @author Celo Labs Inc.

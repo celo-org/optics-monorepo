@@ -9,6 +9,7 @@ library GovernanceMessage {
     using TypedMemView for bytes29;
 
     uint256 private constant CALL_PREFIX_LEN = 64;
+    uint256 private constant MSG_PREFIX_LEN = 2;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -41,10 +42,13 @@ library GovernanceMessage {
         view
         returns (bytes memory _msg)
     {
-        bytes29[] memory _encodedCalls = new bytes29[](_calls.length + 1);
+        bytes29[] memory _encodedCalls =
+            new bytes29[](_calls.length + MSG_PREFIX_LEN);
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
+        // Add number of calls
+        _encodedCalls[1] = bytes1(uint8(_calls.length));
 
         for (uint256 i = 0; i < _calls.length; i++) {
             Call memory _call = _calls[i];
@@ -53,7 +57,7 @@ library GovernanceMessage {
                     0
                 );
 
-            _encodedCalls[i + 1] = _callMsg;
+            _encodedCalls[i + MSG_PREFIX_LEN] = _callMsg;
         }
 
         _msg = TypedMemView.join(_encodedCalls);
@@ -85,24 +89,29 @@ library GovernanceMessage {
         );
     }
 
-    function getCalls(bytes29 _msg)
-        internal
-        view
-        returns (Call[] memory _calls)
-    {
-        // Skip 1 byte identifier
-        bytes29 _msgPtr = _msg.slice(1, _msg.len() - 1, uint40(Types.Call));
+    function getCalls(bytes29 _msg) internal view returns (Call[] memory) {
+        uint8 _numCalls = uint8(_msg.indexUint(1, 1));
 
-        // TODO: this WILL fail, need to pass in correct number of calls
-        Call[] memory _calls = new Call[](3);
+        // Skip message prefix
+        bytes29 _msgPtr =
+            _msg.slice(
+                MSG_PREFIX_LEN,
+                _msg.len() - MSG_PREFIX_LEN,
+                uint40(Types.Call)
+            );
+
+        Call[] memory _calls = new Call[](_numCalls);
 
         uint256 counter = 0;
         while (_msgPtr.len() > 0) {
-            Call memory _call = Call({to: to(_msgPtr), data: data(_msgPtr)});
-            _calls[counter] = _call;
+            _calls[counter].to = to(_msgPtr);
+            _calls[counter].data = data(_msgPtr);
+
             _msgPtr = nextCall(_msgPtr);
             counter++;
         }
+
+        return _calls;
     }
 
     function nextCall(bytes29 _view)
@@ -161,10 +170,13 @@ library GovernanceMessage {
     /*
         Message Type: CALL
         struct Call {
-            identifier, // message ID -- 1 byte
-            to,       // address to call -- 32 bytes
-            dataLen,    // call data length -- 32 bytes,
-            data        // call data -- 0+ bytes (length unknown)
+            identifier,     // message ID -- 1 byte
+            numCalls,       // number of calls -- 1 byte
+            calls[], {
+                to,         // address to call -- 32 bytes
+                dataLen,    // call data length -- 32 bytes,
+                data        // call data -- 0+ bytes (length unknown)
+            }
         }
     */
 
