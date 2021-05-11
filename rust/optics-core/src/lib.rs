@@ -129,15 +129,15 @@ impl From<LocalWallet> for Signers {
 
 #[cfg(feature = "ledger")]
 impl From<Ledger> for Signers {
-    fn from(ledger: Ledger) -> Self {
-        Signers::Ledger(ledger)
+    fn from(ledger_wallet: Ledger) -> Self {
+        Signers::Ledger(ledger_wallet)
     }
 }
 
 #[cfg(feature = "yubi")]
 impl From<YubiWallet> for Signers {
     fn from(yubi_wallet: YubiWallet) -> Self {
-        Signers::Yubi(local_wallet)
+        Signers::Yubi(yubi_wallet)
     }
 }
 

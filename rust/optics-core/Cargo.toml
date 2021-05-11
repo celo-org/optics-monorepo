@@ -24,6 +24,8 @@ tokio = {version = "1.0.1", features = ["rt", "time"]}
 
 [features]
 output = []
+yubi = ["ethers/yubi"]
+ledger = ["ethers/ledger"]
 
 [[example]]
 name = "toy"
