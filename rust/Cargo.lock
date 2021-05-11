@@ -130,9 +130,9 @@ dependencies = [
 
 [[package]]
 name = "async-trait"
-version = "0.1.48"
+version = "0.1.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36ea56748e10732c49404c153638a15ec3d6211ec5ff35d9bb20e13b93576adf"
+checksum = "0b98e84bbb4cbcdd97da190ba0c58a1bb0de2c1fdf67d159e192ed766aeca722"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -791,11 +791,10 @@ dependencies = [
 
 [[package]]
 name = "elliptic-curve"
-version = "0.9.6"
+version = "0.9.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78fff5a5d53c2e45c2772aa2666904eaf5af581b9fc356b9da42b52bda088e6d"
+checksum = "ee681bf25de1aad7cd02ccc7525d7b4bfab7be2493dbe3ee18d93f86eb3dcf3e"
 dependencies = [
- "funty",
  "generic-array 0.14.4",
  "rand_core 0.6.2",
  "subtle 2.4.0",
@@ -812,9 +811,9 @@ dependencies = [
 
 [[package]]
 name = "eth-keystore"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f1d4168fd77e9d9564bbdcb937efdad0df721dd159d2cb3f39d51efdbdf06f2"
+checksum = "c0d128fb0d7550951c92498f5e5d146ea829986d6a4c87180e25f65084f689a0"
 dependencies = [
  "aes",
  "ctr",
@@ -878,7 +877,7 @@ dependencies = [
 [[package]]
 name = "ethers"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "ethers-contract",
  "ethers-core",
@@ -890,7 +889,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-contract-derive",
@@ -908,15 +907,15 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "Inflector",
  "anyhow",
- "curl",
  "ethers-core",
  "hex",
  "proc-macro2",
  "quote",
+ "reqwest",
  "serde_json",
  "syn",
  "url",
@@ -925,7 +924,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-core",
@@ -939,12 +938,12 @@ dependencies = [
 [[package]]
 name = "ethers-core"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "arrayvec 0.5.2",
  "bytes",
  "ecdsa",
- "elliptic-curve 0.9.6",
+ "elliptic-curve 0.9.11",
  "ethabi",
  "funty",
  "futures-util",
@@ -964,7 +963,7 @@ dependencies = [
 [[package]]
 name = "ethers-middleware"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "async-trait",
  "ethers-contract",
@@ -986,7 +985,7 @@ dependencies = [
 [[package]]
 name = "ethers-providers"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1013,7 +1012,7 @@ dependencies = [
 [[package]]
 name = "ethers-signers"
 version = "0.2.2"
-source = "git+https://github.com/gakonst/ethers-rs#66a503d294b21bb5cbdde5f74229157764a337e3"
+source = "git+https://github.com/gakonst/ethers-rs#b014ac9f2733e92cdb7ae52a81a39baab553e17e"
 dependencies = [
  "async-trait",
  "coins-bip32",
@@ -1149,15 +1148,15 @@ dependencies = [
 
 [[package]]
 name = "futures-core"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15496a72fabf0e62bdc3df11a59a3787429221dd0710ba8ef163d6f7a9112c94"
+checksum = "0402f765d8a89a26043b889b26ce3c4679d268fa6bb22cd7c6aad98340e179d1"
 
 [[package]]
 name = "futures-executor"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891a4b7b96d84d5940084b2a37632dd65deeae662c114ceaa2c879629c9c0ad1"
+checksum = "badaa6a909fac9e7236d0620a2f57f7664640c56575b71a7552fbd68deafab79"
 dependencies = [
  "futures-core",
  "futures-task",
@@ -1172,10 +1171,11 @@ checksum = "acc499defb3b348f8d8f3f66415835a9131856ff7714bf10dadfc4ec4bdb29a1"
 
 [[package]]
 name = "futures-macro"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea405816a5139fb39af82c2beb921d52143f556038378d6db21183a5c37fbfb7"
+checksum = "a4c40298486cdf52cc00cd6d6987892ba502c7656a16a4192a9992b1ccedd121"
 dependencies = [
+ "autocfg",
  "proc-macro-hack",
  "proc-macro2",
  "quote",
@@ -1184,15 +1184,15 @@ dependencies = [
 
 [[package]]
 name = "futures-sink"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85754d98985841b7d4f5e8e6fbfa4a4ac847916893ec511a2917ccd8525b8bb3"
+checksum = "a57bead0ceff0d6dde8f465ecd96c9338121bb7717d3e7b108059531870c4282"
 
 [[package]]
 name = "futures-task"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa189ef211c15ee602667a6fcfe1c1fd9e07d42250d2156382820fba33c9df80"
+checksum = "8a16bef9fc1a4dddb5bee51c989e3fbba26569cbb0e31f5b303c184e3dd33dae"
 
 [[package]]
 name = "futures-timer"
@@ -1202,11 +1202,12 @@ checksum = "e64b03909df88034c26dc1547e8970b91f98bdb65165d6a4e9110d94263dbb2c"
 
 [[package]]
 name = "futures-util"
-version = "0.3.13"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1812c7ab8aedf8d6f2701a43e1243acdbcc2b36ab26e2ad421eb99ac963d96d1"
+checksum = "feb5c238d27e2bf94ffdfd27b2c29e3df4a68c4193bb6427384259e2bf191967"
 dependencies = [
  "futures-channel",
+ "autocfg",
  "futures-core",
  "futures-io",
  "futures-macro",
@@ -1316,6 +1317,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 
 [[package]]
+name = "hermit-abi"
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1403,7 +1413,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project",
- "socket2 0.4.0",
+ "socket2",
  "tokio",
  "tower-service",
  "tracing",
@@ -1423,6 +1433,19 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "webpki",
+]
+
+[[package]]
+name = "hyper-tls"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
+dependencies = [
+ "bytes",
+ "hyper",
+ "native-tls",
+ "tokio",
+ "tokio-native-tls",
 ]
 
 [[package]]
@@ -1520,9 +1543,9 @@ dependencies = [
 
 [[package]]
 name = "k256"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf02ecc966e1b7e8db1c81ac8f321ba24d1cfab5b634961fab10111f015858e1"
+checksum = "4476a0808212a9e81ce802eb1a0cfc60e73aea296553bacc0fac7e1268bc572a"
 dependencies = [
  "cfg-if 1.0.0",
  "ecdsa",
@@ -1832,6 +1855,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_cpus"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
 name = "object"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2035,18 +2068,18 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
 name = "pin-project"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc174859768806e91ae575187ada95c91a29e96a98dc5d2cd9a1fed039501ba6"
+checksum = "c7509cc106041c40a4518d2af7a61530e1eed0e6285296a3d8c5472806ccc4a4"
 dependencies = [
  "pin-project-internal",
 ]
 
 [[package]]
 name = "pin-project-internal"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a490329918e856ed1b083f244e3bfe2d8c4f336407e4ea9e1a9f479ff09049e5"
+checksum = "48c950132583b500556b1efd71d45b319029f2b71518d979fcc208e16b42426f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2368,9 +2401,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.2"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf12057f289428dbf5c591c74bf10392e4a8003f993405a902f20117019022d4"
+checksum = "2296f2fac53979e8ccbc4a1136b25dcefd37be9ed7e4a1f6b05a6029c84ff124"
 dependencies = [
  "base64 0.13.0",
  "bytes",
@@ -2381,11 +2414,13 @@ dependencies = [
  "http-body",
  "hyper",
  "hyper-rustls",
+ "hyper-tls",
  "ipnet",
  "js-sys",
  "lazy_static",
  "log",
  "mime",
+ "native-tls",
  "percent-encoding",
  "pin-project-lite",
  "rustls",
@@ -2393,6 +2428,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "tokio",
+ "tokio-native-tls",
  "tokio-rustls",
  "url",
  "wasm-bindgen",
@@ -2749,17 +2785,6 @@ checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
 
 [[package]]
 name = "socket2"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "122e570113d28d773067fab24266b66753f6ea915758651696b6e35e49f88d6e"
-dependencies = [
- "cfg-if 1.0.0",
- "libc",
- "winapi",
-]
-
-[[package]]
-name = "socket2"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e3dfc207c526015c632472a77be09cf1b6e46866581aecae5cc38fb4235dea2"
@@ -2900,15 +2925,16 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "134af885d758d645f0f0505c9a8b3f9bf8a348fd822e112ab5248138348f1722"
+checksum = "83f0c8e7c0addab50b663055baf787d0af7f413a46e6e7fb9559a4e4db7137a5"
 dependencies = [
  "autocfg",
  "bytes",
  "libc",
  "memchr",
  "mio",
+ "num_cpus",
  "pin-project-lite",
  "tokio-macros",
 ]
@@ -2986,9 +3012,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.6.5"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5143d049e85af7fbc36f5454d990e62c2df705b3589f123b71f441b6b59f443f"
+checksum = "940a12c99365c31ea8dd9ba04ec1be183ffe4920102bb7122c2f515437601e8e"
 dependencies = [
  "bytes",
  "futures-core",
