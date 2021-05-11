@@ -4,9 +4,6 @@ pragma solidity >=0.6.11;
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 
 contract MockRecipient is IMessageRecipient {
-    // solhint-disable-next-line no-empty-blocks
-    constructor() {}
-
     fallback() external {
         revert("Fallback");
     }
@@ -19,12 +16,12 @@ contract MockRecipient is IMessageRecipient {
         return bytes(message());
     }
 
-    function receiveString(string calldata str)
+    function receiveString(string calldata _str)
         public
         pure
         returns (string memory)
     {
-        return str;
+        return _str;
     }
 
     function message() public pure returns (string memory) {

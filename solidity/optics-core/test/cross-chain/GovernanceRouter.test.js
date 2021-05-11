@@ -254,7 +254,7 @@ describe('GovernanceRouter', async () => {
       callData,
     ]);
 
-    const opticsMessage = formatOpticsMessage(
+    const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
       governorRouter,
       nonGovernorRouter,
@@ -269,7 +269,7 @@ describe('GovernanceRouter', async () => {
       opticsMessage,
     );
     expect(success).to.be.true;
-    expect(ret).to.equal('Transaction succeeded');
+    expect(ret).to.be.empty;
   });
 
   it('Transfers governorship', async () => {
