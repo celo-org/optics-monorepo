@@ -769,7 +769,7 @@ mod test {
                     });
             }
             {
-                // connection_manager_1.unenroll_replica called once
+                // connection_manager_2.unenroll_replica called once
                 let signed_failure = signed_failure.clone();
                 mock_connection_manager_2
                     .expect__unenroll_replica()
@@ -804,7 +804,6 @@ mod test {
             };
 
             let mut watcher = Watcher::new(updater.into(), 1, connection_managers, core);
-
             watcher.handle_failure(&double).await;
 
             // Checkpoint connection managers
