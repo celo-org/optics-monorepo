@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use color_eyre::{eyre::eyre, Report, Result};
-use ethers::core::types::Address;
+use ethers::prelude::{Address, Middleware};
 
 use optics_core::{
     traits::{ConnectionManager, Home, Replica},
@@ -29,12 +29,15 @@ pub enum EthereumConnection {
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
-            let provider = ethers::middleware::SignerMiddleware::new($provider, signer);
+            let provider_chain_id = $provider.get_chainid().await?;
+            let signer = signer.set_chain_id(provider_chain_id.as_u64());
+            let signing_provider = ethers::middleware::SignerMiddleware::new($provider, signer);
+
             Box::new(crate::$contract::new(
                 $name,
                 $domain,
                 $address,
-                provider.into(),
+                signing_provider.into(),
             ))
         } else {
             Box::new(crate::$contract::new(
@@ -59,7 +62,6 @@ macro_rules! construct_http_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
         let provider =
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
-
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
 }

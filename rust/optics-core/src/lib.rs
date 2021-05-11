@@ -141,6 +141,19 @@ impl From<YubiWallet> for Signers {
     }
 }
 
+impl Signers {
+    /// Set chain_id of signer
+    pub fn set_chain_id<T: Into<u64>>(self, chain_id: T) -> Self {
+        match self {
+            Signers::Local(signer) => signer.set_chain_id(chain_id).into(),
+            #[cfg(feature = "yubi")]
+            Signers::Yubi(signer) => signer.set_chain_id(chain_id).into(),
+            #[cfg(feature = "ledger")]
+            Signers::Ledger(signer) => signer.set_chain_id(chain_id).into(),
+        }
+    }
+}
+
 #[async_trait]
 impl Signer for Signers {
     type Error = SignersError;
