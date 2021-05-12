@@ -347,4 +347,74 @@ describe('GovernanceRouter', async () => {
     // Governor HAS been transferred on original non-governor domain
     await expectGovernor(nonGovernorRouter, nonGovernorDomain, secondGovernor);
   });
+
+  it('Upgrades using GovernanceRouter call', async () => {
+    const a = 5;
+    const b = 10;
+    const stateVar = 17;
+
+    // const mockRecipient = await optics.deployImplementation('MockRecipient');
+    const MockRecipient = await ethers.getContractFactory('MockRecipient');
+
+    // SETUP CONTRACT SUITE
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
+      'MysteryMathV1',
+    );
+
+    proxy = contracts.proxyWithImplementation;
+    upgradeBeacon = contracts.upgradeBeacon;
+    upgradeBeaconController = contracts.upgradeBeaconController;
+
+    // Set state of proxy
+    await proxy.setState(stateVar);
+
+    // Deploy Implementation 2
+    const implementation = await optics.deployImplementation('MysteryMathV2');
+
+    /*************** */
+    const upgradeFunction = upgradeBeaconController.interface.getFunction(
+      'upgrade',
+    );
+    const upgradeDataEncoded = MockRecipient.interface.encodeFunctionData(
+      upgradeFunction,
+      [upgradeBeacon.address, implementation.address],
+    );
+    const upgradeDataEncodedLength = await nonGovernorRouter.getMessageLength(
+      upgradeDataEncoded,
+    );
+
+    const callData = {
+      to: optics.ethersAddressToBytes32(upgradeBeaconController.address),
+      dataLen: upgradeDataEncodedLength,
+      data: upgradeDataEncoded,
+    };
+
+    const callMessage = optics.GovernanceRouter.formatCalls([callData]);
+
+    const opticsMessage = await formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
+      callMessage,
+    );
+
+    // Expect successful tx
+    let [
+      success,
+      ret,
+    ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
+      opticsMessage,
+    );
+    expect(success).to.be.true;
+    expect(ret).to.be.empty;
+
+    const versionResult = await proxy.version();
+    expect(versionResult).to.equal(2);
+
+    const mathResult = await proxy.doMath(a, b);
+    expect(mathResult).to.equal(a * b);
+
+    const stateResult = await proxy.getState();
+    expect(stateResult).to.equal(stateVar);
+  });
 });
