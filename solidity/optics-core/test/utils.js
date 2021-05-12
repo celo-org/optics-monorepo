@@ -1,11 +1,21 @@
 const { provider, deployMockContract } = waffle;
 const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
 
-const [opticsMessageSender, opticsMessageRecipient] = provider.getWallets();
-const mockRecipientPromise = deployMockContract(
-  opticsMessageRecipient,
-  MockRecipient.abi,
-);
+const [opticsMessageSender] = provider.getWallets();
+
+class MockRecipientObject {
+  constructor() {
+    const [opticsMessageRecipient] = provider.getWallets();
+    this.mockRecipient = deployMockContract(
+      opticsMessageRecipient,
+      MockRecipient.abi,
+    );
+  }
+
+  async getRecipient() {
+    return await this.mockRecipient;
+  }
+}
 
 const increaseTimestampBy = async (provider, increaseTime) => {
   await provider.send('evm_increaseTime', [increaseTime]);
@@ -26,8 +36,7 @@ const testUtils = {
   increaseTimestampBy,
   getUnusedSigner,
   opticsMessageSender,
-  opticsMessageRecipient,
-  mockRecipientPromise,
+  opticsMessageMockRecipient: new MockRecipientObject(),
 };
 
 module.exports = testUtils;
