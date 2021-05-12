@@ -3,8 +3,6 @@ pragma solidity >=0.6.11;
 
 import "../Replica.sol";
 
-import "hardhat/console.sol";
-
 contract TestReplica is Replica {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;

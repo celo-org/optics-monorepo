@@ -5,7 +5,7 @@
  * @param localDomain - domain on which the Home contract will be deployed
  * @param controller - ethers Contract of the UpgradeBeaconController contract
  * @param XAappConnectionManagerAddress - address of the XAappConnectionManager contract for the TestGovernanceRouter
- * @param test - boolean, true to deploy the test contract, false otherwise
+ * @param isTestDeploy - boolean, true to deploy the test contract, false otherwise
  *
  * @return contracts - UpgradableContractSetup type for the GovernanceRouter contracts
  */
@@ -13,9 +13,9 @@ async function devDeployGovernanceRouter(
   localDomain,
   controller,
   xAppConnectionManagerAddress,
-  test,
+  isTestDeploy,
 ) {
-  const contractStr = test ? 'TestGovernanceRouter' : 'GovernanceRouter';
+  const contractStr = isTestDeploy ? 'TestGovernanceRouter' : 'GovernanceRouter';
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     contractStr,
     [localDomain],
@@ -54,7 +54,7 @@ async function deployUpdaterManager(updater) {
  * @param localDomain - domain on which the Home contract will be deployed
  * @param controller - ethers Contract of the UpgradeBeaconController contract
  * @param updaterManager - address of the UpdaterManager contract
- * @param test - boolean, true to deploy the test contract, false otherwise
+ * @param isTestDeploy - boolean, true to deploy the test contract, false otherwise
  *
  * @return contracts - UpgradableContractSetup type for the Home contracts
  */
@@ -62,9 +62,9 @@ async function devDeployHome(
   localDomain,
   controller,
   updaterManagerAddress,
-  test,
+  isTestDeploy,
 ) {
-  const contractStr = test ? 'TestHome' : 'Home';
+  const contractStr = isTestDeploy ? 'TestHome' : 'Home';
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     contractStr,
     [localDomain],
@@ -81,12 +81,12 @@ async function devDeployHome(
  *
  * @param localDomain - domain that the TestReplica setup will be deployed on
  * @param controller - ethers Contract for the UpgradeBeaconController
- * @param test - boolean, true to deploy the test contract, false otherwise
+ * @param isTestDeploy - boolean, true to deploy the test contract, false otherwise
  *
  * @return contracts - UpgradeSetup type
  */
-async function devDeployReplicaUpgradeSetup(localDomain, controller, test) {
-  const contractStr = test ? 'TestReplica' : 'Replica';
+async function devDeployReplicaUpgradeSetup(localDomain, controller, isTestDeploy) {
+  const contractStr = isTestDeploy ? 'TestReplica' : 'Replica';
 
   const contracts = await optics.deployUpgradeSetup(
     contractStr,
@@ -103,12 +103,12 @@ async function devDeployReplicaUpgradeSetup(localDomain, controller, test) {
  *
  * @param upgradeBeaconAddress - address of the Replica Upgrade Beacon contract
  * @param remote - ChainConfig for the remote chain that the Replica will receive updates from
- * @param test - boolean, true to deploy the test contract, false otherwise
+ * @param isTestDeploy - boolean, true to deploy the test contract, false otherwise
  *
  * @return contracts - UpgradableProxy type
  */
-async function devDeployReplicaProxy(upgradeBeaconAddress, remote, test) {
-  const contractStr = test ? 'TestReplica' : 'Replica';
+async function devDeployReplicaProxy(upgradeBeaconAddress, remote, isTestDeploy) {
+  const contractStr = isTestDeploy ? 'TestReplica' : 'Replica';
 
   // Construct initialize args
   const {
@@ -152,11 +152,11 @@ async function devDeployReplicaProxy(upgradeBeaconAddress, remote, test) {
  *
  * @param local - a single ChainConfig for the local chain
  * @param remotes - an array of ChainConfigs for each of the remote chains
- * @param test - boolean, true to deploy the test contracts, false otherwise
+ * @param isTestDeploy - boolean, true to deploy the test contracts, false otherwise
  *
  * @return contracts - OpticsContracts type for the suite of Optics contract on this chain
  */
-async function devDeployOptics(local, remotes, test) {
+async function devDeployOptics(local, remotes, isTestDeploy) {
   const { domain, updater: localUpdaterAddress } = local;
 
   // Deploy UpgradeBeaconController
@@ -174,7 +174,7 @@ async function devDeployOptics(local, remotes, test) {
     domain,
     upgradeBeaconController,
     updaterManager.address,
-    test,
+    isTestDeploy,
   );
 
   await xAppConnectionManager.setHome(home.proxy.address);
@@ -186,14 +186,14 @@ async function devDeployOptics(local, remotes, test) {
     domain,
     upgradeBeaconController,
     xAppConnectionManager.address,
-    test,
+    isTestDeploy,
   );
 
   // Deploy Replica Upgrade Setup
   const replicaSetup = await devDeployReplicaUpgradeSetup(
     domain,
     upgradeBeaconController,
-    test,
+    isTestDeploy,
   );
 
   // Deploy Replica Proxies and enroll in XAppConnectionManager
@@ -204,7 +204,7 @@ async function devDeployOptics(local, remotes, test) {
     const replica = await devDeployReplicaProxy(
       replicaSetup.upgradeBeacon.address,
       remote,
-      test,
+      isTestDeploy,
     );
 
     replicaProxies[remoteDomain] = replica;

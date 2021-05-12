@@ -10,6 +10,7 @@ library GovernanceMessage {
 
     uint256 private constant CALL_PREFIX_LEN = 64;
     uint256 private constant MSG_PREFIX_LEN = 2;
+    uint256 private constant MSG_PREFIX_BYTE_LEN = 2;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -95,8 +96,8 @@ library GovernanceMessage {
         // Skip message prefix
         bytes29 _msgPtr =
             _msg.slice(
-                MSG_PREFIX_LEN,
-                _msg.len() - MSG_PREFIX_LEN,
+                MSG_PREFIX_BYTE_LEN,
+                _msg.len() - MSG_PREFIX_BYTE_LEN,
                 uint40(Types.Call)
             );
 
