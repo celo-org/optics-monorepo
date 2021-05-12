@@ -227,14 +227,14 @@ describe('GovernanceRouter', async () => {
 
   it('Accepts valid call messages', async () => {
     // Create address for router to enroll and domain for router
-    const mockRecipient = await optics.deployImplementation('MockRecipient');
+    const testRecipient = await optics.deployImplementation('TestRecipient');
 
-    const MockRecipient = await ethers.getContractFactory('MockRecipient');
+    const TestRecipient = await ethers.getContractFactory('TestRecipient');
     const string = 'String!';
-    const receiveStringFunction = MockRecipient.interface.getFunction(
+    const receiveStringFunction = TestRecipient.interface.getFunction(
       'receiveString',
     );
-    const receiveStringEncoded = MockRecipient.interface.encodeFunctionData(
+    const receiveStringEncoded = TestRecipient.interface.encodeFunctionData(
       receiveStringFunction,
       [string],
     );
@@ -243,12 +243,12 @@ describe('GovernanceRouter', async () => {
     );
 
     const callData = {
-      to: optics.ethersAddressToBytes32(mockRecipient.address),
+      to: optics.ethersAddressToBytes32(testRecipient.address),
       dataLen: receiveStringEncodedLength,
       data: receiveStringEncoded,
     };
 
-    // Create Call message to mockRecipient that calls receiveString
+    // Create Call message to test recipient that calls receiveString
     const callMessage = optics.GovernanceRouter.formatCalls([
       callData,
       callData,

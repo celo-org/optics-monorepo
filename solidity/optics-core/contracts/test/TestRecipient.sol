@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 
-contract MockRecipient is IMessageRecipient {
+contract TestRecipient is IMessageRecipient {
     fallback() external {
         revert("Fallback");
     }

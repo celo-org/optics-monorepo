@@ -1,5 +1,5 @@
 const { provider, deployMockContract } = waffle;
-const MockRecipient = require('../artifacts/contracts/test/MockRecipient.sol/MockRecipient.json');
+const TestRecipient = require('../artifacts/contracts/test/TestRecipient.sol/TestRecipient.json');
 
 const [opticsMessageSender] = provider.getWallets();
 
@@ -8,7 +8,7 @@ class MockRecipientObject {
     const [opticsMessageRecipient] = provider.getWallets();
     this.mockRecipient = deployMockContract(
       opticsMessageRecipient,
-      MockRecipient.abi,
+      TestRecipient.abi,
     );
   }
 
