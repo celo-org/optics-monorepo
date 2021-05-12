@@ -9,8 +9,8 @@ library GovernanceMessage {
     using TypedMemView for bytes29;
 
     uint256 private constant CALL_PREFIX_LEN = 64;
-    uint256 private constant MSG_PREFIX_LEN = 2;
     uint256 private constant MSG_PREFIX_NUM_ITEMS = 2;
+    uint256 private constant MSG_PREFIX_LEN = 2;
     uint256 private constant GOV_ACTION_LEN = 37;
 
     enum Types {
@@ -44,7 +44,7 @@ library GovernanceMessage {
         returns (bytes memory _msg)
     {
         bytes29[] memory _encodedCalls =
-            new bytes29[](_calls.length + MSG_PREFIX_LEN);
+            new bytes29[](_calls.length + MSG_PREFIX_NUM_ITEMS);
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
@@ -58,7 +58,7 @@ library GovernanceMessage {
                     0
                 );
 
-            _encodedCalls[i + MSG_PREFIX_LEN] = _callMsg;
+            _encodedCalls[i + MSG_PREFIX_NUM_ITEMS] = _callMsg;
         }
 
         _msg = TypedMemView.join(_encodedCalls);
@@ -96,8 +96,8 @@ library GovernanceMessage {
         // Skip message prefix
         bytes29 _msgPtr =
             _msg.slice(
-                MSG_PREFIX_NUM_ITEMS,
-                _msg.len() - MSG_PREFIX_NUM_ITEMS,
+                MSG_PREFIX_LEN,
+                _msg.len() - MSG_PREFIX_LEN,
                 uint40(Types.Call)
             );
 
