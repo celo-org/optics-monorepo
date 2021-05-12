@@ -92,6 +92,19 @@ describe('Home', async () => {
     }
   });
 
+  it('Does not enqueue large messages', async () => {
+    const message = `0x${Buffer.alloc(3000).toString('hex')}`;
+    await expect(
+      home
+        .connect(signer)
+        .enqueue(
+          destDomain,
+          optics.ethersAddressToBytes32(recipient.address),
+          message,
+        ),
+    ).to.be.revertedWith('!too big');
+  });
+
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
     const sequence = (await home.sequences(localDomain)) + 1;

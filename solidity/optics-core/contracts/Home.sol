@@ -19,6 +19,9 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
+    /// @notice Set arbitrarily to 2 KiB
+    uint256 public constant MAX_MESSAGE_BODY_BYTES = 2 * 2**10;
+
     /// @notice Mapping of sequence numbers for each destination
     mapping(uint32 => uint32) public sequences;
 
@@ -122,6 +125,7 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         bytes32 _recipient,
         bytes memory _body
     ) external notFailed {
+        require(_body.length <= MAX_MESSAGE_BODY_BYTES, "!too big");
         uint32 _sequence = sequences[_destination] + 1;
         sequences[_destination] = _sequence;
 
