@@ -15,7 +15,9 @@ async function devDeployGovernanceRouter(
   xAppConnectionManagerAddress,
   isTestDeploy,
 ) {
-  const contractStr = isTestDeploy ? 'TestGovernanceRouter' : 'GovernanceRouter';
+  const contractStr = isTestDeploy
+    ? 'TestGovernanceRouter'
+    : 'GovernanceRouter';
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     contractStr,
     [localDomain],
@@ -85,7 +87,11 @@ async function devDeployHome(
  *
  * @return contracts - UpgradeSetup type
  */
-async function devDeployReplicaUpgradeSetup(localDomain, controller, isTestDeploy) {
+async function devDeployReplicaUpgradeSetup(
+  localDomain,
+  controller,
+  isTestDeploy,
+) {
   const contractStr = isTestDeploy ? 'TestReplica' : 'Replica';
 
   const contracts = await optics.deployUpgradeSetup(
@@ -107,7 +113,11 @@ async function devDeployReplicaUpgradeSetup(localDomain, controller, isTestDeplo
  *
  * @return contracts - UpgradableProxy type
  */
-async function devDeployReplicaProxy(upgradeBeaconAddress, remote, isTestDeploy) {
+async function devDeployReplicaProxy(
+  upgradeBeaconAddress,
+  remote,
+  isTestDeploy,
+) {
   const contractStr = isTestDeploy ? 'TestReplica' : 'Replica';
 
   // Construct initialize args
