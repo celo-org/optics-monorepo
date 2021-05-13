@@ -101,7 +101,7 @@ where
                     new_root: event.new_root.into(),
                 };
 
-                SignedUpdate { signature, update }
+                SignedUpdate { update, signature }
             })
             .map(Ok)
             .transpose()
@@ -128,7 +128,7 @@ where
                     new_root: event.new_root.into(),
                 };
 
-                SignedUpdate { signature, update }
+                SignedUpdate { update, signature }
             })
             .map(Ok)
             .transpose()
