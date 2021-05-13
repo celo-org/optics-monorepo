@@ -43,14 +43,34 @@ function getUpdaterObject(chainDetails, domain) {
  * Get the GovernanceRouter contract
  *
  * @param chainDetails - ChainDetails type
- * @param replicaDomain - localDomain for the Replica; domain where the Replica contract is deployed
- * @param homeDomain - remoteDomain for the Replica; domain of the Home contract the Replica "listens" to
- *
- * @return governanceRouterContract - ethers contract for interacting with the governanceRouter
+ * @param domain - the domain
+ * @return governanceRouterContract - ethers contract for interacting with the upgradeBeacon
  */
 function getGovernanceRouter(chainDetails, domain) {
   return chainDetails[domain].contracts.governanceRouter
     .proxyWithImplementation;
+}
+
+/*
+ * Get the UpgradeBeacon contract
+ *
+ * @param chainDetails - ChainDetails type
+ * @param domain - the domain
+ * @return upgradeBeaconContract - ethers contract for interacting with the governanceRouter
+ */
+function getUpgradeBeacon(chainDetails, domain) {
+  return chainDetails[domain].contracts.upgradeBeacon;
+}
+
+/*
+ * Get the UpgradeBeaconController contract
+ *
+ * @param chainDetails - ChainDetails type
+ * @param domain - the domain
+ * @return upgradeBeaconControllerContract - ethers contract for interacting with the upgradeBeaconController
+ */
+function getUpgradeBeaconController(chainDetails, domain) {
+  return chainDetails[domain].contracts.upgradeBeaconController;
 }
 
 /*
@@ -129,4 +149,6 @@ module.exports = {
   getReplica,
   getGovernanceRouter,
   getUpdaterObject,
+  getUpgradeBeacon,
+  getUpgradeBeaconController,
 };

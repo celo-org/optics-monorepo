@@ -244,6 +244,7 @@ async function devDeployOptics(local, remotes, isTestDeploy) {
   );
 
   const contracts = {
+    upgradeBeacon: replicaSetup.upgradeBeacon,
     upgradeBeaconController,
     xAppConnectionManager,
     governanceRouter,

@@ -379,7 +379,12 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         view
         returns (bool)
     {
-        return _domain == governorDomain && _address == routers[_domain];
+        bool isGovernorRouter =
+            _domain == governorDomain && _address == routers[_domain];
+        bool isLocalGovernor =
+            TypeCasts.bytes32ToAddress(_address) == address(this) &&
+                governor != address(0);
+        return isGovernorRouter || isLocalGovernor;
     }
 
     /**

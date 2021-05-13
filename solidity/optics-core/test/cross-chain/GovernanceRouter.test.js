@@ -8,6 +8,8 @@ const {
   getHome,
   getReplica,
   getGovernanceRouter,
+  getUpgradeBeacon,
+  getUpgradeBeaconController,
 } = require('./deployCrossChainTest');
 
 /*
@@ -353,25 +355,27 @@ describe('GovernanceRouter', async () => {
     const b = 10;
     const stateVar = 17;
 
-    // const mockRecipient = await optics.deployImplementation('MockRecipient');
     const MockRecipient = await ethers.getContractFactory('MockRecipient');
 
-    // SETUP CONTRACT SUITE
+    // Set up contract suite
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'MysteryMathV1',
     );
-
-    proxy = contracts.proxyWithImplementation;
-    upgradeBeacon = contracts.upgradeBeacon;
-    upgradeBeaconController = contracts.upgradeBeaconController;
+    mysteryMathProxy = contracts.proxyWithImplementation;
+    upgradeBeacon = getUpgradeBeacon(chainDetails, governorDomain);
+    // upgradeBeacon = contracts.upgradeBeacon;
+    upgradeBeaconController = getUpgradeBeaconController(
+      chainDetails,
+      governorDomain,
+    );
 
     // Set state of proxy
-    await proxy.setState(stateVar);
+    await mysteryMathProxy.setState(stateVar);
 
     // Deploy Implementation 2
     const implementation = await optics.deployImplementation('MysteryMathV2');
 
-    /*************** */
+    // Set up data for upgrade call message
     const upgradeFunction = upgradeBeaconController.interface.getFunction(
       'upgrade',
     );
@@ -389,12 +393,12 @@ describe('GovernanceRouter', async () => {
       data: upgradeDataEncoded,
     };
 
+    // format upgrade call message
     const callMessage = optics.GovernanceRouter.formatCalls([callData]);
-
     const opticsMessage = await formatOpticsMessage(
-      governorReplicaOnNonGovernorChain,
+      nonGovernorReplicaOnGovernorChain,
       governorRouter,
-      nonGovernorRouter,
+      governorRouter,
       callMessage,
     );
 
@@ -402,19 +406,21 @@ describe('GovernanceRouter', async () => {
     let [
       success,
       ret,
-    ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
+    ] = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
       opticsMessage,
     );
+    console.log(ret);
     expect(success).to.be.true;
     expect(ret).to.be.empty;
 
-    const versionResult = await proxy.version();
+    // test implementation was upgraded
+    const versionResult = await mysteryMathProxy.version();
     expect(versionResult).to.equal(2);
 
-    const mathResult = await proxy.doMath(a, b);
+    const mathResult = await mysteryMathProxy.doMath(a, b);
     expect(mathResult).to.equal(a * b);
 
-    const stateResult = await proxy.getState();
+    const stateResult = await mysteryMathProxy.getState();
     expect(stateResult).to.equal(stateVar);
   });
 });
