@@ -54,6 +54,17 @@ function getGovernanceRouter(chainDetails, domain) {
 }
 
 /*
+ * Get the UpdaterManager contract
+ *
+ * @param chainDetails - ChainDetails type
+ * @param domain - the domain
+ * @return updaterManagerContract - ethers contract for interacting with the updaterManager
+ */
+function getUpdaterManager(chainDetails, domain) {
+  return chainDetails[domain].contracts.updaterManager;
+}
+
+/*
  * Deploy the entire suite of Optics contracts
  * on each chain within the chainConfigs array
  * including the upgradable Home, Replicas, and GovernanceRouter
@@ -129,4 +140,5 @@ module.exports = {
   getReplica,
   getGovernanceRouter,
   getUpdaterObject,
+  getUpdaterManager,
 };
