@@ -392,7 +392,7 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage,);
+    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
 
     currentUpdaterAddr = await governorHome.updater();
     expect(currentUpdaterAddr).to.equal(newUpdater.address);
