@@ -69,7 +69,7 @@ extendEnvironment((hre) => {
     async dispatchByDestinationAndSequence(destination, sequence) {
       const filter = this.filters.Dispatch(
         null,
-        destinationAndSequence(destination, sequence),
+        optics.destinationAndSequence(destination, sequence),
       );
 
       return await this.queryFilter(filter);
@@ -147,7 +147,7 @@ extendEnvironment((hre) => {
     }
 
     domainHash() {
-      return domainHash(this.localDomain);
+      return optics.domainHash(this.localDomain);
     }
 
     message(oldRoot, newRoot) {
@@ -219,7 +219,7 @@ extendEnvironment((hre) => {
 
   const signedFailureNotification = async (signer, domain, updaterAddress) => {
     const domainHash = optics.domainHash(domain);
-    const updaterBytes32 = ethersAddressToBytes32(updaterAddress);
+    const updaterBytes32 = optics.ethersAddressToBytes32(updaterAddress);
 
     const failureNotification = ethers.utils.solidityPack(
       ['bytes32', 'uint32', 'bytes32'],

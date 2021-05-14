@@ -137,10 +137,9 @@ describe('XAppConnectionManager', async () => {
     );
     const newReplica = newReplicaContracts.proxyWithImplementation;
 
-    await connectionManager.ownerEnrollReplica(
-      newReplica.address,
-      newRemoteDomain,
-    );
+    await expect(
+      connectionManager.ownerEnrollReplica(newReplica.address, newRemoteDomain),
+    ).to.emit(connectionManager, 'ReplicaEnrolled');
     expect(await connectionManager.domainToReplica(newRemoteDomain)).to.equal(
       newReplica.address,
     );
@@ -150,7 +149,9 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('Owner can unenroll a replica', async () => {
-    await connectionManager.ownerUnenrollReplica(enrolledReplica.address);
+    await expect(
+      connectionManager.ownerUnenrollReplica(enrolledReplica.address),
+    ).to.emit(connectionManager, 'ReplicaUnenrolled');
     expect(
       await connectionManager.replicaToDomain(enrolledReplica.address),
     ).to.equal(0);
@@ -165,18 +166,20 @@ describe('XAppConnectionManager', async () => {
       await connectionManager.watcherPermission(watcher.address, remoteDomain),
     ).to.be.false;
 
-    await connectionManager.setWatcherPermission(
-      watcher.address,
-      remoteDomain,
-      true,
-    );
+    await expect(
+      connectionManager.setWatcherPermission(
+        watcher.address,
+        remoteDomain,
+        true,
+      ),
+    ).to.emit(connectionManager, 'WatcherPermissionSet');
 
     expect(
       await connectionManager.watcherPermission(watcher.address, remoteDomain),
     ).to.be.true;
   });
 
-  it('Unenrolls a replica given SignedFailureNotification', async () => {
+  it('Unenrolls a replica given valid SignedFailureNotification', async () => {
     // Set watcher permissions for domain of currently enrolled replica
     const [watcher] = walletProvider.getWalletsEphemeral(1);
     await connectionManager.setWatcherPermission(
@@ -196,17 +199,110 @@ describe('XAppConnectionManager', async () => {
     );
 
     // Unenroll replica using data + signature
-    await connectionManager.unenrollReplica(
-      failureNotification.domain,
-      failureNotification.updaterBytes32,
-      signature,
-    );
+    await expect(
+      connectionManager.unenrollReplica(
+        failureNotification.domain,
+        failureNotification.updaterBytes32,
+        signature,
+      ),
+    ).to.emit(connectionManager, 'ReplicaUnenrolled');
     expect(
       await connectionManager.replicaToDomain(enrolledReplica.address),
     ).to.equal(0);
     expect(await connectionManager.domainToReplica(localDomain)).to.equal(
       ethers.constants.AddressZero,
     );
+  });
+
+  it('unenrollReplica reverts if there is no replica for provided domain', async () => {
+    const noReplicaDomain = 3000;
+
+    // Set watcher permissions for noReplicaDomain
+    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    await connectionManager.setWatcherPermission(
+      watcher.address,
+      noReplicaDomain,
+      true,
+    );
+
+    // Create signed failure notification and signature for noReplicaDomain
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      noReplicaDomain,
+      updater.signer.address,
+    );
+
+    // Expect unenrollReplica call to revert
+    await expect(
+      connectionManager.unenrollReplica(
+        failureNotification.domain,
+        failureNotification.updaterBytes32,
+        signature,
+      ),
+    ).to.be.revertedWith('!replica exists');
+  });
+
+  it('unenrollReplica reverts if provided updater does not match replica updater', async () => {
+    const [watcher, nonUpdater] = walletProvider.getWalletsEphemeral(2);
+
+    // Set watcher permissions
+    await connectionManager.setWatcherPermission(
+      watcher.address,
+      remoteDomain,
+      true,
+    );
+
+    // Create signed failure notification and signature with nonUpdater
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      remoteDomain,
+      nonUpdater.address,
+    );
+
+    // Expect unenrollReplica call to revert
+    await expect(
+      connectionManager.unenrollReplica(
+        failureNotification.domain,
+        failureNotification.updaterBytes32,
+        signature,
+      ),
+    ).to.be.revertedWith('!current updater');
+  });
+
+  it('unenrollReplica reverts if incorrect watcher provided', async () => {
+    const [watcher, nonWatcher] = walletProvider.getWalletsEphemeral(2);
+
+    // Set watcher permissions
+    await connectionManager.setWatcherPermission(
+      watcher.address,
+      remoteDomain,
+      true,
+    );
+
+    // Create signed failure notification and signature with nonWatcher
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      nonWatcher,
+      remoteDomain,
+      updater.signer.address,
+    );
+
+    // Expect unenrollReplica call to revert
+    await expect(
+      connectionManager.unenrollReplica(
+        failureNotification.domain,
+        failureNotification.updaterBytes32,
+        signature,
+      ),
+    ).to.be.revertedWith('!valid watcher');
   });
 
   it('Checks Rust-produced SignedFailureNotification', async () => {
