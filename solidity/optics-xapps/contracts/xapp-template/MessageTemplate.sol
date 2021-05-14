@@ -3,6 +3,36 @@ pragma solidity >=0.6.11;
 
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
+/*
+============ Overview: xApp Message Library ============
+Messages are the actual data passed between chains.
+We define messages as a byte vector in memory.
+
+To make sure that messages are compact and chain agnostic,
+we recommend a simple, custom serialization format (rather than ABI encoding).
+
+TypedMemView is a library for working with memory in Solidity.
+We use TypedMemView to create a custom serialization format for xApp messages.
+We use a 1-byte type tag on the front of the message.
+(The typed tag is optional if the user is familiar with writing wire protocols)
+
+Message Flow Between xApps:
+1. xApp Router A receives a command on chain A
+2. xApp Router A encodes (formats) a message specifying the command
+2. xApp Router A sends the message to xApp Router B on chain B via Optics
+3. xApp Router B receives the message via Optics
+4. xApp Router B decodes (parses) the message and acts on it
+
+The Message Library should contain the following for each type of message:
+1. Formatter: a function which takes Solidity arguments and encodes them
+   in a byte vector in a defined format, producing the message
+
+2. Identifier: a function which takes a byte vector and returns TRUE
+   if it is a valid instance of this message type
+
+3. Getters: function(s) which parse the information stored in the message
+   and return them in the form of Solidity arguments
+*/
 library Message {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
