@@ -8,7 +8,6 @@ const {
   getHome,
   getReplica,
   getGovernanceRouter,
-  getUpgradeBeacon,
   getUpgradeBeaconController,
 } = require('./deployCrossChainTest');
 
@@ -362,8 +361,7 @@ describe('GovernanceRouter', async () => {
       'MysteryMathV1',
     );
     mysteryMathProxy = contracts.proxyWithImplementation;
-    upgradeBeacon = getUpgradeBeacon(chainDetails, governorDomain);
-    // upgradeBeacon = contracts.upgradeBeacon;
+    upgradeBeacon = contracts.upgradeBeacon;
     upgradeBeaconController = getUpgradeBeaconController(
       chainDetails,
       governorDomain,

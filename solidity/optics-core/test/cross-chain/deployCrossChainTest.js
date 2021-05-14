@@ -52,17 +52,6 @@ function getGovernanceRouter(chainDetails, domain) {
 }
 
 /*
- * Get the UpgradeBeacon contract
- *
- * @param chainDetails - ChainDetails type
- * @param domain - the domain
- * @return upgradeBeaconContract - ethers contract for interacting with the governanceRouter
- */
-function getUpgradeBeacon(chainDetails, domain) {
-  return chainDetails[domain].contracts.upgradeBeacon;
-}
-
-/*
  * Get the UpgradeBeaconController contract
  *
  * @param chainDetails - ChainDetails type
@@ -149,6 +138,5 @@ module.exports = {
   getReplica,
   getGovernanceRouter,
   getUpdaterObject,
-  getUpgradeBeacon,
   getUpgradeBeaconController,
 };
