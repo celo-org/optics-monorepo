@@ -60,6 +60,10 @@ contract XAppConnectionManager is Ownable {
         unenrollReplica(_replica);
     }
 
+    function setHome(address _home) public onlyOwner {
+        home = Home(_home);
+    }
+
     function ownerEnrollReplica(address _replica, uint32 _domain)
         public
         onlyOwner
@@ -73,10 +77,6 @@ contract XAppConnectionManager is Ownable {
 
     function ownerUnenrollReplica(address _replica) public onlyOwner {
         unenrollReplica(_replica);
-    }
-
-    function setHome(address _home) public onlyOwner {
-        home = Home(_home);
     }
 
     function setWatcherPermission(

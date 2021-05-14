@@ -26,6 +26,7 @@ describe('SimpleCrossChainMessage', async () => {
   const domains = [1000, 2000];
   const homeDomain = domains[0];
   const replicaDomain = domains[1];
+  const walletProvider = new testUtils.WalletProvider(provider);
 
   let randomSigner, chainDetails, firstRootEnqueuedToReplica;
   let latestRoot = {},
@@ -38,7 +39,7 @@ describe('SimpleCrossChainMessage', async () => {
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
 
-    randomSigner = testUtils.getUnusedSigner(provider, configs.length);
+    [randomSigner] = walletProvider.getWalletsPersistent(1);
   });
 
   it('All Homes suggest empty update values when queue is empty', async () => {
