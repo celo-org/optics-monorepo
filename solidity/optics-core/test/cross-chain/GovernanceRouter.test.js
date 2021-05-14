@@ -356,7 +356,7 @@ describe('GovernanceRouter', async () => {
     const b = 10;
     const stateVar = 17;
 
-    const MockRecipient = await ethers.getContractFactory('MockRecipient');
+    const mockRecipient = await opticsMessageMockRecipient.getRecipient();
 
     // get upgradeBeaconController
     const upgradeBeaconController = getUpgradeBeaconController(
@@ -392,7 +392,7 @@ describe('GovernanceRouter', async () => {
     const upgradeFunction = upgradeBeaconController.interface.getFunction(
       'upgrade',
     );
-    const upgradeDataEncoded = MockRecipient.interface.encodeFunctionData(
+    const upgradeDataEncoded = mockRecipient.interface.encodeFunctionData(
       upgradeFunction,
       [upgradeBeacon.address, implementation.address],
     );
