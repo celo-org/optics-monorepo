@@ -372,6 +372,14 @@ describe('GovernanceRouter', async () => {
     // Set state of proxy
     await mysteryMathProxy.setState(stateVar);
 
+    // expect results before upgrade
+    let versionResult = await mysteryMathProxy.version();
+    expect(versionResult).to.equal(1);
+    let mathResult = await mysteryMathProxy.doMath(a, b);
+    expect(mathResult).to.equal(a + b);
+    let stateResult = await mysteryMathProxy.getState();
+    expect(stateResult).to.equal(stateVar);
+
     // Deploy Implementation 2
     const implementation = await optics.deployImplementation('MysteryMathV2');
 
@@ -403,24 +411,16 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    let [
-      success,
-      ret,
-    ] = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
-      opticsMessage,
-    );
-    console.log(ret);
-    expect(success).to.be.true;
-    expect(ret).to.be.empty;
+    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
 
     // test implementation was upgraded
-    const versionResult = await mysteryMathProxy.version();
+    versionResult = await mysteryMathProxy.version();
     expect(versionResult).to.equal(2);
 
-    const mathResult = await mysteryMathProxy.doMath(a, b);
+    mathResult = await mysteryMathProxy.doMath(a, b);
     expect(mathResult).to.equal(a * b);
 
-    const stateResult = await mysteryMathProxy.getState();
+    stateResult = await mysteryMathProxy.getState();
     expect(stateResult).to.equal(stateVar);
   });
 });
