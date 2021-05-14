@@ -18,19 +18,19 @@ We use a 1-byte type tag on the front of the message.
 
 Message Flow Between xApps:
 1. xApp Router A receives a command on chain A
-2. xApp Router A encodes (formats) a message specifying the command
+2. xApp Router A encodes (formats) the information into a message
 2. xApp Router A sends the message to xApp Router B on chain B via Optics
 3. xApp Router B receives the message via Optics
-4. xApp Router B decodes (parses) the message and acts on it
+4. xApp Router B decodes (gets) the information from the message and acts on it
 
 The Message Library should contain the following for each type of message:
-1. Formatter: a function which takes Solidity arguments and encodes them
-   in a byte vector in a defined format, producing the message
+1. Formatter: a function which takes information as Solidity arguments and
+   encodes it as a byte vector in a defined format, producing the message
 
 2. Identifier: a function which takes a byte vector and returns TRUE
-   if it is a valid instance of this message type
+   if the vector is matches the expected format of this message type
 
-3. Getters: function(s) which parse the information stored in the message
+3. Getter(s): function(s) which parse the information stored in the message
    and return them in the form of Solidity arguments
 */
 library Message {
@@ -42,32 +42,7 @@ library Message {
         A // 1 - a message which contains a single number
     }
 
-    /**
-     * @notice Get the type that the TypedMemView is cast to
-     * @param _view The message
-     * @return _type The type of the message (one of the enum Types)
-     */
-    function messageType(bytes29 _view) internal pure returns (Types _type) {
-        _type = Types(uint8(_view.typeOf()));
-    }
-
-    /**
-     * @notice Parse the number sent within a TypeA message
-     * @param _view The message
-     * @return _number The number encoded in the message
-     */
-    function number(bytes29 _view) internal pure returns (uint256 _number) {
-        _number = uint256(_view.index(0, 32));
-    }
-
-    /**
-     * @notice Determine whether the message is a message TypeA
-     * @param _view The message
-     * @return _isTypeA True if the message is TypeA
-     */
-    function isTypeA(bytes29 _view) internal pure returns (bool _isTypeA) {
-        _isTypeA = messageType(_view) == Types.A;
-    }
+    // ============ Formatters ============
 
     /**
      * @notice Given the information needed for a message TypeA
@@ -82,5 +57,36 @@ library Message {
 
         // case the bytes as the enumerated message type
         return TypedMemView.clone(_message.castTo(uint40(Types.A)));
+    }
+
+    // ============ Identifiers ============
+
+    /**
+    * @notice Get the type that the TypedMemView is cast to
+    * @param _view The message
+    * @return _type The type of the message (one of the enum Types)
+    */
+    function messageType(bytes29 _view) internal pure returns (Types _type) {
+        _type = Types(uint8(_view.typeOf()));
+    }
+
+    /**
+     * @notice Determine whether the message is a message TypeA
+     * @param _view The message
+     * @return _isTypeA True if the message is TypeA
+     */
+    function isTypeA(bytes29 _view) internal pure returns (bool _isTypeA) {
+        _isTypeA = messageType(_view) == Types.A;
+    }
+
+    // ============ Getters ============
+
+    /**
+     * @notice Parse the number sent within a TypeA message
+     * @param _view The message
+     * @return _number The number encoded in the message
+     */
+    function number(bytes29 _view) internal pure returns (uint256 _number) {
+        _number = uint256(_view.index(0, 32));
     }
 }
