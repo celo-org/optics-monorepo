@@ -32,15 +32,4 @@ contract TestGovernanceRouter is GovernanceRouter {
 
         return false;
     }
-
-    function getCallDataLen(bytes memory _message)
-        external
-        pure
-        returns (uint256)
-    {
-        bytes29 _msg = _message.ref(0);
-        bytes29 _msgPtr =
-            _msg.slice(1, _msg.len() - 1, uint40(GovernanceMessage.Types.Call));
-        return GovernanceMessage.dataLen(_msgPtr);
-    }
 }
