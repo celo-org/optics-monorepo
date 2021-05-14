@@ -146,15 +146,12 @@ extendEnvironment((hre) => {
       return new Updater(signer, await signer.getAddress(), localDomain, true);
     }
 
-    domain() {
-      return ethers.utils.solidityKeccak256(
-        ['uint32', 'string'],
-        [this.localDomain, 'OPTICS'],
-      );
+    domainHash() {
+      return domainHash(this.localDomain);
     }
 
     message(oldRoot, newRoot) {
-      return ethers.utils.concat([this.domain(), oldRoot, newRoot]);
+      return ethers.utils.concat([this.domainHash(), oldRoot, newRoot]);
     }
 
     async signUpdate(oldRoot, newRoot) {
@@ -213,6 +210,35 @@ extendEnvironment((hre) => {
       .add(ethers.BigNumber.from(sequence));
   };
 
+  const domainHash = (domain) => {
+    return ethers.utils.solidityKeccak256(
+      ['uint32', 'string'],
+      [domain, 'OPTICS'],
+    );
+  };
+
+  const signedFailureNotification = async (signer, domain, updaterAddress) => {
+    const domainHash = optics.domainHash(domain);
+    const updaterBytes32 = ethersAddressToBytes32(updaterAddress);
+
+    const failureNotification = ethers.utils.solidityPack(
+      ['bytes32', 'uint32', 'bytes32'],
+      [domainHash, domain, updaterBytes32],
+    );
+    const signature = await signer.signMessage(
+      ethers.utils.arrayify(ethers.utils.keccak256(failureNotification)),
+    );
+
+    return {
+      failureNotification: {
+        domainHash,
+        domain,
+        updaterBytes32,
+      },
+      signature,
+    };
+  };
+
   hre.optics = {
     State,
     MessageStatus,
@@ -225,6 +251,8 @@ extendEnvironment((hre) => {
     messageToLeaf,
     ethersAddressToBytes32,
     destinationAndSequence,
+    domainHash,
+    signedFailureNotification,
     deployUpgradeSetupAndProxy,
     deployImplementation,
     deployUpgradeBeaconController,

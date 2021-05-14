@@ -159,6 +159,56 @@ describe('XAppConnectionManager', async () => {
     );
   });
 
+  it('Owner can set watcher permissions', async () => {
+    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    expect(
+      await connectionManager.watcherPermission(watcher.address, remoteDomain),
+    ).to.be.false;
+
+    await connectionManager.setWatcherPermission(
+      watcher.address,
+      remoteDomain,
+      true,
+    );
+
+    expect(
+      await connectionManager.watcherPermission(watcher.address, remoteDomain),
+    ).to.be.true;
+  });
+
+  it('Unenrolls a replica given SignedFailureNotification', async () => {
+    // Set watcher permissions for domain of currently enrolled replica
+    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    await connectionManager.setWatcherPermission(
+      watcher.address,
+      remoteDomain,
+      true,
+    );
+
+    // Create signed failure notification and signature
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      remoteDomain,
+      updater.signer.address,
+    );
+
+    // Unenroll replica using data + signature
+    await connectionManager.unenrollReplica(
+      failureNotification.domain,
+      failureNotification.updaterBytes32,
+      signature,
+    );
+    expect(
+      await connectionManager.replicaToDomain(enrolledReplica.address),
+    ).to.equal(0);
+    expect(await connectionManager.domainToReplica(localDomain)).to.equal(
+      ethers.constants.AddressZero,
+    );
+  });
+
   it('Checks Rust-produced SignedFailureNotification', async () => {
     // Compare Rust output in json file to solidity output
     const testCase = signedFailureTestCases[0];

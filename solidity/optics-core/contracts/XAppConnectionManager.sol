@@ -88,16 +88,16 @@ contract XAppConnectionManager is Ownable {
         emit WatcherPermissionSet(_domain, _watcher, _access);
     }
 
+    function localDomain() public view returns (uint32) {
+        return home.localDomain();
+    }
+
     function isOwner(address _owner) public view returns (bool) {
         return _owner == owner();
     }
 
     function isReplica(address _replica) public view returns (bool) {
         return replicaToDomain[_replica] != 0;
-    }
-
-    function localDomain() public view returns (uint32) {
-        return home.localDomain();
     }
 
     function watcherPermission(address _watcher, uint32 _domain)
