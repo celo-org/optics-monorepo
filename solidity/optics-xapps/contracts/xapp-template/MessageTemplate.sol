@@ -62,10 +62,10 @@ library Message {
     // ============ Identifiers ============
 
     /**
-    * @notice Get the type that the TypedMemView is cast to
-    * @param _view The message
-    * @return _type The type of the message (one of the enum Types)
-    */
+     * @notice Get the type that the TypedMemView is cast to
+     * @param _view The message
+     * @return _type The type of the message (one of the enum Types)
+     */
     function messageType(bytes29 _view) internal pure returns (Types _type) {
         _type = Types(uint8(_view.typeOf()));
     }
