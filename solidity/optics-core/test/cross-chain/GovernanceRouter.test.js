@@ -356,16 +356,21 @@ describe('GovernanceRouter', async () => {
 
     const MockRecipient = await ethers.getContractFactory('MockRecipient');
 
-    // Set up contract suite
-    const { contracts } = await optics.deployUpgradeSetupAndProxy(
-      'MysteryMathV1',
-    );
-    const mysteryMathProxy = contracts.proxyWithImplementation;
-    const upgradeBeacon = contracts.upgradeBeacon;
+    // get upgradeBeaconController
     const upgradeBeaconController = getUpgradeBeaconController(
       chainDetails,
       governorDomain,
     );
+
+    // Set up contract suite
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
+      'MysteryMathV1',
+      [],
+      [],
+      upgradeBeaconController,
+    );
+    const mysteryMathProxy = contracts.proxyWithImplementation;
+    const upgradeBeacon = contracts.upgradeBeacon;
 
     // Set state of proxy
     await mysteryMathProxy.setState(stateVar);
@@ -408,11 +413,8 @@ describe('GovernanceRouter', async () => {
       callMessage,
     );
 
-    // Expect successful tx
-    const res = await nonGovernorReplicaOnGovernorChain.testProcess(
-      opticsMessage,
-    );
-    console.log(res);
+    // process message
+    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage,);
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();
