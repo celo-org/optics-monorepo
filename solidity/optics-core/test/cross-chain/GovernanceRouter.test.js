@@ -3,12 +3,14 @@ const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const { formatOpticsMessage } = require('./crossChainTestUtils');
+const { opticsMessageMockRecipient } = require('../utils');
 const {
   deployMultipleChains,
   getHome,
   getReplica,
   getGovernanceRouter,
   getUpgradeBeaconController,
+  getUpdaterManager,
 } = require('./deployCrossChainTest');
 
 /*
@@ -425,5 +427,51 @@ describe('GovernanceRouter', async () => {
 
     stateResult = await mysteryMathProxy.getState();
     expect(stateResult).to.equal(stateVar);
+  });
+
+  it('Calls UpdaterManager to change the Updater on Home', async () => {
+    const mockRecipient = await opticsMessageMockRecipient.getRecipient();
+    const [newUpdater] = provider.getWallets();
+    const updaterManager = getUpdaterManager(chainDetails, governorDomain);
+
+    let currentUpdaterAddr = await governorHome.updater();
+    expect(currentUpdaterAddr).to.equal(updater.signer.address);
+
+    // TODO: extrapolate this block into a separate function: formatCallMessage
+    /*********** START **********/
+    // Set up data for call message
+    const setUpdaterFunction = updaterManager.interface.getFunction(
+      'setUpdater',
+    );
+    const setUpdaterDataEncoded = mockRecipient.interface.encodeFunctionData(
+      setUpdaterFunction,
+      [newUpdater.address],
+    );
+    const setUpdaterDataEncodedLength = await nonGovernorRouter.getMessageLength(
+      setUpdaterDataEncoded,
+    );
+
+    const callData = {
+      to: optics.ethersAddressToBytes32(updaterManager.address),
+      dataLen: setUpdaterDataEncodedLength,
+      data: setUpdaterDataEncoded,
+    };
+
+    // format call message
+    const callMessage = optics.GovernanceRouter.formatCalls([callData]);
+    /*********** END **********/
+
+    const opticsMessage = await formatOpticsMessage(
+      nonGovernorReplicaOnGovernorChain,
+      governorRouter,
+      governorRouter,
+      callMessage,
+    );
+
+    // Expect successful tx
+    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
+
+    currentUpdaterAddr = await governorHome.updater();
+    expect(currentUpdaterAddr).to.equal(newUpdater.address);
   });
 });
