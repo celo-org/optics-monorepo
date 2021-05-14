@@ -17,27 +17,17 @@ import {
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {Router} from "../Router.sol";
 
-contract BridgeRouter is IMessageRecipient, TokenRegistry {
+contract BridgeRouter is Router, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
-    mapping(uint32 => bytes32) internal remotes;
-
     constructor(address _xAppConnectionManager)
         TokenRegistry(_xAppConnectionManager)
     {} // solhint-disable-line no-empty-blocks
-
-    modifier onlyRemoteRouter(uint32 _origin, bytes32 _router) {
-        require(_isRemoteRouter(_origin, _router), "Not a remote router");
-        _;
-    }
-
-    function enrollRemote(uint32 _origin, bytes32 _router) external onlyOwner {
-        remotes[_origin] = _router;
-    }
 
     function handle(
         uint32 _origin,
@@ -145,22 +135,5 @@ contract BridgeRouter is IMessageRecipient, TokenRegistry {
         );
 
         return hex"";
-    }
-
-    function _mustHaveRemote(uint32 _domain)
-        internal
-        view
-        returns (bytes32 _remote)
-    {
-        _remote = remotes[_domain];
-        require(_remote != bytes32(0), "!remote");
-    }
-
-    function _isRemoteRouter(uint32 _origin, bytes32 _router)
-        internal
-        view
-        returns (bool)
-    {
-        return remotes[_origin] == _router;
     }
 }

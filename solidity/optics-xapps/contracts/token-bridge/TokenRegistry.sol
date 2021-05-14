@@ -13,6 +13,7 @@ import {
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import {XAppConnectionClient} from "../XAppConnectionClient.sol";
 
 // How the token registry works:
 // We sort token types as "representation" or "native".
@@ -32,7 +33,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 //
 // Note that native tokens should NEVER be represented in these lookup tables.
 
-contract TokenRegistry is Ownable {
+abstract contract TokenRegistry is XAppConnectionClient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -42,8 +43,6 @@ contract TokenRegistry is Ownable {
         uint32 domain;
         bytes32 id;
     }
-
-    XAppConnectionManager public xAppConnectionManager;
 
     // We should be able to deploy a new token on demand
     address internal tokenTemplate;
@@ -57,14 +56,10 @@ contract TokenRegistry is Ownable {
     // If the token is native, this MUST be address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
 
-    constructor(address _xAppConnectionManager) Ownable() {
+    constructor(address _xAppConnectionManager)
+        XAppConnectionClient(_xAppConnectionManager)
+    {
         tokenTemplate = address(new BridgeToken());
-        setXAppConnectionManager(_xAppConnectionManager);
-    }
-
-    modifier onlyReplica() {
-        require(xAppConnectionManager.isReplica(msg.sender), "!replica");
-        _;
     }
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
@@ -74,13 +69,6 @@ contract TokenRegistry is Ownable {
 
     function setTemplate(address _newTemplate) external onlyOwner {
         tokenTemplate = _newTemplate;
-    }
-
-    function setXAppConnectionManager(address _xAppConnectionManager)
-        public
-        onlyOwner
-    {
-        xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
     function _createClone(address _target) internal returns (address result) {
@@ -123,7 +111,7 @@ contract TokenRegistry is Ownable {
         returns (IERC20)
     {
         // Native
-        if (_tokenId.domain() == xAppConnectionManager.localDomain()) {
+        if (_tokenId.domain() == _localDomain()) {
             return IERC20(_tokenId.evmId());
         }
 
@@ -143,7 +131,7 @@ contract TokenRegistry is Ownable {
     {
         _id = reprToCanonical[_token];
         if (_id.domain == 0) {
-            _id.domain = xAppConnectionManager.localDomain();
+            _id.domain = _localDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
         }
     }
