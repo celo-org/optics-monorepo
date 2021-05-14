@@ -360,9 +360,9 @@ describe('GovernanceRouter', async () => {
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
       'MysteryMathV1',
     );
-    mysteryMathProxy = contracts.proxyWithImplementation;
-    upgradeBeacon = contracts.upgradeBeacon;
-    upgradeBeaconController = getUpgradeBeaconController(
+    const mysteryMathProxy = contracts.proxyWithImplementation;
+    const upgradeBeacon = contracts.upgradeBeacon;
+    const upgradeBeaconController = getUpgradeBeaconController(
       chainDetails,
       governorDomain,
     );
@@ -409,7 +409,10 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
+    const res = await nonGovernorReplicaOnGovernorChain.testProcess(
+      opticsMessage,
+    );
+    console.log(res);
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();
