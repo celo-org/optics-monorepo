@@ -4,6 +4,25 @@ const {
   getReplica,
   getUpdaterObject,
 } = require('./deployCrossChainTest');
+const { opticsMessageMockRecipient } = require('../utils');
+
+/*
+ * Gets the byte length of a hex string
+ *
+ * @param hexStr - the hex string
+ * @return byteLength - number of bytes
+ */
+function getHexStringByteLength(hexStr) {
+  let len = hexStr.length;
+
+  // check for prefix, remove if necessary
+  if (hexStr.slice(0, 2) == '0x') {
+    len -= 2;
+  }
+
+  // divide by 2 to get the byte length
+  return len / 2;
+}
 
 /*
  * Enqueue a message to the specified Home contract
@@ -180,9 +199,28 @@ async function formatOpticsMessage(
   return opticsMessage;
 }
 
+async function formatCallData(destinationContract, functionStr, functionArgs) {
+  const mockRecipient = await opticsMessageMockRecipient.getRecipient();
+
+  // Set up data for call message
+  const callFunc = destinationContract.interface.getFunction(functionStr);
+  const callDataEncoded = mockRecipient.interface.encodeFunctionData(
+    callFunc,
+    functionArgs,
+  );
+  const callDataEncodedLength = getHexStringByteLength(callDataEncoded);
+
+  return {
+    to: optics.ethersAddressToBytes32(destinationContract.address),
+    dataLen: callDataEncodedLength,
+    data: callDataEncoded,
+  };
+}
+
 module.exports = {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   formatMessage,
+  formatCallData,
   formatOpticsMessage,
 };

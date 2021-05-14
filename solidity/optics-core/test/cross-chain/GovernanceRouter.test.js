@@ -2,8 +2,10 @@ const { ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
-const { formatOpticsMessage } = require('./crossChainTestUtils');
-const { opticsMessageMockRecipient } = require('../utils');
+const {
+  formatCallData,
+  formatOpticsMessage,
+} = require('./crossChainTestUtils');
 const {
   deployMultipleChains,
   getHome,
@@ -230,25 +232,13 @@ describe('GovernanceRouter', async () => {
 
   it('Accepts valid call messages', async () => {
     // Create address for router to enroll and domain for router
-    const testRecipient = await optics.deployImplementation('TestRecipient');
+    const TestRecipient = await optics.deployImplementation('TestRecipient');
 
-    const TestRecipient = await ethers.getContractFactory('TestRecipient');
-    const string = 'String!';
-    const receiveStringFunction =
-      TestRecipient.interface.getFunction('receiveString');
-    const receiveStringEncoded = TestRecipient.interface.encodeFunctionData(
-      receiveStringFunction,
-      [string],
-    );
-    const receiveStringEncodedLength = await nonGovernorRouter.getMessageLength(
-      receiveStringEncoded,
-    );
-
-    const callData = {
-      to: optics.ethersAddressToBytes32(testRecipient.address),
-      dataLen: receiveStringEncodedLength,
-      data: receiveStringEncoded,
-    };
+    // Format optics call message
+    const arg = 'String!';
+    const callData = await formatCallData(TestRecipient, 'receiveString', [
+      arg,
+    ]);
 
     // Create Call message to test recipient that calls receiveString
     const callMessage = optics.GovernanceRouter.formatCalls([
@@ -356,8 +346,6 @@ describe('GovernanceRouter', async () => {
     const b = 10;
     const stateVar = 17;
 
-    const mockRecipient = await opticsMessageMockRecipient.getRecipient();
-
     // get upgradeBeaconController
     const upgradeBeaconController = getUpgradeBeaconController(
       chainDetails,
@@ -388,26 +376,14 @@ describe('GovernanceRouter', async () => {
     // Deploy Implementation 2
     const implementation = await optics.deployImplementation('MysteryMathV2');
 
-    // Set up data for upgrade call message
-    const upgradeFunction = upgradeBeaconController.interface.getFunction(
-      'upgrade',
-    );
-    const upgradeDataEncoded = mockRecipient.interface.encodeFunctionData(
-      upgradeFunction,
-      [upgradeBeacon.address, implementation.address],
-    );
-    const upgradeDataEncodedLength = await nonGovernorRouter.getMessageLength(
-      upgradeDataEncoded,
-    );
+    // Format optics call message
+    const callData = await formatCallData(upgradeBeaconController, 'upgrade', [
+      upgradeBeacon.address,
+      implementation.address,
+    ]);
 
-    const callData = {
-      to: optics.ethersAddressToBytes32(upgradeBeaconController.address),
-      dataLen: upgradeDataEncodedLength,
-      data: upgradeDataEncoded,
-    };
-
-    // format upgrade call message
     const callMessage = optics.GovernanceRouter.formatCalls([callData]);
+
     const opticsMessage = await formatOpticsMessage(
       nonGovernorReplicaOnGovernorChain,
       governorRouter,
@@ -430,36 +406,19 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Calls UpdaterManager to change the Updater on Home', async () => {
-    const mockRecipient = await opticsMessageMockRecipient.getRecipient();
     const [newUpdater] = provider.getWallets();
     const updaterManager = getUpdaterManager(chainDetails, governorDomain);
 
+    // check current Updater address on Home
     let currentUpdaterAddr = await governorHome.updater();
     expect(currentUpdaterAddr).to.equal(updater.signer.address);
 
-    // TODO: extrapolate this block into a separate function: formatCallMessage
-    /*********** START **********/
-    // Set up data for call message
-    const setUpdaterFunction = updaterManager.interface.getFunction(
-      'setUpdater',
-    );
-    const setUpdaterDataEncoded = mockRecipient.interface.encodeFunctionData(
-      setUpdaterFunction,
-      [newUpdater.address],
-    );
-    const setUpdaterDataEncodedLength = await nonGovernorRouter.getMessageLength(
-      setUpdaterDataEncoded,
-    );
+    // format optics call message
+    const callData = await formatCallData(updaterManager, 'setUpdater', [
+      newUpdater.address,
+    ]);
 
-    const callData = {
-      to: optics.ethersAddressToBytes32(updaterManager.address),
-      dataLen: setUpdaterDataEncodedLength,
-      data: setUpdaterDataEncoded,
-    };
-
-    // format call message
     const callMessage = optics.GovernanceRouter.formatCalls([callData]);
-    /*********** END **********/
 
     const opticsMessage = await formatOpticsMessage(
       nonGovernorReplicaOnGovernorChain,
@@ -468,9 +427,10 @@ describe('GovernanceRouter', async () => {
       callMessage,
     );
 
-    // Expect successful tx
+    // process message
     await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
 
+    // check for new updater
     currentUpdaterAddr = await governorHome.updater();
     expect(currentUpdaterAddr).to.equal(newUpdater.address);
   });
