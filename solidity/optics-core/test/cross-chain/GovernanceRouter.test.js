@@ -409,17 +409,10 @@ describe('GovernanceRouter', async () => {
       newUpdater.address,
     ]);
 
-    const callMessage = optics.GovernanceRouter.formatCalls([callData]);
-
-    const opticsMessage = await formatOpticsMessage(
-      nonGovernorReplicaOnGovernorChain,
-      governorRouter,
-      governorRouter,
-      callMessage,
+    await expect(governorRouter.callLocal([callData])).to.emit(
+      governorHome,
+      'NewUpdater',
     );
-
-    // process message
-    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
 
     // check for new updater
     currentUpdaterAddr = await governorHome.updater();
