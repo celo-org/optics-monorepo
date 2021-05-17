@@ -137,27 +137,35 @@ describe('XAppConnectionManager', async () => {
     );
     const newReplica = newReplicaContracts.proxyWithImplementation;
 
+    // Assert new replica not considered replica before enrolled
+    expect(await connectionManager.isReplica(newReplica.address)).to.be.false;
+
     await expect(
       connectionManager.ownerEnrollReplica(newReplica.address, newRemoteDomain),
     ).to.emit(connectionManager, 'ReplicaEnrolled');
+
     expect(await connectionManager.domainToReplica(newRemoteDomain)).to.equal(
       newReplica.address,
     );
     expect(
       await connectionManager.replicaToDomain(newReplica.address),
     ).to.equal(newRemoteDomain);
+    expect(await connectionManager.isReplica(newReplica.address)).to.be.true;
   });
 
   it('Owner can unenroll a replica', async () => {
     await expect(
       connectionManager.ownerUnenrollReplica(enrolledReplica.address),
     ).to.emit(connectionManager, 'ReplicaUnenrolled');
+
     expect(
       await connectionManager.replicaToDomain(enrolledReplica.address),
     ).to.equal(0);
     expect(await connectionManager.domainToReplica(localDomain)).to.equal(
       ethers.constants.AddressZero,
     );
+    expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
+      .false;
   });
 
   it('Owner can set watcher permissions', async () => {
@@ -198,6 +206,10 @@ describe('XAppConnectionManager', async () => {
       updater.signer.address,
     );
 
+    // Assert new replica considered replica before unenrolled
+    expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
+      .true;
+
     // Unenroll replica using data + signature
     await expect(
       connectionManager.unenrollReplica(
@@ -206,12 +218,15 @@ describe('XAppConnectionManager', async () => {
         signature,
       ),
     ).to.emit(connectionManager, 'ReplicaUnenrolled');
+
     expect(
       await connectionManager.replicaToDomain(enrolledReplica.address),
     ).to.equal(0);
     expect(await connectionManager.domainToReplica(localDomain)).to.equal(
       ethers.constants.AddressZero,
     );
+    expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
+      .false;
   });
 
   it('unenrollReplica reverts if there is no replica for provided domain', async () => {
