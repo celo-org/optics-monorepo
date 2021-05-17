@@ -29,22 +29,8 @@ class WalletProvider {
     this.numUsedWallets = 0;
   }
 
-  getWalletsPersistent(numWallets) {
-    if (this.numUsedAccounts + numWallets >= this.wallets.length) {
-      throw new Error('Out of wallets!');
-    }
-
-    const wallets = this.wallets.slice(
-      this.numUsedWallets,
-      this.numUsedWallets + numWallets,
-    );
-
-    this.numUsedWallets += numWallets;
-    return wallets;
-  }
-
-  getWalletsEphemeral(numWallets) {
-    if (this.numUsedWallets + numWallets > this.wallets.length) {
+  _getWallets(numWallets) {
+    if (this.numUsedAccounts + numWallets > this.wallets.length) {
       throw new Error('Out of wallets!');
     }
 
@@ -52,6 +38,16 @@ class WalletProvider {
       this.numUsedWallets,
       this.numUsedWallets + numWallets,
     );
+  }
+
+  getWalletsPersistent(numWallets) {
+    const wallets = this._getWallets(numWallets);
+    this.numUsedWallets += numWallets;
+    return wallets;
+  }
+
+  getWalletsEphemeral(numWallets) {
+    return this._getWallets(numWallets);
   }
 }
 
