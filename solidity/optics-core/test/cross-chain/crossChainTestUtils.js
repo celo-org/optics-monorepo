@@ -6,24 +6,6 @@ const {
 } = require('./deployCrossChainTest');
 
 /*
- * Gets the byte length of a hex string
- *
- * @param hexStr - the hex string
- * @return byteLength - number of bytes
- */
-function getHexStringByteLength(hexStr) {
-  let len = hexStr.length;
-
-  // check for prefix, remove if necessary
-  if (hexStr.slice(0, 2) == '0x') {
-    len -= 2;
-  }
-
-  // divide by 2 to get the byte length
-  return len / 2;
-}
-
-/*
  * Enqueue a message to the specified Home contract
  * and return the updated root
  *
@@ -205,11 +187,9 @@ async function formatCallData(destinationContract, functionStr, functionArgs) {
     callFunc,
     functionArgs,
   );
-  const callDataEncodedLength = getHexStringByteLength(callDataEncoded);
 
   return {
     to: optics.ethersAddressToBytes32(destinationContract.address),
-    dataLen: callDataEncodedLength,
     data: callDataEncoded,
   };
 }

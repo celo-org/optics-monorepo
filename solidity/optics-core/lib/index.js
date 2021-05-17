@@ -10,6 +10,7 @@ const {
   deployProxyWithImplementation,
   getInitializeData,
 } = require('../scripts/deployUpgradeSetup');
+const utils = require('./utils');
 const { deployOptics } = require('../scripts/deployOptics');
 const HomeAbi = require('../../../abis/Home.abi.json');
 const ReplicaAbi = require('../../../abis/Replica.abi.json');
@@ -110,9 +111,10 @@ extendEnvironment((hre) => {
       const numCalls = callsData.length;
 
       for (let i = 0; i < numCalls; i++) {
-        const { to, dataLen, data } = callsData[i];
+        const { to, data } = callsData[i];
+        const dataLen = utils.getHexStringByteLength(data);
 
-        if (!to || !dataLen || !data) {
+        if (!to || !data) {
           throw new Error(`Missing data in Call ${i + 1}: \n  ${callsData[i]}`);
         }
 
