@@ -4,7 +4,6 @@ const {
   getReplica,
   getUpdaterObject,
 } = require('./deployCrossChainTest');
-const { opticsMessageMockRecipient } = require('../utils');
 
 /*
  * Gets the byte length of a hex string
@@ -200,11 +199,9 @@ async function formatOpticsMessage(
 }
 
 async function formatCallData(destinationContract, functionStr, functionArgs) {
-  const mockRecipient = await opticsMessageMockRecipient.getRecipient();
-
   // Set up data for call message
   const callFunc = destinationContract.interface.getFunction(functionStr);
-  const callDataEncoded = mockRecipient.interface.encodeFunctionData(
+  const callDataEncoded = destinationContract.interface.encodeFunctionData(
     callFunc,
     functionArgs,
   );
