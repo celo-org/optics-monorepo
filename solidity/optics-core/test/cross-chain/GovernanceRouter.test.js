@@ -382,17 +382,8 @@ describe('GovernanceRouter', async () => {
       implementation.address,
     ]);
 
-    const callMessage = optics.GovernanceRouter.formatCalls([callData]);
-
-    const opticsMessage = await formatOpticsMessage(
-      nonGovernorReplicaOnGovernorChain,
-      governorRouter,
-      governorRouter,
-      callMessage,
-    );
-
-    // process message
-    await nonGovernorReplicaOnGovernorChain.testProcess(opticsMessage);
+    // dispatch call on local governorRouter
+    governorRouter.callLocal([callData]);
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();
