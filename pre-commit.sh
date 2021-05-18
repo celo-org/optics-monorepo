@@ -25,6 +25,8 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
     echo "+Updating core ABIs"
     cd ./solidity/optics-core
     npm run compile
+    # add files in case linter modified them
+    git add .
     cd ../..
 else
     echo "+Skipping core ABI updates"
@@ -35,6 +37,8 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
     echo "+Updating xapps ABIs"
     cd ./solidity/optics-xapps
     npm run compile
+    # add files in case linter modified them
+    git add .
     cd ../..
 else
     echo "+Skipping xapps ABI updates"

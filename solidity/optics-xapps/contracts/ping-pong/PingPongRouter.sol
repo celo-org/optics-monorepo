@@ -32,8 +32,18 @@ contract PingPongRouter is Router, XAppConnectionClient {
 
     // ============ Events ============
 
-    event Received(uint256 domain, bool isPing, uint32 matchId, uint256 count);
-    event Sent(uint256 domain, bool isPing, uint32 matchId, uint256 count);
+    event Received(
+        uint32 indexed domain,
+        uint32 indexed matchId,
+        uint256 count,
+        bool isPing
+    );
+    event Sent(
+        uint32 indexed domain,
+        uint32 indexed matchId,
+        uint256 count,
+        bool isPing
+    );
 
     // ============ Constructor ============
 
@@ -115,7 +125,7 @@ contract PingPongRouter is Router, XAppConnectionClient {
         uint32 _match = _message.matchId();
 
         // emit a Received event
-        emit Received(_origin, _isPing, _match, _count);
+        emit Received(_origin, _match, _count, _isPing);
 
         // send the opposite volley back
         _send(_origin, !_isPing, _match, _count + 1);
@@ -167,6 +177,6 @@ contract PingPongRouter is Router, XAppConnectionClient {
         (_home()).enqueue(_destinationDomain, _remoteRouterAddress, _message);
 
         // emit a Sent event
-        emit Sent(_destinationDomain, _isPing, _match, _count);
+        emit Sent(_destinationDomain, _match, _count, _isPing);
     }
 }
