@@ -1,5 +1,5 @@
 const { waffle, ethers } = require('hardhat');
-const { provider, deployMockContract } = waffle;
+const { deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
@@ -36,7 +36,7 @@ describe('Home', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner, recipient] = provider.getWallets();
+    [signer, fakeSigner, recipient, updaterManager] = await ethers.getSigners();
     updater = await optics.Updater.fromSigner(signer, localDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
     mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
@@ -95,13 +95,11 @@ describe('Home', async () => {
   it('Does not enqueue large messages', async () => {
     const message = `0x${Buffer.alloc(3000).toString('hex')}`;
     await expect(
-      home
-        .connect(signer)
-        .enqueue(
-          destDomain,
-          optics.ethersAddressToBytes32(recipient.address),
-          message,
-        ),
+      home.enqueue(
+        destDomain,
+        optics.ethersAddressToBytes32(recipient.address),
+        message,
+      ),
     ).to.be.revertedWith('!too big');
   });
 
@@ -128,13 +126,11 @@ describe('Home', async () => {
 
     // Send message with signer address as msg.sender
     await expect(
-      home
-        .connect(signer)
-        .enqueue(
-          destDomain,
-          optics.ethersAddressToBytes32(recipient.address),
-          message,
-        ),
+      home.enqueue(
+        destDomain,
+        optics.ethersAddressToBytes32(recipient.address),
+        message,
+      ),
     )
       .to.emit(home, 'Dispatch')
       .withArgs(leafIndex, destinationAndSequence, leaf, opticsMessage);

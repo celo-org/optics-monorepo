@@ -38,6 +38,9 @@ module.exports = {
     localhost: {
       url: 'http://localhost:8545',
     },
+    hardhat: {
+      blockGasLimit: 0xfffffffffffff,
+    },
     madison: {
       chainId: 29739,
       url: `http://${MADISON_RPC_USER}:${MADISON_RPC_PASS}@${MADISON_RPC_URL}`,

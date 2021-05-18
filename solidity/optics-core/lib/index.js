@@ -143,7 +143,7 @@ extendEnvironment((hre) => {
     }
 
     static async fromSigner(signer, localDomain) {
-      return new Updater(signer, await signer.getAddress(), localDomain, true);
+      return new Updater(signer, signer.address, localDomain, true);
     }
 
     domainHash() {

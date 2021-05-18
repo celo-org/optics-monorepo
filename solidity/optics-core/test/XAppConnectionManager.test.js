@@ -1,5 +1,5 @@
 const { waffle, ethers } = require('hardhat');
-const { provider, deployMockContract } = waffle;
+const { deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
@@ -26,7 +26,7 @@ describe('XAppConnectionManager', async () => {
     updater;
 
   before(async () => {
-    [signer] = walletProvider.getWalletsPersistent(1);
+    [signer] = await ethers.getSigners();
     updater = await optics.Updater.fromSigner(signer, remoteDomain);
   });
 

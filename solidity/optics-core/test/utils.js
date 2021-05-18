@@ -1,3 +1,4 @@
+const { ethers } = require('hardhat');
 const { provider, deployMockContract } = waffle;
 const TestRecipient = require('../artifacts/contracts/test/TestRecipient.sol/TestRecipient.json');
 
@@ -5,14 +6,13 @@ const [opticsMessageSender] = provider.getWallets();
 
 class MockRecipientObject {
   constructor() {
-    const [opticsMessageRecipient] = provider.getWallets();
-    this.mockRecipient = deployMockContract(
-      opticsMessageRecipient,
-      TestRecipient.abi,
-    );
+    this.initPromise = ethers.getSigners().then(([signer]) => {
+      this.mockRecipient = deployMockContract(signer, TestRecipient.abi);
+    });
   }
 
   async getRecipient() {
+    await this.initPromise;
     return await this.mockRecipient;
   }
 }

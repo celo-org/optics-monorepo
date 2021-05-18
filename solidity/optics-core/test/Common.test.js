@@ -1,5 +1,4 @@
-const { waffle, ethers } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 const {
@@ -11,7 +10,7 @@ describe('Common', async () => {
   let common, signer, fakeSigner, updater, fakeUpdater;
 
   before(async () => {
-    [signer, fakeSigner] = provider.getWallets();
+    [signer, fakeSigner] = await ethers.getSigners();
     updater = await optics.Updater.fromSigner(signer, localDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   });
