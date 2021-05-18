@@ -51,12 +51,8 @@ library Message {
      * @param _number The number to be included in the TypeA message
      * @return The encoded bytes message
      */
-    function formatTypeA(uint256 _number) internal view returns (bytes memory) {
-        // pack the information into a bytes message
-        bytes29 _message = abi.encodePacked(_number).ref(0);
-
-        // case the bytes as the enumerated message type
-        return TypedMemView.clone(_message.castTo(uint40(Types.A)));
+    function formatTypeA(uint256 _number) internal pure returns (bytes memory) {
+        return abi.encodePacked(uint8(Types.A), _number);
     }
 
     // ============ Identifiers ============
@@ -87,6 +83,10 @@ library Message {
      * @return _number The number encoded in the message
      */
     function number(bytes29 _view) internal pure returns (uint256 _number) {
+        require(
+            isTypeA(_view),
+            "MessageTemplate/number: view must be of type A"
+        );
         _number = uint256(_view.index(0, 32));
     }
 }

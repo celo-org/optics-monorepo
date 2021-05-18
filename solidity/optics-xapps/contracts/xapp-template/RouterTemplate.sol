@@ -106,13 +106,13 @@ contract RouterTemplate is Router, XAppConnectionClient {
         bytes32 _remoteRouterAddress = _mustHaveRemote(_destinationDomain);
 
         // encode a message to send to the remote xApp Router
-        bytes memory _opticsMessage = Message.formatTypeA(_number);
+        bytes memory _outboundMessage = Message.formatTypeA(_number);
 
         // send the message to the xApp Router
-        (_home()).enqueue(
+        _home().enqueue(
             _destinationDomain,
             _remoteRouterAddress,
-            _opticsMessage
+            _outboundMessage
         );
     }
 }
