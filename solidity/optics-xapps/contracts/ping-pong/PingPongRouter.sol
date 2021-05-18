@@ -27,10 +27,13 @@ contract PingPongRouter is Router, XAppConnectionClient {
     using TypedMemView for bytes29;
     using PingPongMessage for bytes29;
 
+    // ============ Mutable State ============
+    uint32 nextMatch;
+
     // ============ Events ============
 
-    event Received(uint256 domain, bool isPing, uint256 count);
-    event Sent(uint256 domain, bool isPing, uint256 count);
+    event Received(uint256 domain, bool isPing, uint32 matchId, uint256 count);
+    event Sent(uint256 domain, bool isPing, uint32 matchId, uint256 count);
 
     // ============ Constructor ============
 
@@ -109,12 +112,13 @@ contract PingPongRouter is Router, XAppConnectionClient {
     ) internal returns (bytes memory) {
         // get the volley count for this game
         uint256 _count = _message.count();
+        uint32 _match = _message.matchId();
 
         // emit a Received event
-        emit Received(_origin, _isPing, _count);
+        emit Received(_origin, _isPing, _match, _count);
 
         // send the opposite volley back
-        _send(_origin, !_isPing, _count + 1);
+        _send(_origin, !_isPing, _match, _count + 1);
 
         return hex"";
     }
@@ -130,8 +134,12 @@ contract PingPongRouter is Router, XAppConnectionClient {
         // the PingPong match always begins with a Ping volley
         bool _isPing = true;
 
+        // increment match counter
+        uint32 _match = nextMatch;
+        nextMatch = _match + 1;
+
         // send the first volley to the destination domain
-        _send(_destinationDomain, _isPing, 0);
+        _send(_destinationDomain, _isPing, _match, 0);
     }
 
     /**
@@ -143,23 +151,22 @@ contract PingPongRouter is Router, XAppConnectionClient {
     function _send(
         uint32 _destinationDomain,
         bool _isPing,
+        uint32 _match,
         uint256 _count
     ) internal {
         // get the xApp Router at the destinationDomain
         bytes32 _remoteRouterAddress = _mustHaveRemote(_destinationDomain);
 
         // format the ping message
-        bytes memory _message;
-        if (_isPing) {
-            _message = PingPongMessage.formatPing(_count);
-        } else {
-            _message = PingPongMessage.formatPong(_count);
-        }
+        bytes memory _message =
+            _isPing
+                ? PingPongMessage.formatPing(_match, _count)
+                : PingPongMessage.formatPong(_match, _count);
 
         // send the message to the xApp Router
         (_home()).enqueue(_destinationDomain, _remoteRouterAddress, _message);
 
         // emit a Sent event
-        emit Sent(_destinationDomain, _isPing, _count);
+        emit Sent(_destinationDomain, _isPing, _match, _count);
     }
 }
