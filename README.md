@@ -10,7 +10,7 @@ cross-chain communication systems, Optics creates channels between chains, and
 then passes its messages over the channel. Once a channel is established, any
 application on the chain can use it to send messages to any other chain.
 
-Comoared to IBC and PoS light client based cross-chain communication, Optics
+Compared to IBC and PoS light client based cross-chain communication, Optics
 has weaker security guarantees, and a longer latency period. However, Optics
 may be implemented on any smart contract chain, with no bespoke light client
 engineering. Because it does not run a light client, Optics does not spend
@@ -19,8 +19,9 @@ extra gas verifying remote chain block headers.
 In other words, Optics is designed to prioritize:
 
 - Cost. No header verification or state management.
-- Speed of implementation. Requires only
-- Ease of use
+- Speed of implementation. Requires only simple smart contracts, no complex
+  cryptography.
+- Ease of use. Simple interface for maintaining XApp connections.
 
 You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics).
 
