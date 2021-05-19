@@ -100,7 +100,7 @@ describe('XAppConnectionManager', async () => {
     const [nonEnrolledReplica] = walletProvider.getWalletsEphemeral(1);
     expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
       .true;
-    expect(await connectionManager.isOwner(nonEnrolledReplica.address)).to.be
+    expect(await connectionManager.isReplica(nonEnrolledReplica.address)).to.be
       .false;
   });
 
