@@ -39,7 +39,8 @@ module.exports = {
       url: 'http://localhost:8545',
     },
     hardhat: {
-      blockGasLimit: 0xfffffffffffff,
+      blockGasLimit: 0x1fffffffffffff,
+      allowUnlimitedContractSize: true,
     },
     madison: {
       chainId: 29739,

@@ -22,7 +22,7 @@ const {
  * confirm updates on Replica
  * TODO prove and process messages on Replica
  */
-describe('SimpleCrossChainMessage [ @skip-on-coverage ]', async () => {
+describe('SimpleCrossChainMessage', async () => {
   const domains = [1000, 2000];
   const homeDomain = domains[0];
   const replicaDomain = domains[1];
