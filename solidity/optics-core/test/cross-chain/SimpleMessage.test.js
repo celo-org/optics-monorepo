@@ -1,5 +1,4 @@
-const { waffle, ethers } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
 const testUtils = require('../utils');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
@@ -39,7 +38,7 @@ describe('SimpleCrossChainMessage', async () => {
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
 
-    [randomSigner] = walletProvider.getWalletsPersistent(1);
+    [randomSigner] = await ethers.getSigners();
   });
 
   it('All Homes suggest empty update values when queue is empty', async () => {
@@ -128,12 +127,12 @@ describe('SimpleCrossChainMessage', async () => {
     expect(pending).to.equal(firstRootEnqueuedToReplica);
   });
 
-  it('Destination Replica Batch-confirms several ready updates', async () => {
+  it('Destination Replica batch-confirms several ready updates', async () => {
     const replica = getReplica(chainDetails, replicaDomain, homeDomain);
 
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = chainDetails[replicaDomain].optimisticSeconds;
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
+    await testUtils.increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
     expect(await replica.canConfirm()).to.be.true;
