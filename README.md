@@ -2,16 +2,79 @@
 
 OPTimistic Interchain Communication
 
-## Setup
+## Overview
+
+Optics is a cross-chain communication system. It handles passing raw buffers
+between blockchains cheaply, and with minimal fuss. Like IBC and other
+cross-chain communication systems, Optics creates channels between chains, and
+then passes its messages over the channel. Once a channel is established, any
+application on the chain can use it to send messages to any other chain.
+
+Comoared to IBC and PoS light client based cross-chain communication, Optics
+has weaker security guarantees, and a longer latency period. However, Optics
+may be implemented on any smart contract chain, with no bespoke light client
+engineering. Because it does not run a light client, Optics does not spend
+extra gas verifying remote chain block headers.
+
+In other words, Optics is designed to prioritize:
+
+- Cost. No header verification or state management.
+- Speed of implementation. Requires only
+- Ease of use
+
+You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics).
+
+## Integrating with Optics
+
+Optics establishes communication channels with other chains, but it's up to XApp
+developers to use those. This repo provides a standard pattern for integrating
+Optics channels, and ensuring that communication is safe and secure.
+
+Integrations require a few key components:
+
+- A `Home` and any number of `Replica` contracts deployed on the chain already.
+  These contracts manage Optics communication channels. and will be used by the
+  XApp to send and receive messages.
+
+- A `XAppConnectionManager` (in `solidiity/optics-core/contracts`). This
+  contract connects the XApp to Optics by allowing the XApp admin to enroll new
+  `Home` and `Replica` contracts. Enrolling and unenrolling channels is the
+  primary way to ensure that your XApp handles messages correctly. XApps may
+  deploy their own connection manager, or share one with other XApps.
+
+- A `Message` library. Optics sends raw byte arrays between chains. The XApp
+  must define a message specification that can be serialized for sending, and
+  deserialized for handling on the remote chain
+
+- A `Router` contract. The router translates between the Optics cross-chain
+  message format, and the local chain's call contract. It also implements the
+  business logic of the XApp. It exposes the user-facing interface, handles
+  messages coming in from other chains, and dispatches messages being sent to
+  other chains.
+
+Solidity developers interested in implementing their own `Message` library and
+`Router` contract should check out the [optics-XApps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-XApps)
+package. It contains several example XApps.
+
+It is **Strongly Recommended** that XApp admins run a `watcher` daemon to
+maintain their `XAppConnectionManager` and guard from fraud. Please see the
+documentation in the `rust/` directory and the
+[Optics architecture documentation](https://docs.celo.org/celo-codebase/protocol/optics)
+for more details.
+
+## Working on Optics
 
 ### Pre-commit hooks
+
+Set up your pre-commit hook:
 
 ```bash
 echo "./pre-commit.sh" > .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```
 
-Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` after commit message
+Note: In the event you need to bypass the pre-commit hooks, pass the
+`--no-verify` flag to your `git commit` command
 
 ### Solidity
 
@@ -20,7 +83,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
    ```bash
    cd solidity/optics-core
    npm i
-   cd ../optics-xapps
+   cd ../optics-XApps
    npm i
    ```
 
@@ -48,8 +111,9 @@ Note: In the event you need to bypass the pre-commit hooks, pass `--no-verify` a
 
 - install `rustup`
   - [link here](https://rustup.rs/)
+- see `rust/README.md`
 
-## Abstract
+# What is Optics?
 
 We present Optics - a system for sending messages between consensus systems
 without paying header validation costs by creating the illusion of cross-chain
