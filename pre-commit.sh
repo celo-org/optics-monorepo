@@ -1,15 +1,62 @@
 #!/bin/sh
 
-# Stash uncommitted changes
-git stash push --keep-index
+# Specifying minimum versions
+MIN_GIT=min version 2.25.0
+MIN_CARGO=min 1.51.0
 
-abort()
+echo_abort ()
 {
     echo >&2 '
 ***************
 *** ABORTED ***
 ***************
 '
+}
+
+ensure()
+{
+    if ! command -v $1 &> /dev/null
+    then
+        echo_abort
+        echo "command '$1' could not be found."
+        echo "please ensure it is installed."
+        exit 1
+    fi
+}
+
+echo "Making pre-run checks"
+ensure npm
+ensure cargo
+ensure jq
+
+# TODO: DRY these
+if (echo min version $MIN_GIT; git --version) | sort -Vk3 | tail -1 | grep -q git
+then
+    echo "git version 👌"
+else
+    echo_abort
+    echo "Upgrade to git $MIN_GIT or later."
+    exit 1
+fi
+
+if (echo min $MIN_CARGO; cargo --version) | sort -Vk2 | tail -1 | grep -q cargo
+then
+    echo "cargo version 👌"
+else
+    echo_abort
+    echo "Upgrade to cargo $MIN_CARGO or later."
+    exit 1
+fi
+
+echo "Pre-run checks complete"
+
+# Stash uncommitted changes
+echo "Stashing changes not staged for commit"
+git stash push --keep-index
+
+abort()
+{
+    echo_abort
     echo "An error occurred. Please review your code and try again" >&2
     git stash pop
     exit 1
