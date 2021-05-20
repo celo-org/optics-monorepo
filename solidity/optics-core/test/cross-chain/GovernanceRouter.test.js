@@ -397,12 +397,7 @@ describe('GovernanceRouter', async () => {
     expect(stateResult).to.equal(stateVar);
   });
 
-  it.only('Sends cross-chain message to upgrade contract', async () => {
-    const nonGovernorHome = getHome(chainDetails, nonGovernorDomain);
-    const secondGovernorUpdater = await optics.Updater.fromSigner(
-      secondGovernorSigner,
-      nonGovernorDomain,
-    );
+  it('Sends cross-chain message to upgrade contract', async () => {
     const a = 5;
     const b = 10;
     const stateVar = 17;
@@ -443,33 +438,30 @@ describe('GovernanceRouter', async () => {
       implementation.address,
     ]);
 
-    const currentRoot = await nonGovernorHome.current();
+    const currentRoot = await governorHome.current();
 
     // dispatch call on local governorRouter
     governorRouter.callRemote(nonGovernorDomain, [call]);
 
-    const [, latestRoot] = await nonGovernorHome.suggestUpdate();
+    const [, latestRoot] = await governorHome.suggestUpdate();
 
-    const { signature } = await secondGovernorUpdater.signUpdate(
-      currentRoot,
-      latestRoot,
-    );
+    const { signature } = await updater.signUpdate(currentRoot, latestRoot);
 
-    await expect(nonGovernorHome.update(currentRoot, latestRoot, signature))
-      .to.emit(nonGovernorHome, 'Update')
-      .withArgs(nonGovernorDomain, currentRoot, latestRoot, signature);
+    await expect(governorHome.update(currentRoot, latestRoot, signature))
+      .to.emit(governorHome, 'Update')
+      .withArgs(governorDomain, currentRoot, latestRoot, signature);
 
-    expect(await nonGovernorHome.current()).to.equal(latestRoot);
-    expect(await nonGovernorHome.queueContains(latestRoot)).to.be.false;
+    expect(await governorHome.current()).to.equal(latestRoot);
+    expect(await governorHome.queueContains(latestRoot)).to.be.false;
 
     await enqueueUpdateToReplica(
       chainDetails,
       { startRoot: currentRoot, finalRoot: latestRoot, signature },
-      nonGovernorDomain,
       governorDomain,
+      nonGovernorDomain,
     );
 
-    const [pending] = await nonGovernorReplicaOnGovernorChain.nextPending();
+    const [pending] = await governorReplicaOnNonGovernorChain.nextPending();
     expect(pending).to.equal(latestRoot);
 
     // Increase time enough for both updates to be confirmable
@@ -477,40 +469,42 @@ describe('GovernanceRouter', async () => {
     await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
-    expect(await nonGovernorReplicaOnGovernorChain.canConfirm()).to.be.true;
+    expect(await governorReplicaOnNonGovernorChain.canConfirm()).to.be.true;
 
-    await nonGovernorReplicaOnGovernorChain.confirm();
+    await governorReplicaOnNonGovernorChain.confirm();
 
     // after confirming, current root should be equal to the last submitted update
-    expect(await nonGovernorReplicaOnGovernorChain.current()).to.equal(
+    expect(await governorReplicaOnNonGovernorChain.current()).to.equal(
       latestRoot,
     );
 
-    // const callMessage = optics.GovernanceRouter.formatCalls([call]);
+    const callMessage = optics.GovernanceRouter.formatCalls([call]);
 
-    // const opticsMessage = await formatOpticsMessage(
-    //   nonGovernorReplicaOnGovernorChain,
-    //   governorRouter,
-    //   nonGovernorRouter,
-    //   callMessage,
-    // );
+    await governorReplicaOnNonGovernorChain.setMessagePending(callMessage);
+    const opticsMessage = await formatOpticsMessage(
+      governorReplicaOnNonGovernorChain,
+      governorRouter,
+      nonGovernorRouter,
+      callMessage,
+    );
 
     // TODO: Prove and process
-    // await nonGovernorReplicaOnGovernorChain.proveAndProcess(
+    // await governorReplicaOnNonGovernorChain.proveAndProcess(
     //   opticsMessage,
     //   proof,
     //   index,
     // );
+    await governorReplicaOnNonGovernorChain.process(opticsMessage);
 
-    // // test implementation was upgraded
-    // versionResult = await mysteryMathProxy.version();
-    // expect(versionResult).to.equal(2);
+    // test implementation was upgraded
+    versionResult = await mysteryMathProxy.version();
+    expect(versionResult).to.equal(2);
 
-    // mathResult = await mysteryMathProxy.doMath(a, b);
-    // expect(mathResult).to.equal(a * b);
+    mathResult = await mysteryMathProxy.doMath(a, b);
+    expect(mathResult).to.equal(a * b);
 
-    // stateResult = await mysteryMathProxy.getState();
-    // expect(stateResult).to.equal(stateVar);
+    stateResult = await mysteryMathProxy.getState();
+    expect(stateResult).to.equal(stateVar);
   });
 
   it('Calls UpdaterManager to change the Updater on Home', async () => {
