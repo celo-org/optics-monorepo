@@ -54,7 +54,7 @@ Integrations require a few key components:
   other chains.
 
 Solidity developers interested in implementing their own `Message` library and
-`Router` contract should check out the [optics-XApps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-XApps)
+`Router` contract should check out the [optics-XApps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps)
 package. It contains several example XApps.
 
 It is **Strongly Recommended** that XApp admins run a `watcher` daemon to
