@@ -3,7 +3,7 @@ const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const {
-  formatCallData,
+  formatCall,
   formatOpticsMessage,
 } = require('./crossChainTestUtils');
 const {
@@ -236,14 +236,12 @@ describe('GovernanceRouter', async () => {
 
     // Format optics call message
     const arg = 'String!';
-    const callData = await formatCallData(TestRecipient, 'receiveString', [
-      arg,
-    ]);
+    const call = await formatCall(TestRecipient, 'receiveString', [arg]);
 
     // Create Call message to test recipient that calls receiveString
     const callMessage = optics.GovernanceRouter.formatCalls([
-      callData,
-      callData,
+      call,
+      call,
     ]);
 
     const opticsMessage = await formatOpticsMessage(
@@ -377,13 +375,16 @@ describe('GovernanceRouter', async () => {
     const implementation = await optics.deployImplementation('MysteryMathV2');
 
     // Format optics call message
-    const callData = await formatCallData(upgradeBeaconController, 'upgrade', [
+    const call = await formatCall(upgradeBeaconController, 'upgrade', [
       upgradeBeacon.address,
       implementation.address,
     ]);
 
     // dispatch call on local governorRouter
-    governorRouter.callLocal([callData]);
+    await expect(governorRouter.callLocal([call])).to.emit(
+      upgradeBeaconController,
+      'BeaconUpgraded',
+    );
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();
@@ -405,11 +406,11 @@ describe('GovernanceRouter', async () => {
     expect(currentUpdaterAddr).to.equal(updater.signer.address);
 
     // format optics call message
-    const callData = await formatCallData(updaterManager, 'setUpdater', [
+    const call = await formatCall(updaterManager, 'setUpdater', [
       newUpdater.address,
     ]);
 
-    await expect(governorRouter.callLocal([callData])).to.emit(
+    await expect(governorRouter.callLocal([call])).to.emit(
       governorHome,
       'NewUpdater',
     );
