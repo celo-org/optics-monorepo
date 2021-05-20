@@ -33,18 +33,21 @@ describe('SimpleCrossChainMessage', async () => {
   const replicaDomain = domains[1];
   const walletProvider = new testUtils.WalletProvider(provider);
 
-  let randomSigner, chainDetails, firstRootEnqueuedToReplica;
+  let randomSigner, recoveryManager, chainDetails, firstRootEnqueuedToReplica;
   let latestRoot = {},
     latestUpdate = {};
 
   before(async () => {
+    [randomSigner, recoveryManager] = walletProvider.getWalletsPersistent(2);
+
     // generate TestChainConfigs for the given domains
-    const configs = await domainsToTestConfigs(domains);
+    const configs = await domainsToTestConfigs(
+      domains,
+      recoveryManager.address,
+    );
 
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
-
-    [randomSigner] = walletProvider.getWalletsPersistent(1);
   });
 
   it('All Homes have correct initial state', async () => {

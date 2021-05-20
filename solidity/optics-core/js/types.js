@@ -2,6 +2,8 @@
  * ChainConfig {
  *      domain: int,
  *      updater: address,
+ *      recoveryTimelock: int,
+ *      recoveryManager: address,  // NOTE: this may change if we add a multisig to the deploy setup
  *      currentRoot: bytes32,
  *      nextToProcessIndex: int,
  *      optimisticSeconds: int,

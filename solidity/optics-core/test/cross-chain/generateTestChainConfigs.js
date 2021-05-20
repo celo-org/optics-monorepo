@@ -11,10 +11,12 @@ const { provider } = waffle;
  *
  * @return configs - TestChainConfig[]
  */
-async function domainsToTestConfigs(domains) {
+async function domainsToTestConfigs(domains, recoveryManagerAddress) {
   let configs = domains.map((domain) => {
     return {
       domain,
+      recoveryTimelock: 1200,
+      recoveryManagerAddress,
       currentRoot:
         '0x0000000000000000000000000000000000000000000000000000000000000000',
       nextToProcessIndex: 0,

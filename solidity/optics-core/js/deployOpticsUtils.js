@@ -11,8 +11,10 @@
  */
 async function devDeployGovernanceRouter(
   localDomain,
+  recoveryTimelock,
   controller,
   xAppConnectionManagerAddress,
+  recoveryManagerAddress,
   isTestDeploy,
 ) {
   const contractStr = isTestDeploy
@@ -20,8 +22,8 @@ async function devDeployGovernanceRouter(
     : 'GovernanceRouter';
   const { contracts } = await optics.deployUpgradeSetupAndProxy(
     contractStr,
-    [localDomain],
-    [xAppConnectionManagerAddress],
+    [localDomain, recoveryTimelock],
+    [xAppConnectionManagerAddress, recoveryManagerAddress],
     controller,
   );
 
@@ -167,7 +169,12 @@ async function devDeployReplicaProxy(
  * @return contracts - OpticsContracts type for the suite of Optics contract on this chain
  */
 async function devDeployOptics(local, remotes, isTestDeploy) {
-  const { domain, updater: localUpdaterAddress } = local;
+  const {
+    domain,
+    recoveryTimelock,
+    recoveryManagerAddress,
+    updater: localUpdaterAddress,
+  } = local;
 
   // Deploy UpgradeBeaconController
   // Note: initial owner will be the signer that's deploying
@@ -194,8 +201,10 @@ async function devDeployOptics(local, remotes, isTestDeploy) {
   // Note: initial governor will be the signer that's deploying
   const governanceRouter = await devDeployGovernanceRouter(
     domain,
+    recoveryTimelock,
     upgradeBeaconController,
     xAppConnectionManager.address,
+    recoveryManagerAddress,
     isTestDeploy,
   );
 
