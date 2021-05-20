@@ -2,7 +2,9 @@ const { ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
+const testUtils = require('../utils');
 const {
+  enqueueUpdateToReplica,
   formatCall,
   formatOpticsMessage,
 } = require('./crossChainTestUtils');
@@ -31,6 +33,7 @@ describe('GovernanceRouter', async () => {
     nonGovernorReplicaOnGovernorChain,
     firstGovernor,
     secondGovernor,
+    secondGovernorSigner,
     updater,
     chainDetails;
 
@@ -53,7 +56,7 @@ describe('GovernanceRouter', async () => {
     chainDetails = await deployMultipleChains(configs);
 
     // set updater
-    let secondGovernorSigner;
+    // let secondGovernorSigner;
     [signer, secondGovernorSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, governorDomain);
 
@@ -239,10 +242,7 @@ describe('GovernanceRouter', async () => {
     const call = await formatCall(TestRecipient, 'receiveString', [arg]);
 
     // Create Call message to test recipient that calls receiveString
-    const callMessage = optics.GovernanceRouter.formatCalls([
-      call,
-      call,
-    ]);
+    const callMessage = optics.GovernanceRouter.formatCalls([call, call]);
 
     const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
@@ -395,6 +395,109 @@ describe('GovernanceRouter', async () => {
 
     stateResult = await mysteryMathProxy.getState();
     expect(stateResult).to.equal(stateVar);
+  });
+
+  it('Sends cross-chain message to upgrade contract', async () => {
+    const nonGovernorHome = getHome(chainDetails, nonGovernorDomain);
+    const secondGovernorUpdater = await optics.Updater.fromSigner(
+      secondGovernorSigner,
+      nonGovernorDomain,
+    );
+    const a = 5;
+    const b = 10;
+    const stateVar = 17;
+
+    // get upgradeBeaconController
+    const upgradeBeaconController = getUpgradeBeaconController(
+      chainDetails,
+      nonGovernorDomain,
+    );
+
+    // Set up contract suite
+    const { contracts } = await optics.deployUpgradeSetupAndProxy(
+      'MysteryMathV1',
+      [],
+      [],
+      upgradeBeaconController,
+    );
+    const mysteryMathProxy = contracts.proxyWithImplementation;
+    const upgradeBeacon = contracts.upgradeBeacon;
+
+    // Set state of proxy
+    await mysteryMathProxy.setState(stateVar);
+
+    // expect results before upgrade
+    let versionResult = await mysteryMathProxy.version();
+    expect(versionResult).to.equal(1);
+    let mathResult = await mysteryMathProxy.doMath(a, b);
+    expect(mathResult).to.equal(a + b);
+    let stateResult = await mysteryMathProxy.getState();
+    expect(stateResult).to.equal(stateVar);
+
+    // Deploy Implementation 2
+    const implementation = await optics.deployImplementation('MysteryMathV2');
+
+    // Format optics call message
+    const call = await formatCall(upgradeBeaconController, 'upgrade', [
+      upgradeBeacon.address,
+      implementation.address,
+    ]);
+
+    const currentRoot = await nonGovernorHome.current();
+
+    // dispatch call on local governorRouter
+    governorRouter.callRemote(nonGovernorDomain, [call]);
+
+    const [, latestRoot] = await nonGovernorHome.suggestUpdate();
+
+    const { signature } = await secondGovernorUpdater.signUpdate(
+      currentRoot,
+      latestRoot,
+    );
+
+    await expect(nonGovernorHome.update(currentRoot, latestRoot, signature))
+      .to.emit(nonGovernorHome, 'Update')
+      .withArgs(nonGovernorDomain, currentRoot, latestRoot, signature);
+
+    expect(await nonGovernorHome.current()).to.equal(latestRoot);
+    expect(await nonGovernorHome.queueContains(latestRoot)).to.be.false;
+
+    await enqueueUpdateToReplica(
+      chainDetails,
+      { startRoot: currentRoot, finalRoot: latestRoot, signature },
+      nonGovernorDomain,
+      governorDomain,
+    );
+
+    const [pending] = await nonGovernorReplicaOnGovernorChain.nextPending();
+    expect(pending).to.equal(latestRoot);
+
+    // Increase time enough for both updates to be confirmable
+    const optimisticSeconds = chainDetails[nonGovernorDomain].optimisticSeconds;
+    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
+
+    // Replica should be able to confirm updates
+    expect(await nonGovernorReplicaOnGovernorChain.canConfirm()).to.be.true;
+
+    await nonGovernorReplicaOnGovernorChain.confirm();
+
+    // after confirming, current root should be equal to the last submitted update
+    // const { finalRoot } = latestUpdate[homeDomain];
+    expect(await nonGovernorReplicaOnGovernorChain.current()).to.equal(
+      latestRoot,
+    );
+
+    // TODO: Prove and process
+
+    // // test implementation was upgraded
+    // versionResult = await mysteryMathProxy.version();
+    // expect(versionResult).to.equal(2);
+
+    // mathResult = await mysteryMathProxy.doMath(a, b);
+    // expect(mathResult).to.equal(a * b);
+
+    // stateResult = await mysteryMathProxy.getState();
+    // expect(stateResult).to.equal(stateVar);
   });
 
   it('Calls UpdaterManager to change the Updater on Home', async () => {
