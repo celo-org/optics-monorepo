@@ -18,10 +18,10 @@ extra gas verifying remote chain block headers.
 
 In other words, Optics is designed to prioritize:
 
-- Cost. No header verification or state management.
-- Speed of implementation. Requires only simple smart contracts, no complex
+- Cost: No header verification or state management.
+- Speed of implementation: Requires only simple smart contracts, no complex
   cryptography.
-- Ease of use. Simple interface for maintaining XApp connections.
+- Ease of use: Simple interface for maintaining XApp connections.
 
 You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics).
 
