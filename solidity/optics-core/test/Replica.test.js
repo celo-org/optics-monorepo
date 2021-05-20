@@ -212,7 +212,7 @@ describe('Replica', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
     await enqueueValidUpdate(newRoot);
 
-    await testUtils.increaseTimestampBy(ethers.provider, optimisticSeconds);
+    await testUtils.increaseTimestampBy(optimisticSeconds);
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
@@ -227,7 +227,7 @@ describe('Replica', async () => {
     await enqueueValidUpdate(secondNewRoot);
 
     // Increase time enough for both updates to be confirmable
-    await testUtils.increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
+    await testUtils.increaseTimestampBy(optimisticSeconds * 2);
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
@@ -248,7 +248,7 @@ describe('Replica', async () => {
     // Don't increase time enough for update to be confirmable.
     // Note that we use optimisticSeconds - 2 because the call to enqueue
     // the valid root has already increased the timestamp by 1.
-    await testUtils.increaseTimestampBy(ethers.provider, optimisticSeconds - 2);
+    await testUtils.increaseTimestampBy(optimisticSeconds - 2);
 
     expect(await replica.canConfirm()).to.be.false;
     await expect(replica.confirm()).to.be.revertedWith('not time');

@@ -132,7 +132,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = chainDetails[replicaDomain].optimisticSeconds;
-    await testUtils.increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
+    await testUtils.increaseTimestampBy(optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
     expect(await replica.canConfirm()).to.be.true;

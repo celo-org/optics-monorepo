@@ -17,9 +17,9 @@ class MockRecipientObject {
   }
 }
 
-const increaseTimestampBy = async (provider, increaseTime) => {
-  await provider.send('evm_increaseTime', [increaseTime]);
-  await provider.send('evm_mine');
+const increaseTimestampBy = async (increaseTime) => {
+  await ethers.provider.send('evm_increaseTime', [increaseTime]);
+  await ethers.provider.send('evm_mine');
 };
 
 class WalletProvider {
