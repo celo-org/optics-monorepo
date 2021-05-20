@@ -1,11 +1,12 @@
-const { waffle, ethers } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const testUtils = require('./utils');
 
 const remoteDomain = 1000;
 const localDomain = 2000;
 
 describe('Message', async () => {
+  const signerProvider = new testUtils.SignerProvider();
   let messageLib;
 
   before(async () => {
@@ -15,7 +16,7 @@ describe('Message', async () => {
   });
 
   it('Returns fields from a message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
     const sequence = 1;
     const body = ethers.utils.formatBytes32String('message');
 

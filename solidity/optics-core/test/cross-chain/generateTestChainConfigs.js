@@ -1,5 +1,4 @@
-const { waffle } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 
 /*
  * Given an array of domains,
@@ -22,10 +21,10 @@ async function domainsToTestConfigs(domains) {
     };
   });
 
-  const wallets = provider.getWallets();
+  const signers = await ethers.getSigners();
 
-  if (wallets.length < domains.length) {
-    throw new Error('need more wallets to add updaters for all chains');
+  if (signers.length < domains.length) {
+    throw new Error('need more signers to add updaters for all chains');
   }
 
   // add the domain + updater + initialization arguments to config
@@ -33,7 +32,7 @@ async function domainsToTestConfigs(domains) {
     let config = configs[i];
     const { domain } = config;
 
-    const signer = wallets[i];
+    const signer = signers[i];
 
     const updaterObject = await optics.Updater.fromSigner(signer, domain);
 
