@@ -27,7 +27,7 @@ You can read more about Optics' architecture [at Celo's main documentation site]
 
 ## Integrating with Optics
 
-Optics establishes communication channels with other chains, but it's up to XApp
+Optics establishes communication channels with other chains, but it's up to XApp (pronounced "zap", and short for "cross-chain applications")
 developers to use those. This repo provides a standard pattern for integrating
 Optics channels, and ensuring that communication is safe and secure.
 
@@ -37,7 +37,7 @@ Integrations require a few key components:
   These contracts manage Optics communication channels. and will be used by the
   XApp to send and receive messages.
 
-- A `XAppConnectionManager` (in `solidiity/optics-core/contracts`). This
+- A `XAppConnectionManager` (in `solidity/optics-core/contracts`). This
   contract connects the XApp to Optics by allowing the XApp admin to enroll new
   `Home` and `Replica` contracts. Enrolling and unenrolling channels is the
   primary way to ensure that your XApp handles messages correctly. XApps may
