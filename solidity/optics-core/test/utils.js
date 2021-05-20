@@ -22,32 +22,32 @@ const increaseTimestampBy = async (increaseTime) => {
   await ethers.provider.send('evm_mine');
 };
 
-class WalletProvider {
-  constructor(provider) {
-    this.provider = provider;
-    this.wallets = provider.getWallets();
-    this.numUsedWallets = 0;
+class SignerProvider {
+  constructor() {
+    this.provider = ethers.provider;
+    this.signers = ethers.getSigners();
+    this.signersResolved = false;
+    this.numUsedSigners = 0; // 0th wallet is default account
   }
 
-  _getWallets(numWallets) {
-    if (this.numUsedAccounts + numWallets > this.wallets.length) {
+  async _getSigners(numSigners) {
+    const signers = await this.signers;
+
+    if (this.numUsedSigners + numSigners > signers.length) {
       throw new Error('Out of wallets!');
     }
 
-    return this.wallets.slice(
-      this.numUsedWallets,
-      this.numUsedWallets + numWallets,
-    );
+    return signers.slice(this.numUsedSigners, this.numUsedSigners + numSigners);
   }
 
-  getWalletsPersistent(numWallets) {
-    const wallets = this._getWallets(numWallets);
-    this.numUsedWallets += numWallets;
-    return wallets;
+  async getSignersPersistent(numSigners) {
+    const persistentSigners = await this._getSigners(numSigners);
+    this.numUsedSigners += numSigners;
+    return persistentSigners;
   }
 
-  getWalletsEphemeral(numWallets) {
-    return this._getWallets(numWallets);
+  async getSignersEphemeral(numSigners) {
+    return await this._getSigners(numSigners);
   }
 }
 
@@ -55,7 +55,7 @@ const testUtils = {
   increaseTimestampBy,
   opticsMessageSender,
   opticsMessageMockRecipient: new MockRecipientObject(),
-  WalletProvider,
+  SignerProvider,
 };
 
 module.exports = testUtils;

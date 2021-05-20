@@ -15,9 +15,9 @@ const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
 const initialLastProcessed = 0;
 const controller = null;
-const walletProvider = new testUtils.WalletProvider(provider);
 
 describe('XAppConnectionManager', async () => {
+  const signerProvider = new testUtils.SignerProvider();
   let connectionManager,
     mockUpdaterManager,
     enrolledReplica,
@@ -26,7 +26,7 @@ describe('XAppConnectionManager', async () => {
     updater;
 
   before(async () => {
-    [signer] = await ethers.getSigners();
+    [signer] = await signerProvider.getSignersPersistent(1);
     updater = await optics.Updater.fromSigner(signer, remoteDomain);
   });
 
@@ -83,21 +83,21 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('onlyOwner function rejects call from non-owner', async () => {
-    const [nonOwner, nonHome] = walletProvider.getWalletsEphemeral(2);
+    const [nonOwner, nonHome] = await signerProvider.getSignersEphemeral(2);
     await expect(
       connectionManager.connect(nonOwner).setHome(nonHome.address),
     ).to.be.revertedWith(ONLY_OWNER_REVERT_MSG);
   });
 
   it('isOwner returns true for owner and false for non-owner', async () => {
-    const [newOwner, nonOwner] = walletProvider.getWalletsEphemeral(2);
+    const [newOwner, nonOwner] = await signerProvider.getSignersEphemeral(2);
     await connectionManager.transferOwnership(newOwner.address);
     expect(await connectionManager.isOwner(newOwner.address)).to.be.true;
     expect(await connectionManager.isOwner(nonOwner.address)).to.be.false;
   });
 
   it('isReplica returns true for enrolledReplica and false for non-enrolled Replica', async () => {
-    const [nonEnrolledReplica] = walletProvider.getWalletsEphemeral(1);
+    const [nonEnrolledReplica] = await signerProvider.getSignersEphemeral(1);
     expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
       .true;
     expect(await connectionManager.isReplica(nonEnrolledReplica.address)).to.be
@@ -169,7 +169,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('Owner can set watcher permissions', async () => {
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await signerProvider.getSignersEphemeral(1);
     expect(
       await connectionManager.watcherPermission(watcher.address, remoteDomain),
     ).to.be.false;
@@ -189,7 +189,7 @@ describe('XAppConnectionManager', async () => {
 
   it('Unenrolls a replica given valid SignedFailureNotification', async () => {
     // Set watcher permissions for domain of currently enrolled replica
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await signerProvider.getSignersEphemeral(1);
     await connectionManager.setWatcherPermission(
       watcher.address,
       remoteDomain,
@@ -233,7 +233,7 @@ describe('XAppConnectionManager', async () => {
     const noReplicaDomain = 3000;
 
     // Set watcher permissions for noReplicaDomain
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await signerProvider.getSignersEphemeral(1);
     await connectionManager.setWatcherPermission(
       watcher.address,
       noReplicaDomain,
@@ -261,7 +261,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('unenrollReplica reverts if provided updater does not match replica updater', async () => {
-    const [watcher, nonUpdater] = walletProvider.getWalletsEphemeral(2);
+    const [watcher, nonUpdater] = await signerProvider.getSignersEphemeral(2);
 
     // Set watcher permissions
     await connectionManager.setWatcherPermission(
@@ -291,7 +291,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('unenrollReplica reverts if incorrect watcher provided', async () => {
-    const [watcher, nonWatcher] = walletProvider.getWalletsEphemeral(2);
+    const [watcher, nonWatcher] = await signerProvider.getSignersEphemeral(2);
 
     // Set watcher permissions
     await connectionManager.setWatcherPermission(

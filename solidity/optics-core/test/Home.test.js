@@ -2,6 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
+const testUtils = require('./utils');
 
 const {
   testCases: homeDomainHashTestCases,
@@ -14,6 +15,7 @@ const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
+  const signerProvider = new testUtils.SignerProvider();
   let home,
     signer,
     fakeSigner,
@@ -36,7 +38,12 @@ describe('Home', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner, recipient, updaterManager] = await ethers.getSigners();
+    [
+      signer,
+      fakeSigner,
+      recipient,
+      updaterManager,
+    ] = await signerProvider.getSignersPersistent(4);
     updater = await optics.Updater.fromSigner(signer, localDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
     mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);

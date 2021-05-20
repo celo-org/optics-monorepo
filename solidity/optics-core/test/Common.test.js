@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const testUtils = require('./utils');
 
 const {
   testCases: signedUpdateTestCases,
@@ -7,10 +8,11 @@ const {
 const localDomain = 1000;
 
 describe('Common', async () => {
+  const signerProvider = new testUtils.SignerProvider();
   let common, signer, fakeSigner, updater, fakeUpdater;
 
   before(async () => {
-    [signer, fakeSigner] = await ethers.getSigners();
+    [signer, fakeSigner] = await signerProvider.getSignersPersistent(2);
     updater = await optics.Updater.fromSigner(signer, localDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   });

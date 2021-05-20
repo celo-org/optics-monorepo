@@ -1,5 +1,4 @@
-const { waffle, ethers } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
 const testUtils = require('./utils');
 
@@ -23,6 +22,7 @@ const replicaInitializeIdentifier =
   'initialize(uint32, address, bytes32, uint256, uint256)';
 
 describe('Replica', async () => {
+  const signerProvider = new testUtils.SignerProvider();
   let replica, signer, fakeSigner, updater, fakeUpdater, initializeArgs;
 
   const enqueueValidUpdate = async (newRoot) => {
@@ -39,7 +39,7 @@ describe('Replica', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner] = await ethers.getSigners();
+    [signer, fakeSigner] = await signerProvider.getSignersPersistent(2);
     updater = await optics.Updater.fromSigner(signer, remoteDomain);
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, remoteDomain);
   });
@@ -332,7 +332,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process an unproved message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
@@ -351,7 +351,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process out-of-order message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
 
     // Skip sequence ordering by adding 2 to lastProcessed
     const sequence = (await replica.lastProcessed()).add(2);
@@ -372,7 +372,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process message with wrong destination Domain', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
@@ -392,7 +392,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process an undergased transaction', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
     const sequence = (await replica.lastProcessed()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
@@ -481,7 +481,7 @@ describe('Replica', async () => {
   });
 
   it('Has proveAndProcess fail if prove fails', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await signerProvider.getSignersEphemeral(2);
     const sequence = (await replica.lastProcessed()).add(1);
 
     // Use 1st proof of 1st merkle vector test case
