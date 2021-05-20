@@ -11,7 +11,7 @@ use optics_core::{
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 #[allow(missing_docs)]
-abigen!(EthereumHomeInternal, "../abis/Home.abi.json");
+abigen!(EthereumHomeInternal, "abis/Home.abi.json");
 
 /// A reference to a Home contract on some Ethereum chain
 #[derive(Debug)]

@@ -10,7 +10,7 @@ use std::sync::Arc;
 #[allow(missing_docs)]
 abigen!(
     EthereumConnectionManagerInternal,
-    "../abis/XAppConnectionManager.abi.json"
+    "./abis/XAppConnectionManager.abi.json"
 );
 
 /// A reference to a XAppConnectionManager contract on some Ethereum chain

@@ -7,6 +7,15 @@
 - setup pre-commit hooks: `cp ../pre-commit.sh ../.git/hooks/pre-commit`
   - Note: To bypass pre-commit hooks, pass `--no-verify` after commit message
 
+
+Note: You should be running >= version `1.52.1` of the rustc compiler, you can see that version with this command and should see similar output: 
+```
+$ rustup --version
+rustup 1.24.2 (755e2b07e 2021-05-12)
+info: This is the version for the rustup toolchain manager, not the rustc compiler.
+info: The currently active `rustc` version is `rustc 1.52.1 (9bc8c42bb 2021-05-09)`
+```
+
 ### Useful cargo commands
 
 - `cargo doc --open`

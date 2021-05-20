@@ -12,7 +12,7 @@ use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 #[allow(missing_docs)]
 abigen!(
     EthereumReplicaInternal,
-    "../abis/Replica.abi.json",
+    "./abis/Replica.abi.json",
      methods {
         initialize(address) as initialize_common;
         initialize(uint32, address, bytes32, uint256, uint256) as initialize;
