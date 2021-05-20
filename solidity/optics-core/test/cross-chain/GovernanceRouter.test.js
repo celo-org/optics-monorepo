@@ -397,7 +397,7 @@ describe('GovernanceRouter', async () => {
     expect(stateResult).to.equal(stateVar);
   });
 
-  it('Sends cross-chain message to upgrade contract', async () => {
+  it.only('Sends cross-chain message to upgrade contract', async () => {
     const nonGovernorHome = getHome(chainDetails, nonGovernorDomain);
     const secondGovernorUpdater = await optics.Updater.fromSigner(
       secondGovernorSigner,
@@ -482,12 +482,25 @@ describe('GovernanceRouter', async () => {
     await nonGovernorReplicaOnGovernorChain.confirm();
 
     // after confirming, current root should be equal to the last submitted update
-    // const { finalRoot } = latestUpdate[homeDomain];
     expect(await nonGovernorReplicaOnGovernorChain.current()).to.equal(
       latestRoot,
     );
 
+    // const callMessage = optics.GovernanceRouter.formatCalls([call]);
+
+    // const opticsMessage = await formatOpticsMessage(
+    //   nonGovernorReplicaOnGovernorChain,
+    //   governorRouter,
+    //   nonGovernorRouter,
+    //   callMessage,
+    // );
+
     // TODO: Prove and process
+    // await nonGovernorReplicaOnGovernorChain.proveAndProcess(
+    //   opticsMessage,
+    //   proof,
+    //   index,
+    // );
 
     // // test implementation was upgraded
     // versionResult = await mysteryMathProxy.version();
