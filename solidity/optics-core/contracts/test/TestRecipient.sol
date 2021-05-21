@@ -4,6 +4,8 @@ pragma solidity >=0.6.11;
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 
 contract TestRecipient is IMessageRecipient {
+    bool public processed = false;
+
     fallback() external {
         revert("Fallback");
     }
@@ -22,6 +24,10 @@ contract TestRecipient is IMessageRecipient {
         returns (string memory)
     {
         return _str;
+    }
+
+    function processCall(bool callProcessed) public {
+        processed = callProcessed;
     }
 
     function message() public pure returns (string memory) {

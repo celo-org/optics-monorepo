@@ -7,12 +7,17 @@ const {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   formatMessage,
+  formatCall,
 } = require('./crossChainTestUtils');
 const {
   deployMultipleChains,
   getHome,
   getReplica,
+  getGovernanceRouter,
 } = require('./deployCrossChainTest');
+const {
+  testCases: proveAndProcessTestCases,
+} = require('../../../../vectors/proveAndProcessTestCases.json');
 
 /*
  * Deploy the full Optics suite on two chains
@@ -145,5 +150,58 @@ describe('SimpleCrossChainMessage', async () => {
     expect(await replica.current()).to.equal(finalRoot);
   });
 
-  // TODO: PROVE AND PROCESS MESSAGE ON REPLICA
+  it('Proves and processes a message on Replica', async () => {
+    // get governance routers
+    const governorRouter = getGovernanceRouter(chainDetails, homeDomain);
+    const nonGovernorRouter = getGovernanceRouter(chainDetails, replicaDomain);
+
+    // set remote governance router addresses
+    governorRouter.setRouterAddress(replicaDomain, nonGovernorRouter.address);
+    nonGovernorRouter.setRouterAddress(homeDomain, governorRouter.address);
+
+    // set governor router as governor
+    firstGovernor = await governorRouter.governor();
+    nonGovernorRouter.transferGovernor(homeDomain, firstGovernor);
+
+    const replica = getReplica(chainDetails, replicaDomain, homeDomain);
+    const TestRecipient = await optics.deployImplementation('TestRecipient');
+
+    // ensure `processed` has an initial value of false
+    expect(await TestRecipient.processed()).to.be.false;
+
+    // create Call message to test recipient that calls `processCall`
+    const arg = true;
+    const call = await formatCall(TestRecipient, 'processCall', [arg]);
+    const callMessage = optics.GovernanceRouter.formatCalls([call]);
+
+    // Create Optics message that is sent from the governor domain and governor
+    // to the nonGovernorRouter on the nonGovernorDomain
+    const sequence = (await replica.lastProcessed()).add(1);
+    const opticsMessage = optics.formatMessage(
+      1000,
+      governorRouter.address,
+      sequence,
+      2000,
+      nonGovernorRouter.address,
+      callMessage,
+    );
+
+    // get merkle proof
+    const { path, index } = proveAndProcessTestCases[0];
+    const leaf = optics.messageToLeaf(opticsMessage);
+
+    // set root
+    const proofRoot = await replica.testBranchRoot(leaf, path, index);
+    await replica.setCurrentRoot(proofRoot);
+
+    // prove and process message
+    await replica.proveAndProcess(opticsMessage, path, index);
+
+    // expect call to have been processed
+    expect(await TestRecipient.processed()).to.be.true;
+    expect(await replica.messages(leaf)).to.equal(
+      optics.MessageStatus.PROCESSED,
+    );
+    expect(await replica.lastProcessed()).to.equal(sequence);
+  });
 });

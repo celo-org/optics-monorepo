@@ -280,7 +280,7 @@ describe('Replica', async () => {
 
     // Try to prove message again
     await expect(replica.prove(leaf, path, index)).to.be.revertedWith(
-      '!MessageStatus.None',
+      '!MessageStatus',
     );
   });
 
