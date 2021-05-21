@@ -47,17 +47,27 @@ describe('SimpleCrossChainMessage', async () => {
     [randomSigner] = walletProvider.getWalletsPersistent(1);
   });
 
-  it('All Homes suggest empty update values when queue is empty', async () => {
-    for (let domain of domains) {
-      const home = getHome(chainDetails, domain);
+  it('All Homes have correct initial state', async () => {
+    // governorHome has 0 updates
+    const governorHome = getHome(chainDetails, homeDomain);
 
-      const length = await home.queueLength();
-      expect(length).to.equal(0);
+    let length = await governorHome.queueLength();
+    expect(length).to.equal(0);
 
-      const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
-      expect(suggestedCurrent).to.equal(ethers.utils.formatBytes32String(0));
-      expect(suggestedNew).to.equal(ethers.utils.formatBytes32String(0));
-    }
+    let [suggestedCurrent, suggestedNew] = await governorHome.suggestUpdate();
+    expect(suggestedCurrent).to.equal(ethers.utils.formatBytes32String(0));
+    expect(suggestedNew).to.equal(ethers.utils.formatBytes32String(0));
+
+    // nonGovernorHome has 1 update
+    const nonGovernorHome = getHome(chainDetails, replicaDomain);
+
+    length = await nonGovernorHome.queueLength();
+    expect(length).to.equal(1);
+
+    [suggestedCurrent, suggestedNew] = await nonGovernorHome.suggestUpdate();
+    const nullRoot = ethers.utils.formatBytes32String(0);
+    expect(suggestedCurrent).to.equal(nullRoot);
+    expect(suggestedNew).to.not.equal(nullRoot);
   });
 
   it('All Replicas have empty queue of pending updates', async () => {
@@ -154,14 +164,6 @@ describe('SimpleCrossChainMessage', async () => {
     // get governance routers
     const governorRouter = getGovernanceRouter(chainDetails, homeDomain);
     const nonGovernorRouter = getGovernanceRouter(chainDetails, replicaDomain);
-
-    // set remote governance router addresses
-    governorRouter.setRouterAddress(replicaDomain, nonGovernorRouter.address);
-    nonGovernorRouter.setRouterAddress(homeDomain, governorRouter.address);
-
-    // set governor router as governor
-    firstGovernor = await governorRouter.governor();
-    nonGovernorRouter.transferGovernor(homeDomain, firstGovernor);
 
     const replica = getReplica(chainDetails, replicaDomain, homeDomain);
     const TestRecipient = await optics.deployImplementation('TestRecipient');

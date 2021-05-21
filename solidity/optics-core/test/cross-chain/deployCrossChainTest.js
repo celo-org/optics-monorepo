@@ -89,6 +89,7 @@ async function deployMultipleChains(chainConfigs) {
   // including one replica for each other domain
   const chainDetails = {};
 
+  let govRouters = [];
   for (let config of chainConfigs) {
     const { domain } = config;
 
@@ -101,10 +102,31 @@ async function deployMultipleChains(chainConfigs) {
     // note: we will be working with a persistent set of contracts across each test
     const contracts = await devDeployOptics(local, remotes, true);
 
+    const govRouter = contracts.governanceRouter.proxyWithImplementation;
+    govRouters.push(govRouter);
+
     chainDetails[domain] = {
       ...config,
       contracts,
     };
+  }
+
+  // set the governor to the governance router deployed on the first chain
+  const governorDomain = await chainConfigs[0].domain;
+  const governor = await govRouters[0].governor();
+  for (let i = 0; i < govRouters.length; i++) {
+    for (let j = 0; j < govRouters.length; j++) {
+      if (j !== i) {
+        // set routers on every governance router
+        const routerDomain = chainConfigs[j].domain;
+        const routerAddress = govRouters[j].address;
+        govRouters[i].setRouterAddress(routerDomain, routerAddress);
+      }
+    }
+    if (i > 0) {
+      // transfer governorship to first governance router
+      govRouters[i].transferGovernor(governorDomain, governor);
+    }
   }
 
   return chainDetails;

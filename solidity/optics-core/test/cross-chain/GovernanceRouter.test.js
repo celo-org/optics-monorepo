@@ -64,17 +64,7 @@ describe('GovernanceRouter', async () => {
     governorRouter = getGovernanceRouter(chainDetails, governorDomain);
     nonGovernorRouter = getGovernanceRouter(chainDetails, nonGovernorDomain);
 
-    // set remote governance router addresses
-    governorRouter.setRouterAddress(
-      nonGovernorDomain,
-      nonGovernorRouter.address,
-    );
-    nonGovernorRouter.setRouterAddress(governorDomain, governorRouter.address);
-
-    // transfer governorship to governor router on non governor router
     firstGovernor = await governorRouter.governor();
-    nonGovernorRouter.transferGovernor(governorDomain, firstGovernor);
-
     secondGovernor = await secondGovernorSigner.getAddress();
 
     governorHome = getHome(chainDetails, governorDomain);
@@ -234,7 +224,6 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Accepts valid call messages', async () => {
-    // Create address for router to enroll and domain for router
     const TestRecipient = await optics.deployImplementation('TestRecipient');
 
     // Format optics call message
