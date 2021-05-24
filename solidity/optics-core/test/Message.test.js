@@ -51,7 +51,6 @@ describe('Message', async () => {
     const recipient = '0x2222222222222222222222222222222222222222';
     const sequence = 1;
     const body = ethers.utils.toUtf8Bytes('message');
-    console.log(body);
 
     const opticsMessage = optics.formatMessage(
       origin,
@@ -61,8 +60,6 @@ describe('Message', async () => {
       recipient,
       body,
     );
-
-    console.log(opticsMessage);
 
     const {
       origin: testOrigin,
@@ -74,7 +71,6 @@ describe('Message', async () => {
       leaf,
     } = testCases[0];
 
-    console.log('Leaf:', optics.messageToLeaf(opticsMessage));
     expect(await messageLib.origin(opticsMessage)).to.equal(testOrigin);
     expect(await messageLib.sender(opticsMessage)).to.equal(testSender);
     expect(await messageLib.sequence(opticsMessage)).to.equal(testSequence);
@@ -85,6 +81,6 @@ describe('Message', async () => {
     expect(await messageLib.body(opticsMessage)).to.equal(
       ethers.utils.hexlify(testBody),
     );
-    // expect(await messageLib.leaf(opticsMessage)).to.equal(leaf);
+    expect(await messageLib.leaf(opticsMessage)).to.equal(leaf);
   });
 });

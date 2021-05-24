@@ -21,24 +21,24 @@ pub mod output_functions {
             sender: H256::from(
                 H160::from_str("0x1111111111111111111111111111111111111111").unwrap(),
             ),
+            sequence: 1,
             destination: 2000,
             recipient: H256::from(
                 H160::from_str("0x2222222222222222222222222222222222222222").unwrap(),
             ),
-            sequence: 1,
             body: "message".as_bytes().to_vec(),
         };
 
         let message_json = json!({
-            "origin": optics_message.origin, 
-            "sender": optics_message.sender, 
+            "origin": optics_message.origin,
+            "sender": optics_message.sender,
             "destination": optics_message.destination,
             "recipient": optics_message.recipient,
             "sequence": optics_message.sequence,
             "body": optics_message.body,
             "leaf": optics_message.to_leaf(),
         });
-        let json = json!({ "testCases" : [message_json] }).to_string();
+        let json = json!({ "testCases": [message_json] }).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)

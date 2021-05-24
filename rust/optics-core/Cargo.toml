@@ -32,10 +32,6 @@ name = "toy"
 path = "./bin/toy.rs"
 
 [[bin]]
-name = "message_output"
-path = "bin/message_output.rs"
-
-[[bin]]
 name = "lib_test_output"
 path = "bin/lib_test_output.rs"
 
