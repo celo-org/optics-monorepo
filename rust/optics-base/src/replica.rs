@@ -3,7 +3,7 @@ use ethers::core::types::{H256, U256};
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    SignedUpdate, StampedMessage,
+    OpticsMessage, SignedUpdate,
 };
 
 use optics_ethereum::EthereumReplica;
@@ -120,10 +120,7 @@ impl Replica for Replicas {
         }
     }
 
-    async fn process(
-        &self,
-        message: &StampedMessage,
-    ) -> Result<TxOutcome, ChainCommunicationError> {
+    async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
             Replicas::Ethereum(replica) => replica.process(message).await,
             Replicas::Mock(mock_replica) => mock_replica.process(message).await,

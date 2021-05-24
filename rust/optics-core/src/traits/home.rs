@@ -6,7 +6,7 @@ use ethers::core::types::H256;
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
     utils::home_domain_hash,
-    Decode, Message, OpticsError, SignedUpdate, StampedMessage, Update,
+    Decode, Message, OpticsError, OpticsMessage, SignedUpdate, Update,
 };
 
 /// A Stamped message that has been committed at some leaf index
@@ -24,11 +24,11 @@ pub struct CommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,
     /// The fully detailed message that was committed
-    pub message: StampedMessage,
+    pub message: OpticsMessage,
 }
 
-impl AsRef<StampedMessage> for CommittedMessage {
-    fn as_ref(&self) -> &StampedMessage {
+impl AsRef<OpticsMessage> for CommittedMessage {
+    fn as_ref(&self) -> &OpticsMessage {
         &self.message
     }
 }
@@ -39,7 +39,7 @@ impl TryFrom<RawCommittedMessage> for CommittedMessage {
     fn try_from(raw: RawCommittedMessage) -> Result<Self, Self::Error> {
         Ok(Self {
             leaf_index: raw.leaf_index,
-            message: StampedMessage::read_from(&mut &raw.message[..])?,
+            message: OpticsMessage::read_from(&mut &raw.message[..])?,
         })
     }
 }

@@ -4,7 +4,7 @@ use ethers::core::types::{H256, U256};
 use crate::{
     accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, TxOutcome},
-    StampedMessage,
+    OpticsMessage,
 };
 
 /// Interface for on-chain replicas
@@ -35,13 +35,12 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Trigger processing of a message
-    async fn process(&self, message: &StampedMessage)
-        -> Result<TxOutcome, ChainCommunicationError>;
+    async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError>;
 
     /// Prove a leaf in the replica and then process its message
     async fn prove_and_process(
         &self,
-        message: &StampedMessage,
+        message: &OpticsMessage,
         proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self.prove(proof).await?;

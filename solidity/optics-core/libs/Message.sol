@@ -117,4 +117,8 @@ library Message {
     function body(bytes29 _message) internal pure returns (bytes29) {
         return _message.slice(PREFIX_LENGTH, _message.len() - PREFIX_LENGTH, 0);
     }
+
+    function leaf(bytes29 _message) internal view returns (bytes32) {
+        return messageHash(origin(_message), sender(_message), sequence(_message), destination(_message), recipient(_message), TypedMemView.clone(body(_message)));
+    }
 }

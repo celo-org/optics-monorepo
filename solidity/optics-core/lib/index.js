@@ -178,6 +178,8 @@ extendEnvironment((hre) => {
     senderAddr = optics.ethersAddressToBytes32(senderAddr);
     recipientAddr = optics.ethersAddressToBytes32(recipientAddr);
 
+    console.log('Sender addr:', senderAddr);
+
     return ethers.utils.solidityPack(
       ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
       [

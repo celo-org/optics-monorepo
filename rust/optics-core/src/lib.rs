@@ -198,7 +198,7 @@ impl Signer for Signers {
 
 /// A full Optics message between chains
 #[derive(Debug, Default, Clone)]
-pub struct StampedMessage {
+pub struct OpticsMessage {
     /// 4   SLIP-44 ID
     pub origin: u32,
     /// 32  Address in home convention
@@ -224,7 +224,7 @@ pub struct Message {
     pub body: Vec<u8>,
 }
 
-impl Encode for StampedMessage {
+impl Encode for OpticsMessage {
     fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
     where
         W: std::io::Write,
@@ -238,7 +238,7 @@ impl Encode for StampedMessage {
     }
 }
 
-impl Decode for StampedMessage {
+impl Decode for OpticsMessage {
     fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
     where
         R: std::io::Read,
@@ -272,9 +272,13 @@ impl Decode for StampedMessage {
     }
 }
 
-impl StampedMessage {
+impl OpticsMessage {
     /// Convert the message to a leaf
     pub fn to_leaf(&self) -> H256 {
+        let mut buf = vec!();
+        self.write_to(&mut buf).unwrap();
+        println!("Buf {:?}", std::str::from_utf8(&buf).unwrap());
+
         let mut k = Keccak256::new();
         self.write_to(&mut k).expect("!write");
         H256::from_slice(k.finalize().as_slice())

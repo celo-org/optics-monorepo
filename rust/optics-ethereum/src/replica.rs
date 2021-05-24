@@ -4,7 +4,7 @@ use ethers::core::types::{Address, Signature, H256, U256};
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    Encode, SignedUpdate, StampedMessage, Update,
+    Encode, OpticsMessage, SignedUpdate, Update,
 };
 
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
@@ -240,10 +240,7 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn process(
-        &self,
-        message: &StampedMessage,
-    ) -> Result<TxOutcome, ChainCommunicationError> {
+    async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
         Ok(self
             .contract
             .process(message.to_vec())
@@ -256,7 +253,7 @@ where
     #[tracing::instrument(err)]
     async fn prove_and_process(
         &self,
-        message: &StampedMessage,
+        message: &OpticsMessage,
         proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();

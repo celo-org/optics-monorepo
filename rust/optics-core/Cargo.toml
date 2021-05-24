@@ -32,8 +32,8 @@ name = "toy"
 path = "./bin/toy.rs"
 
 [[bin]]
-name = "proof_output"
-path = "bin/proof_output.rs"
+name = "message_output"
+path = "bin/message_output.rs"
 
 [[bin]]
 name = "lib_test_output"

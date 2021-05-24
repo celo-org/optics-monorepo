@@ -8,7 +8,7 @@ use ethers::core::types::{H256, U256};
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    SignedUpdate, StampedMessage,
+    OpticsMessage, SignedUpdate,
 };
 
 mock! {
@@ -30,11 +30,11 @@ mock! {
 
         pub fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        pub fn _process(&self, message: &StampedMessage) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _prove_and_process(
             &self,
-            message: &StampedMessage,
+            message: &OpticsMessage,
             proof: &Proof,
         ) -> Result<TxOutcome, ChainCommunicationError> {}
 
@@ -108,16 +108,13 @@ impl Replica for MockReplicaContract {
         self._prove(proof)
     }
 
-    async fn process(
-        &self,
-        message: &StampedMessage,
-    ) -> Result<TxOutcome, ChainCommunicationError> {
+    async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
         self._process(message)
     }
 
     async fn prove_and_process(
         &self,
-        message: &StampedMessage,
+        message: &OpticsMessage,
         proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self._prove_and_process(message, proof)

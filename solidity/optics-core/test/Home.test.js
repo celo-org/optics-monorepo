@@ -260,10 +260,8 @@ describe('Home', async () => {
     for (let testCase of testCases) {
       let { destination, sequence, expectedDestinationAndSequence } = testCase;
 
-      const solidityDestinationAndSequence = await home.testDestinationAndSequence(
-        destination,
-        sequence,
-      );
+      const solidityDestinationAndSequence =
+        await home.testDestinationAndSequence(destination, sequence);
 
       expect(solidityDestinationAndSequence).to.equal(
         expectedDestinationAndSequence,

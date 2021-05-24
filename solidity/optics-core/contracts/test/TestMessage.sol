@@ -39,4 +39,8 @@ contract TestMessage {
     {
         return _message.ref(0).recipientAddress();
     }
+
+    function leaf(bytes memory _message) external view returns (bytes32) {
+        return _message.ref(0).leaf();
+    }
 }

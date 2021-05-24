@@ -38,14 +38,8 @@ task('submit-double-update', 'Submit a double update to a home or replica.')
   .addParam('newRoot2', 'The new root', undefined, types.string)
   .addParam('signature2', 'The updater signature', undefined, types.string)
   .setAction(async (args) => {
-    let {
-      oldRoot1,
-      newRoot1,
-      signature1,
-      oldRoot2,
-      newRoot2,
-      signature2,
-    } = args;
+    let { oldRoot1, newRoot1, signature1, oldRoot2, newRoot2, signature2 } =
+      args;
 
     let address = ethers.utils.getAddress(args.address);
     let update1 = await utils.validateUpdate(newRoot1, oldRoot1, signature1);

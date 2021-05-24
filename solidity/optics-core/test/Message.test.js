@@ -1,6 +1,7 @@
 const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
+const { testCases } = require('../../../vectors/messageTestCases.json');
 
 const remoteDomain = 1000;
 const localDomain = 2000;
@@ -41,5 +42,49 @@ describe('Message', async () => {
       recipient.address,
     );
     expect(await messageLib.body(message)).to.equal(body);
+  });
+
+  it('Matches Rust-output OpticsMessage and leaf', async () => {
+    const origin = 1000;
+    const destination = 2000;
+    const sender = '0x1111111111111111111111111111111111111111';
+    const recipient = '0x2222222222222222222222222222222222222222';
+    const sequence = 1;
+    const body = ethers.utils.toUtf8Bytes('message');
+    console.log(body);
+
+    const opticsMessage = optics.formatMessage(
+      origin,
+      sender,
+      sequence,
+      destination,
+      recipient,
+      body,
+    );
+
+    console.log(opticsMessage);
+
+    const {
+      origin: testOrigin,
+      destination: testDestination,
+      sender: testSender,
+      recipient: testRecipient,
+      sequence: testSequence,
+      body: testBody,
+      leaf,
+    } = testCases[0];
+
+    console.log('Leaf:', optics.messageToLeaf(opticsMessage));
+    expect(await messageLib.origin(opticsMessage)).to.equal(testOrigin);
+    expect(await messageLib.sender(opticsMessage)).to.equal(testSender);
+    expect(await messageLib.sequence(opticsMessage)).to.equal(testSequence);
+    expect(await messageLib.destination(opticsMessage)).to.equal(
+      testDestination,
+    );
+    expect(await messageLib.recipient(opticsMessage)).to.equal(testRecipient);
+    expect(await messageLib.body(opticsMessage)).to.equal(
+      ethers.utils.hexlify(testBody),
+    );
+    // expect(await messageLib.leaf(opticsMessage)).to.equal(leaf);
   });
 });
