@@ -28,6 +28,9 @@ pub mod output_functions {
             body: "0x01010000000000000000000000006b39b761b1b64c8c095bf0e3bb0c6a74705b4788000000000000000000000000000000000000000000000000000000000000004499a88ec400000000000000000000000024432a08869578aaf4d1eada12e1e78f171b1a2b000000000000000000000000f66cfdf074d2ffd6a4037be3a669ed04380aef2b".as_bytes().to_vec(),
         };
 
+        println!("Sender {}", optics_message.sender);
+        println!("Receipient {}", optics_message.recipient);
+
         tree.push_leaf(optics_message.to_leaf(), TREE_DEPTH)
             .unwrap();
         let proof = tree.generate_proof(0, TREE_DEPTH);
