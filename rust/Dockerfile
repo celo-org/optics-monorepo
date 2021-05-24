@@ -10,7 +10,6 @@ RUN apt-get update && \
     rustup target add x86_64-unknown-linux-musl
 
 # Add workspace to workdir 
-COPY abis ./abis
 COPY optics-core ./optics-core
 COPY optics-ethereum ./optics-ethereum
 COPY optics-base ./optics-base 
@@ -41,10 +40,13 @@ RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/relea
 FROM ubuntu:20.04
 RUN apt-get update && \
     apt-get install -y libssl-dev 
+
+WORKDIR /app
 COPY --from=builder /release/updater .
 COPY --from=builder /release/relayer .
 COPY --from=builder /release/watcher .
 COPY --from=builder /release/processor .
 COPY --from=builder /release/kathy .
+COPY config ./config
 USER 1000
 CMD ["./watcher"]

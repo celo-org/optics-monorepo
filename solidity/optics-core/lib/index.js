@@ -12,8 +12,8 @@ const {
 } = require('../scripts/deployUpgradeSetup');
 const utils = require('./utils');
 const { deployOptics } = require('../scripts/deployOptics');
-const HomeAbi = require('../../../abis/Home.abi.json');
-const ReplicaAbi = require('../../../abis/Replica.abi.json');
+const HomeAbi = require('../../optics-ethereum/abis/Home.abi.json');
+const ReplicaAbi = require('../../optics-ethereum/abis/Replica.abi.json');
 
 extendEnvironment((hre) => {
   let { ethers } = hre;
