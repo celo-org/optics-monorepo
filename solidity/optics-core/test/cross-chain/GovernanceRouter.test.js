@@ -16,6 +16,7 @@ const {
   getUpgradeBeaconController,
   getUpdaterManager,
 } = require('./deployCrossChainTest');
+const { proof } = require('../../../../vectors/proof.json');
 
 /*
  * Deploy the full Optics suite on two chains
@@ -469,7 +470,6 @@ describe('GovernanceRouter', async () => {
 
     const callMessage = optics.GovernanceRouter.formatCalls([call]);
 
-    await governorReplicaOnNonGovernorChain.setMessagePending(callMessage);
     const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
       governorRouter,
@@ -477,13 +477,26 @@ describe('GovernanceRouter', async () => {
       callMessage,
     );
 
-    // TODO: Prove and process
-    // await governorReplicaOnNonGovernorChain.proveAndProcess(
-    //   opticsMessage,
-    //   proof,
+    const { leaf, path } = proof;
+    const index = 0;
+    const messageLeaf = optics.messageToLeaf(callMessage);
+    expect(messageLeaf).to.equal(leaf);
+
+    // const valid = await governorReplicaOnNonGovernorChain.prove(
+    //   leaf,
+    //   path,
     //   index,
     // );
-    await governorReplicaOnNonGovernorChain.process(opticsMessage);
+    // console.log(valid);
+    // expect(valid).to.be.true;
+
+    await governorReplicaOnNonGovernorChain.proveAndProcess(
+      opticsMessage,
+      path,
+      index,
+    );
+    // await governorReplicaOnNonGovernorChain.setMessagePending(callMessage);
+    // await governorReplicaOnNonGovernorChain.process(opticsMessage);
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();
