@@ -479,7 +479,7 @@ describe('GovernanceRouter', async () => {
 
     const { leaf, path } = proof;
     const index = 0;
-    const messageLeaf = optics.messageToLeaf(callMessage);
+    const messageLeaf = optics.messageToLeaf(opticsMessage);
     expect(messageLeaf).to.equal(leaf);
 
     // const valid = await governorReplicaOnNonGovernorChain.prove(
