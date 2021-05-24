@@ -28,6 +28,7 @@ jobs:
 
     steps:
       - name: automerge
+        if: ${{ secrets.ACTIONS_PAT }}
         uses: pascalgn/automerge-action@v0.13.1
         env:
           GITHUB_TOKEN: "${{ secrets.ACTIONS_PAT }}"
