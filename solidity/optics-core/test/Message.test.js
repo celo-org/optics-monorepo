@@ -82,5 +82,6 @@ describe('Message', async () => {
       ethers.utils.hexlify(testBody),
     );
     expect(await messageLib.leaf(opticsMessage)).to.equal(leaf);
+    expect(optics.messageToLeaf(opticsMessage)).to.equal(leaf);
   });
 });
