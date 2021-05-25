@@ -3,6 +3,7 @@ use crate::{
     FailureNotification, OpticsMessage, Update,
 };
 use ethers::core::types::{H160, H256};
+use hex::FromHex;
 
 use serde_json::{json, Value};
 use std::{fs::OpenOptions, io::Write};
@@ -26,7 +27,7 @@ pub mod output_functions {
             recipient: H256::from(
                 H160::from_str("0x2222222222222222222222222222222222222222").unwrap(),
             ),
-            body: "message".as_bytes().to_vec(),
+            body: Vec::from_hex("1234").unwrap(),
         };
 
         let message_json = json!({

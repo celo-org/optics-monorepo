@@ -50,7 +50,7 @@ describe('Message', async () => {
     const sender = '0x1111111111111111111111111111111111111111';
     const recipient = '0x2222222222222222222222222222222222222222';
     const sequence = 1;
-    const body = ethers.utils.toUtf8Bytes('message');
+    const body = ethers.utils.arrayify('0x1234');
 
     const opticsMessage = optics.formatMessage(
       origin,
