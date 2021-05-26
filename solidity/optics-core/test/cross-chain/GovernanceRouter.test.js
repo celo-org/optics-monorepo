@@ -470,33 +470,22 @@ describe('GovernanceRouter', async () => {
 
     const callMessage = optics.GovernanceRouter.formatCalls([call]);
 
-    const opticsMessage = await formatOpticsMessage(
-      governorReplicaOnNonGovernorChain,
-      governorRouter,
-      nonGovernorRouter,
+    const opticsMessage = optics.formatMessage(
+      governorDomain,
+      governorRouter.address,
+      1,
+      nonGovernorDomain,
+      nonGovernorRouter.address,
       callMessage,
     );
 
-    const { leaf, path } = proof;
+    const { path } = proof;
     const index = 0;
-    const messageLeaf = optics.messageToLeaf(opticsMessage);
-    expect(messageLeaf).to.equal(leaf);
-
-    // const valid = await governorReplicaOnNonGovernorChain.prove(
-    //   leaf,
-    //   path,
-    //   index,
-    // );
-    // console.log(valid);
-    // expect(valid).to.be.true;
-
     await governorReplicaOnNonGovernorChain.proveAndProcess(
       opticsMessage,
       path,
       index,
     );
-    // await governorReplicaOnNonGovernorChain.setMessagePending(callMessage);
-    // await governorReplicaOnNonGovernorChain.process(opticsMessage);
 
     // test implementation was upgraded
     versionResult = await mysteryMathProxy.version();

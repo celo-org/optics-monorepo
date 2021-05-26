@@ -253,7 +253,7 @@ contract Replica is Initializable, Common, QueueManager {
         bytes32[32] calldata _proof,
         uint256 _index
     ) public returns (bool) {
-        require(messages[_leaf] == MessageStatus.None, "!MessageStatus");
+        require(messages[_leaf] == MessageStatus.None, "!MessageStatus.None");
         bytes32 _actual = MerkleLib.branchRoot(_leaf, _proof, _index);
 
         // NB:

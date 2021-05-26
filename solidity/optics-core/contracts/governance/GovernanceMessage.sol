@@ -50,7 +50,7 @@ library GovernanceMessage {
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
         // Add number of calls
-        _encodedCalls[1] = bytes1(uint8(_numCalls));
+        _encodedCalls[1] = abi.encodePacked(uint8(_numCalls)).ref(0);
 
         for (uint256 i = 0; i < _numCalls; i++) {
             Call memory _call = _calls[i];
