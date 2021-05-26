@@ -57,7 +57,6 @@ describe('GovernanceRouter', async () => {
     chainDetails = await deployMultipleChains(configs);
 
     // set updater
-    // let secondGovernorSigner;
     [signer, secondGovernorSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, governorDomain);
 
