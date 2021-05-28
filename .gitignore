@@ -1,0 +1,4 @@
+node_modules
+test_deploy.env
+config.json
+typechain/tmp.ts

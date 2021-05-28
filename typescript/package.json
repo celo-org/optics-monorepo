@@ -1,0 +1,22 @@
+{
+  "devDependencies": {
+    "@typechain/ethers-v5": "^7.0.0",
+    "mkdirp": "^1.0.4",
+    "prettier": "2.3.0",
+    "typechain": "^5.0.0",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "@types/node": "^15.6.1",
+    "ethers": "^5.2.0"
+  },
+  "name": "optics-ts",
+  "version": "1.0.0",
+  "description": "Optics typescript tools",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Celo Labs Inc.",
+  "license": "MIT OR Apache-2.0"
+}
