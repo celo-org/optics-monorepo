@@ -1,6 +1,6 @@
 import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
-import { BeaconProxy } from './proxyUtils';
+import { BeaconProxy, ProxyAddresses } from './proxyUtils';
 import * as contracts from './typechain';
 
 export type Address = string;
@@ -14,6 +14,26 @@ export type Contracts = {
   home?: BeaconProxy<contracts.Home>;
   replicas: Record<number, BeaconProxy<contracts.Replica>>;
 };
+
+export function toJson(contracts: Contracts): string {
+  const replicas: Record<string, ProxyAddresses> = {};
+  Object.entries(contracts.replicas).forEach(([k, v]) => {
+    replicas[k] = {
+      implementation: v.implementation.address,
+      proxy: v.proxy.address,
+      beacon: v.beacon.address,
+    };
+  });
+
+  return JSON.stringify({
+    upgradeBeaconController: contracts.upgradeBeaconController!.address,
+    xappConnectionManager: contracts.upgradeBeaconController!.address,
+    updaterManager: contracts.upgradeBeaconController!.address,
+    governance: contracts.upgradeBeaconController!.address,
+    home: contracts.upgradeBeaconController!.address,
+    replicas,
+  });
+}
 
 export interface ChainConfig {
   name: string;

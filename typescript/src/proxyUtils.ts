@@ -9,6 +9,12 @@ export type BeaconProxy<T extends ethers.Contract> = {
   beacon: contracts.UpgradeBeacon;
 };
 
+export type ProxyAddresses = {
+  implementation: string;
+  proxy: string;
+  beacon: string;
+};
+
 export async function deployProxy<T extends ethers.Contract>(
   deploy: Deploy,
   factory: ethers.ContractFactory,

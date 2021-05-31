@@ -2,7 +2,7 @@ import * as ethers from 'ethers';
 import * as contracts from './typechain';
 
 import * as proxyUtils from './proxyUtils';
-import { ChainConfig, Chain, Deploy } from './chain';
+import { Deploy } from './chain';
 
 function toBytes32(address: string): string {
   let addr = ethers.utils.getAddress(address);
@@ -272,8 +272,8 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
-  console.log(gov);
-  console.log(non);
+  // console.log(gov);
+  // console.log(non);
 }
 
 // Deploys a hub and spoke system
