@@ -1,8 +1,8 @@
 import * as ethers from 'ethers';
 import * as contracts from './typechain';
-
+import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
-import { Deploy } from './chain';
+import { Deploy, toJson, toRustConfigs } from './chain';
 
 function toBytes32(address: string): string {
   let addr = ethers.utils.getAddress(address);
@@ -272,8 +272,7 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
-  // console.log(gov);
-  // console.log(non);
+  writeTwoChainOutput(gov, non);
 }
 
 // Deploys a hub and spoke system
@@ -300,4 +299,19 @@ export async function deployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
   }
 
   await relinquish(gov);
+}
+
+export function writeTwoChainOutput(left: Deploy, right: Deploy) {
+  let [a, g] = toRustConfigs(left, right);
+
+  let lName = left.chain.name;
+  let rName = right.chain.name;
+
+  let dir = `../config/${Date.now()}-${left.chain.name}-${right.chain.name}`;
+  fs.mkdirSync(dir, { recursive: true });
+
+  fs.writeFileSync(`${dir}/${lName}_config.json`, JSON.stringify(a, null, 2));
+  fs.writeFileSync(`${dir}/${rName}_config.json`, JSON.stringify(g, null, 2));
+  fs.writeFileSync(`${dir}/${lName}_contracts.json`, toJson(left.contracts));
+  fs.writeFileSync(`${dir}/${rName}_contracts.json`, toJson(right.contracts));
 }
