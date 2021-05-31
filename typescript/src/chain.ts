@@ -25,14 +25,26 @@ export function toJson(contracts: Contracts): string {
     };
   });
 
-  return JSON.stringify({
-    upgradeBeaconController: contracts.upgradeBeaconController!.address,
-    xappConnectionManager: contracts.upgradeBeaconController!.address,
-    updaterManager: contracts.upgradeBeaconController!.address,
-    governance: contracts.upgradeBeaconController!.address,
-    home: contracts.upgradeBeaconController!.address,
-    replicas,
-  });
+  return JSON.stringify(
+    {
+      upgradeBeaconController: contracts.upgradeBeaconController!.address,
+      xappConnectionManager: contracts.xappConnectionManager!.address,
+      updaterManager: contracts.updaterManager!.address,
+      governance: {
+        implementation: contracts.governance!.implementation.address,
+        proxy: contracts.governance!.proxy.address,
+        beacon: contracts.governance!.beacon.address,
+      },
+      home: {
+        implementation: contracts.home!.implementation.address,
+        proxy: contracts.home!.proxy.address,
+        beacon: contracts.home!.beacon.address,
+      },
+      replicas,
+    },
+    null,
+    2,
+  );
 }
 
 export interface ChainConfig {
