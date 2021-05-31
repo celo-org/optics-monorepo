@@ -1,0 +1,22 @@
+{
+  "upgradeBeaconController": "0xAdB29B47156EF7Ce5200c9A1Fc84BC83F2D97A50",
+  "xappConnectionManager": "0x702Fe1484584d8E6b7B4d3037A4A151380D12e11",
+  "updaterManager": "0x23cF8d606B51852251daFD8246BA67C22DE67Ffa",
+  "governance": {
+    "implementation": "0xb45424Ac6f5F2f23433d078827F5d8b4e3996211",
+    "proxy": "0xC2205CA7803B21748AC2854994Cfe10E5440CDEf",
+    "beacon": "0x9298eaF94667281000e7367Fb283049b5e26FD87"
+  },
+  "home": {
+    "implementation": "0x8054173b34Bc56a4bc9195966730f7D2Ce4E814D",
+    "proxy": "0x67038c87496595086B5286A24fb9abb60e0e83BF",
+    "beacon": "0xd71d4e3C72CC7415834b44F954CF9E5330D8c6De"
+  },
+  "replicas": {
+    "1000": {
+      "implementation": "0xd7A0Ef9172f313CE07a6A5753B39E28dcDa470DE",
+      "proxy": "0x4C2e47cA4Dd7b93A62730e463BE43A0EA01c5A10",
+      "beacon": "0xcccc2467663626B99AE440c4F42473fC95AD3367"
+    }
+  }
+}
