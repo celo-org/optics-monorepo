@@ -96,9 +96,9 @@ describe('Replica', async () => {
     for (let testCase of homeDomainHashTestCases) {
       const { contracts } = await optics.deployUpgradeSetupAndProxy(
         'TestReplica',
-        [testCase.domain],
+        [testCase.homeDomain],
         [
-          remoteDomain,
+          testCase.homeDomain,
           updater.signer.address,
           initialCurrentRoot,
           optimisticSeconds,
@@ -109,9 +109,9 @@ describe('Replica', async () => {
       );
       const tempReplica = contracts.proxyWithImplementation;
 
-      const { expectedHomeDomainHash } = testCase;
+      const { expectedDomainHash } = testCase;
       const homeDomainHash = await tempReplica.testHomeDomainHash();
-      expect(homeDomainHash).to.equal(expectedHomeDomainHash);
+      expect(homeDomainHash).to.equal(expectedDomainHash);
     }
   });
 
