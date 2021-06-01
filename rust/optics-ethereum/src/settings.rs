@@ -28,10 +28,19 @@ pub enum EthereumConnection {
 // combinations of middleware.
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
+        // increase by 2x every 10 seconds
+        let escalator =
+            ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
+
+        let provider = ethers::middleware::gas_escalator::GasEscalatorMiddleware::new(
+            $provider,
+            escalator,
+            ethers::middleware::gas_escalator::Frequency::PerBlock,
+        );
         if let Some(signer) = $signer {
-            let provider_chain_id = $provider.get_chainid().await?;
+            let provider_chain_id = provider.get_chainid().await?;
             let signer = signer.set_chain_id(provider_chain_id.as_u64());
-            let signing_provider = ethers::middleware::SignerMiddleware::new($provider, signer);
+            let signing_provider = ethers::middleware::SignerMiddleware::new(provider, signer);
 
             Box::new(crate::$contract::new(
                 $name,
@@ -44,7 +53,7 @@ macro_rules! construct_box_contract {
                 $name,
                 $domain,
                 $address,
-                $provider.into(),
+                provider.into(),
             ))
         }
     }};
