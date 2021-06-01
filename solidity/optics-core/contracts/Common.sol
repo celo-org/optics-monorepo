@@ -57,9 +57,8 @@ abstract contract Common is Initializable {
         localDomain = _localDomain;
     }
 
-    function initialize(address _updater) public virtual initializer {
+    function initialize(address _updater) internal initializer {
         updater = _updater;
-
         state = States.ACTIVE;
     }
 

@@ -77,15 +77,18 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
-    function initialize(address _updaterManager) public override initializer {
+    function initialize(IUpdaterManager _updaterManager) public initializer {
         _transferOwnership(msg.sender);
 
         _setUpdaterManager(_updaterManager);
-        address _updater = updaterManager.updater();
-        _setUpdater(_updater);
 
         queue.initialize();
-        state = States.ACTIVE;
+
+        address _updater = updaterManager.updater();
+        Common.initialize(_updater);
+        emit NewUpdater(_updater);
+        // _setUpdater(_updater);
+        // state = States.ACTIVE;
     }
 
     modifier onlyUpdaterManager {
@@ -105,7 +108,7 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
 
     /// @notice sets a new updaterManager
     function setUpdaterManager(address _updaterManager) external onlyOwner {
-        _setUpdaterManager(_updaterManager);
+        _setUpdaterManager(IUpdaterManager(_updaterManager));
     }
 
     /// @notice transfer owner role
@@ -241,14 +244,14 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
      * @notice sets a new updaterManager
      * @param _updaterManager Address of new UpdaterManager
      */
-    function _setUpdaterManager(address _updaterManager) internal {
+    function _setUpdaterManager(IUpdaterManager _updaterManager) internal {
         require(
-            Address.isContract(_updaterManager),
+            Address.isContract(address(_updaterManager)),
             "!contract updaterManager"
         );
 
         updaterManager = IUpdaterManager(_updaterManager);
-        emit NewUpdaterManager(_updaterManager);
+        emit NewUpdaterManager(address(_updaterManager));
     }
 
     /**

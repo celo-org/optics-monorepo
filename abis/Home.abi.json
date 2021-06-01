@@ -308,7 +308,7 @@
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IUpdaterManager",
         "name": "_updaterManager",
         "type": "address"
       }

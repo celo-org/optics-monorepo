@@ -17,19 +17,8 @@ describe('Common', async () => {
   });
 
   beforeEach(async () => {
-    const { contracts } = await optics.deployUpgradeSetupAndProxy(
-      'TestCommon',
-      [localDomain],
-      [updater.signer.address],
-    );
-
-    common = contracts.proxyWithImplementation;
-  });
-
-  it('Cannot be initialized twice', async () => {
-    await expect(common.initialize(signer.address)).to.be.revertedWith(
-      'Initializable: contract is already initialized',
-    );
+    const factory = await ethers.getContractFactory('TestCommon');
+    common = await factory.deploy(localDomain, updater.signer.address);
   });
 
   it('Accepts updater signature', async () => {

@@ -440,16 +440,13 @@ describe('Replica', async () => {
   });
 
   it('Proves and processes a message', async () => {
-    console.log(1);
     const sender = testUtils.opticsMessageSender;
     const mockRecipient = await testUtils.opticsMessageMockRecipient.getRecipient();
 
-    console.log(2);
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
 
     const sequence = await replica.nextToProcess();
-    console.log(3);
 
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
@@ -461,7 +458,6 @@ describe('Replica', async () => {
       mockRecipient.address,
       '0x',
     );
-    console.log(4);
 
     // Assert above message and test case have matching leaves
     const { leaf, path, index } = proveAndProcessTestCases[0];
@@ -475,14 +471,12 @@ describe('Replica', async () => {
     // simply recalculate root with the leaf using branchRoot)
     const proofRoot = await replica.testBranchRoot(leaf, path, index);
     await replica.setCurrentRoot(proofRoot);
-    console.log(5);
 
     await replica.proveAndProcess(opticsMessage, path, index);
 
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );
-    console.log(6);
     expect(await replica.nextToProcess()).to.equal(sequence.add(1));
   });
 
