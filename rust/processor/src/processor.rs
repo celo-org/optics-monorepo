@@ -10,6 +10,7 @@ use tokio::{
     task::JoinHandle,
     time::{interval, Interval},
 };
+use tracing::info;
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
@@ -53,6 +54,7 @@ impl ReplicaProcessor {
 
     pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
+            info!("Starting processor");
             let domain = self.replica.local_domain();
 
             let mut interval = self.interval();
@@ -95,6 +97,10 @@ impl ReplicaProcessor {
                     color_eyre::eyre::bail!(err);
                 }
 
+                info!(
+                    "Dispatching a message for processing {}:{}",
+                    domain, sequence
+                );
                 self.replica
                     .prove_and_process(message.as_ref(), &proof)
                     .await?;

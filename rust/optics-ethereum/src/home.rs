@@ -278,7 +278,7 @@ where
         let previous_root: H256 = a.into();
         let new_root: H256 = b.into();
 
-        if new_root.is_zero() || previous_root.is_zero() {
+        if new_root.is_zero() {
             return Ok(None);
         }
 

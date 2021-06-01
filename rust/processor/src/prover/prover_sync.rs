@@ -14,6 +14,7 @@ use tokio::{
     },
     time::interval,
 };
+use tracing::info;
 
 /// Struct to sync prover.
 #[derive(Debug)]
@@ -45,7 +46,7 @@ pub enum ProverSyncError {
         new_root: H256,
     },
     /// Local root was never signed by updater and submitted to Home.
-    #[error("Local root {local_root} was never signed by updater and submitted to Home.")]
+    #[error("Local root {local_root:?} was never signed by updater and submitted to Home.")]
     InvalidLocalRoot {
         /// Root of prover's local merkle tree
         local_root: H256,
@@ -89,6 +90,7 @@ impl ProverSync {
             let signed_update_opt = self.home.signed_update_by_old_root(local_root).await?;
 
             if let Some(signed_update) = signed_update_opt {
+                info!("have signed update, updating prover tree");
                 self.update_prover_tree(local_root, signed_update.update.new_root)
                     .await?;
             } else if self
@@ -139,6 +141,7 @@ impl ProverSync {
         let mut index = prover.count();
 
         // Extend in-memory tree
+        info!("Extending tree with {} leaves", leaves.len());
         let leaves = leaves.into_iter();
         prover.extend(leaves.clone());
         assert_eq!(new_root, prover.root());

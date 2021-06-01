@@ -5,6 +5,7 @@ use tokio::{
     task::JoinHandle,
     time::{interval, Interval},
 };
+use tracing::info;
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
@@ -48,7 +49,13 @@ impl Relayer {
 
         // If signed update exists, update replica's current root
         if let Some(signed_update) = signed_update_opt {
+            info!(
+                "Have a signed update, dispatching to replica {}",
+                replica.name()
+            );
             replica.update(&signed_update).await?;
+        } else {
+            info!("No update.");
         }
 
         Ok(())
@@ -61,7 +68,10 @@ impl Relayer {
 
         // If valid pending update exists, confirm it
         if can_confirm {
+            info!("Can confirm. Confirming on replica {}", replica.name());
             replica.confirm().await?;
+        } else {
+            info!("Can't confirm");
         }
 
         Ok(())

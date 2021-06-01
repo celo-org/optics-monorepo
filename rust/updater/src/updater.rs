@@ -19,6 +19,7 @@ use optics_core::{
     traits::{Common, Home},
     SignedUpdate, Signers,
 };
+use tracing::info;
 
 use crate::settings::Settings;
 
@@ -64,11 +65,13 @@ impl Updater {
         update_pause: u64,
     ) -> Result<Option<JoinHandle<()>>> {
         // Check if there is an update
+        info!("Polling for an update");
         let update_opt = home.produce_update().await?;
 
         // If update exists, spawn task to wait, recheck, and submit update
         if let Some(update) = update_opt {
             return Ok(Some(tokio::spawn(async move {
+                info!("Have an update, awaiting the tick");
                 // Wait `update_pause` seconds
                 interval(Duration::from_secs(update_pause)).tick().await;
 
@@ -78,6 +81,7 @@ impl Updater {
                     tokio::join!(home.queue_contains(update.new_root), home.current_root());
 
                 if in_queue.is_err() || current_root.is_err() {
+                    info!("not in queue, or connection gone");
                     return;
                 }
 
@@ -95,11 +99,14 @@ impl Updater {
                     // acquire guard
                     let _guard = mutex.lock().await;
                     if let Ok(None) = Self::db_get(&db, old_root) {
+                        info!("signing update");
                         let signed = update.sign_with(signer.as_ref()).await.unwrap();
 
                         // If successfully submitted update, record in db
+                        info!("dispatching signed update to contract");
                         match home.update(&signed).await {
                             Ok(_) => {
+                                info!("Storing signed update in db");
                                 Self::db_put(&db, old_root, signed).expect("!db_put");
                             }
                             Err(ref e) => {
@@ -107,8 +114,13 @@ impl Updater {
                             }
                         }
                     }
-                } // guard dropped here
+                    // guard dropped here
+                } else {
+                    info!("Declined to submit update, no longer current");
+                }
             })));
+        } else {
+            info!("No update available");
         }
 
         Ok(None)
