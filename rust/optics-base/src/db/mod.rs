@@ -10,7 +10,9 @@ pub use persistence::UsingPersistence;
 /// Opens db at `db_path` and creates if missing
 #[tracing::instrument(err)]
 pub fn from_path(db_path: &str) -> Result<DB> {
-    let path = Path::new(db_path).canonicalize()?;
+    // Canonicalize ensures existence, so we have to do that, then extend
+    let mut path = Path::new(".").canonicalize()?;
+    path.extend(&[db_path]);
 
     let mut opts = Options::default();
     opts.create_if_missing(true);
