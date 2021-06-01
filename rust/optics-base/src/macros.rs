@@ -112,7 +112,7 @@ macro_rules! decl_settings {
 
                 // Derive Environment prefix from agent name
                 let prefix = format!("OPT_{}", $name.to_ascii_uppercase());
-                s.merge(config::Environment::with_prefix(&prefix))?;
+                s.merge(config::Environment::with_prefix(&prefix).separator("_"))?;
 
                 s.try_into()
             }
