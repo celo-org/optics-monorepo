@@ -83,7 +83,7 @@ describe('GovernanceRouter', async () => {
   it('Rejects message from unenrolled replica', async () => {
     const optimisticSeconds = 3;
     const initialCurrentRoot = ethers.utils.formatBytes32String('current');
-    const initialIndex = 1;
+    const initialIndex = 0;
     const controller = null;
 
     // Deploy single replica on nonGovernorDomain that will not be enrolled

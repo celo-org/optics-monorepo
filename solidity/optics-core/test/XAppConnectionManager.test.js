@@ -13,7 +13,7 @@ const localDomain = 1000;
 const remoteDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
-const initialIndex = 1;
+const initialIndex = 0;
 const controller = null;
 const walletProvider = new testUtils.WalletProvider(provider);
 
