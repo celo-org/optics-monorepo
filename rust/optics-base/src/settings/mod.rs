@@ -1,4 +1,4 @@
-use color_eyre::Report;
+use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
@@ -99,7 +99,7 @@ pub struct Settings {
     /// The home configuration
     pub home: ChainSetup,
     /// The replica configurations
-    pub replicas: Vec<ChainSetup>,
+    pub replicas: HashMap<String, ChainSetup>,
     /// The tracing configuration
     pub tracing: TracingConfig,
 }
@@ -108,7 +108,14 @@ impl Settings {
     /// Try to get all replicas from this settings object
     pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
-        for v in self.replicas.iter() {
+        for (k, v) in self.replicas.iter() {
+            if k != &v.name {
+                bail!(
+                    "Replica key does not match replica name:\n key: {}  name: {}",
+                    k,
+                    v.name
+                );
+            }
             result.insert(v.name.clone(), Arc::new(v.try_into_replica().await?));
         }
         Ok(result)

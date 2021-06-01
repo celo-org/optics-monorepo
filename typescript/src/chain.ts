@@ -122,7 +122,7 @@ type RustContractBlock = {
 };
 
 type RustConfig = {
-  replicas: RustContractBlock[];
+  replicas: Record<string, RustContractBlock>;
   home: RustContractBlock;
   tracing: {
     level: string;
@@ -166,7 +166,7 @@ function buildConfig(left: Deploy, right: Deploy): RustConfig {
   };
 
   return {
-    replicas: [replica],
+    replicas: { [replica.name]: replica },
     home,
     tracing: {
       level: 'debug',

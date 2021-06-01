@@ -1,6 +1,6 @@
 {
-  "replicas": [
-    {
+  "replicas": {
+    "alfajores": {
       "address": "0x0C473afC0cabd469751CBE3Ac08aBac3e40bF586",
       "domain": 1000,
       "name": "alfajores",
@@ -16,7 +16,7 @@
         }
       }
     }
-  ],
+  },
   "home": {
     "address": "0x67038c87496595086B5286A24fb9abb60e0e83BF",
     "domain": 2000,
@@ -34,8 +34,8 @@
     }
   },
   "tracing": {
-    "level": "debug",
+    "level": "info",
     "style": "pretty"
   },
-  "dbPath": "db_path"
+  "dbPath": "tmp_db"
 }
