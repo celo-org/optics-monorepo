@@ -215,7 +215,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "_lastProcessed",
+        "name": "_nextToProcess",
         "type": "uint256"
       }
     ],
@@ -235,19 +235,6 @@
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "lastProcessed",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -294,6 +281,19 @@
       {
         "internalType": "uint256",
         "name": "_confirmAt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nextToProcess",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],

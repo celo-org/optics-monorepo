@@ -125,7 +125,7 @@ async function devDeployReplicaProxy(
     domain,
     updater,
     currentRoot,
-    lastProcessedIndex,
+    nextToProcessIndex,
     optimisticSeconds,
   } = remote;
   const proxyInitializeArgs = [
@@ -133,17 +133,19 @@ async function devDeployReplicaProxy(
     updater,
     currentRoot,
     optimisticSeconds,
-    lastProcessedIndex,
+    nextToProcessIndex,
   ];
 
   // Deploy Proxy Contract and initialize
-  const { proxy, proxyWithImplementation } =
-    await optics.deployProxyWithImplementation(
-      upgradeBeaconAddress,
-      contractStr,
-      proxyInitializeArgs,
-      'initialize(uint32, address, bytes32, uint256, uint256)',
-    );
+  const {
+    proxy,
+    proxyWithImplementation,
+  } = await optics.deployProxyWithImplementation(
+    upgradeBeaconAddress,
+    contractStr,
+    proxyInitializeArgs,
+    'initialize(uint32, address, bytes32, uint256, uint256)',
+  );
 
   const contracts = {
     proxy,

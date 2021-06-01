@@ -17,7 +17,7 @@ async function domainsToTestConfigs(domains) {
       domain,
       currentRoot:
         '0x0000000000000000000000000000000000000000000000000000000000000000',
-      lastProcessedIndex: 0,
+      nextToProcess: 1,
       optimisticSeconds: 3,
     };
   });

@@ -159,7 +159,7 @@ async function formatOpticsMessage(
   destinationRouter,
   message,
 ) {
-  const sequence = (await replica.lastProcessed()).add(1);
+  const sequence = await replica.nextToProcess();
   const governorDomain = await governorRouter.localDomain();
   const destinationDomain = await destinationRouter.localDomain();
 

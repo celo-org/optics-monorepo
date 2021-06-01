@@ -41,8 +41,9 @@ async function getInitializeData(
 
   const Implementation = await ethers.getContractFactory(implementationName);
 
-  const initializeFunction =
-    Implementation.interface.getFunction(initializeIdentifier);
+  const initializeFunction = Implementation.interface.getFunction(
+    initializeIdentifier,
+  );
 
   const initializeData = Implementation.interface.encodeFunctionData(
     initializeFunction,
@@ -137,13 +138,15 @@ async function deployUpgradeSetupAndProxy(
 
   // Construct initialize data
   // Deploy Proxy Contract and initialize
-  const { proxy, proxyWithImplementation } =
-    await deployProxyWithImplementation(
-      upgradeBeacon.address,
-      implementationName,
-      initializeArgs,
-      implementationInitializeFunctionIdentifier,
-    );
+  const {
+    proxy,
+    proxyWithImplementation,
+  } = await deployProxyWithImplementation(
+    upgradeBeacon.address,
+    implementationName,
+    initializeArgs,
+    implementationInitializeFunctionIdentifier,
+  );
 
   return {
     contracts: {

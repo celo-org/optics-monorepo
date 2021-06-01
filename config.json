@@ -1,0 +1,24 @@
+{
+    "celo-alfajores": {
+        "rpc": "",
+        "domain": "1000",
+        "updater": "0x4177372FD9581ceb2367e0Ce84adC5DAD9DF8D55",
+        "remotes": [{
+            "currentRoot": 0,
+            "nextToProcessIndex": 0,
+            "optimisticSeconds": 3,
+        }],
+        "watchers": ["0x20aC2FD664bA5406A7262967C34107e708dCb18E"]
+    },
+    "ethereum-goerli": {
+        "rpc": "",
+        "domain": "2000",
+        "updater": "0x4177372FD9581ceb2367e0Ce84adC5DAD9DF8D55",
+        "remotes": [{
+            "currentRoot": 0,
+            "nextToProcessIndex": 0,
+            "optimisticSeconds": 3,
+        }],
+        "watchers": ["0x20aC2FD664bA5406A7262967C34107e708dCb18E"]
+    }
+}

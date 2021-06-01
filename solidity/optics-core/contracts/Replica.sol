@@ -34,7 +34,7 @@ contract Replica is Initializable, Common, QueueManager {
     uint256 public optimisticSeconds;
 
     /// @notice Index of last processed message's leaf in home's merkle tree
-    uint256 public lastProcessed;
+    uint256 public nextToProcess;
 
     bytes32 public previous; // to smooth over witness invalidation
 
@@ -54,7 +54,7 @@ contract Replica is Initializable, Common, QueueManager {
         address _updater,
         bytes32 _current,
         uint256 _optimisticSeconds,
-        uint256 _lastProcessed
+        uint256 _nextToProcess
     ) public initializer {
         remoteDomain = _remoteDomain;
 
@@ -63,7 +63,7 @@ contract Replica is Initializable, Common, QueueManager {
         updater = _updater;
         current = _current;
         optimisticSeconds = _optimisticSeconds;
-        lastProcessed = _lastProcessed;
+        nextToProcess = _nextToProcess;
 
         state = States.ACTIVE;
     }
@@ -196,13 +196,13 @@ contract Replica is Initializable, Common, QueueManager {
 
         uint32 _sequence = _m.sequence();
         require(_m.destination() == localDomain, "!destination");
-        require(_sequence == lastProcessed + 1, "!sequence");
+        require(_sequence == nextToProcess, "!sequence");
         require(
             messages[keccak256(_message)] == MessageStatus.Pending,
             "not pending"
         );
 
-        // Set the state now. We will set lastProcessed later. This prevents
+        // Set the state now. We will set nextToProcess later. This prevents
         // re-entry as one of the two require statements above will definitely
         // fail.
         messages[_m.keccak()] = MessageStatus.Processed;
@@ -235,7 +235,7 @@ contract Replica is Initializable, Common, QueueManager {
             _result = _err;
         }
 
-        lastProcessed = _sequence;
+        nextToProcess = _sequence + 1;
     }
 
     /**

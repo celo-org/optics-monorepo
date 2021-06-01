@@ -13,7 +13,7 @@ const localDomain = 1000;
 const remoteDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
-const initialLastProcessed = 0;
+const initialIndex = 1;
 const controller = null;
 const walletProvider = new testUtils.WalletProvider(provider);
 
@@ -43,12 +43,13 @@ describe('XAppConnectionManager', async () => {
     await mockUpdaterManager.mock.slashUpdater.returns();
 
     // Deploy home
-    const { contracts: homeContracts } =
-      await optics.deployUpgradeSetupAndProxy(
-        'TestHome',
-        [localDomain],
-        [mockUpdaterManager.address],
-      );
+    const {
+      contracts: homeContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
+      'TestHome',
+      [localDomain],
+      [mockUpdaterManager.address],
+    );
     home = homeContracts.proxyWithImplementation;
 
     // Set XAppConnectionManager's home
@@ -63,7 +64,7 @@ describe('XAppConnectionManager', async () => {
         updater.signer.address,
         initialCurrentRoot,
         optimisticSeconds,
-        initialLastProcessed,
+        initialIndex,
       ],
       controller,
       'initialize(uint32, address, bytes32, uint256, uint256)',
@@ -104,12 +105,13 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('Allows owner to set the home', async () => {
-    const { contracts: newHomeContracts } =
-      await optics.deployUpgradeSetupAndProxy(
-        'TestHome',
-        [localDomain],
-        [mockUpdaterManager.address],
-      );
+    const {
+      contracts: newHomeContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
+      'TestHome',
+      [localDomain],
+      [mockUpdaterManager.address],
+    );
     const newHome = newHomeContracts.proxyWithImplementation;
 
     await connectionManager.setHome(newHome.address);
@@ -118,20 +120,21 @@ describe('XAppConnectionManager', async () => {
 
   it('Owner can enroll a new replica', async () => {
     const newRemoteDomain = 3000;
-    const { contracts: newReplicaContracts } =
-      await optics.deployUpgradeSetupAndProxy(
-        'TestReplica',
-        [localDomain],
-        [
-          newRemoteDomain,
-          updater.signer.address,
-          initialCurrentRoot,
-          optimisticSeconds,
-          initialLastProcessed,
-        ],
-        controller,
-        'initialize(uint32, address, bytes32, uint256, uint256)',
-      );
+    const {
+      contracts: newReplicaContracts,
+    } = await optics.deployUpgradeSetupAndProxy(
+      'TestReplica',
+      [localDomain],
+      [
+        newRemoteDomain,
+        updater.signer.address,
+        initialCurrentRoot,
+        optimisticSeconds,
+        initialIndex,
+      ],
+      controller,
+      'initialize(uint32, address, bytes32, uint256, uint256)',
+    );
     const newReplica = newReplicaContracts.proxyWithImplementation;
 
     // Assert new replica not considered replica before enrolled
@@ -194,12 +197,14 @@ describe('XAppConnectionManager', async () => {
     );
 
     // Create signed failure notification and signature
-    const { failureNotification, signature } =
-      await optics.signedFailureNotification(
-        watcher,
-        remoteDomain,
-        updater.signer.address,
-      );
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      remoteDomain,
+      updater.signer.address,
+    );
 
     // Assert new replica considered replica before unenrolled
     expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
@@ -236,12 +241,14 @@ describe('XAppConnectionManager', async () => {
     );
 
     // Create signed failure notification and signature for noReplicaDomain
-    const { failureNotification, signature } =
-      await optics.signedFailureNotification(
-        watcher,
-        noReplicaDomain,
-        updater.signer.address,
-      );
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      noReplicaDomain,
+      updater.signer.address,
+    );
 
     // Expect unenrollReplica call to revert
     await expect(
@@ -264,12 +271,14 @@ describe('XAppConnectionManager', async () => {
     );
 
     // Create signed failure notification and signature with nonUpdater
-    const { failureNotification, signature } =
-      await optics.signedFailureNotification(
-        watcher,
-        remoteDomain,
-        nonUpdater.address,
-      );
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      watcher,
+      remoteDomain,
+      nonUpdater.address,
+    );
 
     // Expect unenrollReplica call to revert
     await expect(
@@ -292,12 +301,14 @@ describe('XAppConnectionManager', async () => {
     );
 
     // Create signed failure notification and signature with nonWatcher
-    const { failureNotification, signature } =
-      await optics.signedFailureNotification(
-        nonWatcher,
-        remoteDomain,
-        updater.signer.address,
-      );
+    const {
+      failureNotification,
+      signature,
+    } = await optics.signedFailureNotification(
+      nonWatcher,
+      remoteDomain,
+      updater.signer.address,
+    );
 
     // Expect unenrollReplica call to revert
     await expect(

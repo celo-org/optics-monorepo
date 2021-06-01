@@ -3,7 +3,7 @@
  *      domain: int,
  *      updater: address,
  *      currentRoot: bytes32,
- *      lastProcessedIndex: int,
+ *      nextToProcessIndex: int,
  *      optimisticSeconds: int,
  *      watchers?: [address],
  * };

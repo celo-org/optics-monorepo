@@ -218,8 +218,8 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn last_processed(&self) -> Result<U256, ChainCommunicationError> {
-        Ok(self.contract.last_processed().call().await?)
+    async fn next_to_process(&self) -> Result<U256, ChainCommunicationError> {
+        Ok(self.contract.next_to_process().call().await?)
     }
 
     #[tracing::instrument(err)]

@@ -29,7 +29,7 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     async fn previous_root(&self) -> Result<H256, ChainCommunicationError>;
 
     /// Fetch the last processed sequence number
-    async fn last_processed(&self) -> Result<U256, ChainCommunicationError>;
+    async fn next_to_process(&self) -> Result<U256, ChainCommunicationError>;
 
     /// Dispatch a transaction to prove inclusion of some leaf in the replica.
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError>;

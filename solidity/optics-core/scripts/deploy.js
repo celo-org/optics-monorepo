@@ -50,14 +50,14 @@ task('deploy-replica', 'Deploy an upgradable replica.')
     types.int,
   )
   .addParam(
-    'lastProcessed',
-    'Index of last processed message',
+    'nextToProcess',
+    'Index of next message to process',
     undefined,
     types.int,
   )
   .setAction(async (args, hre) => {
     const { ethers, optics } = hre;
-    const { origin, destination, updater, current, wait, lastProcessed } = args;
+    const { origin, destination, updater, current, wait, nextToProcess } = args;
     const updaterAddr = ethers.utils.getAddress(updater);
     if (!ethers.utils.isHexString(current, 32)) {
       throw new Error('current must be a 32-byte 0x prefixed hex string');
@@ -66,7 +66,7 @@ task('deploy-replica', 'Deploy an upgradable replica.')
     const { contracts } = await optics.deployProxyWithImplementation(
       'Replica',
       [origin],
-      [destination, updaterAddr, current, wait, lastProcessed],
+      [destination, updaterAddr, current, wait, nextToProcess],
     );
 
     const { implementation, controller, upgradeBeacon, proxy } = contracts;

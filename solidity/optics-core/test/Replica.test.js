@@ -17,7 +17,7 @@ const remoteDomain = 1000;
 const localDomain = 2000;
 const optimisticSeconds = 3;
 const initialCurrentRoot = ethers.utils.formatBytes32String('current');
-const initialLastProcessed = 0;
+const initialIndex = 1;
 const replicaContractName = 'TestReplica';
 const replicaInitializeIdentifier =
   'initialize(uint32, address, bytes32, uint256, uint256)';
@@ -51,7 +51,7 @@ describe('Replica', async () => {
       updater.signer.address,
       initialCurrentRoot,
       optimisticSeconds,
-      initialLastProcessed,
+      initialIndex,
     ];
 
     const { contracts } = await optics.deployUpgradeSetupAndProxy(
@@ -102,7 +102,7 @@ describe('Replica', async () => {
           updater.signer.address,
           initialCurrentRoot,
           optimisticSeconds,
-          initialLastProcessed,
+          initialIndex,
         ],
         null,
         'initialize(uint32, address, bytes32, uint256, uint256)',
@@ -304,13 +304,12 @@ describe('Replica', async () => {
 
   it('Processes a proved message', async () => {
     const sender = testUtils.opticsMessageSender;
-    const mockRecipient =
-      await testUtils.opticsMessageMockRecipient.getRecipient();
+    const mockRecipient = await testUtils.opticsMessageMockRecipient.getRecipient();
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
 
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
@@ -329,12 +328,12 @@ describe('Replica', async () => {
     expect(ret).to.equal(mockVal);
 
     await replica.process(opticsMessage);
-    expect(await replica.lastProcessed()).to.equal(sequence);
+    expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 
   it('Fails to process an unproved message', async () => {
     const [sender, recipient] = provider.getWallets();
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -354,8 +353,8 @@ describe('Replica', async () => {
   it('Fails to process out-of-order message', async () => {
     const [sender, recipient] = provider.getWallets();
 
-    // Skip sequence ordering by adding 2 to lastProcessed
-    const sequence = (await replica.lastProcessed()).add(2);
+    // Skip sequence ordering by adding 1 to nextToProcess
+    const sequence = (await replica.nextToProcess()).add(1);
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -374,7 +373,7 @@ describe('Replica', async () => {
 
   it('Fails to process message with wrong destination Domain', async () => {
     const [sender, recipient] = provider.getWallets();
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -394,7 +393,7 @@ describe('Replica', async () => {
 
   it('Fails to process an undergased transaction', async () => {
     const [sender, recipient] = provider.getWallets();
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -417,13 +416,12 @@ describe('Replica', async () => {
 
   it('Returns false when processing message for bad handler function', async () => {
     const sender = testUtils.opticsMessageSender;
-    const mockRecipient =
-      await testUtils.opticsMessageMockRecipient.getRecipient();
+    const mockRecipient = await testUtils.opticsMessageMockRecipient.getRecipient();
 
     // Recipient handler function reverts
     await mockRecipient.mock.handle.reverts();
 
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
@@ -443,13 +441,12 @@ describe('Replica', async () => {
 
   it('Proves and processes a message', async () => {
     const sender = testUtils.opticsMessageSender;
-    const mockRecipient =
-      await testUtils.opticsMessageMockRecipient.getRecipient();
+    const mockRecipient = await testUtils.opticsMessageMockRecipient.getRecipient();
 
     const mockVal = '0x1234abcd';
     await mockRecipient.mock.handle.returns(mockVal);
 
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
 
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
@@ -480,12 +477,12 @@ describe('Replica', async () => {
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );
-    expect(await replica.lastProcessed()).to.equal(sequence);
+    expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 
   it('Has proveAndProcess fail if prove fails', async () => {
     const [sender, recipient] = provider.getWallets();
-    const sequence = (await replica.lastProcessed()).add(1);
+    const sequence = await replica.nextToProcess();
 
     // Use 1st proof of 1st merkle vector test case
     const testCase = merkleTestCases[0];

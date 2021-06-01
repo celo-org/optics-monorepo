@@ -65,8 +65,8 @@ impl ReplicaProcessor {
             //      - If not, wait and poll again
             // 4. Submit the proof to the replica
             loop {
-                let last_processed = self.replica.last_processed().await?;
-                let sequence = last_processed.as_u32() + 1;
+                let next_to_process = self.replica.next_to_process().await?;
+                let sequence = next_to_process.as_u32();
 
                 let message = self.home.message_by_sequence(domain, sequence).await?;
                 reset_loop_if!(
