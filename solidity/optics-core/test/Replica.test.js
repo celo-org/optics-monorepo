@@ -328,7 +328,7 @@ describe('Replica', async () => {
     expect(ret).to.equal(mockVal);
 
     await replica.process(opticsMessage);
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
+    expect(await replica.nextToProcess()).to.equal(sequence.add(1));
   });
 
   it('Fails to process an unproved message', async () => {
@@ -477,7 +477,7 @@ describe('Replica', async () => {
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
+    expect(await replica.nextToProcess()).to.equal(sequence.add(1));
   });
 
   it('Has proveAndProcess fail if prove fails', async () => {

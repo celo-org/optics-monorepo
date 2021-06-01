@@ -52,25 +52,20 @@ describe('GovernanceRouter', async () => {
   beforeEach(async () => {
     // generate TestChainConfigs for the given domains
     const configs = await domainsToTestConfigs(domains);
-    console.log('1');
 
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
-    console.log('2');
 
     // set updater
     [signer, secondGovernorSigner] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, governorDomain);
-    console.log('3');
 
     // get both governanceRouters
     governorRouter = getGovernanceRouter(chainDetails, governorDomain);
     nonGovernorRouter = getGovernanceRouter(chainDetails, nonGovernorDomain);
-    console.log('4');
 
     firstGovernor = await governorRouter.governor();
     secondGovernor = await secondGovernorSigner.getAddress();
-    console.log('5');
 
     governorHome = getHome(chainDetails, governorDomain);
     governorReplicaOnNonGovernorChain = getReplica(
@@ -83,7 +78,6 @@ describe('GovernanceRouter', async () => {
       governorDomain,
       nonGovernorDomain,
     );
-    console.log('6');
   });
 
   it('Rejects message from unenrolled replica', async () => {

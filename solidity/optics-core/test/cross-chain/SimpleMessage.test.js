@@ -204,6 +204,6 @@ describe('SimpleCrossChainMessage', async () => {
     expect(await replica.messages(leaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
+    expect(await replica.nextToProcess()).to.equal(sequence.add(1));
   });
 });
