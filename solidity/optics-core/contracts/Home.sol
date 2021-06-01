@@ -87,8 +87,6 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         address _updater = updaterManager.updater();
         Common.initialize(_updater);
         emit NewUpdater(_updater);
-        // _setUpdater(_updater);
-        // state = States.ACTIVE;
     }
 
     modifier onlyUpdaterManager {

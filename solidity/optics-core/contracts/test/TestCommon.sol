@@ -6,7 +6,7 @@ import "../Common.sol";
 contract TestCommon is Common {
     constructor(uint32 _localDomain, address _updater) Common(_localDomain) {
         initialize(_updater);
-    } // solhint-disable-line no-empty-blocks
+    }
 
     function setUpdater(address _updater) external {
         updater = _updater;
