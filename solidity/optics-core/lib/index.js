@@ -12,8 +12,8 @@ const {
 } = require('../scripts/deployUpgradeSetup');
 const utils = require('./utils');
 const { deployOptics } = require('../scripts/deployOptics');
-const HomeAbi = require('../../rust/optics-ethereum/abis/Home.abi.json');
-const ReplicaAbi = require('../../rust/optics-ethereum/abis/Replica.abi.json');
+const HomeAbi = require('../../../rust/optics-ethereum/abis/Home.abi.json');
+const ReplicaAbi = require('../../../rust/optics-ethereum/abis/Replica.abi.json');
 
 extendEnvironment((hre) => {
   let { ethers } = hre;
