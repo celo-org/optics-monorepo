@@ -150,6 +150,14 @@ else
     echo "+Skipping optics-xapps tests"
 fi
 
+# Git add abis if updated
+if ! git diff-index --quiet HEAD -- ./abis; then
+    echo '+git add ./rust/optics-ethereum/abis/*'
+    git add ./rust/optics-ethereum/abis/*
+else
+    echo "+Skipping git add ABIs"
+fi
+
 # Format and git add JSON files if updated
 if ! git diff-index --quiet HEAD -- ./vectors; then
     for file in vectors/*.json; do
