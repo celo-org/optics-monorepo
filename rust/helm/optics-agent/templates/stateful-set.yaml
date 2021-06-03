@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "optics-agent.fullname" . }}
+  labels:
+    {{- include "optics-agent.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "optics-agent.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "optics-agent.fullname" . }}
+  labels:
+    {{- include "optics-agent.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "optics-agent.selectorLabels" . | nindent 6 }}
+  replicas: 1 
+  serviceName: {{ include "optics-agent.fullname" . }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "optics-agent.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["./{{ .Values.optics.agentRole }}"]
+        env: 
+          # Set the DB location to be the volume 
+          - name: OPT_{{ .Values.optics.agentRole | upper }}_DBPATH
+            value: /usr/share/optics
+          # Sets the config folder to use
+          - name: RUN_ENV
+            value: {{ .Values.optics.runEnv }}
+          # Sets the base config to be used (switch between Homes)
+          - name: BASE_CONFIG
+            value: {{ .Values.optics.baseConfig }}
+          # The signer key to use when signing transactions on Home and Replica(s)
+          - name: OPT_{{ .Values.optics.agentRole | upper }}_HOME_CONFIG_SIGNER_KEY
+            value: {{ .Values.optics.transactionSigner }}
+          # if we are running an applicable role, insert attestation key
+          {{- if has .Values.optics.agentRole (list "updater" "watcher")}}
+          - name: OPT_{{ .Values.optics.agentRole | upper }}_{{ .Values.optics.agentRole | upper }}_KEY
+            value: {{ .Values.optics.attestationSigner}}
+          {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: state
+          mountPath: /usr/share/optics
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: state
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.volumeStorageClass }}
+      resources:
+        requests:
+          storage: 10Gi
