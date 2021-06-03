@@ -151,7 +151,7 @@ else
 fi
 
 # Git add abis if updated
-if ! git diff-index --quiet HEAD -- ./abis; then
+if ! git diff-index --quiet HEAD -- ./rust/optics-ethereum/abis/; then
     echo '+git add ./rust/optics-ethereum/abis/*'
     git add ./rust/optics-ethereum/abis/*
 else
