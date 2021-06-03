@@ -107,8 +107,8 @@ macro_rules! decl_settings {
 
                 let fname = std::env::var("BASE_CONFIG").unwrap_or_else(|_| "base".into());
 
-                s.merge(config::File::with_name(&format!("../config/{}/{}", env, fname)))?;
-                s.merge(config::File::with_name(&format!("../config/{}/{}-partial", env, $name)).required(false))?;
+                s.merge(config::File::with_name(&format!("./config/{}/{}", env, fname)))?;
+                s.merge(config::File::with_name(&format!("./config/{}/{}-partial", env, $name)).required(false))?;
 
                 // Derive Environment prefix from agent name
                 let prefix = format!("OPT_{}", $name.to_ascii_uppercase());
