@@ -302,6 +302,19 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
 }
 
 /**
+ * Enrolls a remote Replica, GovernanceRouter and Watchers on the local chain.
+ *
+ * @param local - The local deploy instance
+ * @param remote - The remote deploy instance
+ */
+export async function enrollRemote(local: Deploy, remote: Deploy) {
+  await deployNewReplica(local, remote);
+  await enrollReplica(local, remote);
+  await enrollWatchers(local, remote);
+  await enrollGovernanceRouter(local, remote);
+}
+
+/**
  * Transfers governorship to the Governor Router.
  *
  * @param gov - The governor chain deploy instance
@@ -366,17 +379,9 @@ export async function deployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
 
   for (const non of spokes) {
     await deploy(non);
-    await deployNewReplica(gov, non);
-    await deployNewReplica(non, gov);
 
-    await enrollReplica(gov, non);
-    await enrollReplica(non, gov);
-
-    await enrollWatchers(gov, non);
-    await enrollWatchers(non, gov);
-
-    await enrollGovernanceRouter(gov, non);
-    await enrollGovernanceRouter(non, gov);
+    await enrollRemote(gov, non);
+    await enrollRemote(non, gov);
 
     await transferGovernorship(gov, non);
 
@@ -384,6 +389,31 @@ export async function deployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
   }
 
   await relinquish(gov);
+}
+
+/**
+ * Deploy the entire suite of Optics contracts
+ * on each chain within the chainConfigs array
+ * including the upgradable Home, Replicas, and GovernanceRouter
+ * that have been deployed, initialized, and configured
+ * according to the deployOptics script
+ *
+ * @dev The first chain in the sequence will be the governing chain
+ *
+ * @param chains - An array of chain deploys
+ */
+export async function deployNChains(chains: Deploy[]) {
+  const govChain = chains[0];
+  const nonGovChains = chains.slice(1);
+  await deployHubAndSpokes(govChain, nonGovChains);
+  for (let local of nonGovChains) {
+    for (let remote of nonGovChains) {
+      if (remote.chain.domain != local.chain.domain) {
+        console.log(`enrolling ${remote.chain.domain} on ${local.chain.domain}`)
+        enrollRemote(local, remote);
+      }
+    }
+  }
 }
 
 /**
