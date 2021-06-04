@@ -5,6 +5,7 @@ import * as contracts from './typechain';
 
 export type Address = string;
 
+// Optic's complete contract suite
 export type Contracts = {
   upgradeBeaconController?: contracts.UpgradeBeaconController;
   xappConnectionManager?: contracts.XAppConnectionManager;
@@ -15,6 +16,11 @@ export type Contracts = {
   replicas: Record<number, BeaconProxy<contracts.Replica>>;
 };
 
+/**
+ * Converts entire contract suite to json
+ *
+ * @param contracts - The contracts
+ */
 export function toJson(contracts: Contracts): string {
   const replicas: Record<string, ProxyAddresses> = {};
   Object.entries(contracts.replicas).forEach(([k, v]) => {
@@ -47,6 +53,7 @@ export function toJson(contracts: Contracts): string {
   );
 }
 
+// config for generating a Chain
 export interface ChainConfig {
   name: string;
   rpc: string;
@@ -58,6 +65,7 @@ export interface ChainConfig {
   gasPrice?: ethers.BigNumberish;
 }
 
+// data for deploying optics on a chain
 export type Chain = {
   name: string;
   config: ChainConfig;
@@ -70,11 +78,17 @@ export type Chain = {
   gasPrice: ethers.BigNumber;
 };
 
+// data about a chain and its deployed contracts
 export type Deploy = {
   chain: Chain;
   contracts: Contracts;
 };
 
+/**
+ * Builds Chain from config
+ *
+ * @param config - The chain config
+ */
 export function toChain(config: ChainConfig): Chain {
   const provider = new ethers.providers.JsonRpcProvider(config.rpc);
   const deployer = new ethers.Wallet(config.deployerKey, provider);
@@ -91,6 +105,11 @@ export function toChain(config: ChainConfig): Chain {
   };
 }
 
+/**
+ * Instantiates a new deploy instance
+ *
+ * @param config - The chain config
+ */
 export function freshDeploy(config: ChainConfig): Deploy {
   return {
     chain: toChain(config),

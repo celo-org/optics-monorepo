@@ -15,6 +15,11 @@ export type ProxyAddresses = {
   beacon: string;
 };
 
+/**
+ * Deploys the UpgradeBeacon, Implementation and Proxy for a given contract
+ *
+ * @param T - The contract
+ */
 export async function deployProxy<T extends ethers.Contract>(
   deploy: Deploy,
   factory: ethers.ContractFactory,
@@ -41,7 +46,11 @@ export async function deployProxy<T extends ethers.Contract>(
   };
 }
 
-// Sets up a new proxy with the same beacon and implementation
+/**
+ * Sets up a new proxy with the same beacon and implementation
+ *
+ * @param T - The contract
+ */
 export async function duplicate<T extends ethers.Contract>(
   deploy: Deploy,
   prev: BeaconProxy<T>,
@@ -57,9 +66,15 @@ export async function duplicate<T extends ethers.Contract>(
   };
 }
 
-// returns an UNWAITED beacon
-// the TX to deploy may still be in-flight
-// We set manual gas here to suppress ethers's preflight checks
+/**
+ * Returns an UNWAITED beacon
+ * 
+ * @dev The TX to deploy may still be in-flight
+ * @dev We set manual gas here to suppress ethers's preflight checks
+ *
+ * @param deploy - The deploy
+ * @param implementation - The implementation
+ */
 async function _deployBeacon(
   deploy: Deploy,
   implementation: ethers.Contract,
@@ -74,9 +89,16 @@ async function _deployBeacon(
   return beacon;
 }
 
-// return an UNWAITED proxy
-// the TX to deploy may still be in-flight
-// We set manual gas here to suppress ethers's preflight checks
+/**
+ * Returns an UNWAITED proxy
+ * 
+ * @dev The TX to deploy may still be in-flight
+ * @dev We set manual gas here to suppress ethers's preflight checks
+ *
+ * @param deploy - The deploy
+ * @param beacon - The UpgradeBeacon
+ * @param implementation - The implementation
+ */
 async function _deployProxy<T>(
   deploy: Deploy,
   beacon: contracts.UpgradeBeacon,

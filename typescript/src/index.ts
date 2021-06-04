@@ -319,7 +319,6 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
   console.log(`${non.chain.name}: governorship transferred`);
 }
 
-// gov has the governance capability after setup
 /**
  * Deploys the entire optics suite of contracts on two chains.
  * 
