@@ -101,7 +101,6 @@ impl EthereumSigner {
     /// Try to convert the ethereum signer to a local wallet
     #[tracing::instrument(err)]
     pub fn try_into_signer(&self) -> Result<Signers> {
-        dbg!(self);
         match self {
             EthereumSigner::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
             EthereumSigner::Node => Err(eyre!("Node signer")),
