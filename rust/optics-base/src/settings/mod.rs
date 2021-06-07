@@ -1,4 +1,4 @@
-use color_eyre::{eyre::bail, Report, Result};
+use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
