@@ -20,7 +20,4 @@ mod xapp;
 pub mod settings;
 
 #[cfg(not(doctest))]
-pub use crate::{
-    home::EthereumHome, replica::EthereumReplica, settings::EthereumSigner,
-    xapp::EthereumConnectionManager,
-};
+pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};

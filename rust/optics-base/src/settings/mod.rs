@@ -1,68 +1,49 @@
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
+use optics_core::{utils::HexString, Signers};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 
-use crate::{db, home::Homes, replica::Replicas, xapp::ConnectionManagers};
+use crate::{agent::AgentCore, db, home::Homes, replica::Replicas};
 
 /// Tracing configuration
 pub mod log;
 
+/// Chain configuartion
+pub mod chains;
+
+pub use chains::ChainSetup;
+
 use log::TracingConfig;
-use optics_ethereum::settings::EthereumConf;
 
-use crate::agent::AgentCore;
-
-/// A connection to _some_ blockchain.
-///
-/// Specify the chain name (enum variant) in toml under the `chain` key
-/// Specify the connection details as a toml object under the `connection` key.
-#[derive(Debug, Deserialize)]
-#[serde(tag = "rpcStyle", content = "config", rename_all = "camelCase")]
-pub enum ChainConf {
-    /// Ethereum configuration
-    Ethereum(EthereumConf),
+// TODO: figure out how to take inputs for Ledger and YubiWallet variants
+/// Ethereum signer types
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum SignerConf {
+    /// A local hex key
+    HexKey {
+        /// Hex string of private key, without 0x prefix
+        key: HexString<64>,
+    },
+    #[serde(other)]
+    /// Assume node will sign on RPC calls
+    Node,
 }
 
-/// A chain setup is a domain ID, an address on that chain (where the home or
-/// replica is deployed) and details for connecting to the chain API.
-#[derive(Debug, Deserialize)]
-pub struct ChainSetup {
-    name: String,
-    domain: u32,
-    address: String,
-    #[serde(flatten)]
-    chain: ChainConf,
+impl Default for SignerConf {
+    fn default() -> Self {
+        Self::Node
+    }
 }
 
-impl ChainSetup {
-    /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self) -> Result<Homes, Report> {
-        match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
-                conf.try_into_home(&self.name, self.domain, self.address.parse()?)
-                    .await?,
-            )),
-        }
-    }
-
-    /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self) -> Result<Replicas, Report> {
-        match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
-                conf.try_into_replica(&self.name, self.domain, self.address.parse()?)
-                    .await?,
-            )),
-        }
-    }
-
-    /// Try to convert chain setting into XAppConnectionManager contract
-    pub async fn try_into_connection_manager(&self) -> Result<ConnectionManagers, Report> {
-        match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(ConnectionManagers::Ethereum(
-                conf.try_into_connection_manager(&self.name, self.domain, self.address.parse()?)
-                    .await?,
-            )),
+impl SignerConf {
+    /// Try to convert the ethereum signer to a local wallet
+    #[tracing::instrument(err)]
+    pub fn try_into_signer(&self) -> Result<Signers, Report> {
+        match self {
+            SignerConf::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
+            SignerConf::Node => bail!("Node signer"),
         }
     }
 }
@@ -102,9 +83,16 @@ pub struct Settings {
     pub replicas: HashMap<String, ChainSetup>,
     /// The tracing configuration
     pub tracing: TracingConfig,
+    /// Transaction signers
+    pub signers: HashMap<String, SignerConf>,
 }
 
 impl Settings {
+    /// Try to get a signer instance by name
+    pub fn get_signer(&self, name: &str) -> Option<Signers> {
+        self.signers.get(name)?.try_into_signer().ok()
+    }
+
     /// Try to get all replicas from this settings object
     pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
@@ -116,14 +104,16 @@ impl Settings {
                     v.name
                 );
             }
-            result.insert(v.name.clone(), Arc::new(v.try_into_replica().await?));
+            let signer = self.get_signer(&v.name);
+            result.insert(v.name.clone(), Arc::new(v.try_into_replica(signer).await?));
         }
         Ok(result)
     }
 
     /// Try to get a home object
     pub async fn try_home(&self) -> Result<Homes, Report> {
-        self.home.try_into_home().await
+        let signer = self.get_signer(&self.home.name);
+        self.home.try_into_home(signer).await
     }
 
     /// Try to generate an agent core

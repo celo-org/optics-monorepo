@@ -339,7 +339,10 @@ impl OpticsAgent for Watcher {
         let connection_manager_futs: Vec<_> = settings
             .connection_managers
             .iter()
-            .map(|chain_setup| chain_setup.try_into_connection_manager())
+            .map(|chain_setup| {
+                let signer = settings.base.get_signer(&chain_setup.name);
+                chain_setup.try_into_connection_manager(signer)
+            })
             .collect();
 
         let (connection_managers, errors): (Vec<_>, Vec<_>) = join_all(connection_manager_futs)

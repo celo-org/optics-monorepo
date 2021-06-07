@@ -104,13 +104,8 @@ type RustSigner = {
 };
 
 type RustConnection = {
-  type: string; // TODO
   url: string;
-};
-
-type RustChainSetup = {
-  connection: RustConnection;
-  signer: RustSigner;
+  type: string; // TODO
 };
 
 type RustContractBlock = {
@@ -118,10 +113,11 @@ type RustContractBlock = {
   domain: number;
   name: string;
   rpcStyle: string; // TODO
-  config: RustChainSetup;
+  connection: RustConnection;
 };
 
 type RustConfig = {
+  signers: Record<string, RustSigner>;
   replicas: Record<string, RustContractBlock>;
   home: RustContractBlock;
   tracing: {
@@ -137,35 +133,24 @@ function buildConfig(left: Deploy, right: Deploy): RustConfig {
     domain: right.chain.domain,
     name: right.chain.name,
     rpcStyle: 'ethereum',
-    config: {
-      signer: {
-        key: '',
-        type: 'hexKey',
-      },
-      connection: {
-        type: 'http',
-        url: right.chain.config.rpc,
-      },
+    connection: {
+      type: 'http',
+      url: right.chain.config.rpc,
     },
   };
   const home = {
     address: left.contracts.home!.proxy.address,
     domain: left.chain.domain,
     name: left.chain.name,
-    rpcStyle: 'ethereum',
-    config: {
-      signer: {
-        key: '',
-        type: 'hexKey',
-      },
-      connection: {
-        type: 'http', // TODO
-        url: left.chain.config.rpc,
-      },
+    rpcStyle: 'ethereum', // TODO
+    connection: {
+      type: 'http', // TODO
+      url: left.chain.config.rpc,
     },
   };
 
   return {
+    signers: { [replica.name]: { key: '', type: 'hexKey' } },
     replicas: { [replica.name]: replica },
     home,
     tracing: {

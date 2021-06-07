@@ -1,29 +1,11 @@
-use std::convert::TryFrom;
-
-use color_eyre::{eyre::eyre, Report, Result};
+use color_eyre::{Report, Result};
 use ethers::prelude::{Address, Middleware};
+use std::convert::TryFrom;
 
 use optics_core::{
     traits::{ConnectionManager, Home, Replica},
-    utils::HexString,
     Signers,
 };
-
-/// Ethereum connection configuration
-#[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum EthereumConnection {
-    /// HTTP connection details
-    Http {
-        /// Fully qualified string to connect to
-        url: String,
-    },
-    /// Websocket connection details
-    Ws {
-        /// Fully qualified string to connect to
-        url: String,
-    },
-}
 
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.
@@ -76,52 +58,23 @@ macro_rules! construct_http_box_contract {
     }};
 }
 
-// TODO: figure out how to take inputs for Ledger and YubiWallet variants
-/// Ethereum signer types
-#[derive(Debug, Clone, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum EthereumSigner {
-    /// A local hex key
-    HexKey {
-        /// Hex string of private key, without 0x prefix
-        key: HexString<64>,
-    },
-    #[serde(other)]
-    /// Node will sign on RPC calls
-    Node,
-}
-
-impl Default for EthereumSigner {
-    fn default() -> Self {
-        Self::Node
-    }
-}
-
-impl EthereumSigner {
-    /// Try to convert the ethereum signer to a local wallet
-    #[tracing::instrument(err)]
-    pub fn try_into_signer(&self) -> Result<Signers> {
-        match self {
-            EthereumSigner::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
-            EthereumSigner::Node => Err(eyre!("Node signer")),
-        }
-    }
-}
-
-/// Ethereum configuration
+/// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize)]
-pub struct EthereumConf {
-    connection: EthereumConnection,
-    #[serde(default)]
-    signer: EthereumSigner,
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum EthereumConnection {
+    /// HTTP connection details
+    Http {
+        /// Fully qualified string to connect to
+        url: String,
+    },
+    /// Websocket connection details
+    Ws {
+        /// Fully qualified string to connect to
+        url: String,
+    },
 }
 
-impl EthereumConf {
-    /// Try to get a signer from the config
-    pub fn signer(&self) -> Option<Signers> {
-        self.signer.try_into_signer().ok()
-    }
-
+impl EthereumConnection {
     /// Try to convert this into a home contract
     #[tracing::instrument(err)]
     pub async fn try_into_home(
@@ -129,20 +82,14 @@ impl EthereumConf {
         name: &str,
         domain: u32,
         address: Address,
+        signer: Option<Signers>,
     ) -> Result<Box<dyn Home>, Report> {
-        let b: Box<dyn Home> = match &self.connection {
+        let b: Box<dyn Home> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(
-                    EthereumHome,
-                    name,
-                    domain,
-                    address,
-                    url,
-                    self.signer()
-                )
+                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer)
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(EthereumHome, name, domain, address, url, self.signer())
+                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer)
             }
         };
         Ok(b)
@@ -155,27 +102,14 @@ impl EthereumConf {
         name: &str,
         domain: u32,
         address: Address,
+        signer: Option<Signers>,
     ) -> Result<Box<dyn Replica>, Report> {
-        let b: Box<dyn Replica> = match &self.connection {
+        let b: Box<dyn Replica> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(
-                    EthereumReplica,
-                    name,
-                    domain,
-                    address,
-                    url,
-                    self.signer()
-                )
+                construct_http_box_contract!(EthereumReplica, name, domain, address, url, signer)
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(
-                    EthereumReplica,
-                    name,
-                    domain,
-                    address,
-                    url,
-                    self.signer()
-                )
+                construct_ws_box_contract!(EthereumReplica, name, domain, address, url, signer)
             }
         };
         Ok(b)
@@ -188,8 +122,9 @@ impl EthereumConf {
         name: &str,
         domain: u32,
         address: Address,
+        signer: Option<Signers>,
     ) -> Result<Box<dyn ConnectionManager>, Report> {
-        let b: Box<dyn ConnectionManager> = match &self.connection {
+        let b: Box<dyn ConnectionManager> = match &self {
             EthereumConnection::Http { url } => {
                 construct_http_box_contract!(
                     EthereumConnectionManager,
@@ -197,7 +132,7 @@ impl EthereumConf {
                     domain,
                     address,
                     url,
-                    self.signer()
+                    signer
                 )
             }
             EthereumConnection::Ws { url } => {
@@ -207,7 +142,7 @@ impl EthereumConf {
                     domain,
                     address,
                     url,
-                    self.signer()
+                    signer
                 )
             }
         };
