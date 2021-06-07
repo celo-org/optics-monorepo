@@ -1,19 +1,23 @@
 {
+  "signers": {
+    "goerli": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "alfajores": {
+      "key": "",
+      "type": "hexKey"
+    }
+  },
   "replicas": {
     "alfajores": {
       "address": "0xDf4c0d67489F945C1e52440Ef8F203F4CE6e4176",
       "domain": 1000,
       "name": "alfajores",
       "rpcStyle": "ethereum",
-      "config": {
-        "signer": {
-          "key": "",
-          "type": "hexKey"
-        },
-        "connection": {
-          "type": "http",
-          "url": "https://alfajores-forno.celo-testnet.org"
-        }
+      "connection": {
+        "type": "http",
+        "url": "https://alfajores-forno.celo-testnet.org"
       }
     }
   },
@@ -22,15 +26,9 @@
     "domain": 1000,
     "name": "goerli",
     "rpcStyle": "ethereum",
-    "config": {
-      "signer": {
-        "key": "",
-        "type": "hexKey"
-      },
-      "connection": {
-        "type": "http",
-        "url": "https://goerli.infura.io/v3/5c456d7844fa40a683e934df60534c60"
-      }
+    "connection": {
+      "type": "http",
+      "url": "https://goerli.infura.io/v3/5c456d7844fa40a683e934df60534c60"
     }
   },
   "tracing": {

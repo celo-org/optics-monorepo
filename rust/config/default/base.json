@@ -1,32 +1,30 @@
 {
+  "signers": {
+    "ethereum": {
+      "key": "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc",
+      "type": "hexKey"
+    }
+  },
   "replicas": {
     "ethereum": {
       "address": "0x0000000000000000000000000000000000000000",
       "domain": 60,
       "name": "ethereum",
       "rpcStyle": "ethereum",
-      "config": {
-        "connection": {
-          "type": "ws",
-          "url": "ws://localhost:8545"
-        },
-        "signer": {
-          "key": "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc",
-          "type": "hexKey"
-        }
+      "connection": {
+        "type": "ws",
+        "url": "ws://localhost:8545"
       }
-    },
-    "eth-classic": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "domain": 61,
-      "name": "eth-classic",
-      "rpcStyle": "ethereum",
-      "config": {
-        "connection": {
-          "type": "ws",
-          "url": "ws://localhost:8545"
-        }
-      }
+    }
+  },
+  "eth-classic": {
+    "address": "0x0000000000000000000000000000000000000000",
+    "domain": 61,
+    "name": "eth-classic",
+    "rpcStyle": "ethereum",
+    "connection": {
+      "type": "ws",
+      "url": "ws://localhost:8545"
     }
   },
   "home": {
@@ -34,11 +32,9 @@
     "domain": 52752,
     "name": "celo",
     "rpcStyle": "ethereum",
-    "config": {
-      "connection": {
-        "type": "http",
-        "url": "http://localhost:8545"
-      }
+    "connection": {
+      "type": "http",
+      "url": "http://localhost:8545"
     }
   },
   "tracing": {
