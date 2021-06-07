@@ -1,16 +1,1 @@
-{
-  "testCases": [
-    {
-      "expectedDomainHash": "0xfa923b9e3942a539792474b49136600ed6690d0e51c6993e9238819047dfea63",
-      "homeDomain": 1
-    },
-    {
-      "expectedDomainHash": "0x8caa11ba0b38c460170899d835c99eb38b9319603fe5d391c469da2657e01039",
-      "homeDomain": 2
-    },
-    {
-      "expectedDomainHash": "0xa2718888038cf3886089211e47a6f2fb003fc887a4f748fd6278156f23f9ecbf",
-      "homeDomain": 3
-    }
-  ]
-}
+{"testCases":[{"expectedDomainHash":"0xfa923b9e3942a539792474b49136600ed6690d0e51c6993e9238819047dfea63","homeDomain":1},{"expectedDomainHash":"0x8caa11ba0b38c460170899d835c99eb38b9319603fe5d391c469da2657e01039","homeDomain":2},{"expectedDomainHash":"0xa2718888038cf3886089211e47a6f2fb003fc887a4f748fd6278156f23f9ecbf","homeDomain":3}]}
