@@ -5,6 +5,7 @@ use ethers::prelude::{Address, Middleware};
 
 use optics_core::{
     traits::{ConnectionManager, Home, Replica},
+    utils::HexString,
     Signers,
 };
 
@@ -83,7 +84,7 @@ pub enum EthereumSigner {
     /// A local hex key
     HexKey {
         /// Hex string of private key, without 0x prefix
-        key: String,
+        key: HexString<64>,
     },
     #[serde(other)]
     /// Node will sign on RPC calls
@@ -100,8 +101,9 @@ impl EthereumSigner {
     /// Try to convert the ethereum signer to a local wallet
     #[tracing::instrument(err)]
     pub fn try_into_signer(&self) -> Result<Signers> {
+        dbg!(self);
         match self {
-            EthereumSigner::HexKey { key } => Ok(Signers::Local(key.parse()?)),
+            EthereumSigner::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
             EthereumSigner::Node => Err(eyre!("Node signer")),
         }
     }

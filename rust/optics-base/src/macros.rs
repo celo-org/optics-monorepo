@@ -114,6 +114,8 @@ macro_rules! decl_settings {
                 let prefix = format!("OPT_{}", $name.to_ascii_uppercase());
                 s.merge(config::Environment::with_prefix(&prefix).separator("_"))?;
 
+                dbg!(&s);
+
                 s.try_into()
             }
         }

@@ -1892,6 +1892,7 @@ dependencies = [
  "config 0.10.1",
  "ethers",
  "futures-util",
+ "hex",
  "optics-core",
  "optics-ethereum",
  "optics-test",

@@ -53,6 +53,7 @@ pub mod output_functions {
             .expect("Failed to write to file");
     }
 
+    /// Output merkle proof test vectors
     pub fn output_merkle_proof() {
         let mut tree = MerkleTree::create(&[], TREE_DEPTH);
 
