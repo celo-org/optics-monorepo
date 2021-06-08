@@ -1,5 +1,5 @@
 /*
- * see also ../../scripts/types.js
+ * see also ../../js/types.js
  *
  * TestChainConfig {
  *      ...ChainConfig,

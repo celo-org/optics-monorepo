@@ -9,9 +9,9 @@ const {
   deployUpgradeBeaconController,
   deployProxyWithImplementation,
   getInitializeData,
-} = require('../scripts/deployUpgradeSetup');
+} = require('./deployUpgradeSetup');
 const utils = require('./utils');
-const { deployOptics } = require('../scripts/deployOptics');
+const { deployOptics } = require('./deployOptics');
 const HomeAbi = require('../../../rust/optics-ethereum/abis/Home.abi.json');
 const ReplicaAbi = require('../../../rust/optics-ethereum/abis/Replica.abi.json');
 

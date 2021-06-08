@@ -4,8 +4,7 @@ require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
 
-require('./lib');
-require('./scripts');
+require('./js');
 
 const path = require('path');
 

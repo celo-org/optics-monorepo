@@ -1,4 +1,4 @@
-const { devDeployOptics } = require('../../scripts/deployOpticsUtils');
+const { devDeployOptics } = require('../../js/deployOpticsUtils');
 
 /*
  * Get the Home contract for the given domain
