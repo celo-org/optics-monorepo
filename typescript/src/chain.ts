@@ -179,19 +179,14 @@ export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
     domain: local.chain.domain,
     name: local.chain.name,
     rpcStyle: 'ethereum',
-    config: {
-      signer: {
-        key: '',
-        type: 'hexKey',
-      },
-      connection: {
-        type: 'http', // TODO
-        url: local.chain.config.rpc,
-      },
+    connection: {
+      type: 'http', // TODO
+      url: local.chain.config.rpc,
     },
   };
 
   const rustConfig: RustConfig = {
+    signers: {},
     replicas: {},
     home,
     tracing: {
@@ -207,17 +202,12 @@ export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
       domain: remote.chain.domain,
       name: remote.chain.name,
       rpcStyle: 'ethereum',
-      config: {
-        signer: {
-          key: '',
-          type: 'hexKey',
-        },
-        connection: {
-          type: 'http',
-          url: remote.chain.config.rpc,
-        },
+      connection: {
+        type: 'http',
+        url: remote.chain.config.rpc,
       },
     };
+    rustConfig.signers[replica.name] = { key: '', type: 'hexKey' }
     rustConfig.replicas[replica.name] = replica
   }
 
