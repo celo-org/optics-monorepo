@@ -9,14 +9,68 @@ volumeStorageClass: "standard"
 optics: 
   runEnv: "default"
   baseConfig: "base.json"
-  # Valid options: 
-  #   updater, processor, relayer, watcher, kathy
-  agentRole: "updater"
-  # Key used to sign transactions on Home and Replica(s)
-  transactionSigner: ""
-  # Specialized key used by updater and watcher 
-  # used to sign attestations, separate from transactionSigner
-  attestationSigner: ""
+  homeChain: 
+    name: "goerli"
+    # The contract address for the home contract
+    address: # "0x0C473afC0cabd469751CBE3Ac08aBac3e40bF586"
+    domain: # 1000
+    rpcStyle: # "ethereum"
+    # Key used to sign transactions on Home chain
+    connectionType: # "http"
+    connectionUrl: # "https://goerli.infura.io/v3/<KEY>"
+    
+  replicaChains:  
+    - name: "alfajores"
+      # The contract address for the replica contract
+      address: # "0x0C473afC0cabd469751CBE3Ac08aBac3e40bF586"
+      domain: # 1000
+      rpcStyle: # "ethereum"
+      connectionType: # "http"
+      connectionUrl: # "https://alfajores-forno.celo-testnet.org"
+  
+  # Optics Agent Roles
+  # Individually Switchable via <role>.enabled 
+  updater: 
+    enabled: false
+    transactionSigners: 
+      - name: "goerli"
+        key: ""
+      - name: "alfajores"
+        key: ""
+    # Specialized key used by updater and watcher 
+    # used to sign attestations, separate from updater.keys
+    attestationSigner: ""
+    pollingInterval: # 5
+    updatePause: # 15
+  relayer: 
+    enabled: false
+    transactionSigners: 
+      - name: "goerli"
+        key: ""
+      - name: "alfajores"
+        key: ""
+    pollingInterval: # 10
+  processor: 
+    enabled: false
+    transactionSigners: 
+      - name: "goerli"
+        key: ""
+      - name: "alfajores"
+        key: ""
+    pollingInterval: # 10
+  kathy: 
+    enabled: false
+    transactionSigners: 
+      - name: "goerli"
+        key: ""
+      - name: "alfajores"
+        key: ""
+    messageInterval: # 100
+    chatGenConfig:
+      destination: # 2000
+      message: # "hello are you listening?"
+      recipient: # "recipient"
+      type: # "static"
 
 image:
   repository: gcr.io/clabs-optics/optics-agent

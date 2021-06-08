@@ -1,3 +1,4 @@
+{{- if .Values.optics.updater.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,10 +42,10 @@ spec:
           {{- toYaml .Values.securityContext | nindent 12 }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["./{{ .Values.optics.agentRole }}"]
+        command: ["./updater"]
         env: 
           # Set the DB location to be the volume 
-          - name: OPT_{{ .Values.optics.agentRole | upper }}_DBPATH
+          - name: OPT_BASE_DBPATH
             value: /usr/share/optics
           # Sets the config folder to use
           - name: RUN_ENV
@@ -52,14 +53,36 @@ spec:
           # Sets the base config to be used (switch between Homes)
           - name: BASE_CONFIG
             value: {{ .Values.optics.baseConfig }}
-          # The signer key to use when signing transactions on Home and Replica(s)
-          - name: OPT_{{ .Values.optics.agentRole | upper }}_HOME_CONFIG_SIGNER_KEY
-            value: {{ .Values.optics.transactionSigner }}
-          # if we are running an applicable role, insert attestation key
-          {{- if has .Values.optics.agentRole (list "updater" "watcher")}}
-          - name: OPT_{{ .Values.optics.agentRole | upper }}_{{ .Values.optics.agentRole | upper }}_KEY
-            value: {{ .Values.optics.attestationSigner}}
+          # Home Overrides
+          {{- if .Values.optics.homeChain.connectionUrl }}
+          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_URL
+            value: {{ .Values.optics.homeChain.connectionUrl }}
           {{- end }}
+          {{- if .Values.optics.homeChain.connectionType }}
+          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_TYPE
+            value: {{ .Values.optics.homeChain.connectionType }}
+          {{- end }}
+          # Replica Overrides
+          {{- range .Values.optics.replicaChains }}
+          {{- if .connectionUrl }}
+          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_CONNECTION_URL
+            value: {{ .connectionUrl }}
+          {{- end }}
+          {{- if .address }}
+          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_ADDRESS
+            value: {{ .address }}
+          {{- end }}
+          {{- end }}
+          # Transaction Signer Keys
+          {{- range .Values.optics.updater.transactionSigners }}
+          - name: OPT_UPDATER_SIGNERS_{{ .name | upper }}_KEY
+            value: {{ .key }}
+          {{- end }}
+          # Attestation Signer Key
+          - name: OPT_UPDATER_UPDATER_KEY
+            value: {{ .Values.optics.updater.attestationSigner }}
+          - name: RUST_BACKTRACE
+            value: full
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
         volumeMounts:
@@ -86,3 +109,4 @@ spec:
       resources:
         requests:
           storage: 10Gi
+{{- end }}

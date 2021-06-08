@@ -7,7 +7,7 @@ WORKDIR /usr/src
 RUN apt-get update && \
     apt-get dist-upgrade -y && \
     apt-get install -y musl-tools clang-6.0 && \
-    rustup target add x86_64-unknown-linux-musl
+    rustup target add x86_64-unknown-linux-musl 
 
 # Add workspace to workdir 
 COPY optics-core ./optics-core
@@ -39,7 +39,8 @@ RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/relea
 # 2: Copy the binaries to release image
 FROM ubuntu:20.04
 RUN apt-get update && \
-    apt-get install -y libssl-dev 
+    apt-get install -y libssl-dev \
+    ca-certificates
 
 WORKDIR /app
 COPY --from=builder /release/updater .
@@ -48,5 +49,7 @@ COPY --from=builder /release/watcher .
 COPY --from=builder /release/processor .
 COPY --from=builder /release/kathy .
 COPY config ./config
+RUN chmod 777 /app
+RUN mkdir /usr/share/optics/ && chmod 1000 /usr/share/optics
 USER 1000
 CMD ["./watcher"]
