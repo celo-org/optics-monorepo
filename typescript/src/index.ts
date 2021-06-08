@@ -2,7 +2,7 @@ import * as ethers from 'ethers';
 import * as contracts from './typechain';
 import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
-import { Deploy, toJson, toRustConfigs } from './chain';
+import { Deploy, toJson, buildConfig } from './chain';
 
 function toBytes32(address: string): string {
   let addr = ethers.utils.getAddress(address);
@@ -364,7 +364,7 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
-  writeTwoChainOutput(gov, non);
+  writeDeployOutput([gov, non]);
 }
 
 /**
@@ -410,29 +410,33 @@ export async function deployNChains(chains: Deploy[]) {
     for (let remote of nonGovChains) {
       if (remote.chain.domain != local.chain.domain) {
         console.log(`enrolling ${remote.chain.domain} on ${local.chain.domain}`)
-        enrollRemote(local, remote);
+        await enrollRemote(local, remote);
       }
     }
   }
+
+  writeDeployOutput(chains);
 }
 
 /**
- * Outputs the values for two chains that have been deployed.
+ * Outputs the values for chains that have been deployed.
  *
- * @param left - The first chain's deploy instance
- * @param right - The second chain's deploy instance
+ * @param deploys - The array of chain deploys
  */
-export function writeTwoChainOutput(left: Deploy, right: Deploy) {
-  let [a, g] = toRustConfigs(left, right);
+ export function writeDeployOutput(deploys: Deploy[]) {
+  const dir = `../config/${Date.now()}`;
+  for (let i = 0; i < deploys.length; i++) {
+    const local = deploys[i];
 
-  let lName = left.chain.name;
-  let rName = right.chain.name;
+    // get remotes
+    const copy = deploys.slice();
+    const remotes = copy.splice(i, 1);
 
-  let dir = `../config/${Date.now()}-${left.chain.name}-${right.chain.name}`;
-  fs.mkdirSync(dir, { recursive: true });
+    const config = buildConfig(local, remotes);
+    const name = local.chain.name;
 
-  fs.writeFileSync(`${dir}/${lName}_config.json`, JSON.stringify(a, null, 2));
-  fs.writeFileSync(`${dir}/${rName}_config.json`, JSON.stringify(g, null, 2));
-  fs.writeFileSync(`${dir}/${lName}_contracts.json`, toJson(left.contracts));
-  fs.writeFileSync(`${dir}/${rName}_contracts.json`, toJson(right.contracts));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(`${dir}/${name}_config.json`, JSON.stringify(config, null, 2));
+    fs.writeFileSync(`${dir}/${name}_contracts.json`, toJson(local.contracts));
+  }
 }
