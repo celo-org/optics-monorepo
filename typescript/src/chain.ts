@@ -146,33 +146,6 @@ type RustConfig = {
   dbPath: string;
 };
 
-// function buildConfig(left: Deploy, right: Deploy): RustConfig {
-//   const replica = {
-//     address: right.contracts.replicas[left.chain.domain].proxy.address,
-//     domain: right.chain.domain,
-//     name: right.chain.name,
-//     rpcStyle: 'ethereum',
-//     connection: {
-//       type: 'http',
-//       url: right.chain.config.rpc,
-//     },
-//   };
-//   const home = {
-//     address: left.contracts.home!.proxy.address,
-//     domain: left.chain.domain,
-//     name: left.chain.name,
-//     rpcStyle: 'ethereum', // TODO
-//     connection: {
-//       type: 'http', // TODO
-//       url: left.chain.config.rpc,
-//     },
-//   };
-
-//   return {
-//     signers: { [replica.name]: { key: '', type: 'hexKey' } },
-//     replicas: { [replica.name]: replica },
-//   }
-// }
 export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
   const home = {
     address: local.contracts.home!.proxy.address,
