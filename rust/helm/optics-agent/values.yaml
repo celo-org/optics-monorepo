@@ -1,11 +1,12 @@
-# Default values for optics-agent.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 # Default to standard storageclass provided by GKE
 volumeStorageClass: "standard"
 
+# Optics Overrides
+# By Default, Optics Agents load the config baked into the Docker Image
+# Pass values here in order to override the values in the config
+# Note: For successful operation, one _must_ pass signer keys as
+#       they are not baked into the image for security reasons. 
 optics: 
   runEnv: "default"
   baseConfig: "base.json"
@@ -19,7 +20,7 @@ optics:
     connectionType: # "http"
     connectionUrl: # "https://goerli.infura.io/v3/<KEY>"
     
-  replicaChains:  
+  replicaChains:
     - name: "alfajores"
       # The contract address for the replica contract
       address: # "0x0C473afC0cabd469751CBE3Ac08aBac3e40bF586"

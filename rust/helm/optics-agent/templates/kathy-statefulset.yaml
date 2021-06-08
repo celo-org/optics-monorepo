@@ -1,31 +1,31 @@
-{{- if .Values.optics.updater.enabled }}
+{{- if .Values.optics.kathy.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "optics-agent.fullname" . }}-updater
+  name: {{ include "optics-agent.fullname" . }}-kathy
   labels:
     {{- include "optics-agent.labels" . | nindent 4 }}
-    role: updater
+    role: kathy
 spec:
   clusterIP: None
   selector:
     {{- include "optics-agent.selectorLabels" . | nindent 4 }}
-    role: updater
+    role: kathy
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "optics-agent.fullname" . }}-updater
+  name: {{ include "optics-agent.fullname" . }}-kathy
   labels:
     {{- include "optics-agent.labels" . | nindent 4 }}
-    role: updater
+    role: kathy
 spec:
   selector:
     matchLabels:
       {{- include "optics-agent.selectorLabels" . | nindent 6 }}
-      role: updater
+      role: kathy
   replicas: 1 
-  serviceName: {{ include "optics-agent.fullname" . }}-updater
+  serviceName: {{ include "optics-agent.fullname" . }}-kathy
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -34,7 +34,7 @@ spec:
       {{- end }}
       labels:
         {{- include "optics-agent.selectorLabels" . | nindent 8 }}
-        role: updater
+        role: kathy
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -42,12 +42,12 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: 10
       containers:
-      - name: agent
+      - name: {{ .Chart.Name }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["./updater"]
+        command: ["./kathy"]
         env: 
           # Set the DB location to be the volume 
           - name: OPT_BASE_DBPATH
@@ -60,32 +60,29 @@ spec:
             value: {{ .Values.optics.baseConfig }}
           # Home Overrides
           {{- if .Values.optics.homeChain.connectionUrl }}
-          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_URL
+          - name: OPT_BASE_HOME_CONFIG_CONNECTION_URL
             value: {{ .Values.optics.homeChain.connectionUrl }}
           {{- end }}
           {{- if .Values.optics.homeChain.connectionType }}
-          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_TYPE
+          - name: OPT_BASE_HOME_CONFIG_CONNECTION_TYPE
             value: {{ .Values.optics.homeChain.connectionType }}
           {{- end }}
           # Replica Overrides
           {{- range .Values.optics.replicaChains }}
           {{- if .connectionUrl }}
-          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_CONNECTION_URL
+          - name: OPT_BASE_REPLICAS_{{ .name | upper }}_CONNECTION_URL
             value: {{ .connectionUrl }}
           {{- end }}
           {{- if .address }}
-          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_ADDRESS
+          - name: OPT_BASE_REPLICAS_{{ .name | upper }}_ADDRESS
             value: {{ .address }}
           {{- end }}
           {{- end }}
           # Transaction Signer Keys
           {{- range .Values.optics.updater.transactionSigners }}
-          - name: OPT_UPDATER_SIGNERS_{{ .name | upper }}_KEY
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
             value: {{ .key }}
           {{- end }}
-          # Attestation Signer Key
-          - name: OPT_UPDATER_UPDATER_KEY
-            value: {{ .Values.optics.updater.attestationSigner }}
           - name: RUST_BACKTRACE
             value: full
         resources:
