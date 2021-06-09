@@ -34,7 +34,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _origin The origin domain
      * @param _sender The sender address
      * @param _message The message
-     * @return
+     * @return Empty bytes
      */
     function handle(
         uint32 _origin,
@@ -128,7 +128,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @notice Handles an incoming Transfer message.
      * @param _tokenId The token ID
      * @param _action The action
-     * @return
+     * @return Empty bytes
      */
     function _handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
@@ -151,7 +151,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @notice Handles an incoming Details message.
      * @param _tokenId The token ID
      * @param _action The action
-     * @return
+     * @return Empty bytes
      */
     function _handleDetails(bytes29 _tokenId, bytes29 _action)
         internal
