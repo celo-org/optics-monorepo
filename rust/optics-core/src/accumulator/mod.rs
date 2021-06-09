@@ -35,4 +35,21 @@ lazy_static! {
         }
         hashes
     };
+
+    /// The root of an empty tree
+    pub static ref INITIAL_ROOT: H256 = incremental::IncrementalMerkle::default().root();
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn it_calculates_the_initial_root() {
+        assert_eq!(
+            *INITIAL_ROOT,
+            "0x27ae5ba08d7291c96c8cbddcc148bf48a6d68c7974b94356f53754ef6171d757"
+                .parse()
+                .unwrap()
+        );
+    }
 }

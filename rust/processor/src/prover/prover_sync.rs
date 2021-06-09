@@ -2,7 +2,7 @@ use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
 use optics_base::{db::UsingPersistence, home::Homes};
 use optics_core::{
-    accumulator::incremental::IncrementalMerkle,
+    accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
@@ -89,19 +89,28 @@ impl ProverSync {
 
             let signed_update_opt = self.home.signed_update_by_old_root(local_root).await?;
 
+            // This if block is somewhat ugly.
+            // First we check if there is a signed update with the local root.
+            //   If so we start ingesting messages under the new root.
+            // Otherwise, if there is no update,
+            //   We ignore the initial root
+            //   We ensure that an update produced the local root.
+            //      If no update produced the local root, we error.
             if let Some(signed_update) = signed_update_opt {
                 info!("have signed update, updating prover tree");
                 self.update_prover_tree(local_root, signed_update.update.new_root)
                     .await?;
-            } else if self
-                .home
-                .signed_update_by_new_root(local_root)
-                .await?
-                .is_none()
+            } else if local_root != *INITIAL_ROOT
+                && self
+                    .home
+                    .signed_update_by_new_root(local_root)
+                    .await?
+                    .is_none()
             {
                 return Err(ProverSyncError::InvalidLocalRoot { local_root });
             }
 
+            // Check to see if the parent task has shut down
             if let Err(TryRecvError::Closed) = self.rx.try_recv() {
                 break;
             }
