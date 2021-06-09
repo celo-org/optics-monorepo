@@ -1,6 +1,9 @@
 {
   "devDependencies": {
     "@typechain/ethers-v5": "^7.0.0",
+    "@types/mocha": "^8.2.2",
+    "chai": "^4.3.4",
+    "hardhat": "^2.3.0",
     "mkdirp": "^1.0.4",
     "prettier": "2.3.0",
     "typechain": "^5.0.0",
