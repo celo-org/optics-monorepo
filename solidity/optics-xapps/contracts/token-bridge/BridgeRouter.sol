@@ -29,6 +29,13 @@ contract BridgeRouter is Router, TokenRegistry {
         TokenRegistry(_xAppConnectionManager)
     {} // solhint-disable-line no-empty-blocks
 
+    /**
+     * @notice Handles an incoming message
+     * @param _origin The origin domain
+     * @param _sender The sender address
+     * @param _message The message
+     * @return
+     */
     function handle(
         uint32 _origin,
         bytes32 _sender,
@@ -53,6 +60,16 @@ contract BridgeRouter is Router, TokenRegistry {
         return hex"";
     }
 
+    /**
+     * @notice Sends a Transfer message.
+     * 1. If the token is native, it holds the amount in the
+     *    contract. Otherwise it is discarded.
+     * 2. Formats new Transfer message and enqueues it to home.
+     * @param _token The token address
+     * @param _destination The destination domain
+     * @param _recipient The recipient address
+     * @param _amnt The amount
+     */
     function send(
         address _token,
         uint32 _destination,
@@ -80,6 +97,11 @@ contract BridgeRouter is Router, TokenRegistry {
         );
     }
 
+    /**
+     * @notice Sends a Details message.
+     * @param _token The token address
+     * @param _destination The destination domain
+     */
     function updateDetails(address _token, uint32 _destination) external {
         bytes32 _remote = _mustHaveRemote(_destination);
         IBridgeToken _bridgeToken = IBridgeToken(_token);
@@ -102,6 +124,12 @@ contract BridgeRouter is Router, TokenRegistry {
         );
     }
 
+    /**
+     * @notice Handles an incoming Transfer message.
+     * @param _tokenId The token ID
+     * @param _action The action
+     * @return
+     */
     function _handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
@@ -119,6 +147,12 @@ contract BridgeRouter is Router, TokenRegistry {
         return hex"";
     }
 
+    /**
+     * @notice Handles an incoming Details message.
+     * @param _tokenId The token ID
+     * @param _action The action
+     * @return
+     */
     function _handleDetails(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)

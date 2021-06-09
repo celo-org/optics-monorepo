@@ -79,7 +79,7 @@ library BridgeMessage {
      * @notice Formats Transfer
      * @param _to The recipient address as bytes32
      * @param _amnt The transfer amount
-     * @return 
+     * @return
      */
     function formatTransfer(bytes32 _to, uint256 _amnt)
         internal
@@ -147,11 +147,10 @@ library BridgeMessage {
         return _view.index(4, 32);
     }
 
-    // TODO: not sure what this does?
     /**
-     * @notice Retrieves the evm ID
-     * @param _view
-     * @return The address
+     * @notice Retrieves the EVM ID
+     * @param _view The message
+     * @return The EVM ID
      */
     function evmId(bytes29 _view)
         internal
@@ -178,10 +177,9 @@ library BridgeMessage {
     }
 
     /**
-     * @notice 
-     * @param _
-     * @param _
-     * @return 
+     * @notice Retrieves the EVM Recipient from a Transfer
+     * @param _view The message
+     * @return The EVM Recipient
      */
     function evmRecipient(bytes29 _view)
         internal
