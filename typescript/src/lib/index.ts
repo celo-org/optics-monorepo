@@ -5,8 +5,8 @@ import { extendEnvironment } from 'hardhat/config';
 import * as types from './types';
 import * as deployHelpers from '../index';
 import { getHexStringByteLength } from './utils';
-import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
-import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
+// import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
+// import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
 
 // HardhatRuntimeEnvironment
 extendEnvironment((hre: any) => {
@@ -49,7 +49,7 @@ extendEnvironment((hre: any) => {
 
   class Home extends Common {
     constructor(address: types.Address, providerOrSigner: string) {
-      super(address, HomeAbi, providerOrSigner);
+      super(address, 'HomeAbi', providerOrSigner);
     }
 
     async submitSignedUpdate(update: types.Update) {
@@ -61,7 +61,10 @@ extendEnvironment((hre: any) => {
     }
 
     // Returns list of Dispatch events with given destination and sequence
-    async dispatchByDestinationAndSequence(destination: types.Domain, sequence: number) {
+    async dispatchByDestinationAndSequence(
+      destination: types.Domain,
+      sequence: number,
+    ) {
       const filter = this.filters.Dispatch(
         null,
         hre.optics.destinationAndSequence(destination, sequence),
@@ -73,7 +76,7 @@ extendEnvironment((hre: any) => {
 
   class Replica extends Common {
     constructor(address: types.Address, providerOrSigner: string) {
-      super(address, ReplicaAbi, providerOrSigner);
+      super(address, 'ReplicaAbi', providerOrSigner);
     }
 
     async submitSignedUpdate(update: types.Update) {
@@ -86,7 +89,10 @@ extendEnvironment((hre: any) => {
   }
 
   class GovernanceRouter {
-    static formatTransferGovernor(newDomain: types.Domain, newAddress: types.Address) {
+    static formatTransferGovernor(
+      newDomain: types.Domain,
+      newAddress: types.Address,
+    ) {
       return ethers.utils.solidityPack(
         ['bytes1', 'uint32', 'bytes32'],
         [GovernanceMessage.TRANSFERGOVERNOR, newDomain, newAddress],
@@ -133,7 +139,12 @@ extendEnvironment((hre: any) => {
     signer: any;
     address: types.Address;
 
-    constructor(signer: any, address: types.Address, localDomain: types.Domain, disableWarn: boolean) {
+    constructor(
+      signer: any,
+      address: types.Address,
+      localDomain: types.Domain,
+      disableWarn: boolean,
+    ) {
       if (!disableWarn) {
         throw new Error('Please use `Updater.fromSigner()` to instantiate.');
       }
@@ -201,7 +212,10 @@ extendEnvironment((hre: any) => {
       .toLowerCase();
   };
 
-  const destinationAndSequence = (destination: types.Domain, sequence: number) => {
+  const destinationAndSequence = (
+    destination: types.Domain,
+    sequence: number,
+  ) => {
     assert(destination < Math.pow(2, 32) - 1);
     assert(sequence < Math.pow(2, 32) - 1);
 
@@ -217,7 +231,11 @@ extendEnvironment((hre: any) => {
     );
   };
 
-  const signedFailureNotification = async (signer: any, domain: types.Domain, updaterAddress: types.Address) => {
+  const signedFailureNotification = async (
+    signer: any,
+    domain: types.Domain,
+    updaterAddress: types.Address,
+  ) => {
     const domainHash = hre.optics.domainHash(domain);
     const updaterBytes32 = hre.optics.ethersAddressToBytes32(updaterAddress);
 
@@ -253,6 +271,6 @@ extendEnvironment((hre: any) => {
     destinationAndSequence,
     domainHash,
     signedFailureNotification,
-    ...deployHelpers
+    ...deployHelpers,
   };
 });
