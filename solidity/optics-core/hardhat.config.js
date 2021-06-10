@@ -6,8 +6,6 @@ require('@nomiclabs/hardhat-etherscan');
 
 require('./js');
 
-const path = require('path');
-
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
