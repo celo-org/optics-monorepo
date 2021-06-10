@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@typechain/ethers-v5": "^7.0.0",
+    "@types/chai": "^4.2.18",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",
     "hardhat": "^2.3.0",

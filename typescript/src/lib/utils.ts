@@ -4,7 +4,7 @@
  * @param hexStr - the hex string
  * @return byteLength - length in bytes
  */
-function getHexStringByteLength(hexStr: string) {
+export function getHexStringByteLength(hexStr: string) {
   let len = hexStr.length;
 
   // check for prefix, remove if necessary
@@ -16,6 +16,12 @@ function getHexStringByteLength(hexStr: string) {
   return len / 2;
 }
 
-module.exports = {
-  getHexStringByteLength,
-};
+/*
+ * Converts address to Bytes32
+ *
+ * @param address - the address
+ * @return The address as bytes32
+ */
+export function toBytes32(address: string): string {
+  return '0x' + '00'.repeat(12) + address.slice(2);
+}
