@@ -34,7 +34,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _origin The origin domain
      * @param _sender The sender address
      * @param _message The message
-     * @return Empty bytes
+     * @return Empty bytes, must have return value to satisfy interface
      */
     function handle(
         uint32 _origin,
@@ -63,7 +63,8 @@ contract BridgeRouter is Router, TokenRegistry {
     /**
      * @notice Sends a Transfer message.
      * 1. If the token is native, it holds the amount in the
-     *    contract. Otherwise it is discarded.
+     *    contract. Otherwise the token is a representational
+     *    asset, and is burned.
      * 2. Formats new Transfer message and enqueues it to home.
      * @param _token The token address
      * @param _destination The destination domain
@@ -126,9 +127,13 @@ contract BridgeRouter is Router, TokenRegistry {
 
     /**
      * @notice Handles an incoming Transfer message.
+     *
+     * If the token is native, the amount is unlocked. Otherwise, a
+     * representational (non-native) token is minted.
+     *
      * @param _tokenId The token ID
      * @param _action The action
-     * @return Empty bytes
+     * @return Empty bytes, must have return value to satisfy interface
      */
     function _handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
@@ -151,7 +156,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @notice Handles an incoming Details message.
      * @param _tokenId The token ID
      * @param _action The action
-     * @return Empty bytes
+     * @return Empty bytes, must have return value to satisfy interface
      */
     function _handleDetails(bytes29 _tokenId, bytes29 _action)
         internal
