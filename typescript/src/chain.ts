@@ -3,8 +3,7 @@ import { BigNumber } from 'ethers';
 import { BeaconProxy, ProxyAddresses } from './proxyUtils';
 import * as contracts from './typechain/optics-core';
 import { NonceManager } from '@ethersproject/experimental';
-
-export type Address = string;
+import { Address } from './lib/types';
 
 // Optic's complete contract suite
 export type Contracts = {
