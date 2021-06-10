@@ -2,20 +2,10 @@ import * as ethers from 'ethers';
 import * as contracts from './typechain/optics-core';
 import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
-import { Deploy, toJson, buildConfig } from './chain';
+import { Deploy, toJson, toRustConfigs } from './chain';
+import { toBytes32 } from './lib/utils';
 
-function toBytes32(address: string): string {
-  let addr = ethers.utils.getAddress(address);
-  return '0x' + '00'.repeat(12) + address.slice(2);
-}
-
-/**
- * Deploys the UpgradeBeaconController on the chain of the given deploy and updates
- * the deploy instance with the new contract.
- *
- * @param deploy - The deploy instance
- */
-async function deployUpgradeBeaconController(deploy: Deploy) {
+export async function deployUpgradeBeaconController(deploy: Deploy) {
   let factory = new contracts.UpgradeBeaconController__factory(
     deploy.chain.deployer,
   );
@@ -31,7 +21,7 @@ async function deployUpgradeBeaconController(deploy: Deploy) {
  *
  * @param deploy - The deploy instance
  */
-async function deployUpdaterManager(deploy: Deploy) {
+export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
   deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
     gasPrice: deploy.chain.gasPrice,
@@ -45,7 +35,7 @@ async function deployUpdaterManager(deploy: Deploy) {
  *
  * @param deploy - The deploy instance
  */
-async function deployXAppConnectionManager(deploy: Deploy) {
+export async function deployXAppConnectionManager(deploy: Deploy) {
   let factory = new contracts.XAppConnectionManager__factory(
     deploy.chain.deployer,
   );
@@ -61,7 +51,7 @@ async function deployXAppConnectionManager(deploy: Deploy) {
  *
  * @param deploy - The deploy instance
  */
-async function deployHome(deploy: Deploy) {
+export async function deployHome(deploy: Deploy) {
   let { updaterManager } = deploy.contracts;
   let initData = contracts.Home__factory.createInterface().encodeFunctionData(
     'initialize',
@@ -84,7 +74,7 @@ async function deployHome(deploy: Deploy) {
  *
  * @param deploy - The deploy instance
  */
-async function deployGovernanceRouter(deploy: Deploy) {
+export async function deployGovernanceRouter(deploy: Deploy) {
   let { xappConnectionManager } = deploy.contracts;
   let initData =
     contracts.GovernanceRouter__factory.createInterface().encodeFunctionData(
@@ -109,7 +99,7 @@ async function deployGovernanceRouter(deploy: Deploy) {
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
  */
-async function deployNewReplica(local: Deploy, remote: Deploy) {
+export async function deployNewReplica(local: Deploy, remote: Deploy) {
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
