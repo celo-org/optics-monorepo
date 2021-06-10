@@ -1,22 +1,15 @@
 import '@nomiclabs/hardhat-waffle';
-import { assert } = require('chai');
-const { extendEnvironment } = require('hardhat/config');
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { assert } from 'chai';
+import { extendEnvironment } from 'hardhat/config';
 
-// const {
-//   deployUpgradeSetup,
-//   deployUpgradeSetupAndProxy,
-//   deployImplementation,
-//   deployUpgradeBeaconController,
-//   deployProxyWithImplementation,
-//   getInitializeData,
-// } = require('../scripts/deployUpgradeSetup');
+import * as types from './types';
+import * as deployHelpers from '../index';
 import { getHexStringByteLength } from './utils';
-import { deploy } from '../index';
 import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
 import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
 
-extendEnvironment((hre: HardhatRuntimeEnvironment) => {
+// HardhatRuntimeEnvironment
+extendEnvironment((hre: any) => {
   let { ethers } = hre;
   const State = {
     UNINITIALIZED: 0,
@@ -37,11 +30,11 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   };
 
   class Common extends ethers.Contract {
-    constructor(address, abi, providerOrSigner) {
+    constructor(address: types.Address, abi: string, providerOrSigner: string) {
       super(address, abi, providerOrSigner);
     }
 
-    async submitDoubleUpdate(left, right) {
+    async submitDoubleUpdate(left: types.Update, right: types.Update) {
       if (left.oldRoot !== right.oldRoot) {
         throw new Error('Old roots do not match');
       }
@@ -55,11 +48,11 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
 
   class Home extends Common {
-    constructor(address, providerOrSigner) {
+    constructor(address: types.Address, providerOrSigner: string) {
       super(address, HomeAbi, providerOrSigner);
     }
 
-    async submitSignedUpdate(update) {
+    async submitSignedUpdate(update: types.Update) {
       return await this.update(
         update.oldRoot,
         update.newRoot,
@@ -68,10 +61,10 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
     }
 
     // Returns list of Dispatch events with given destination and sequence
-    async dispatchByDestinationAndSequence(destination, sequence) {
+    async dispatchByDestinationAndSequence(destination: types.Domain, sequence: number) {
       const filter = this.filters.Dispatch(
         null,
-        optics.destinationAndSequence(destination, sequence),
+        hre.optics.destinationAndSequence(destination, sequence),
       );
 
       return await this.queryFilter(filter);
@@ -79,11 +72,11 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
 
   class Replica extends Common {
-    constructor(address, providerOrSigner) {
+    constructor(address: types.Address, providerOrSigner: string) {
       super(address, ReplicaAbi, providerOrSigner);
     }
 
-    async submitSignedUpdate(update) {
+    async submitSignedUpdate(update: types.Update) {
       return await this.update(
         update.oldRoot,
         update.newRoot,
@@ -93,27 +86,27 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
 
   class GovernanceRouter {
-    static formatTransferGovernor(newDomain, newAddress) {
+    static formatTransferGovernor(newDomain: types.Domain, newAddress: types.Address) {
       return ethers.utils.solidityPack(
         ['bytes1', 'uint32', 'bytes32'],
         [GovernanceMessage.TRANSFERGOVERNOR, newDomain, newAddress],
       );
     }
 
-    static formatSetRouter(domain, address) {
+    static formatSetRouter(domain: types.Domain, address: types.Address) {
       return ethers.utils.solidityPack(
         ['bytes1', 'uint32', 'bytes32'],
         [GovernanceMessage.SETROUTER, domain, address],
       );
     }
 
-    static formatCalls(callsData) {
+    static formatCalls(callsData: types.CallData[]) {
       let callBody = '0x';
       const numCalls = callsData.length;
 
       for (let i = 0; i < numCalls; i++) {
         const { to, data } = callsData[i];
-        const dataLen = utils.getHexStringByteLength(data);
+        const dataLen = getHexStringByteLength(data);
 
         if (!to || !data) {
           throw new Error(`Missing data in Call ${i + 1}: \n  ${callsData[i]}`);
@@ -136,7 +129,11 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
 
   class Updater {
-    constructor(signer, address, localDomain, disableWarn) {
+    localDomain: types.Domain;
+    signer: any;
+    address: types.Address;
+
+    constructor(signer: any, address: types.Address, localDomain: types.Domain, disableWarn: boolean) {
       if (!disableWarn) {
         throw new Error('Please use `Updater.fromSigner()` to instantiate.');
       }
@@ -145,19 +142,19 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
       this.address = address;
     }
 
-    static async fromSigner(signer, localDomain) {
+    static async fromSigner(signer: any, localDomain: types.Domain) {
       return new Updater(signer, await signer.getAddress(), localDomain, true);
     }
 
     domainHash() {
-      return optics.domainHash(this.localDomain);
+      return hre.optics.domainHash(this.localDomain);
     }
 
-    message(oldRoot, newRoot) {
+    message(oldRoot: types.HexString, newRoot: types.HexString) {
       return ethers.utils.concat([this.domainHash(), oldRoot, newRoot]);
     }
 
-    async signUpdate(oldRoot, newRoot) {
+    async signUpdate(oldRoot: types.HexString, newRoot: types.HexString) {
       let message = this.message(oldRoot, newRoot);
       let msgHash = ethers.utils.arrayify(ethers.utils.keccak256(message));
       let signature = await this.signer.signMessage(msgHash);
@@ -171,15 +168,15 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   }
 
   const formatMessage = (
-    localDomain,
-    senderAddr,
-    sequence,
-    destinationDomain,
-    recipientAddr,
-    body,
+    localDomain: types.Domain,
+    senderAddr: types.Address,
+    sequence: number,
+    destinationDomain: types.Domain,
+    recipientAddr: types.Address,
+    body: types.HexString,
   ) => {
-    senderAddr = optics.ethersAddressToBytes32(senderAddr);
-    recipientAddr = optics.ethersAddressToBytes32(recipientAddr);
+    senderAddr = hre.optics.ethersAddressToBytes32(senderAddr);
+    recipientAddr = hre.optics.ethersAddressToBytes32(recipientAddr);
 
     return ethers.utils.solidityPack(
       ['uint32', 'bytes32', 'uint32', 'uint32', 'bytes32', 'bytes'],
@@ -194,17 +191,17 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
     );
   };
 
-  const messageToLeaf = (message) => {
+  const messageToLeaf = (message: types.HexString) => {
     return ethers.utils.solidityKeccak256(['bytes'], [message]);
   };
 
-  const ethersAddressToBytes32 = (address) => {
+  const ethersAddressToBytes32 = (address: types.Address) => {
     return ethers.utils
       .hexZeroPad(ethers.utils.hexStripZeros(address), 32)
       .toLowerCase();
   };
 
-  const destinationAndSequence = (destination, sequence) => {
+  const destinationAndSequence = (destination: types.Domain, sequence: number) => {
     assert(destination < Math.pow(2, 32) - 1);
     assert(sequence < Math.pow(2, 32) - 1);
 
@@ -213,16 +210,16 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
       .add(ethers.BigNumber.from(sequence));
   };
 
-  const domainHash = (domain) => {
+  const domainHash = (domain: Number) => {
     return ethers.utils.solidityKeccak256(
       ['uint32', 'string'],
       [domain, 'OPTICS'],
     );
   };
 
-  const signedFailureNotification = async (signer, domain, updaterAddress) => {
-    const domainHash = optics.domainHash(domain);
-    const updaterBytes32 = optics.ethersAddressToBytes32(updaterAddress);
+  const signedFailureNotification = async (signer: any, domain: types.Domain, updaterAddress: types.Address) => {
+    const domainHash = hre.optics.domainHash(domain);
+    const updaterBytes32 = hre.optics.ethersAddressToBytes32(updaterAddress);
 
     const failureNotification = ethers.utils.solidityPack(
       ['bytes32', 'uint32', 'bytes32'],
@@ -256,12 +253,6 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
     destinationAndSequence,
     domainHash,
     signedFailureNotification,
-    // deployUpgradeSetupAndProxy,
-    // deployImplementation,
-    // deployUpgradeBeaconController,
-    // deployUpgradeSetup,
-    // deployOptics,
-    // deployProxyWithImplementation,
-    // getInitializeData,
+    ...deployHelpers
   };
 });
