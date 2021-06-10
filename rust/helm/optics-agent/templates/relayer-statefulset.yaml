@@ -78,6 +78,11 @@ spec:
             value: {{ .address }}
           {{- end }}
           {{- end }}
+          # Polling Interval Override
+          {{- if .Values.optics.relayer.pollingInterval }}
+          - name: OPT_BASE_POLLINGINTERVAL
+            value: {{ .Values.optics.relayer.pollingInterval | quote }}
+          {{- end }}
           # Transaction Signer Keys
           {{- range .Values.optics.relayer.transactionSigners }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY

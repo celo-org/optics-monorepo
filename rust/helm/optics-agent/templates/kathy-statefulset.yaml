@@ -78,8 +78,13 @@ spec:
             value: {{ .address }}
           {{- end }}
           {{- end }}
+          # Polling Interval Override
+          {{- if .Values.optics.kathy.messageInterval }}
+          - name: OPT_BASE_MESSAGEINTERVAL
+            value: {{ .Values.optics.kathy.messageInterval | quote }}
+          {{- end }}
           # Transaction Signer Keys
-          {{- range .Values.optics.updater.transactionSigners }}
+          {{- range .Values.optics.kathy.transactionSigners }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
             value: {{ .key }}
           {{- end }}
