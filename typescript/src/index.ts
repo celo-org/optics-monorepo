@@ -1,5 +1,5 @@
 import * as ethers from 'ethers';
-import * as contracts from './typechain';
+import * as contracts from './typechain/optics-core';
 import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
 import { Deploy, toJson, buildConfig } from './chain';

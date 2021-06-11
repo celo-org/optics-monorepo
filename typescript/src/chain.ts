@@ -1,7 +1,7 @@
 import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
 import { BeaconProxy, ProxyAddresses } from './proxyUtils';
-import * as contracts from './typechain';
+import * as contracts from './typechain/optics-core';
 import { NonceManager } from '@ethersproject/experimental';
 
 export type Address = string;
