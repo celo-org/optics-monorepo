@@ -27,7 +27,7 @@
   },
   "scripts": {
     "prettier": "prettier --write ./contracts ./test ./js",
-    "compile": "hardhat compile && npm run prettier && ./js/update_abis.sh",
+    "compile": "hardhat compile && hardhat typechain && npm run prettier && ./js/update_abis.sh",
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat test",
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && eslint test/",

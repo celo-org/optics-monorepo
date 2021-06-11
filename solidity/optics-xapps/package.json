@@ -27,7 +27,7 @@
   },
   "scripts": {
     "prettier": "prettier --write './contracts' ./test",
-    "compile": "hardhat compile && npm run prettier",
+    "compile": "hardhat compile && hardhat typechain && npm run prettier",
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat test",
     "lint": "solhint contracts/*.sol && eslint test/",

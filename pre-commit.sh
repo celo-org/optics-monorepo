@@ -28,6 +28,7 @@ echo "Making pre-run checks"
 ensure npm
 ensure cargo
 ensure jq
+ensure npx
 
 # TODO: DRY these
 if (echo min version $MIN_GIT; git --version) | sort -Vk3 | tail -1 | grep -q git
@@ -67,28 +68,36 @@ trap 'abort' 0
 set -e
 git update-index -q --refresh
 
-# Conditionally compile and update optics-core abis
+# Conditionally compile, update optics-core abis and generate typechain
 if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
-    echo "+Updating core ABIs"
+    echo "+Updating core ABIs, generating typechain"
     cd ./solidity/optics-core
     npm run compile
-    # add files in case linter modified them
-    git add .
+    # add abis, typechain
     cd ../..
+    git add rust/optics-ethereum/abis
+    git add typescript/src/typechain
+    # add linter modified files
+    git add solidity/optics-core/contracts
+    git add solidity/optics-core/libs
+    git add solidity/optics-core/interfaces
 else
-    echo "+Skipping core ABI updates"
+    echo "+Skipping core ABI updates and typechain generation"
 fi
 
-# Conditionally compile and update optics-xapps abis
+# Conditionally compile, update optics-xapps abis and generate typechain
 if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
-    echo "+Updating xapps ABIs"
+    echo "+Updating xapps ABIs, generating typechain"
     cd ./solidity/optics-xapps
     npm run compile
-    # add files in case linter modified them
-    git add .
+    # add typechain
     cd ../..
+    git add typescript/src/typechain
+    # add linter modified files
+    git add solidity/optics-xapps/contracts
+    git add solidity/optics-xapps/interfaces
 else
-    echo "+Skipping xapps ABI updates"
+    echo "+Skipping xapps ABI updates and typechain generation"
 fi
 
 # Conditionally run Rust bins to output into vector JSON files
