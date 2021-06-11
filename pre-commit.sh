@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Specifying minimum versions
-MIN_GIT=min version 2.25.0
-MIN_CARGO=min 1.51.0
+MIN_GIT=2.25.0
+MIN_CARGO=1.51.0
 
 echo_abort ()
 {
