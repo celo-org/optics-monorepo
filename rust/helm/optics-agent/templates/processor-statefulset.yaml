@@ -54,7 +54,7 @@ spec:
             value: /usr/share/optics
           # Sets the config folder to use
           - name: RUN_ENV
-            value: {{ .Values.optics.runEnv }}
+            value: {{ .Values.optics.runEnv | quote }}
           # Sets the base config to be used (switch between Homes)
           - name: BASE_CONFIG
             value: {{ .Values.optics.baseConfig }}

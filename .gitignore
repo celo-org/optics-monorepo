@@ -6,3 +6,4 @@ typescript/optics-deploy/.env
 rust/tmp_db
 rust/tmp.env
 tmp.env
+.DS_STORE

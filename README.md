@@ -131,6 +131,16 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
   - [link here](https://rustup.rs/)
 - see `rust/README.md`
 
+#### Building Agent Images
+
+There exists a docker build for the agent binaries. These docker images are used for deploying the agents in a production environment. 
+
+```
+$ cd rust
+$ ./build.sh <image_tag>
+$ ./release.sh <image_tag>
+```
+
 # What is Optics?
 
 We present Optics - a system for sending messages between consensus systems
