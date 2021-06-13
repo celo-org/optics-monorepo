@@ -136,11 +136,11 @@ extendEnvironment((hre: any) => {
 
   class Updater {
     localDomain: types.Domain;
-    signer: any;
+    signer: types.Signer;
     address: types.Address;
 
     constructor(
-      signer: any,
+      signer: types.Signer,
       address: types.Address,
       localDomain: types.Domain,
       disableWarn: boolean,
@@ -153,7 +153,7 @@ extendEnvironment((hre: any) => {
       this.address = address;
     }
 
-    static async fromSigner(signer: any, localDomain: types.Domain) {
+    static async fromSigner(signer: types.Signer, localDomain: types.Domain) {
       return new Updater(signer, await signer.getAddress(), localDomain, true);
     }
 
@@ -232,7 +232,7 @@ extendEnvironment((hre: any) => {
   };
 
   const signedFailureNotification = async (
-    signer: any,
+    signer: types.Signer,
     domain: types.Domain,
     updaterAddress: types.Address,
   ) => {
