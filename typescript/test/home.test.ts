@@ -1,22 +1,28 @@
 import { waffle, ethers } from 'hardhat';
 const { provider, deployMockContract } = waffle;
 import { expect } from 'chai';
+const { optics } = require("hardhat");
 // import UpdaterManager from '../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager';
 
 // import { testCases: homeDomainHashTestCases } from '../../../vectors/homeDomainHashTestCases';
 // import { testCases } from '../../../vectors/destinationSequenceTestCases';
 
-const localDomain = 1000;
-const destDomain = 2000;
+// const localDomain = 1000;
+// const destDomain = 2000;
 
 describe('Home', async () => {
-  let home,
-    signer,
-    fakeSigner,
-    updater,
-    fakeUpdater,
-    recipient,
-    mockUpdaterManager: any;
+  it('test hre', () => {
+    console.log(optics);
+    expect(optics).to.not.be.null;
+  });
+
+  // let home,
+  //   signer,
+  //   fakeSigner,
+  //   updater,
+  //   fakeUpdater,
+  //   recipient,
+  //   mockUpdaterManager: any;
 
   //   // Helper function that enqueues message and returns its root.
   //   // The message recipient is the same for all messages enqueued.
@@ -37,14 +43,6 @@ describe('Home', async () => {
   //   fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
   //   // mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
   // });
-
-  it('test', () => {
-    expect(true).to.be.true;
-  });
-
-  it('test 2', () => {
-    expect(optics).to.not.be.null;
-  });
 
   //   beforeEach(async () => {
   //     await mockUpdaterManager.mock.updater.returns(signer.address);
