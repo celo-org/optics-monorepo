@@ -50,14 +50,16 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
  * the deploy instance with the new contract.
  *
  * @param deploy - The deploy instance
+ * @param isTestDeploy - True to deploy the test contract
  */
 export async function devDeployHome(deploy: Deploy, isTestDeploy: boolean) {
-  const home = isTestDeploy ? contracts.TestHome__factory : contracts.Home__factory;
+  const home = isTestDeploy
+    ? contracts.TestHome__factory
+    : contracts.Home__factory;
   let { updaterManager } = deploy.contracts;
-  let initData = home.createInterface().encodeFunctionData(
-    'initialize',
-    [updaterManager!.address],
-  );
+  let initData = home
+    .createInterface()
+    .encodeFunctionData('initialize', [updaterManager!.address]);
 
   deploy.contracts.home = await proxyUtils.deployProxy<contracts.Home>(
     deploy,
@@ -72,22 +74,27 @@ export async function devDeployHome(deploy: Deploy, isTestDeploy: boolean) {
  * the deploy instance with the new contract.
  *
  * @param deploy - The deploy instance
+ * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployGovernanceRouter(deploy: Deploy, isTestDeploy: boolean) {
-  const governanceRouter = isTestDeploy ? contracts.TestGovernanceRouter__factory : contracts.GovernanceRouter__factory;
+export async function devDeployGovernanceRouter(
+  deploy: Deploy,
+  isTestDeploy: boolean,
+) {
+  const governanceRouter = isTestDeploy
+    ? contracts.TestGovernanceRouter__factory
+    : contracts.GovernanceRouter__factory;
   let { xappConnectionManager } = deploy.contracts;
-  let initData =
-    governanceRouter.createInterface().encodeFunctionData(
-      'initialize',
-      [xappConnectionManager!.address],
-    );
+  let initData = governanceRouter
+    .createInterface()
+    .encodeFunctionData('initialize', [xappConnectionManager!.address]);
 
-  deploy.contracts.governance = await proxyUtils.deployProxy<contracts.GovernanceRouter>(
-    deploy,
-    new governanceRouter(deploy.chain.deployer),
-    initData,
-    deploy.chain.domain,
-  );
+  deploy.contracts.governance =
+    await proxyUtils.deployProxy<contracts.GovernanceRouter>(
+      deploy,
+      new governanceRouter(deploy.chain.deployer),
+      initData,
+      deploy.chain.domain,
+    );
 }
 
 /**
@@ -96,12 +103,19 @@ export async function devDeployGovernanceRouter(deploy: Deploy, isTestDeploy: bo
  *
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
+ * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployNewReplica(local: Deploy, remote: Deploy, isTestDeploy: boolean) {
+export async function devDeployNewReplica(
+  local: Deploy,
+  remote: Deploy,
+  isTestDeploy: boolean,
+) {
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
-  const replica = isTestDeploy ? contracts.TestReplica__factory : contracts.Replica__factory;
+  const replica = isTestDeploy
+    ? contracts.TestReplica__factory
+    : contracts.Replica__factory;
   const factory = new replica(local.chain.deployer);
 
   // Workaround because typechain doesn't handle overloads well, and Replica
@@ -148,6 +162,7 @@ export async function devDeployNewReplica(local: Deploy, remote: Deploy, isTestD
  * and updates the deploy instance with the new contracts.
  *
  * @param deploy - The deploy instance
+ * @param isTestDeploy - True to deploy the test contract
  */
 export async function devDeployOptics(deploy: Deploy, isTestDeploy: boolean) {
   console.log(`${deploy.chain.name}: awaiting deploy UBC(deploy);`);
@@ -295,8 +310,13 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
  *
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
+ * @param isTestDeploy - True to deploy the test contract
  */
-export async function devEnrollRemote(local: Deploy, remote: Deploy, isTestDeploy: boolean) {
+export async function devEnrollRemote(
+  local: Deploy,
+  remote: Deploy,
+  isTestDeploy: boolean,
+) {
   await devDeployNewReplica(local, remote, isTestDeploy);
   await enrollReplica(local, remote);
   await enrollWatchers(local, remote);
@@ -329,14 +349,21 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
  * @param gov - The governor chain deploy instance
  * @param non - The non-governor chain deploy instance
  */
-export async function devDeployTwoChains(gov: Deploy, non: Deploy, isTestDeploy: boolean) {
-  await Promise.all([devDeploy(gov, isTestDeploy), devDeploy(non, isTestDeploy)]);
+export async function devDeployTwoChains(
+  gov: Deploy,
+  non: Deploy,
+  isTestDeploy: boolean,
+) {
+  await Promise.all([
+    devDeployOptics(gov, isTestDeploy),
+    devDeployOptics(non, isTestDeploy),
+  ]);
 
   console.log('initial deploys done');
 
   await Promise.all([
     devDeployNewReplica(gov, non, isTestDeploy),
-    devDeployNewReplica(non, gov, isTestDeploy)
+    devDeployNewReplica(non, gov, isTestDeploy),
   ]);
 
   console.log('replica deploys done');
@@ -366,11 +393,15 @@ export async function devDeployTwoChains(gov: Deploy, non: Deploy, isTestDeploy:
  * @param gov - The governing chain deploy instance
  * @param spokes - An array of remote chain deploy instances
  */
-export async function devDeployHubAndSpokes(gov: Deploy, spokes: Deploy[], isTestDeploy: boolean) {
-  await devDeploy(gov, isTestDeploy);
+export async function devDeployHubAndSpokes(
+  gov: Deploy,
+  spokes: Deploy[],
+  isTestDeploy: boolean,
+) {
+  await devDeployOptics(gov, isTestDeploy);
 
   for (const non of spokes) {
-    await devDeploy(non, isTestDeploy);
+    await devDeployOptics(non, isTestDeploy);
 
     await devEnrollRemote(gov, non, isTestDeploy);
     await devEnrollRemote(non, gov, isTestDeploy);
@@ -394,7 +425,10 @@ export async function devDeployHubAndSpokes(gov: Deploy, spokes: Deploy[], isTes
  *
  * @param chains - An array of chain deploys
  */
-export async function devDeployNChains(chains: Deploy[], isTestDeploy: boolean) {
+export async function devDeployNChains(
+  chains: Deploy[],
+  isTestDeploy: boolean,
+) {
   const govChain = chains[0];
   const nonGovChains = chains.slice(1);
   await devDeployHubAndSpokes(govChain, nonGovChains, isTestDeploy);
