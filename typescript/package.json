@@ -25,7 +25,7 @@
   "description": "Optics typescript tools",
   "main": "src/index.ts",
   "scripts": {
-    "prettier": "prettier --write ./src",
+    "prettier": "prettier --write ./optics-deploy ./test",
     "compile": "hardhat compile && npm run prettier",
     "test": "npm run compile && hardhat test"
   },
