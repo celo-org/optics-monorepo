@@ -11,7 +11,7 @@ import {
   deployXAppConnectionManager,
   transferGovernorship,
   relinquish,
-  writeDeployOutput
+  writeDeployOutput,
 } from './devDeployOptics';
 
 /**
