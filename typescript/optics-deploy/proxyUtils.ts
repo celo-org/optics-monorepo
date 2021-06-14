@@ -1,7 +1,7 @@
 import { BytesLike, ethers } from 'ethers';
 import { Deploy } from './chain';
 
-import * as contracts from './typechain/optics-core';
+import * as contracts from '../typechain/optics-core';
 
 export type BeaconProxy<T extends ethers.Contract> = {
   implementation: T;
