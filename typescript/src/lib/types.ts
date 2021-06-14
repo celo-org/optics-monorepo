@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 export type Domain = number;
 export type Address = string;
 export type AddressBytes32 = string;
@@ -15,5 +13,3 @@ export type CallData = {
   to: Address;
   data: string;
 };
-
-export type Signer = ethers.Signer;
