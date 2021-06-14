@@ -2,26 +2,23 @@ const { waffle, optics } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 import { ethers } from 'ethers';
-// import * as contracts from '../src/typechain/optics-core';
 
 import { TestCommon__factory } from "../src/typechain/optics-core";
 
 const {
   testCases: signedUpdateTestCases,
-} = require('../../../vectors/signedUpdateTestCases.json');
+} = require('../../vectors/signedUpdateTestCases.json');
 const localDomain = 1000;
 
 describe('Common', async () => {
   let common: ethers.Contract;
   let [signer, fakeSigner] = provider.getWallets();
   let updater = await optics.Updater.fromSigner(signer, localDomain);
-  let deployer: any; // TODO: define
   let fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
 
   beforeEach(async () => {
-    let commonFactory = new TestCommon__factory(deployer);
+    let commonFactory = new TestCommon__factory(signer);
     common = await commonFactory.deploy(localDomain, updater.signer.address);
-    await common.deployTransaction.wait(5);
   });
 
   it('Accepts updater signature', async () => {
