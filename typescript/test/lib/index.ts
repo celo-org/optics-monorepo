@@ -4,8 +4,9 @@ import { extendEnvironment } from 'hardhat/config';
 import { ethers } from 'ethers';
 
 import * as types from './types';
-import * as deployHelpers from '../deployOptics';
+import * as deployHelpers from '../../optics-deploy/deployOptics';
 import { getHexStringByteLength } from './utils';
+// TODO: fix
 // import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
 // import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
 
