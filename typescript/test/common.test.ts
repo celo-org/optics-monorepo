@@ -3,7 +3,7 @@ const { provider } = waffle;
 const { expect } = require('chai');
 import { ethers } from 'ethers';
 
-import { TestCommon__factory } from "../src/typechain/optics-core";
+import { TestCommon__factory } from '../typechain/optics-core';
 
 const {
   testCases: signedUpdateTestCases,

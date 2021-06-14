@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { optics } = require("hardhat");
+const { optics } = require('hardhat');
 
 describe('Home', async () => {
   it('test hre', () => {
