@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import { extendEnvironment } from 'hardhat/config';
 
 import * as types from './types';
-import * as deployHelpers from '../index';
+import * as deployHelpers from '../deployOptics';
 import { getHexStringByteLength } from './utils';
 // import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
 // import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
