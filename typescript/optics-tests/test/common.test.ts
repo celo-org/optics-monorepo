@@ -7,7 +7,7 @@ import { TestCommon__factory } from '../../typechain/optics-core';
 
 const {
   testCases: signedUpdateTestCases,
-} = require('../../vectors/signedUpdateTestCases.json');
+} = require('../../../vectors/signedUpdateTestCases.json');
 const localDomain = 1000;
 
 describe('Common', async () => {

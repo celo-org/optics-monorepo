@@ -2,6 +2,7 @@
   "devDependencies": {
     "ethers": "^5.3.1",
     "prettier": "^2.3.1",
+    "typechain": "^5.0.0",
     "typescript": "^4.3.2"
   },
   "name": "optics-deploy",
@@ -9,6 +10,7 @@
   "description": "Optics deploy tools",
   "main": "src/index.ts",
   "scripts": {
+    "prettier": "prettier --write ./src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Celo Labs Inc.",
