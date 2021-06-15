@@ -4,7 +4,7 @@ import { extendEnvironment } from 'hardhat/config';
 import { ethers } from 'ethers';
 
 import * as types from './types';
-import * as deployHelpers from '../../optics-deploy/deployOptics';
+import * as deployHelpers from '../../optics-deploy/src/deployOptics';
 import { getHexStringByteLength } from './utils';
 import {
   TestHome__factory,

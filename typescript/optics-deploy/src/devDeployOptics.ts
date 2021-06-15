@@ -1,9 +1,9 @@
 import * as ethers from 'ethers';
-import * as contracts from '../typechain/optics-core';
+import * as contracts from '../../typechain/optics-core';
 import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
 import { Deploy, toJson, buildConfig } from './chain';
-import { toBytes32 } from '../test/lib/utils';
+import { toBytes32 } from '../../optics-tests/lib/utils';
 
 export async function deployUpgradeBeaconController(deploy: Deploy) {
   let factory = new contracts.UpgradeBeaconController__factory(
