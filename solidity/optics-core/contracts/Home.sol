@@ -127,8 +127,8 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         bytes memory _body
     ) external notFailed {
         require(_body.length <= MAX_MESSAGE_BODY_BYTES, "!too big");
-        uint32 _sequence = sequences[_destination] + 1;
-        sequences[_destination] = _sequence;
+        uint32 _sequence = sequences[_destination];
+        sequences[_destination] = _sequence + 1;
 
         bytes memory _message =
             Message.formatMessage(

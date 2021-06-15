@@ -107,7 +107,7 @@ describe('Home', async () => {
 
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
-    const sequence = (await home.sequences(localDomain)) + 1;
+    const sequence = await home.sequences(localDomain);
 
     // Format data that will be emitted from Dispatch event
     const destinationAndSequence = optics.destinationAndSequence(
