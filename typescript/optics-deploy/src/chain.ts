@@ -1,9 +1,9 @@
 import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
 import { BeaconProxy, ProxyAddresses } from './proxyUtils';
-import * as contracts from '../typechain/optics-core';
+import * as contracts from '../../typechain/optics-core';
 import { NonceManager } from '@ethersproject/experimental';
-import { Address } from '../test/lib/types';
+import { Address } from '../../optics-tests/lib/types';
 
 // Optic's complete contract suite
 export type Contracts = {
