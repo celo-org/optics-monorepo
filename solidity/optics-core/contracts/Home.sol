@@ -128,7 +128,6 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
     ) external notFailed {
         require(_body.length <= MAX_MESSAGE_BODY_BYTES, "!too big");
         uint32 _sequence = sequences[_destination];
-        sequences[_destination] = _sequence + 1;
 
         bytes memory _message =
             Message.formatMessage(
@@ -151,6 +150,8 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
             _leaf,
             _message
         );
+
+        sequences[_destination] = _sequence + 1;
     }
 
     /**

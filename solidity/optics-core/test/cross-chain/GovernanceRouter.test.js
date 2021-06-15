@@ -473,7 +473,7 @@ describe('GovernanceRouter', async () => {
     const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
-      1,
+      0,
       nonGovernorDomain,
       nonGovernorRouter.address,
       callMessage,
