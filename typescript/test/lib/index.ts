@@ -6,9 +6,10 @@ import { ethers } from 'ethers';
 import * as types from './types';
 import * as deployHelpers from '../../optics-deploy/deployOptics';
 import { getHexStringByteLength } from './utils';
-// TODO: fix
-// import * as HomeAbi from '../../../rust/optics-ethereum/abis/Home.abi.json';
-// import * as ReplicaAbi from '../../../rust/optics-ethereum/abis/Replica.abi.json';
+import {
+  TestHome__factory,
+  TestReplica__factory,
+} from '../../typechain/optics-core';
 
 // HardhatRuntimeEnvironment
 extendEnvironment((hre: any) => {
@@ -51,7 +52,7 @@ extendEnvironment((hre: any) => {
 
   class Home extends Common {
     constructor(address: types.Address, providerOrSigner: string) {
-      super(address, 'HomeAbi', providerOrSigner);
+      super(address, `${TestHome__factory.abi}`, providerOrSigner);
     }
 
     async submitSignedUpdate(update: types.Update) {
@@ -78,7 +79,7 @@ extendEnvironment((hre: any) => {
 
   class Replica extends Common {
     constructor(address: types.Address, providerOrSigner: string) {
-      super(address, 'ReplicaAbi', providerOrSigner);
+      super(address, `${TestReplica__factory.abi}`, providerOrSigner);
     }
 
     async submitSignedUpdate(update: types.Update) {
