@@ -79,7 +79,7 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
     # add abis, typechain
     cd ../..
     git add rust/optics-ethereum/abis
-    git add typescript/src/typechain
+    git add typescript/typechain
     # add linter modified files
     git add solidity/optics-core/contracts
     git add solidity/optics-core/libs
@@ -95,7 +95,7 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
     npm run compile
     # add typechain
     cd ../..
-    git add typescript/src/typechain
+    git add typescript/typechain
     # add linter modified files
     git add solidity/optics-xapps/contracts
     git add solidity/optics-xapps/interfaces
