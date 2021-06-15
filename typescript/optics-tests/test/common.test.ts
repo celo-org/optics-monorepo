@@ -3,11 +3,11 @@ const { provider } = waffle;
 const { expect } = require('chai');
 import { ethers } from 'ethers';
 
-import { TestCommon__factory } from '../typechain/optics-core';
+import { TestCommon__factory } from '../../typechain/optics-core';
 
 const {
   testCases: signedUpdateTestCases,
-} = require('../../vectors/signedUpdateTestCases.json');
+} = require('../../../vectors/signedUpdateTestCases.json');
 const localDomain = 1000;
 
 describe('Common', async () => {
