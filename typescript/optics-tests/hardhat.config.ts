@@ -1,5 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
-require("./test/lib/index");
+require("./lib/index");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
