@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "ethers": "^5.3.1"
+  },
+  "name": "typechain",
+  "version": "1.0.0",
+  "description": "Optics contract typechain gens",
+  "main": "src/index.ts",
+  "author": "Celo Labs Inc.",
+  "license": "MIT OR Apache-2.0",
+  "dependencies": {
+    "@ethersproject/experimental": "^5.3.0"
+  }
+}
