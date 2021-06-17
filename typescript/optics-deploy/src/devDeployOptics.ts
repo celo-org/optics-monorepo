@@ -12,10 +12,11 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
   let factory = new contracts.UpgradeBeaconController__factory(
     deploy.chain.deployer,
   );
-  deploy.contracts.upgradeBeaconController = await factory.deploy({
-    gasPrice: deploy.chain.gasPrice,
-  });
-  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(5);
+  deploy.contracts.upgradeBeaconController = await factory.deploy();
+  // deploy.contracts.upgradeBeaconController = await factory.deploy({
+  //   gasPrice: deploy.chain.gasPrice,
+  // });
+  // await deploy.contracts.upgradeBeaconController.deployTransaction.wait(5);
 }
 
 /**
@@ -26,10 +27,11 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
  */
 export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
-  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
-    gasPrice: deploy.chain.gasPrice,
-  });
-  await deploy.contracts.updaterManager.deployTransaction.wait(5);
+  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater);
+  // deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
+  //   gasPrice: deploy.chain.gasPrice,
+  // });
+  // await deploy.contracts.updaterManager.deployTransaction.wait(5);
 }
 
 /**

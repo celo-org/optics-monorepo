@@ -29,15 +29,13 @@ export async function deployProxy<T extends ethers.Contract>(
   // deploy in order
   // we cast here because Factories don't have associated types :(
   // this is unsafe if the specified typevar doesn't match the factory output
-  const implementation = (await factory.deploy(...deployArgs, {
-    gasPrice: deploy.chain.gasPrice,
-  })) as T;
+  const implementation = (await factory.deploy(...deployArgs)) as T;
   const beacon = await _deployBeacon(deploy, implementation);
   const proxy = await _deployProxy(deploy, beacon, initData);
 
   // proxy wait(5) implies implementation and beacon wait(5)
   // due to nonce ordering
-  await proxy.deployTransaction.wait(5);
+  // await proxy.deployTransaction.wait(5);
 
   return {
     implementation,

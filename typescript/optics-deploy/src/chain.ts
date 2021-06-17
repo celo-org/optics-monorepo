@@ -106,6 +106,27 @@ export function toChain(config: ChainConfig): Chain {
   };
 }
 
+export function toTestChain(config: ChainConfig, provider: ethers.providers.Provider, signer: ethers.Signer): Chain {
+  return {
+    name: config.name,
+    config: config,
+    provider: provider,
+    deployer: new NonceManager(signer),
+    domain: config.domain,
+    updater: config.updater,
+    optimisticSeconds: config.optimisticSeconds,
+    watchers: config.watchers ?? [],
+    gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+  };
+}
+
+export function freshTestDeploy(config: ChainConfig, provider: ethers.providers.Provider, signer: ethers.Signer): Deploy {
+  return {
+    chain: toTestChain(config, provider, signer),
+    contracts: { replicas: {} },
+  }
+}
+
 /**
  * Instantiates a new deploy instance
  *

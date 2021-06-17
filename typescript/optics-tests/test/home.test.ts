@@ -1,6 +1,13 @@
 import { ethers } from 'ethers/lib';
 import * as proxyUtils from '../../optics-deploy/src/proxyUtils';
 import * as contracts from '../../typechain/optics-core';
+import * as chain from '../../optics-deploy/src/chain';
+import { config } from '../../../chainConfig';
+import {
+  devDeployHome,
+  deployUpdaterManager,
+  deployUpgradeBeaconController,
+} from '../../optics-deploy/src/devDeployOptics';
 
 const { waffle, optics } = require('hardhat');
 const { provider, deployMockContract } = waffle;
@@ -18,6 +25,7 @@ const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
+  let deploy: chain.Deploy;
   // TODO: specify types here
   let home: any,
     signer: any,
@@ -44,6 +52,13 @@ describe('Home', async () => {
   before(async () => {
     [signer, fakeSigner, recipient] = provider.getWallets();
     updater = await optics.Updater.fromSigner(signer, localDomain);
+
+    deploy = chain.freshDeploy(config);
+    // deploy = chain.freshTestDeploy(config, provider, signer);
+
+    await deployUpdaterManager(deploy);
+    await deployUpgradeBeaconController(deploy);
+
     fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
     mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
   });
@@ -51,17 +66,9 @@ describe('Home', async () => {
   beforeEach(async () => {
     await mockUpdaterManager.mock.updater.returns(signer.address);
     await mockUpdaterManager.mock.slashUpdater.returns();
-    // TODO: handle this in devDeployOptics, make functions more usable for test cases
-    const homeFactory = contracts.TestHome__factory;
-    let initData = homeFactory
-      .createInterface()
-      .encodeFunctionData('initialize', [mockUpdaterManager!.address]);
-    home = await proxyUtils.deployProxy<contracts.TestHome>(
-      signer,
-      new homeFactory(signer),
-      initData,
-      localDomain,
-    );
+
+    await devDeployHome(deploy, true);
+    home = deploy.contracts.home;
   });
   it('Cannot be initialized twice', async () => {
     await expect(home.initialize(signer.address)).to.be.revertedWith(
