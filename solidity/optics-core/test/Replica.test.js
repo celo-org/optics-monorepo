@@ -344,6 +344,33 @@ describe('Replica', async () => {
     await expect(replica.process(opticsMessage)).to.be.revertedWith('!pending');
   });
 
+  it('Processes a message that reverts during handle', async () => {
+    const sender = testUtils.opticsMessageSender;
+    const mockRecipient = await optics.deployImplementation(
+      'MaliciousRecipient',
+    );
+
+    const sequence = await replica.nextToProcess();
+    const opticsMessage = optics.formatMessage(
+      remoteDomain,
+      sender.address,
+      sequence,
+      localDomain,
+      mockRecipient.address,
+      '0x',
+    );
+
+    // Set message status to MessageStatus.Pending
+    await replica.setMessagePending(opticsMessage);
+
+    // Success should be FALSE because the handle call reverts
+    let success = await replica.callStatic.process(opticsMessage);
+    expect(success).to.be.false;
+
+    await replica.process(opticsMessage);
+    expect(await replica.nextToProcess()).to.equal(sequence + 1);
+  });
+
   it('Fails to process out-of-order message', async () => {
     const [sender, recipient] = provider.getWallets();
 

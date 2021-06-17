@@ -45,6 +45,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Replica__factory>;
     getContractFactory(
+      name: "MaliciousRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MaliciousRecipient__factory>;
+    getContractFactory(
       name: "MysteryMath",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MysteryMath__factory>;
