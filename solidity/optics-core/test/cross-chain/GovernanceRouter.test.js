@@ -120,11 +120,8 @@ describe('GovernanceRouter', async () => {
 
     // Expect replica processing to fail when nonGovernorRouter reverts in
     // handle
-    let [success, ret] = await unenrolledReplica.callStatic.testProcess(
-      opticsMessage,
-    );
+    let success = await unenrolledReplica.callStatic.testProcess(opticsMessage);
     expect(success).to.be.false;
-    expect(ret).to.equal('!replica');
   });
 
   it('Rejects message not from governor router', async () => {
@@ -146,14 +143,10 @@ describe('GovernanceRouter', async () => {
 
     // Expect replica processing to fail when nonGovernorRouter reverts in
     // handle
-    let [
-      success,
-      ret,
-    ] = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
+    let success = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
       opticsMessage,
     );
     expect(success).to.be.false;
-    expect(ret).to.equal('!governorRouter');
   });
 
   it('Accepts a valid transfer governor message', async () => {
@@ -178,7 +171,7 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx on static call
-    let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
+    let success = await governorReplicaOnNonGovernorChain.callStatic.process(
       opticsMessage,
     );
     expect(success).to.be.true;
@@ -209,7 +202,7 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    let [success] = await governorReplicaOnNonGovernorChain.callStatic.process(
+    let success = await governorReplicaOnNonGovernorChain.callStatic.process(
       opticsMessage,
     );
     expect(success).to.be.true;
@@ -241,21 +234,11 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    let [
-      success,
-      ret,
-    ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
+    let success = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
       opticsMessage,
     );
 
-    // remove the extra encoding layer
-    [ret] = ethers.utils.defaultAbiCoder.decode(
-      ['bytes'],
-      ethers.utils.toUtf8Bytes(ret),
-    );
-
     expect(success).to.be.true;
-    expect(ret).to.equal('0x');
   });
 
   it('Transfers governorship', async () => {

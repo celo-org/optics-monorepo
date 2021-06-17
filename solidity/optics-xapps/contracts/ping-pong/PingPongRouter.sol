@@ -63,24 +63,17 @@ contract PingPongRouter is Router, XAppConnectionClient {
         uint32 _origin,
         bytes32 _sender,
         bytes memory _message
-    )
-        external
-        override
-        onlyReplica
-        onlyRemoteRouter(_origin, _sender)
-        returns (bytes memory)
-    {
+    ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0);
 
         if (_msg.isPing()) {
-            return _handlePing(_origin, _msg);
+            _handlePing(_origin, _msg);
         } else if (_msg.isPong()) {
-            return _handlePong(_origin, _msg);
+            _handlePong(_origin, _msg);
+        } else {
+            // if _message doesn't match any valid actions, revert
+            require(false, "!valid action");
         }
-
-        // if _message doesn't match any valid actions, revert
-        require(false, "!valid action");
-        return hex"";
     }
 
     /**
@@ -88,12 +81,9 @@ contract PingPongRouter is Router, XAppConnectionClient {
      * @param _origin The domain that sent the volley
      * @param _message The message in the form of raw bytes
      */
-    function _handlePing(uint32 _origin, bytes29 _message)
-        internal
-        returns (bytes memory)
-    {
+    function _handlePing(uint32 _origin, bytes29 _message) internal {
         bool _isPing = true;
-        return _handle(_origin, _isPing, _message);
+        _handle(_origin, _isPing, _message);
     }
 
     /**
@@ -101,12 +91,9 @@ contract PingPongRouter is Router, XAppConnectionClient {
      * @param _origin The domain that sent the volley
      * @param _message The message in the form of raw bytes
      */
-    function _handlePong(uint32 _origin, bytes29 _message)
-        internal
-        returns (bytes memory)
-    {
+    function _handlePong(uint32 _origin, bytes29 _message) internal {
         bool _isPing = false;
-        return _handle(_origin, _isPing, _message);
+        _handle(_origin, _isPing, _message);
     }
 
     /**
@@ -119,7 +106,7 @@ contract PingPongRouter is Router, XAppConnectionClient {
         uint32 _origin,
         bool _isPing,
         bytes29 _message
-    ) internal returns (bytes memory) {
+    ) internal {
         // get the volley count for this game
         uint256 _count = _message.count();
         uint32 _match = _message.matchId();
@@ -129,8 +116,6 @@ contract PingPongRouter is Router, XAppConnectionClient {
 
         // send the opposite volley back
         _send(_origin, !_isPing, _match, _count + 1);
-
-        return hex"";
     }
 
     // ============ Dispatch message functions ============

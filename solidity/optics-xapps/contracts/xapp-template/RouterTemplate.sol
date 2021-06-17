@@ -51,24 +51,17 @@ contract RouterTemplate is Router, XAppConnectionClient {
         uint32 _origin,
         bytes32 _sender,
         bytes memory _message
-    )
-        external
-        override
-        onlyReplica
-        onlyRemoteRouter(_origin, _sender)
-        returns (bytes memory)
-    {
+    ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0);
 
         // route message to appropriate _handle function
         // based on what type of message is encoded
         if (_msg.isTypeA()) {
-            return _handleTypeA(_msg);
+            _handleTypeA(_msg);
+        } else {
+            // if _message doesn't match any valid actions, revert
+            require(false, "!valid action");
         }
-
-        // if _message doesn't match any valid actions, revert
-        require(false, "!valid action");
-        return hex"";
     }
 
     /**
@@ -77,15 +70,13 @@ contract RouterTemplate is Router, XAppConnectionClient {
      * and enact the message's action on this chain
      * @param _message The message in the form of raw bytes
      */
-    function _handleTypeA(bytes29 _message) internal returns (bytes memory) {
+    function _handleTypeA(bytes29 _message) internal {
         // parse the information from the message
         uint256 _number = _message.number();
 
         // implement the logic for executing the action
         // (in this example case, emit an event with the number that was sent)
         emit TypeAReceived(_number);
-
-        return hex"";
     }
 
     // ============ Dispatch message functions ============

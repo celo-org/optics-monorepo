@@ -228,7 +228,7 @@ export class PingPongRouter extends BaseContract {
       _sender: BytesLike,
       _message: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     initiatePingPongMatch(
       _destinationDomain: BigNumberish,

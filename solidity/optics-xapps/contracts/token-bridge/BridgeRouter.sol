@@ -34,30 +34,22 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _origin The origin domain
      * @param _sender The sender address
      * @param _message The message
-     * @return Empty bytes, must have return value to satisfy interface
      */
     function handle(
         uint32 _origin,
         bytes32 _sender,
         bytes memory _message
-    )
-        external
-        override
-        onlyReplica
-        onlyRemoteRouter(_origin, _sender)
-        returns (bytes memory)
-    {
+    ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0).mustBeMessage();
         bytes29 _tokenId = _msg.tokenId();
         bytes29 _action = _msg.action();
         if (_action.isTransfer()) {
-            return _handleTransfer(_tokenId, _action);
+            _handleTransfer(_tokenId, _action);
+        } else if (_action.isDetails()) {
+            _handleDetails(_tokenId, _action);
+        } else {
+            require(false, "!action");
         }
-        if (_action.isDetails()) {
-            return _handleDetails(_tokenId, _action);
-        }
-        require(false, "!action");
-        return hex"";
     }
 
     /**
@@ -133,13 +125,11 @@ contract BridgeRouter is Router, TokenRegistry {
      *
      * @param _tokenId The token ID
      * @param _action The action
-     * @return Empty bytes, must have return value to satisfy interface
      */
     function _handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_action, BridgeMessage.Types.Transfer)
-        returns (bytes memory)
     {
         IERC20 _token = _ensureToken(_tokenId);
 
@@ -148,21 +138,17 @@ contract BridgeRouter is Router, TokenRegistry {
         } else {
             _downcast(_token).mint(_action.evmRecipient(), _action.amnt());
         }
-
-        return hex"";
     }
 
     /**
      * @notice Handles an incoming Details message.
      * @param _tokenId The token ID
      * @param _action The action
-     * @return Empty bytes, must have return value to satisfy interface
      */
     function _handleDetails(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_action, BridgeMessage.Types.Details)
-        returns (bytes memory)
     {
         IERC20 _token = _ensureToken(_tokenId);
         require(!_isNative(_token), "!repr");
@@ -172,7 +158,5 @@ contract BridgeRouter is Router, TokenRegistry {
             _action.symbol(),
             _action.decimals()
         );
-
-        return hex"";
     }
 }

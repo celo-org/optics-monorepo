@@ -14,9 +14,7 @@ contract TestRecipient is IMessageRecipient {
         uint32,
         bytes32,
         bytes memory
-    ) external pure override returns (bytes memory) {
-        return bytes(message());
-    }
+    ) external pure override {}
 
     function receiveString(string calldata _str)
         public

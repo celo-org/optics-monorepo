@@ -47,6 +47,8 @@ contract Replica is Initializable, Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
+    event ProcessError(bytes error);
+
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
     function initialize(
@@ -187,13 +189,8 @@ contract Replica is Initializable, Common, QueueManager {
      * @param _message Formatted message (refer to Common.sol Message library)
      * @return _success True if dispatch transaction succeeded (false if
      * otherwise)
-     * @return _result Response returned by recipient's `handle` method on
-     * success. Error if dispatch transaction failed.
      **/
-    function process(bytes memory _message)
-        public
-        returns (bool _success, bytes memory _result)
-    {
+    function process(bytes memory _message) public returns (bool _success) {
         bytes29 _m = _message.ref(0);
 
         uint32 _sequence = _m.sequence();
@@ -222,16 +219,18 @@ contract Replica is Initializable, Common, QueueManager {
 
         address _recipient = _m.recipientAddress();
 
-        bytes memory _payload =
-            abi.encode(_m.origin(), _m.sender(), _m.body().clone());
-
-        bytes memory _calldata =
-            abi.encodePacked(
-                IMessageRecipient(_recipient).handle.selector,
-                _payload
-            );
-
-        (_success, _result) = _recipient.call{gas: PROCESS_GAS}(_calldata);
+        try
+            IMessageRecipient(_recipient).handle{gas: PROCESS_GAS}(
+                _m.origin(),
+                _m.sender(),
+                _m.body().clone()
+            )
+        {
+            _success = true;
+        } catch (bytes memory _err) {
+            _success = false;
+            emit ProcessError(_err);
+        }
 
         nextToProcess = _sequence + 1;
     }

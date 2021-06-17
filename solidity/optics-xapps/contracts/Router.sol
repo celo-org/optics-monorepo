@@ -44,7 +44,7 @@ abstract contract Router is Ownable, IMessageRecipient {
         uint32 _origin,
         bytes32 _sender,
         bytes memory _message
-    ) external virtual override returns (bytes memory);
+    ) external virtual override;
 
     // ============ Internal functions ============
     /**

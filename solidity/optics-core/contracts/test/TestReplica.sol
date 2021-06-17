@@ -49,12 +49,9 @@ contract TestReplica is Replica {
 
     function testProcess(bytes memory _message)
         external
-        returns (bool _success, string memory _result)
+        returns (bool _success)
     {
-        bytes memory _res;
-        (_success, _res) = process(_message);
-
-        _result = _success ? string(_res) : getRevertMsg(_res);
+        (_success) = process(_message);
     }
 
     function getRevertMsg(bytes memory _res)

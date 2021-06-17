@@ -45,6 +45,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "error",
+        "type": "bytes"
+      }
+    ],
+    "name": "ProcessError",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "uint32",
         "name": "homeDomain",
@@ -327,11 +340,6 @@
         "internalType": "bool",
         "name": "_success",
         "type": "bool"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_result",
-        "type": "bytes"
       }
     ],
     "stateMutability": "nonpayable",

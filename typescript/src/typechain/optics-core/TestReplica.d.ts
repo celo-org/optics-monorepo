@@ -363,10 +363,12 @@ interface TestReplicaInterface extends ethers.utils.Interface {
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
+    "ProcessError(bytes)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProcessError"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
 }
 
@@ -916,10 +918,7 @@ export class TestReplica extends BaseContract {
 
     previous(overrides?: CallOverrides): Promise<string>;
 
-    process(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean, string] & { _success: boolean; _result: string }>;
+    process(_message: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     prove(
       _leaf: BytesLike,
@@ -1078,7 +1077,7 @@ export class TestReplica extends BaseContract {
     testProcess(
       _message: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[boolean, string] & { _success: boolean; _result: string }>;
+    ): Promise<boolean>;
 
     timestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1107,6 +1106,8 @@ export class TestReplica extends BaseContract {
         signature2: string;
       }
     >;
+
+    ProcessError(error?: null): TypedEventFilter<[string], { error: string }>;
 
     Update(
       homeDomain?: BigNumberish | null,

@@ -86,30 +86,23 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @param _origin The domain (of the Governor Router)
      * @param _sender The message sender (must be the Governor Router)
      * @param _message The message
-     * @return _ret
      */
     function handle(
         uint32 _origin,
         bytes32 _sender,
         bytes memory _message
-    )
-        external
-        override
-        onlyReplica
-        onlyGovernorRouter(_origin, _sender)
-        returns (bytes memory _ret)
-    {
+    ) external override onlyReplica onlyGovernorRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0);
 
         if (_msg.isValidCall()) {
-            return _handleCall(_msg.tryAsCall());
+            _handleCall(_msg.tryAsCall());
         } else if (_msg.isValidTransferGovernor()) {
-            return _handleTransferGovernor(_msg.tryAsTransferGovernor());
+            _handleTransferGovernor(_msg.tryAsTransferGovernor());
         } else if (_msg.isValidSetRouter()) {
-            return _handleSetRouter(_msg.tryAsSetRouter());
+            _handleSetRouter(_msg.tryAsSetRouter());
+        } else {
+            require(false, "!valid message type");
         }
-
-        require(false, "!valid message type");
     }
 
     /**
@@ -213,56 +206,44 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     /**
      * @notice Handle message dispatching calls locally
      * @param _msg The message
-     * @return _ret
      */
     function _handleCall(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.Call)
-        returns (bytes memory)
     {
         GovernanceMessage.Call[] memory _calls = _msg.getCalls();
         for (uint256 i = 0; i < _calls.length; i++) {
             _dispatchCall(_calls[i]);
         }
-
-        return hex"";
     }
 
     /**
      * @notice Handle message transferring governorship to a new Governor
      * @param _msg The message
-     * @return _ret
      */
     function _handleTransferGovernor(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.TransferGovernor)
-        returns (bytes memory)
     {
         uint32 _newDomain = _msg.domain();
         address _newGovernor = TypeCasts.bytes32ToAddress(_msg.governor());
         bool _isLocalGovernor = _isLocalDomain(_newDomain);
 
         _transferGovernor(_newDomain, _newGovernor, _isLocalGovernor);
-
-        return hex"";
     }
 
     /**
      * @notice Handle message setting the router address for a given domain
      * @param _msg The message
-     * @return _ret
      */
     function _handleSetRouter(bytes29 _msg)
         internal
         typeAssert(_msg, GovernanceMessage.Types.SetRouter)
-        returns (bytes memory)
     {
         uint32 _domain = _msg.domain();
         bytes32 _router = _msg.router();
 
         _setRouter(_domain, _router);
-
-        return hex"";
     }
 
     /**

@@ -107,7 +107,7 @@ export class TestRecipient extends BaseContract {
       arg1: BytesLike,
       arg2: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[void]>;
 
     message(overrides?: CallOverrides): Promise<[string]>;
 
@@ -126,7 +126,7 @@ export class TestRecipient extends BaseContract {
     arg1: BytesLike,
     arg2: BytesLike,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<void>;
 
   message(overrides?: CallOverrides): Promise<string>;
 
@@ -145,7 +145,7 @@ export class TestRecipient extends BaseContract {
       arg1: BytesLike,
       arg2: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     message(overrides?: CallOverrides): Promise<string>;
 

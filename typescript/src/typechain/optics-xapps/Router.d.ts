@@ -173,7 +173,7 @@ export class Router extends BaseContract {
       _sender: BytesLike,
       _message: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 

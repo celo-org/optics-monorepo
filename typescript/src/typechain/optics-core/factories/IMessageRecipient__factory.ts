@@ -29,13 +29,7 @@ const _abi = [
       },
     ],
     name: "handle",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
