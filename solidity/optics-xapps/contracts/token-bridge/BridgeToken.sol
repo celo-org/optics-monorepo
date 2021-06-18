@@ -3,9 +3,7 @@ pragma solidity >=0.6.11;
 
 import {ERC20} from "./OZERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    TypeCasts
-} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {

@@ -48,13 +48,12 @@ contract XAppConnectionManager is Ownable {
             "!current updater"
         );
 
-        address _watcher =
-            recoverWatcherFromSig(
-                _domain,
-                TypeCasts.addressToBytes32(_replica),
-                _updater,
-                _signature
-            );
+        address _watcher = recoverWatcherFromSig(
+            _domain,
+            TypeCasts.addressToBytes32(_replica),
+            _updater,
+            _signature
+        );
         require(watcherPermissions[_watcher][_domain], "!valid watcher");
 
         unenrollReplica(_replica);
@@ -122,11 +121,12 @@ contract XAppConnectionManager is Ownable {
         bytes32 _updater,
         bytes memory _signature
     ) internal view returns (address) {
-        bytes32 _homeDomainHash =
-            Replica(TypeCasts.bytes32ToAddress(_replica)).homeDomainHash();
+        bytes32 _homeDomainHash = Replica(TypeCasts.bytes32ToAddress(_replica))
+        .homeDomainHash();
 
-        bytes32 _digest =
-            keccak256(abi.encodePacked(_homeDomainHash, _domain, _updater));
+        bytes32 _digest = keccak256(
+            abi.encodePacked(_homeDomainHash, _domain, _updater)
+        );
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return ECDSA.recover(_digest, _signature);
     }
