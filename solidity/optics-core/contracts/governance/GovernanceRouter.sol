@@ -278,7 +278,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         onlyNotInRecovery
         onlyRecoveryManager
     {
-        require(recoveryActiveAt == 0, "timelock already initiated");
+        require(recoveryActiveAt == 0, "recovery already initiated");
 
         recoveryActiveAt = block.number + recoveryTimelock;
 
@@ -290,6 +290,8 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @dev callable by the recovery manager to end recovery mode
      */
     function exitRecovery() external onlyInRecovery onlyRecoveryManager {
+        require(recoveryActiveAt != 0, "recovery not initiated");
+
         delete recoveryActiveAt;
 
         emit ExitRecovery(recoveryManager);
