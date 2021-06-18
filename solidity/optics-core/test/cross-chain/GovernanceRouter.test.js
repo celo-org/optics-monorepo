@@ -87,29 +87,29 @@ describe('GovernanceRouter', async () => {
     const controller = null;
 
     // Deploy single replica on nonGovernorDomain that will not be enrolled
-    const {
-      contracts: unenrolledReplicaContracts,
-    } = await optics.deployUpgradeSetupAndProxy(
-      'TestReplica',
-      [nonGovernorDomain],
-      [
-        nonGovernorDomain,
-        updater.signer.address,
-        initialCurrentRoot,
-        optimisticSeconds,
-        initialIndex,
-      ],
-      controller,
-      'initialize(uint32, address, bytes32, uint256, uint32)',
-    );
+    const { contracts: unenrolledReplicaContracts } =
+      await optics.deployUpgradeSetupAndProxy(
+        'TestReplica',
+        [nonGovernorDomain],
+        [
+          nonGovernorDomain,
+          updater.signer.address,
+          initialCurrentRoot,
+          optimisticSeconds,
+          initialIndex,
+        ],
+        controller,
+        'initialize(uint32, address, bytes32, uint256, uint32)',
+      );
     const unenrolledReplica =
       unenrolledReplicaContracts.proxyWithImplementation;
 
     // Create TransferGovernor message
-    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      thirdDomain,
-      optics.ethersAddressToBytes32(secondGovernor),
-    );
+    const transferGovernorMessage =
+      optics.GovernanceRouter.formatTransferGovernor(
+        thirdDomain,
+        optics.ethersAddressToBytes32(secondGovernor),
+      );
 
     const opticsMessage = await formatOpticsMessage(
       unenrolledReplica,
@@ -129,10 +129,11 @@ describe('GovernanceRouter', async () => {
 
   it('Rejects message not from governor router', async () => {
     // Create TransferGovernor message
-    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      nonGovernorDomain,
-      optics.ethersAddressToBytes32(nonGovernorRouter.address),
-    );
+    const transferGovernorMessage =
+      optics.GovernanceRouter.formatTransferGovernor(
+        nonGovernorDomain,
+        optics.ethersAddressToBytes32(nonGovernorRouter.address),
+      );
 
     const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
@@ -146,12 +147,10 @@ describe('GovernanceRouter', async () => {
 
     // Expect replica processing to fail when nonGovernorRouter reverts in
     // handle
-    let [
-      success,
-      ret,
-    ] = await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
-      opticsMessage,
-    );
+    let [success, ret] =
+      await nonGovernorReplicaOnGovernorChain.callStatic.testProcess(
+        opticsMessage,
+      );
     expect(success).to.be.false;
     expect(ret).to.equal('!governorRouter');
   });
@@ -165,10 +164,11 @@ describe('GovernanceRouter', async () => {
     );
 
     // Create TransferGovernor message
-    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      thirdDomain,
-      optics.ethersAddressToBytes32(thirdRouter.address),
-    );
+    const transferGovernorMessage =
+      optics.GovernanceRouter.formatTransferGovernor(
+        thirdDomain,
+        optics.ethersAddressToBytes32(thirdRouter.address),
+      );
 
     const opticsMessage = await formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
@@ -241,12 +241,10 @@ describe('GovernanceRouter', async () => {
     );
 
     // Expect successful tx
-    let [
-      success,
-      ret,
-    ] = await governorReplicaOnNonGovernorChain.callStatic.testProcess(
-      opticsMessage,
-    );
+    let [success, ret] =
+      await governorReplicaOnNonGovernorChain.callStatic.testProcess(
+        opticsMessage,
+      );
 
     // remove the extra encoding layer
     [ret] = ethers.utils.defaultAbiCoder.decode(
@@ -295,10 +293,11 @@ describe('GovernanceRouter', async () => {
     // update governor chain home
     await governorHome.update(currentRoot, newRoot, signature);
 
-    const transferGovernorMessage = optics.GovernanceRouter.formatTransferGovernor(
-      nonGovernorDomain,
-      optics.ethersAddressToBytes32(secondGovernor),
-    );
+    const transferGovernorMessage =
+      optics.GovernanceRouter.formatTransferGovernor(
+        nonGovernorDomain,
+        optics.ethersAddressToBytes32(secondGovernor),
+      );
 
     const opticsMessage = formatOpticsMessage(
       governorReplicaOnNonGovernorChain,
