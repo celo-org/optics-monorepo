@@ -42,7 +42,11 @@ contract Replica is Initializable, Common, QueueManager {
     mapping(bytes32 => uint256) public confirmAt;
 
     /// @notice Status of message
-    enum MessageStatus {None, Pending, Processed}
+    enum MessageStatus {
+        None,
+        Pending,
+        Processed
+    }
 
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
@@ -222,14 +226,16 @@ contract Replica is Initializable, Common, QueueManager {
 
         address _recipient = _m.recipientAddress();
 
-        bytes memory _payload =
-            abi.encode(_m.origin(), _m.sender(), _m.body().clone());
+        bytes memory _payload = abi.encode(
+            _m.origin(),
+            _m.sender(),
+            _m.body().clone()
+        );
 
-        bytes memory _calldata =
-            abi.encodePacked(
-                IMessageRecipient(_recipient).handle.selector,
-                _payload
-            );
+        bytes memory _calldata = abi.encodePacked(
+            IMessageRecipient(_recipient).handle.selector,
+            _payload
+        );
 
         (_success, _result) = _recipient.call{gas: PROCESS_GAS}(_calldata);
 
