@@ -10,7 +10,6 @@ const {
   getUpdaterManager,
 } = require('./deployCrossChainTest');
 
-
 /*
  * Deploy the full Optics suite on two chains
  */
@@ -18,15 +17,10 @@ describe('RecoveryManager', async () => {
   const domains = [1000, 2000];
   const domain = 1000;
   const walletProvider = new testUtils.WalletProvider(provider);
-  const [governor, recoveryManager, newUpdaterSigner] =
-    walletProvider.getWalletsPersistent(3);
+  const [governor, recoveryManager, newUpdaterSigner, tempRecoveryManager] =
+    walletProvider.getWalletsPersistent(4);
 
-  let governanceRouter,
-    home,
-    updaterManager,
-    updater,
-    chainDetails,
-    blockInitiatedAt;
+  let governanceRouter, home, updaterManager, chainDetails;
 
   before(async () => {
     // generate TestChainConfigs for the given domains
@@ -37,10 +31,6 @@ describe('RecoveryManager', async () => {
 
     // deploy the entire Optics suite on each chain
     chainDetails = await deployMultipleChains(configs);
-
-    // get the updater object
-    [signer] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, domain);
 
     // get the governance router
     governanceRouter = getGovernanceRouter(chainDetails, domain);
@@ -101,6 +91,45 @@ describe('RecoveryManager', async () => {
         [call],
       ]),
     ).to.be.revertedWith('! called by governor');
+  });
+
+  it('Before Recovery Initiated: ONLY RecoveryManager CAN transfer role', async () => {
+    await expect(
+      sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
+        tempRecoveryManager.address,
+      ]),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        newUpdaterSigner,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        recoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(recoveryManager.address, tempRecoveryManager.address);
+
+    await expect(
+      sendFromSigner(
+        tempRecoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [recoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(tempRecoveryManager.address, recoveryManager.address);
   });
 
   it('Before Recovery Initiated: ONLY RecoveryManager can Initiate Recovery', async () => {
@@ -200,6 +229,45 @@ describe('RecoveryManager', async () => {
     ).to.be.revertedWith('! called by governor');
   });
 
+  it('Before Recovery Active: ONLY RecoveryManager CAN transfer role', async () => {
+    await expect(
+      sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
+        tempRecoveryManager.address,
+      ]),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        newUpdaterSigner,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        recoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(recoveryManager.address, tempRecoveryManager.address);
+
+    await expect(
+      sendFromSigner(
+        tempRecoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [recoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(tempRecoveryManager.address, recoveryManager.address);
+  });
+
   it('Before Recovery Active: ONLY RecoveryManager can Exit Recovery; CAN Exit Recovery before Recovery is Active', async () => {
     await expect(
       sendFromSigner(governor, governanceRouter, 'exitRecovery', []),
@@ -275,6 +343,45 @@ describe('RecoveryManager', async () => {
         [call],
       ]),
     ).to.be.revertedWith('! called by governor');
+  });
+
+  it('Recovery Active: ONLY RecoveryManager CAN transfer role', async () => {
+    await expect(
+      sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
+        tempRecoveryManager.address,
+      ]),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        newUpdaterSigner,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        recoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(recoveryManager.address, tempRecoveryManager.address);
+
+    await expect(
+      sendFromSigner(
+        tempRecoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [recoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(tempRecoveryManager.address, recoveryManager.address);
   });
 
   it('Recovery Active: Governor CANNOT call local OR remote', async () => {
@@ -353,5 +460,44 @@ describe('RecoveryManager', async () => {
         [call],
       ]),
     ).to.be.revertedWith('! called by governor');
+  });
+
+  it('Exited Recovery: ONLY RecoveryManager CAN transfer role', async () => {
+    await expect(
+      sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
+        tempRecoveryManager.address,
+      ]),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        newUpdaterSigner,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    ).to.be.revertedWith('! called by recovery manager');
+
+    await expect(
+      sendFromSigner(
+        recoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [tempRecoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(recoveryManager.address, tempRecoveryManager.address);
+
+    await expect(
+      sendFromSigner(
+        tempRecoveryManager,
+        governanceRouter,
+        'transferRecoveryManager',
+        [recoveryManager.address],
+      ),
+    )
+      .to.emit(governanceRouter, 'TransferRecoveryManager')
+      .withArgs(tempRecoveryManager.address, recoveryManager.address);
   });
 });
