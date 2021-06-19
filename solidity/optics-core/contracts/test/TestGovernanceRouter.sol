@@ -11,7 +11,7 @@ contract TestGovernanceRouter is GovernanceRouter {
     using GovernanceMessage for bytes29;
 
     constructor(uint32 _localDomain, uint256 _recoveryTimelock)
-        GovernanceRouter(_localDomain, _recoveryTimelock)
+        GovernanceRouter(_localDomain, 50)
     {} // solhint-disable-line no-empty-blocks
 
     function testSetRouter(uint32 _domain, bytes32 _router) external {

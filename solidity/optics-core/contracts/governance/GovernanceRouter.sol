@@ -289,7 +289,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
      * @notice Exit recovery mode
      * @dev callable by the recovery manager to end recovery mode
      */
-    function exitRecovery() external onlyInRecovery onlyRecoveryManager {
+    function exitRecovery() external onlyRecoveryManager {
         require(recoveryActiveAt != 0, "recovery not initiated");
 
         delete recoveryActiveAt;
