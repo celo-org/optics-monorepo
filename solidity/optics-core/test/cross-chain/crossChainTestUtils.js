@@ -194,10 +194,26 @@ async function formatCall(destinationContract, functionStr, functionArgs) {
   };
 }
 
+function encodeData(contract, functionName, args) {
+  const func = contract.interface.getFunction(functionName);
+  return contract.interface.encodeFunctionData(func, args);
+}
+
+// Send a transaction from the specified signer
+async function sendFromSigner(signer, contract, functionName, args) {
+  const data = encodeData(contract, functionName, args);
+
+  return signer.sendTransaction({
+    to: contract.address,
+    data,
+  });
+}
+
 module.exports = {
   enqueueUpdateToReplica,
   enqueueMessagesAndUpdateHome,
   formatMessage,
   formatCall,
   formatOpticsMessage,
+  sendFromSigner,
 };

@@ -1,31 +1,15 @@
-const { ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 const { domainsToTestConfigs } = require('./generateTestChainConfigs');
 const testUtils = require('../utils');
-const { formatCall } = require('./crossChainTestUtils');
+const { formatCall, sendFromSigner } = require('./crossChainTestUtils');
 const {
   deployMultipleChains,
   getHome,
-  getReplica,
   getGovernanceRouter,
-  getUpgradeBeaconController,
   getUpdaterManager,
 } = require('./deployCrossChainTest');
 
-function encodeData(contract, functionName, args) {
-  const func = contract.interface.getFunction(functionName);
-  return contract.interface.encodeFunctionData(func, args);
-}
-
-async function sendFromSigner(signer, contract, functionName, args) {
-  const data = encodeData(contract, functionName, args);
-
-  return signer.sendTransaction({
-    to: contract.address,
-    data,
-  });
-}
 
 /*
  * Deploy the full Optics suite on two chains
