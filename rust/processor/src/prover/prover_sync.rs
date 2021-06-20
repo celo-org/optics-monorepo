@@ -2,7 +2,7 @@ use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
 use optics_base::{db::UsingPersistence, home::Homes};
 use optics_core::{
-    accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
+    accumulator::{incremental::IncrementalMerkle, merkle::Proof, INITIAL_ROOT},
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
@@ -19,15 +19,23 @@ use tracing::info;
 /// Struct to sync prover.
 #[derive(Debug)]
 pub struct ProverSync {
-    prover: Arc<RwLock<Prover>>,
     home: Arc<Homes>,
-    incremental: IncrementalMerkle,
     db: Arc<DB>,
+    prover: Arc<RwLock<Prover>>,
+    incremental: IncrementalMerkle,
     rx: Receiver<()>,
 }
 
 impl UsingPersistence<usize, H256> for ProverSync {
-    const KEY_PREFIX: &'static [u8] = "index_".as_bytes();
+    const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
+
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
+}
+
+impl UsingPersistence<usize, Proof> for ProverSync {
+    const KEY_PREFIX: &'static [u8] = "proof_".as_bytes();
 
     fn key_to_bytes(key: usize) -> Vec<u8> {
         key.to_be_bytes().into()
@@ -88,7 +96,11 @@ impl ProverSync {
     }
 
     fn store_leaf(&mut self, index: usize, leaf: H256) {
-        Self::db_put(&self.db, index, leaf).expect("!db_put");
+        Self::db_put(&self.db, index, leaf).expect("!db_put_leaf");
+    }
+
+    fn store_proof(&mut self, index: usize, proof: Proof) {
+        Self::db_put(&self.db, index, proof).expect("!db_put_proof");
     }
 
     fn retrieve_leaf(&self, index: usize) -> Option<H256> {
@@ -136,9 +148,11 @@ impl ProverSync {
         new_root: H256,
     ) -> Result<(), ProverSyncError> {
         // If roots don't match by end of incremental update, will return
-        // MismatchedRoots error
-        let range = self.update_incremental(local_root, new_root).await?;
-        let leaves = self.get_leaf_range(range.clone()).await?;
+        // MismatchedRoots error.
+        // We destructure the range here to avoid cloning it several times
+        // later on.
+        let Range { start, end } = self.update_incremental(local_root, new_root).await?;
+        let leaves = self.get_leaf_range(start..end).await?;
 
         // Check that local root still equals prover's root just in case
         // another entity wrote to prover while we were building the leaf
@@ -150,18 +164,30 @@ impl ProverSync {
         }
 
         // Extend in-memory tree
-        info!(
-            "Committing leaves {}..{} to prover.",
-            range.start, range.end
-        );
+        info!("Committing leaves {}..{} to prover.", start, end);
         let leaves = leaves.into_iter();
+
+        let mut proofs = vec![];
+
         {
             // lock bounds
             let mut prover = self.prover.write().await;
             prover.extend(leaves.clone());
             assert_eq!(new_root, prover.root());
             info!("Committed {} leaves to prover.", leaves.len());
+
+            // calculate a proof under the current root for each leaf
+            for idx in start..end {
+                let proof = prover.prove(idx)?;
+                proofs.push((idx, proof));
+            }
         }
+
+        // store all calculated proofs in the db
+        for (idx, proof) in proofs {
+            self.store_proof(idx, proof);
+        }
+        info!("Stored proofs for leaves {}..{}", start, end);
 
         Ok(())
     }
@@ -226,7 +252,7 @@ impl ProverSync {
     /// new root. Use short interval for bootup syncing and longer
     /// interval for regular polling.
     #[tracing::instrument(err, skip(self))]
-    pub async fn poll_updates(mut self, interval_seconds: u64) -> Result<(), ProverSyncError> {
+    pub async fn spawn(mut self, interval_seconds: u64) -> Result<(), ProverSyncError> {
         loop {
             let local_root = self.local_root().await;
             let signed_update_opt = self.home.signed_update_by_old_root(local_root).await?;

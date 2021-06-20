@@ -75,7 +75,7 @@ impl IncrementalMerkle {
 
     /// Verify a incremental merkle proof of inclusion
     pub fn verify(&self, proof: &Proof) -> bool {
-        let computed = IncrementalMerkle::branch_root(proof.leaf, proof.path, proof.index);
+        let computed = IncrementalMerkle::branch_root(proof.leaf, proof.path, proof.index as usize);
         computed == self.root()
     }
 }

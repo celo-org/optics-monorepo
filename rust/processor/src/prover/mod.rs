@@ -109,7 +109,7 @@ impl Prover {
             return Err(ProverError::IndexTooHigh(index));
         }
         let count = self.count();
-        if index >= count as usize {
+        if index >= count {
             return Err(ProverError::ZeroProof { index, count });
         }
 

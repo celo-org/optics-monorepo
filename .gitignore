@@ -5,3 +5,4 @@ config.json
 typescript/tmp.ts
 rust/tmp_db
 rust/tmp.env
+tmp.env

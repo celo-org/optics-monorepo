@@ -1,21 +1,23 @@
 use async_trait::async_trait;
 use color_eyre::{
-    eyre::{eyre, WrapErr},
+    eyre::{bail, eyre, WrapErr},
     Result,
 };
 use futures_util::future::select_all;
-use std::{collections::HashMap, sync::Arc};
+use rocksdb::DB;
+use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::{
     sync::{oneshot::channel, RwLock},
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{info, instrument, Instrument};
+use tracing::{error, info, instrument, Instrument};
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
     home::Homes,
+    persistence::UsingPersistence,
     replica::Replicas,
     reset_loop_if,
 };
@@ -34,7 +36,15 @@ pub(crate) struct ReplicaProcessor {
     interval_seconds: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    prover: Arc<RwLock<Prover>>,
+    db: Arc<DB>,
+}
+
+impl UsingPersistence<usize, Proof> for ReplicaProcessor {
+    const KEY_PREFIX: &'static [u8] = "proof_".as_bytes();
+
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
 }
 
 impl ReplicaProcessor {
@@ -42,13 +52,13 @@ impl ReplicaProcessor {
         interval_seconds: u64,
         replica: Arc<Replicas>,
         home: Arc<Homes>,
-        prover: Arc<RwLock<Prover>>,
+        db: Arc<DB>,
     ) -> Self {
         Self {
             interval_seconds,
             replica,
             home,
-            prover,
+            db,
         }
     }
 
@@ -85,20 +95,12 @@ impl ReplicaProcessor {
 
                 let message = message.unwrap();
 
-                // Lock is dropped immediately
-                let proof_res = self.prover.read().await.prove(message.leaf_index as usize);
-                reset_loop_if!(
-                    proof_res.is_err(),
-                    interval,
-                    "Prover does not contain leaf at index {}",
-                    message.leaf_index
-                );
+                let proof = Self::db_get(&self.db, message.leaf_index as usize)?.ok_or_else(|| eyre!("missing proof for {}", message.leaf_index))?;
 
-                let proof = proof_res.unwrap();
                 if proof.leaf != message.to_leaf() {
                     let err = format!("Leaf in prover does not match retrieved message. Index: {}. Calculated: {}. Prover: {}.", message.leaf_index, message.to_leaf(), proof.leaf);
-                    tracing::error!("{}", err);
-                    color_eyre::eyre::bail!(err);
+                    error!("{}", err);
+                    bail!(err);
                 }
 
                 // Dispatch for processing
@@ -108,7 +110,7 @@ impl ReplicaProcessor {
                 );
                 self.process(message, proof).await?;
 
-                sleep(std::time::Duration::from_secs(interval)).await;
+                sleep(Duration::from_secs(interval)).await;
             }
         }.in_current_span())
     }
@@ -172,15 +174,15 @@ impl OpticsAgent for Processor {
 
     fn run(&self, name: &str) -> JoinHandle<Result<()>> {
         let home = self.home();
-        let prover = self.prover.clone();
         let interval_seconds = self.interval_seconds;
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
+        let db = self.db();
 
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
-            ReplicaProcessor::new(interval_seconds, replica, home, prover)
+            ReplicaProcessor::new(interval_seconds, replica, home, db)
                 .spawn()
                 .await?
         })
@@ -194,7 +196,7 @@ impl OpticsAgent for Processor {
         info!("Starting ProverSync task");
         let sync = ProverSync::new(self.prover.clone(), self.home(), self.db(), rx);
         let sync_task = tokio::spawn(async move {
-            sync.poll_updates(interval_seconds)
+            sync.spawn(interval_seconds)
                 .await
                 .wrap_err("ProverSync task has shut down")
         });

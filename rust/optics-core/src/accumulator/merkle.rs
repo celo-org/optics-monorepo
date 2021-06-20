@@ -2,7 +2,10 @@ use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
 
-use crate::accumulator::{hash_concat, EMPTY_SLICE, TREE_DEPTH, ZERO_HASHES};
+use crate::{
+    accumulator::{hash_concat, EMPTY_SLICE, TREE_DEPTH, ZERO_HASHES},
+    Decode, Encode,
+};
 
 // Some code has been derived from
 // https://github.com/sigp/lighthouse/blob/c6baa0eed131c5e8ecc5860778ffc7d4a4c18d2d/consensus/merkle_proof/src/lib.rs#L25
@@ -46,6 +49,42 @@ pub struct Proof {
     pub index: usize,
     /// The merkle branch
     pub path: [H256; TREE_DEPTH],
+}
+
+impl Encode for Proof {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        writer.write_all(self.leaf.as_bytes())?;
+        writer.write_all(&self.index.to_be_bytes())?;
+        for hash in self.path.iter() {
+            writer.write(hash.as_bytes())?;
+        }
+        Ok(32 + 8 + TREE_DEPTH * 32)
+    }
+}
+
+impl Decode for Proof {
+    fn read_from<R>(reader: &mut R) -> Result<Self, crate::OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let mut leaf = H256::default();
+        let mut index_bytes = [0u8; 8];
+        let mut path = [H256::default(); 32];
+
+        reader.read_exact(leaf.as_bytes_mut())?;
+        reader.read_exact(&mut index_bytes)?;
+        for idx in 0..path.len() {
+            reader.read_exact(path[idx].as_bytes_mut())?;
+        }
+
+        let index = u64::from_be_bytes(index_bytes) as usize;
+
+        Ok(Self { leaf, index, path })
+    }
 }
 
 /// Error type for merkle tree ops.
