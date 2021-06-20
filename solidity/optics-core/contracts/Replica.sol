@@ -36,8 +36,6 @@ contract Replica is Initializable, Common, QueueManager {
     /// @notice Index of last processed message's leaf in home's merkle tree
     uint32 public nextToProcess;
 
-    bytes32 public previous; // to smooth over witness invalidation
-
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
@@ -50,6 +48,14 @@ contract Replica is Initializable, Common, QueueManager {
     event ProcessError(bytes error);
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
+
+    function acceptableRoot(bytes32 _root) internal view returns (bool) {
+        uint256 _time = confirmAt[_root];
+        if (_time == 0) {
+            return false;
+        }
+        return block.timestamp >= _time || _root == current;
+    }
 
     function initialize(
         uint32 _remoteDomain,
@@ -111,21 +117,21 @@ contract Replica is Initializable, Common, QueueManager {
      * @dev Reverts if queue started as empty (i.e. no roots to confirm)
      **/
     function confirm() external notFailed {
-        require(queue.length() != 0, "no pending");
+        require(queue.length() != 0, "!pending");
 
         bytes32 _pending;
-        uint256 _timestamp = block.timestamp;
 
+        // Traverse the queue by peeking each iterm to see if it ought to be
+        // confirmed. If so, dequeue it
         uint256 _remaining = queue.length();
-        while (_remaining > 0 && _timestamp >= confirmAt[queue.peek()]) {
+        while (_remaining > 0 && acceptableRoot(queue.peek())) {
             _pending = queue.dequeue();
-            delete confirmAt[_pending];
             _remaining -= 1;
         }
 
         // This condition is hit if the while loop is never executed, because
         // the first queue item has not hit its timer yet
-        require(_pending != bytes32(0), "not time");
+        require(_pending != bytes32(0), "!time");
 
         _beforeConfirm();
 
@@ -254,9 +260,9 @@ contract Replica is Initializable, Common, QueueManager {
         bytes32 _actual = MerkleLib.branchRoot(_leaf, _proof, _index);
 
         // NB:
-        // For convenience, we allow proving against the previous root.
-        // This means that witnesses don't need to be updated for the new root
-        if (_actual == current || _actual == previous) {
+        // For convenience, we allow proving against any previous root.
+        // This means that witnesses never need to be updated for the new root
+        if (acceptableRoot(_actual)) {
             messages[_leaf] = MessageStatus.Pending;
             return true;
         }
@@ -273,10 +279,9 @@ contract Replica is Initializable, Common, QueueManager {
         _setFailed();
     }
 
-    /// @notice Sets `previous` to `current` root before updating `current`
-    function _beforeConfirm() internal {
-        previous = current;
-    }
+    /// @notice Hook for potential future use
+    // solhint-disable-next-line no-empty-blocks
+    function _beforeConfirm() internal {}
 
     /// @notice Hook for potential future use
     // solhint-disable-next-line no-empty-blocks
