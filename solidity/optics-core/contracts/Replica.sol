@@ -69,6 +69,7 @@ contract Replica is Initializable, Common, QueueManager {
         queue.initialize();
 
         current = _current;
+        confirmAt[_current] = 1;
         optimisticSeconds = _optimisticSeconds;
         nextToProcess = _nextToProcess;
 
@@ -171,6 +172,9 @@ contract Replica is Initializable, Common, QueueManager {
         if (queue.length() != 0) {
             _pending = queue.peek();
             _confirmAt = confirmAt[_pending];
+        } else {
+            _pending = current;
+            _confirmAt = confirmAt[current];
         }
     }
 
@@ -179,8 +183,7 @@ contract Replica is Initializable, Common, QueueManager {
      * root in the queue and false if otherwise.
      **/
     function canConfirm() external view returns (bool) {
-        return
-            queue.length() != 0 && block.timestamp >= confirmAt[queue.peek()];
+        return queue.length() != 0 && acceptableRoot(queue.peek());
     }
 
     /**
