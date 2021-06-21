@@ -59,7 +59,7 @@ impl Encode for Proof {
         writer.write_all(self.leaf.as_bytes())?;
         writer.write_all(&self.index.to_be_bytes())?;
         for hash in self.path.iter() {
-            writer.write(hash.as_bytes())?;
+            writer.write_all(hash.as_bytes())?;
         }
         Ok(32 + 8 + TREE_DEPTH * 32)
     }
@@ -77,8 +77,8 @@ impl Decode for Proof {
 
         reader.read_exact(leaf.as_bytes_mut())?;
         reader.read_exact(&mut index_bytes)?;
-        for idx in 0..path.len() {
-            reader.read_exact(path[idx].as_bytes_mut())?;
+        for item in &mut path {
+            reader.read_exact(item.as_bytes_mut())?;
         }
 
         let index = u64::from_be_bytes(index_bytes) as usize;

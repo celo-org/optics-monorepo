@@ -24,8 +24,6 @@ mock! {
 
         pub fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        pub fn _previous_root(&self) -> Result<H256, ChainCommunicationError> {}
-
         pub fn _next_to_process(&self) -> Result<u32, ChainCommunicationError> {}
 
         pub fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
@@ -98,10 +96,6 @@ impl Replica for MockReplicaContract {
 
     async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
         self._confirm()
-    }
-
-    async fn previous_root(&self) -> Result<H256, ChainCommunicationError> {
-        self._previous_root()
     }
 
     async fn next_to_process(&self) -> Result<u32, ChainCommunicationError> {

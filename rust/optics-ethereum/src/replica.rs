@@ -212,11 +212,6 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn previous_root(&self) -> Result<H256, ChainCommunicationError> {
-        Ok(self.contract.previous().call().await?.into())
-    }
-
-    #[tracing::instrument(err)]
     async fn next_to_process(&self) -> Result<u32, ChainCommunicationError> {
         Ok(self.contract.next_to_process().call().await?)
     }

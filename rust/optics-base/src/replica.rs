@@ -98,14 +98,6 @@ impl Replica for Replicas {
         }
     }
 
-    async fn previous_root(&self) -> Result<H256, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.previous_root().await,
-            Replicas::Mock(mock_replica) => mock_replica.previous_root().await,
-            Replicas::Other(replica) => replica.previous_root().await,
-        }
-    }
-
     async fn next_to_process(&self) -> Result<u32, ChainCommunicationError> {
         match self {
             Replicas::Ethereum(replica) => replica.next_to_process().await,

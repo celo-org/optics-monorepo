@@ -35,7 +35,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     "nextPending()": FunctionFragment;
     "nextToProcess()": FunctionFragment;
     "optimisticSeconds()": FunctionFragment;
-    "previous()": FunctionFragment;
     "process(bytes)": FunctionFragment;
     "prove(bytes32,bytes32[32],uint256)": FunctionFragment;
     "proveAndProcess(bytes,bytes32[32],uint256)": FunctionFragment;
@@ -104,7 +103,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "previous", values?: undefined): string;
   encodeFunctionData(functionFragment: "process", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "prove",
@@ -310,7 +308,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "previous", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "process", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "prove", data: BytesLike): Result;
   decodeFunctionResult(
@@ -462,8 +459,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<[number]>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    previous(overrides?: CallOverrides): Promise<[string]>;
 
     process(
       _message: BytesLike,
@@ -691,8 +686,6 @@ export class TestReplica extends BaseContract {
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
-  previous(overrides?: CallOverrides): Promise<string>;
-
   process(
     _message: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -915,8 +908,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-    previous(overrides?: CallOverrides): Promise<string>;
 
     process(_message: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -1169,8 +1160,6 @@ export class TestReplica extends BaseContract {
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
-    previous(overrides?: CallOverrides): Promise<BigNumber>;
-
     process(
       _message: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1401,8 +1390,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    previous(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     process(
       _message: BytesLike,
