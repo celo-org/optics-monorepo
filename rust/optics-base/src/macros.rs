@@ -1,7 +1,7 @@
 #[macro_export]
 /// Shortcut for resetting a timed loop
 macro_rules! reset_loop {
-    ($interval:ident) => {{
+    ($interval:expr) => {{
         tokio::time::sleep(std::time::Duration::from_secs($interval)).await;
         continue;
     }};
@@ -10,12 +10,12 @@ macro_rules! reset_loop {
 #[macro_export]
 /// Shortcut for conditionally resetting a timed loop
 macro_rules! reset_loop_if {
-    ($condition:expr, $interval:ident) => {
+    ($condition:expr, $interval:expr) => {
         if $condition {
             $crate::reset_loop!($interval);
         }
     };
-    ($condition:expr, $interval:ident, $($arg:tt)*) => {
+    ($condition:expr, $interval:expr, $($arg:tt)*) => {
         if $condition {
             tracing::info!($($arg)*);
             $crate::reset_loop!($interval);
