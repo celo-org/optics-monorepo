@@ -12,11 +12,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @notice Shared utilities between Home and Replica.
  **/
 abstract contract Common is Initializable {
-    enum States {
-        UNINITIALIZED,
-        ACTIVE,
-        FAILED
-    }
+    enum States {UNINITIALIZED, ACTIVE, FAILED}
 
     /// @notice Domain of owning contract
     uint32 public immutable localDomain;
@@ -132,9 +128,8 @@ abstract contract Common is Initializable {
         bytes32 _newRoot,
         bytes memory _signature
     ) internal view returns (bool) {
-        bytes32 _digest = keccak256(
-            abi.encodePacked(homeDomainHash(), _oldRoot, _newRoot)
-        );
+        bytes32 _digest =
+            keccak256(abi.encodePacked(homeDomainHash(), _oldRoot, _newRoot));
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return (ECDSA.recover(_digest, _signature) == updater);
     }

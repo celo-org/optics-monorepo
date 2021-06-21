@@ -7,8 +7,12 @@ import {BridgeToken} from "./BridgeToken.sol";
 import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
 
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
-import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {IMessageRecipient} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
+import {
+    TypeCasts
+} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {
+    IMessageRecipient
+} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
@@ -75,10 +79,8 @@ contract BridgeRouter is Router, TokenRegistry {
         }
 
         TokenId memory _tokId = _tokenIdFor(_token);
-        bytes29 _tokenId = BridgeMessage.formatTokenId(
-            _tokId.domain,
-            _tokId.id
-        );
+        bytes29 _tokenId =
+            BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
 
         Home(xAppConnectionManager.home()).enqueue(
@@ -98,16 +100,15 @@ contract BridgeRouter is Router, TokenRegistry {
         IBridgeToken _bridgeToken = IBridgeToken(_token);
 
         TokenId memory _tokId = _tokenIdFor(_token);
-        bytes29 _tokenId = BridgeMessage.formatTokenId(
-            _tokId.domain,
-            _tokId.id
-        );
+        bytes29 _tokenId =
+            BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
 
-        bytes29 _action = BridgeMessage.formatDetails(
-            TypeCasts.coerceBytes32(_bridgeToken.name()),
-            TypeCasts.coerceBytes32(_bridgeToken.symbol()),
-            _bridgeToken.decimals()
-        );
+        bytes29 _action =
+            BridgeMessage.formatDetails(
+                TypeCasts.coerceBytes32(_bridgeToken.name()),
+                TypeCasts.coerceBytes32(_bridgeToken.symbol()),
+                _bridgeToken.decimals()
+            );
 
         Home(xAppConnectionManager.home()).enqueue(
             _destination,

@@ -3,7 +3,9 @@ pragma solidity >=0.6.11;
 
 // ============ External Imports ============
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
-import {XAppConnectionManager} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {
+    XAppConnectionManager
+} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract XAppConnectionClient is Ownable {
