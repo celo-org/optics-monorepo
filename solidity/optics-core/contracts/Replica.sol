@@ -42,11 +42,7 @@ contract Replica is Initializable, Common, QueueManager {
     mapping(bytes32 => uint256) public confirmAt;
 
     /// @notice Status of message
-    enum MessageStatus {
-        None,
-        Pending,
-        Processed
-    }
+    enum MessageStatus {None, Pending, Processed}
 
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
