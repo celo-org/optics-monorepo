@@ -3,6 +3,7 @@ pragma solidity >=0.6.11;
 pragma experimental ABIEncoderV2;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
+import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 import {Home} from "../Home.sol";
@@ -11,6 +12,7 @@ import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
 contract GovernanceRouter is Initializable, IMessageRecipient {
+    using SafeMath for uint256;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
@@ -18,7 +20,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     uint32 public immutable localDomain;
     uint256 public immutable recoveryTimelock; // number of blocks before recovery can be activated
 
-    uint256 public recoveryActiveAt; // block number when recovery timelock expires; 0 if timelock has not been initiated
+    uint256 public recoveryActiveAt; // timestamp when recovery timelock expires; 0 if timelock has not been initiated
     address public recoveryManager; // the address of the recovery manager multisig
 
     address public governor; // the local entity empowered to call governance functions, set to 0x0 on non-Governor chains
@@ -282,7 +284,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     {
         require(recoveryActiveAt == 0, "recovery already initiated");
 
-        recoveryActiveAt = block.number + recoveryTimelock;
+        recoveryActiveAt = block.timestamp.add(recoveryTimelock);
 
         emit InitiateRecovery(recoveryManager, recoveryActiveAt);
     }
@@ -302,7 +304,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     function inRecovery() public view returns (bool) {
         uint256 _recoveryActiveAt = recoveryActiveAt;
         bool _recoveryInitiated = _recoveryActiveAt != 0;
-        bool _recoveryActive = _recoveryActiveAt <= block.number;
+        bool _recoveryActive = _recoveryActiveAt <= block.timestamp;
         return _recoveryInitiated && _recoveryActive;
     }
 

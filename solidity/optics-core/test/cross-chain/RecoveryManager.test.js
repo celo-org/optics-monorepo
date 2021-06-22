@@ -179,12 +179,6 @@ async function expectOnlyRecoveryManagerCanInitiateRecovery(
 
   expect(await governanceRouter.recoveryActiveAt()).to.equal(0);
 
-  const currBlockNumber = await provider.getBlockNumber();
-  const recoveryTimelock = (
-    await governanceRouter.recoveryTimelock()
-  ).toNumber();
-  const expectedRecoveryActiveAt = 1 + currBlockNumber + recoveryTimelock;
-
   await expect(
     sendFromSigner(
       recoveryManager,
@@ -192,13 +186,9 @@ async function expectOnlyRecoveryManagerCanInitiateRecovery(
       'initiateRecoveryTimelock',
       [],
     ),
-  )
-    .to.emit(governanceRouter, 'InitiateRecovery')
-    .withArgs(recoveryManager.address, expectedRecoveryActiveAt);
+  ).to.emit(governanceRouter, 'InitiateRecovery');
 
-  expect(await governanceRouter.recoveryActiveAt()).to.equal(
-    expectedRecoveryActiveAt,
-  );
+  expect(await governanceRouter.recoveryActiveAt()).to.not.equal(0);
 }
 
 /*
@@ -322,23 +312,9 @@ describe('RecoveryManager', async () => {
   });
 
   it('Recovery Active: inRecovery becomes true when timelock expires', async () => {
-    const recoveryActiveAt = await governanceRouter.recoveryActiveAt();
-    let currBlockNumber = await provider.getBlockNumber();
-
-    while (currBlockNumber < recoveryActiveAt) {
-      expect(await governanceRouter.inRecovery()).to.be.false;
-      await provider.send('evm_mine');
-      currBlockNumber++;
-    }
-
-    // AT recoveryActiveAt block, inRecovery is true
-    expect(await provider.getBlockNumber()).to.equal(recoveryActiveAt);
-    expect(await governanceRouter.inRecovery()).to.be.true;
-
-    // AFTER recoveryActiveAt block, inRecovery is true
-    await provider.send('evm_mine');
-    await provider.send('evm_mine');
-
+    // increase timestamp on-chain
+    const timelock = await governanceRouter.recoveryTimelock();
+    await testUtils.increaseTimestampBy(provider, timelock.toNumber());
     expect(await governanceRouter.inRecovery()).to.be.true;
   });
 
