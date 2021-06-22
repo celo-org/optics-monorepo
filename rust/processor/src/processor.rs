@@ -65,7 +65,7 @@ impl ReplicaProcessor {
     #[instrument]
     pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
-            info!("Starting processor");
+            info!("Starting processor for {}", self.replica.name());
             let domain = self.replica.local_domain();
 
             // The basic structure of this loop is as follows:
@@ -94,17 +94,17 @@ impl ReplicaProcessor {
 
                 let message = message.unwrap();
 
-                let proof = Self::db_get(&self.db, message.leaf_index as usize)?;
+                let proof_opt = Self::db_get(&self.db, message.leaf_index as usize)?;
 
                 reset_loop_if!(
-                    proof.is_none(),
+                    proof_opt.is_none(),
                     self.interval,
                     "Proof not yet available for message at {}:{}",
                     domain,
                     sequence,
                 );
 
-                let proof = proof.unwrap();
+                let proof = proof_opt.unwrap();
                 if proof.leaf != message.to_leaf() {
                     let err = format!("Leaf in prover does not match retrieved message. Index: {}. Calculated: {}. Prover: {}.", message.leaf_index, message.to_leaf(), proof.leaf);
                     error!("{}", err);

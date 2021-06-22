@@ -87,8 +87,8 @@ describe('SimpleCrossChainMessage', async () => {
           expect(length).to.equal(0);
 
           const [pending, confirmAt] = await replica.nextPending();
-          expect(pending).to.equal(ethers.utils.formatBytes32String(0));
-          expect(confirmAt).to.equal(0);
+          expect(pending).to.equal(await replica.current());
+          expect(confirmAt).to.equal(1);
         }
       }
     }

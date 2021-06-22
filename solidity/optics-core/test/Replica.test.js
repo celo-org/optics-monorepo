@@ -138,10 +138,10 @@ describe('Replica', async () => {
     expect(confirmAt).to.equal(beforeTimestamp.add(optimisticSeconds));
   });
 
-  it('Returns empty update values when queue is empty', async () => {
+  it('Returns the current value when the queue is empty', async () => {
     const [pending, confirmAt] = await replica.nextPending();
-    expect(pending).to.equal(ethers.utils.formatBytes32String(0));
-    expect(confirmAt).to.equal(0);
+    expect(pending).to.equal(await replica.current());
+    expect(confirmAt).to.equal(1);
   });
 
   it('Rejects update with invalid signature', async () => {
@@ -238,7 +238,7 @@ describe('Replica', async () => {
     const length = await replica.queueLength();
     expect(length).to.equal(0);
 
-    await expect(replica.confirm()).to.be.revertedWith('no pending');
+    await expect(replica.confirm()).to.be.revertedWith('!pending');
   });
 
   it('Rejects an early confirmation attempt', async () => {
@@ -251,7 +251,7 @@ describe('Replica', async () => {
     await testUtils.increaseTimestampBy(provider, optimisticSeconds - 2);
 
     expect(await replica.canConfirm()).to.be.false;
-    await expect(replica.confirm()).to.be.revertedWith('not time');
+    await expect(replica.confirm()).to.be.revertedWith('!time');
   });
 
   it('Proves a valid message', async () => {

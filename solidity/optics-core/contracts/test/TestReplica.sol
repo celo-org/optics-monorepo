@@ -29,6 +29,7 @@ contract TestReplica is Replica {
 
     function setCurrentRoot(bytes32 _newRoot) external {
         current = _newRoot;
+        confirmAt[_newRoot] = 1;
     }
 
     function timestamp() external view returns (uint256) {
