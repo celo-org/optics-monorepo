@@ -54,7 +54,7 @@ contract Replica is Initializable, Common, QueueManager {
         if (_time == 0) {
             return false;
         }
-        return block.timestamp >= _time || _root == current;
+        return block.timestamp >= _time;
     }
 
     function initialize(
