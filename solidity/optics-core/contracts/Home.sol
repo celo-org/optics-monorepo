@@ -129,15 +129,14 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         require(_body.length <= MAX_MESSAGE_BODY_BYTES, "!too big");
         uint32 _sequence = sequences[_destination];
 
-        bytes memory _message =
-            Message.formatMessage(
-                localDomain,
-                bytes32(uint256(uint160(msg.sender))),
-                _sequence,
-                _destination,
-                _recipient,
-                _body
-            );
+        bytes memory _message = Message.formatMessage(
+            localDomain,
+            bytes32(uint256(uint160(msg.sender))),
+            _sequence,
+            _destination,
+            _recipient,
+            _body
+        );
         bytes32 _leaf = keccak256(_message);
 
         tree.insert(_leaf);

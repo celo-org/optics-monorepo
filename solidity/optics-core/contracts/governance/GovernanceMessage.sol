@@ -44,8 +44,9 @@ library GovernanceMessage {
         returns (bytes memory _msg)
     {
         uint256 _numCalls = _calls.length;
-        bytes29[] memory _encodedCalls =
-            new bytes29[](_numCalls + MSG_PREFIX_NUM_ITEMS);
+        bytes29[] memory _encodedCalls = new bytes29[](
+            _numCalls + MSG_PREFIX_NUM_ITEMS
+        );
 
         // Add Types.Call identifier
         _encodedCalls[0] = abi.encodePacked(Types.Call).ref(0);
@@ -54,10 +55,9 @@ library GovernanceMessage {
 
         for (uint256 i = 0; i < _numCalls; i++) {
             Call memory _call = _calls[i];
-            bytes29 _callMsg =
-                abi.encodePacked(_call.to, _call.data.length, _call.data).ref(
-                    0
-                );
+            bytes29 _callMsg = abi
+            .encodePacked(_call.to, _call.data.length, _call.data)
+            .ref(0);
 
             _encodedCalls[i + MSG_PREFIX_NUM_ITEMS] = _callMsg;
         }
@@ -73,8 +73,8 @@ library GovernanceMessage {
         _msg = TypedMemView.clone(
             mustBeTransferGovernor(
                 abi
-                    .encodePacked(Types.TransferGovernor, _domain, _governor)
-                    .ref(0)
+                .encodePacked(Types.TransferGovernor, _domain, _governor)
+                .ref(0)
             )
         );
     }
@@ -95,12 +95,11 @@ library GovernanceMessage {
         uint8 _numCalls = uint8(_msg.indexUint(1, 1));
 
         // Skip message prefix
-        bytes29 _msgPtr =
-            _msg.slice(
-                MSG_PREFIX_LEN,
-                _msg.len() - MSG_PREFIX_LEN,
-                uint40(Types.Call)
-            );
+        bytes29 _msgPtr = _msg.slice(
+            MSG_PREFIX_LEN,
+            _msg.len() - MSG_PREFIX_LEN,
+            uint40(Types.Call)
+        );
 
         Call[] memory _calls = new Call[](_numCalls);
 

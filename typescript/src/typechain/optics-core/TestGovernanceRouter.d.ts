@@ -25,18 +25,25 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     "callRemote(uint32,tuple[])": FunctionFragment;
     "containsDomain(uint32)": FunctionFragment;
     "domains(uint256)": FunctionFragment;
+    "exitRecovery()": FunctionFragment;
     "governor()": FunctionFragment;
     "governorDomain()": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
-    "initialize(address)": FunctionFragment;
+    "inRecovery()": FunctionFragment;
+    "initialize(address,address)": FunctionFragment;
+    "initiateRecoveryTimelock()": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "recoveryActiveAt()": FunctionFragment;
+    "recoveryManager()": FunctionFragment;
+    "recoveryTimelock()": FunctionFragment;
     "routers(uint32)": FunctionFragment;
     "setRouter(uint32,bytes32)": FunctionFragment;
     "setRouterAddress(uint32,address)": FunctionFragment;
-    "setRouterDuringSetup(uint32,bytes32)": FunctionFragment;
+    "setRouterLocal(uint32,bytes32)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "testSetRouter(uint32,bytes32)": FunctionFragment;
     "transferGovernor(uint32,address)": FunctionFragment;
+    "transferRecoveryManager(address)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
@@ -56,6 +63,10 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "domains",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "exitRecovery",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "governorDomain",
@@ -65,9 +76,32 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "inRecovery",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initiateRecoveryTimelock",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "localDomain",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "recoveryActiveAt",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "recoveryManager",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "recoveryTimelock",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -83,7 +117,7 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setRouterDuringSetup",
+    functionFragment: "setRouterLocal",
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
@@ -99,6 +133,10 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "transferRecoveryManager",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "xAppConnectionManager",
     values?: undefined
   ): string;
@@ -110,15 +148,36 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "domains", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "exitRecovery",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "governorDomain",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "inRecovery", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "initiateRecoveryTimelock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "localDomain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "recoveryActiveAt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "recoveryManager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "recoveryTimelock",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "routers", data: BytesLike): Result;
@@ -128,7 +187,7 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setRouterDuringSetup",
+    functionFragment: "setRouterLocal",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -144,17 +203,27 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "transferRecoveryManager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "xAppConnectionManager",
     data: BytesLike
   ): Result;
 
   events: {
+    "ExitRecovery(address)": EventFragment;
+    "InitiateRecovery(address,uint256)": EventFragment;
     "SetRouter(uint32,bytes32,bytes32)": EventFragment;
     "TransferGovernor(uint32,uint32,address,address)": EventFragment;
+    "TransferRecoveryManager(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ExitRecovery"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "InitiateRecovery"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetRouter"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferGovernor"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferRecoveryManager"): EventFragment;
 }
 
 export class TestGovernanceRouter extends BaseContract {
@@ -219,6 +288,10 @@ export class TestGovernanceRouter extends BaseContract {
 
     domains(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
+    exitRecovery(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     governor(overrides?: CallOverrides): Promise<[string]>;
 
     governorDomain(overrides?: CallOverrides): Promise<[number]>;
@@ -230,12 +303,25 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    inRecovery(overrides?: CallOverrides): Promise<[boolean]>;
+
     initialize(
       _xAppConnectionManager: string,
+      _recoveryManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    initiateRecoveryTimelock(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
+
+    recoveryActiveAt(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    recoveryManager(overrides?: CallOverrides): Promise<[string]>;
+
+    recoveryTimelock(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
@@ -251,7 +337,7 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setRouterDuringSetup(
+    setRouterLocal(
       _domain: BigNumberish,
       _router: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -271,6 +357,11 @@ export class TestGovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    transferRecoveryManager(
+      _newRecoveryManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -295,6 +386,10 @@ export class TestGovernanceRouter extends BaseContract {
 
   domains(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
+  exitRecovery(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   governor(overrides?: CallOverrides): Promise<string>;
 
   governorDomain(overrides?: CallOverrides): Promise<number>;
@@ -306,12 +401,25 @@ export class TestGovernanceRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  inRecovery(overrides?: CallOverrides): Promise<boolean>;
+
   initialize(
     _xAppConnectionManager: string,
+    _recoveryManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initiateRecoveryTimelock(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   localDomain(overrides?: CallOverrides): Promise<number>;
+
+  recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+  recoveryManager(overrides?: CallOverrides): Promise<string>;
+
+  recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
 
   routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -327,7 +435,7 @@ export class TestGovernanceRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setRouterDuringSetup(
+  setRouterLocal(
     _domain: BigNumberish,
     _router: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -347,6 +455,11 @@ export class TestGovernanceRouter extends BaseContract {
   transferGovernor(
     _newDomain: BigNumberish,
     _newGovernor: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  transferRecoveryManager(
+    _newRecoveryManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -371,6 +484,8 @@ export class TestGovernanceRouter extends BaseContract {
 
     domains(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
+    exitRecovery(overrides?: CallOverrides): Promise<void>;
+
     governor(overrides?: CallOverrides): Promise<string>;
 
     governorDomain(overrides?: CallOverrides): Promise<number>;
@@ -382,12 +497,23 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    inRecovery(overrides?: CallOverrides): Promise<boolean>;
+
     initialize(
       _xAppConnectionManager: string,
+      _recoveryManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    initiateRecoveryTimelock(overrides?: CallOverrides): Promise<void>;
+
     localDomain(overrides?: CallOverrides): Promise<number>;
+
+    recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    recoveryManager(overrides?: CallOverrides): Promise<string>;
+
+    recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -403,7 +529,7 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setRouterDuringSetup(
+    setRouterLocal(
       _domain: BigNumberish,
       _router: BytesLike,
       overrides?: CallOverrides
@@ -426,10 +552,27 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    transferRecoveryManager(
+      _newRecoveryManager: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    ExitRecovery(
+      recoveryManager?: null
+    ): TypedEventFilter<[string], { recoveryManager: string }>;
+
+    InitiateRecovery(
+      recoveryManager?: string | null,
+      endBlock?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { recoveryManager: string; endBlock: BigNumber }
+    >;
+
     SetRouter(
       domain?: BigNumberish | null,
       previousRouter?: null,
@@ -453,6 +596,14 @@ export class TestGovernanceRouter extends BaseContract {
         newGovernor: string;
       }
     >;
+
+    TransferRecoveryManager(
+      previousRecoveryManager?: string | null,
+      newRecoveryManager?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousRecoveryManager: string; newRecoveryManager: string }
+    >;
   };
 
   estimateGas: {
@@ -474,6 +625,10 @@ export class TestGovernanceRouter extends BaseContract {
 
     domains(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    exitRecovery(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
     governorDomain(overrides?: CallOverrides): Promise<BigNumber>;
@@ -485,12 +640,25 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    inRecovery(overrides?: CallOverrides): Promise<BigNumber>;
+
     initialize(
       _xAppConnectionManager: string,
+      _recoveryManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    initiateRecoveryTimelock(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
+
+    recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    recoveryManager(overrides?: CallOverrides): Promise<BigNumber>;
+
+    recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -506,7 +674,7 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setRouterDuringSetup(
+    setRouterLocal(
       _domain: BigNumberish,
       _router: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -526,6 +694,11 @@ export class TestGovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    transferRecoveryManager(
+      _newRecoveryManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -554,6 +727,10 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    exitRecovery(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governorDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -565,12 +742,25 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    inRecovery(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     initialize(
       _xAppConnectionManager: string,
+      _recoveryManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initiateRecoveryTimelock(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    recoveryActiveAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    recoveryManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    recoveryTimelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     routers(
       arg0: BigNumberish,
@@ -589,7 +779,7 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setRouterDuringSetup(
+    setRouterLocal(
       _domain: BigNumberish,
       _router: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -609,6 +799,11 @@ export class TestGovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferRecoveryManager(
+      _newRecoveryManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

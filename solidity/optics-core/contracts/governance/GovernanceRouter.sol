@@ -200,11 +200,11 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
             return;
         }
 
-        bytes memory _transferGovernorMessage =
-            GovernanceMessage.formatTransferGovernor(
-                _newDomain,
-                TypeCasts.addressToBytes32(_newGovernor)
-            );
+        bytes memory _transferGovernorMessage = GovernanceMessage
+        .formatTransferGovernor(
+            _newDomain,
+            TypeCasts.addressToBytes32(_newGovernor)
+        );
 
         _sendToAllRemoteRouters(_transferGovernorMessage);
     }
@@ -236,8 +236,10 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     {
         _setRouter(_domain, _router); // set the router locally
 
-        bytes memory _setRouterMessage =
-            GovernanceMessage.formatSetRouter(_domain, _router);
+        bytes memory _setRouterMessage = GovernanceMessage.formatSetRouter(
+            _domain,
+            _router
+        );
 
         _sendToAllRemoteRouters(_setRouterMessage);
     }
