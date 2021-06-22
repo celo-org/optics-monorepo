@@ -18,7 +18,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     using GovernanceMessage for bytes29;
 
     uint32 public immutable localDomain;
-    uint256 public immutable recoveryTimelock; // number of blocks before recovery can be activated
+    uint256 public immutable recoveryTimelock; // number of seconds before recovery can be activated
 
     uint256 public recoveryActiveAt; // timestamp when recovery timelock expires; 0 if timelock has not been initiated
     address public recoveryManager; // the address of the recovery manager multisig
