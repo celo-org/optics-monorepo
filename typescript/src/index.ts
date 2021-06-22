@@ -85,11 +85,12 @@ async function deployHome(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 async function deployGovernanceRouter(deploy: Deploy) {
+  let { recoveryManager, recoveryTimelock } = deploy.chain;
   let { xappConnectionManager } = deploy.contracts;
   let initData =
     contracts.GovernanceRouter__factory.createInterface().encodeFunctionData(
       'initialize',
-      [xappConnectionManager!.address],
+      [xappConnectionManager!.address, recoveryManager],
     );
 
   const governance = await proxyUtils.deployProxy<contracts.GovernanceRouter>(
@@ -97,6 +98,7 @@ async function deployGovernanceRouter(deploy: Deploy) {
     new contracts.GovernanceRouter__factory(deploy.chain.deployer),
     initData,
     deploy.chain.domain,
+    recoveryTimelock,
   );
 
   deploy.contracts.governance = governance;

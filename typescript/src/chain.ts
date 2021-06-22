@@ -61,6 +61,8 @@ export interface ChainConfig {
   deployerKey: string;
   domain: number;
   updater: Address;
+  recoveryTimelock: number;
+  recoveryManager: Address;
   optimisticSeconds: number;
   watchers?: Address[];
   gasPrice?: ethers.BigNumberish;
@@ -74,6 +76,8 @@ export type Chain = {
   deployer: ethers.Signer;
   domain: number;
   updater: Address;
+  recoveryTimelock: number;
+  recoveryManager: Address;
   optimisticSeconds: number;
   watchers: Address[];
   gasPrice: ethers.BigNumber;
@@ -101,6 +105,8 @@ export function toChain(config: ChainConfig): Chain {
     deployer,
     domain: config.domain,
     updater: config.updater,
+    recoveryTimelock: config.recoveryTimelock,
+    recoveryManager: config.recoveryManager,
     optimisticSeconds: config.optimisticSeconds,
     watchers: config.watchers ?? [],
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
