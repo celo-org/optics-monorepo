@@ -8,11 +8,11 @@ use thiserror::Error;
 use ethers::core::types::H256;
 use futures_util::future::{join, join_all};
 use rocksdb::DB;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::{
     sync::{mpsc, RwLock},
     task::JoinHandle,
-    time::{interval, Interval},
+    time::sleep,
 };
 
 use optics_base::{
@@ -40,7 +40,7 @@ pub struct ContractWatcher<C>
 where
     C: Common + ?Sized + 'static,
 {
-    interval_seconds: u64,
+    interval: u64,
     current_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
@@ -51,21 +51,17 @@ where
     C: Common + ?Sized + 'static,
 {
     pub fn new(
-        interval_seconds: u64,
+        interval: u64,
         from: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<C>,
     ) -> Self {
         Self {
-            interval_seconds,
+            interval,
             current_root: from,
             tx,
             contract,
         }
-    }
-
-    fn interval(&self) -> Interval {
-        interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
     async fn poll_and_send_update(&mut self) -> Result<()> {
@@ -88,11 +84,9 @@ where
     #[tracing::instrument]
     fn spawn(mut self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
-            let mut interval = self.interval();
-
             loop {
                 self.poll_and_send_update().await?;
-                interval.tick().await;
+                sleep(Duration::from_secs(self.interval)).await;
             }
         })
     }
@@ -103,7 +97,7 @@ pub struct HistorySync<C>
 where
     C: Common + ?Sized + 'static,
 {
-    interval_seconds: u64,
+    interval: u64,
     current_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
@@ -114,7 +108,7 @@ where
     C: Common + ?Sized + 'static,
 {
     pub fn new(
-        interval_seconds: u64,
+        interval: u64,
         from: H256,
         tx: mpsc::Sender<SignedUpdate>,
         contract: Arc<C>,
@@ -123,12 +117,8 @@ where
             current_root: from,
             tx,
             contract,
-            interval_seconds,
+            interval,
         }
-    }
-
-    fn interval(&self) -> Interval {
-        interval(std::time::Duration::from_secs(self.interval_seconds))
     }
 
     async fn update_history(&mut self) -> Result<()> {
@@ -159,8 +149,6 @@ where
     #[tracing::instrument]
     fn spawn(mut self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
-            let mut interval = self.interval();
-
             loop {
                 let res = self.update_history().await;
                 if res.is_err() {
@@ -168,7 +156,7 @@ where
                     break;
                 }
 
-                interval.tick().await;
+                sleep(Duration::from_secs(self.interval)).await;
             }
 
             Ok(())
