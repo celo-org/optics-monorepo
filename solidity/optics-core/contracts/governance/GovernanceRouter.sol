@@ -113,13 +113,13 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     }
 
     modifier onlyGovernorOrRecoveryManager() {
-        if (inRecovery()) {
+        if (!inRecovery()) {
+            require(msg.sender == governor, "! called by governor");
+        } else {
             require(
                 msg.sender == recoveryManager,
                 "! called by recovery manager"
             );
-        } else {
-            require(msg.sender == governor, "! called by governor");
         }
         _;
     }
