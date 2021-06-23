@@ -1,0 +1,9 @@
+{
+  "messageInterval": 15,
+  "chatGen": {
+    "destination": 1000,
+    "recipient": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "message": "static message",
+    "type": "static"
+  }
+}

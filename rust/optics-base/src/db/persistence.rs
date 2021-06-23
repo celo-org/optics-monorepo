@@ -3,11 +3,19 @@ use rocksdb::{DBIterator, Error, DB};
 use std::{marker::PhantomData, ops::Deref};
 
 /// An iterator over a prefix that deserializes values
-pub struct PrefixIterator<'a, V>(DBIterator<'a>, PhantomData<*const V>);
+pub struct PrefixIterator<'a, V> {
+    iter: DBIterator<'a>,
+    prefix: &'a [u8],
+    _phantom: PhantomData<*const V>,
+}
 
-impl<'a, V> From<DBIterator<'a>> for PrefixIterator<'a, V> {
-    fn from(i: DBIterator<'a>) -> Self {
-        Self(i, PhantomData)
+impl<'a, V> PrefixIterator<'a, V> {
+    fn new(iter: DBIterator<'a>, prefix: &'a [u8], _phantom: PhantomData<*const V>) -> Self {
+        Self {
+            iter,
+            prefix,
+            _phantom,
+        }
     }
 }
 
@@ -18,9 +26,10 @@ where
     type Item = V;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0
-            .next()
-            .map(|(_k, v)| v.to_vec())
+        let prefix = self.prefix;
+        self.iter
+            .find(|(k, _)| k.strip_prefix(prefix).is_some())
+            .map(|(_, v)| v.to_vec())
             .map(|v| V::read_from(&mut v.as_slice()).expect("!corrupt"))
     }
 }
@@ -47,8 +56,12 @@ where
     ///
     /// Note that if the DB is corrupt and deserialization fails, this will
     /// panic.
-    fn iterator<'a, D: Deref<Target = DB>>(&self, db: &'a D) -> PrefixIterator<'a, V> {
-        db.prefix_iterator(Self::KEY_PREFIX).into()
+    fn iterator<D: Deref<Target = DB>>(db: &D) -> PrefixIterator<V> {
+        PrefixIterator::new(
+            db.prefix_iterator(Self::KEY_PREFIX),
+            Self::KEY_PREFIX,
+            PhantomData,
+        )
     }
 
     /// Stores key-value pair in db

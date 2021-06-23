@@ -271,7 +271,7 @@ impl ProverSync {
                 );
                 self.update_full(local_root, signed_update.update.new_root)
                     .await?;
-            } else if local_root != *INITIAL_ROOT
+            } else if !local_root.is_zero()
                 && self
                     .home
                     .signed_update_by_new_root(local_root)

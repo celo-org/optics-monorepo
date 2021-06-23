@@ -72,11 +72,9 @@ impl Prover {
         let mut prover = Self::default();
 
         // Ingest all leaves in db into prover tree
-        let db_iter = db.prefix_iterator(Self::KEY_PREFIX);
-        for (_, leaf) in db_iter {
-            // Safe to use potentially-panicking method `from_slice` as we
-            // assume that an invalid value implies DB corruption
-            prover.ingest(H256::from_slice(&leaf)).expect("!tree full");
+        let db_iter = Self::iterator(&db);
+        for leaf in db_iter {
+            prover.ingest(leaf).expect("!tree full");
         }
 
         prover

@@ -5,6 +5,7 @@ use color_eyre::{eyre::ensure, Result};
 use ethers::{core::types::H256, signers::Signer, types::Address};
 use rocksdb::DB;
 use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
+use tracing::{error, info, instrument::Instrumented, Instrument};
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
@@ -15,7 +16,6 @@ use optics_core::{
     traits::{Common, Home},
     SignedUpdate, Signers,
 };
-use tracing::info;
 
 use crate::settings::Settings;
 
@@ -59,75 +59,88 @@ impl Updater {
         db: Arc<DB>,
         mutex: Arc<Mutex<()>>,
         update_pause: u64,
-    ) -> Result<Option<JoinHandle<()>>> {
+        // hate this return type
+    ) -> Result<Option<Instrumented<JoinHandle<()>>>> {
         // Check if there is an update
         info!("Polling for an update");
         let update_opt = home.produce_update().await?;
 
+        if update_opt.is_none() {
+            info!("No update available");
+            return Ok(None);
+        }
+
         // If update exists, spawn task to wait, recheck, and submit update
-        if let Some(update) = update_opt {
-            return Ok(Some(tokio::spawn(async move {
-                info!("Have an update, awaiting the tick");
-                // Wait `update_pause` seconds
-                sleep(Duration::from_secs(update_pause)).await;
+        let update = update_opt.unwrap();
 
-                // Poll chain API to see if queue still contains new root
-                // and old root still equals home's current root
-                let (in_queue, current_root) =
-                    tokio::join!(home.queue_contains(update.new_root), home.current_root());
+        Ok(Some(tokio::spawn(async move {
+            info!("Have an update, awaiting the tick");
+            // Wait `update_pause` seconds
+            sleep(Duration::from_secs(update_pause)).await;
 
-                if in_queue.is_err() || current_root.is_err() {
-                    info!("not in queue, or connection gone");
+            // Poll chain API to see if queue still contains new root
+            // and old root still equals home's current root
+            let (in_queue, current_root) =
+                tokio::join!(
+                    home.queue_contains(update.new_root),
+                    home.current_root()
+                );
+
+            if in_queue.is_err() {
+                info!("not in queue");
+                return;
+            }
+
+            if current_root.is_err() {
+                error!("connection gone");
+                return;
+            }
+
+            let in_queue = in_queue.expect("checked");
+            let current_root = current_root.expect("checked");
+
+            let old_root = update.previous_root;
+            if in_queue && current_root == old_root {
+                // If update still valid and doesn't conflict with local
+                // history of signed updates, sign and submit update. Note
+                // that because we acquire a guard, only one thread
+                // can check and enter the below `if` block at a time,
+                // protecting from races between threads.
+
+                // acquire guard. If the guard can't be acquired, that
+                // means a tx is in flight and we should try again later.
+                let _guard = mutex.try_lock();
+                if _guard.is_err() {
                     return;
                 }
 
-                let in_queue = in_queue.unwrap();
-                let current_root = current_root.unwrap();
-                let old_root = update.previous_root;
+                if let Ok(None) = Self::db_get(&db, old_root) {
+                    info!("signing update");
+                    let signed = update.sign_with(signer.as_ref()).await.unwrap();
 
-                if in_queue && current_root == old_root {
-                    // If update still valid and doesn't conflict with local
-                    // history of signed updates, sign and submit update. Note
-                    // that because we acquire a guard, only one thread
-                    // can check and enter the below `if` block at a time,
-                    // protecting from races between threads.
-
-                    // acquire guard. If the guard can't be acquired, that
-                    // means a tx is in flight and we should try again later.
-                    let _guard = mutex.try_lock();
-                    if _guard.is_err() {
-                        return;
-                    }
-
-                    if let Ok(None) = Self::db_get(&db, old_root) {
-                        info!("signing update");
-                        let signed = update.sign_with(signer.as_ref()).await.unwrap();
-
-                        // If successfully submitted update, record in db
-                        info!(
-                            "Dispatching signed update to contract. Current root is {:?}, new root is {:?}",
-                            &signed.update.previous_root, &signed.update.new_root
-                        );
-                        match home.update(&signed).await {
-                            Ok(_) => {
-                                info!("Storing signed update in db");
-                                Self::db_put(&db, old_root, signed).expect("!db_put");
-                            }
-                            Err(ref e) => {
-                                tracing::error!("Error submitting update to home: {:?}", e)
-                            }
+                    // If successfully submitted update, record in db
+                    info!(
+                        "Dispatching signed update to contract. Current root is {:?}, new root is {:?}",
+                        &signed.update.previous_root, &signed.update.new_root
+                    );
+                    match home.update(&signed).await {
+                        Ok(_) => {
+                            info!("Storing signed update in db");
+                            Self::db_put(&db, old_root, signed).expect("!db_put");
                         }
-                    } // TODO: log here
-                      // guard dropped here
+                        Err(ref e) => {
+                            tracing::error!("Error submitting update to home: {:?}", e)
+                        }
+                    }
                 } else {
-                    info!("Declined to submit update, no longer current");
+                    error!("Found conflicting updater in DB");
                 }
-            })));
-        } else {
-            info!("No update available");
-        }
-
-        Ok(None)
+                // TODO: log here
+                    // guard dropped here
+            } else {
+                info!("Declined to submit update, no longer current");
+            }
+        }).in_current_span()))
     }
 }
 
