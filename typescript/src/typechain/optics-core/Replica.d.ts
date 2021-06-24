@@ -23,6 +23,7 @@ interface ReplicaInterface extends ethers.utils.Interface {
   functions: {
     "PROCESS_GAS()": FunctionFragment;
     "RESERVE_GAS()": FunctionFragment;
+    "acceptableRoot(bytes32)": FunctionFragment;
     "canConfirm()": FunctionFragment;
     "confirm()": FunctionFragment;
     "confirmAt(bytes32)": FunctionFragment;
@@ -54,6 +55,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "RESERVE_GAS",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "acceptableRoot",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "canConfirm",
@@ -205,6 +210,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
     functionFragment: "RESERVE_GAS",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptableRoot",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "canConfirm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "confirm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "confirmAt", data: BytesLike): Result;
@@ -316,6 +325,11 @@ export class Replica extends BaseContract {
     PROCESS_GAS(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     canConfirm(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -472,6 +486,8 @@ export class Replica extends BaseContract {
 
   RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
+  acceptableRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
   canConfirm(overrides?: CallOverrides): Promise<boolean>;
 
   confirm(
@@ -621,6 +637,11 @@ export class Replica extends BaseContract {
     PROCESS_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     canConfirm(overrides?: CallOverrides): Promise<boolean>;
 
@@ -807,6 +828,11 @@ export class Replica extends BaseContract {
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     canConfirm(overrides?: CallOverrides): Promise<BigNumber>;
 
     confirm(
@@ -958,6 +984,11 @@ export class Replica extends BaseContract {
     PROCESS_GAS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     canConfirm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

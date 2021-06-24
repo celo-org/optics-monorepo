@@ -275,4 +275,8 @@ where
             _ => panic!("Bad status from solidity"),
         }
     }
+
+    async fn acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        Ok(self.contract.acceptable_root(root.into()).call().await?)
+    }
 }

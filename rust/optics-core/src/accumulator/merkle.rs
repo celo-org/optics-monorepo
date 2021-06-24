@@ -51,6 +51,13 @@ pub struct Proof {
     pub path: [H256; TREE_DEPTH],
 }
 
+impl Proof {
+    /// Calculate the merkle root produced by evaluating the proof
+    pub fn root(&self) -> H256 {
+        merkle_root_from_branch(self.leaf, self.path.as_ref(), TREE_DEPTH, self.index)
+    }
+}
+
 impl Encode for Proof {
     fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
     where

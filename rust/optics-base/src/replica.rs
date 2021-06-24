@@ -149,6 +149,14 @@ impl Replica for Replicas {
             Replicas::Other(replica) => replica.prove_and_process(message, proof).await,
         }
     }
+
+    async fn acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        match self {
+            Replicas::Ethereum(replica) => replica.acceptable_root(root).await,
+            Replicas::Mock(mock_replica) => mock_replica.acceptable_root(root).await,
+            Replicas::Other(replica) => replica.acceptable_root(root).await,
+        }
+    }
 }
 
 #[async_trait]

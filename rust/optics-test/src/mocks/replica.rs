@@ -67,6 +67,8 @@ mock! {
         ) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _message_status(&self, leaf: H256) -> Result<MessageStatus, ChainCommunicationError> {}
+
+        pub fn _acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {}
     }
 }
 
@@ -127,6 +129,10 @@ impl Replica for MockReplicaContract {
         leaf: H256,
     ) -> Result<optics_core::traits::MessageStatus, ChainCommunicationError> {
         self._message_status(leaf)
+    }
+
+    async fn acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        self._acceptable_root(root)
     }
 }
 

@@ -49,7 +49,7 @@ contract Replica is Initializable, Common, QueueManager {
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
-    function acceptableRoot(bytes32 _root) internal view returns (bool) {
+    function acceptableRoot(bytes32 _root) public view returns (bool) {
         uint256 _time = confirmAt[_root];
         if (_time == 0) {
             return false;

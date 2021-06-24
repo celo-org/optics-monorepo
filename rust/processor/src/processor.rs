@@ -74,7 +74,8 @@ impl ReplicaProcessor {
             //      - If not, wait and poll again
             // 3. Check if we have a proof for that message
             //      - If not, wait and poll again
-            // 4. Submit the proof to the replica
+            // 4. Check if the proof is valid under the replica
+            // 5. Submit the proof to the replica
             loop {
                 let sequence = self.replica.next_to_process().await?;
                 info!(
@@ -109,6 +110,15 @@ impl ReplicaProcessor {
                     let err = format!("Leaf in prover does not match retrieved message. Index: {}. Calculated: {}. Prover: {}.", message.leaf_index, message.to_leaf(), proof.leaf);
                     error!("{}", err);
                     bail!(err);
+                }
+
+                while !self.replica.acceptable_root(proof.root()).await? {
+                    info!(
+                        "Proof under root {} not yet valid on replica {}",
+                        proof.root(),
+                        self.replica.name(),
+                    );
+                    sleep(Duration::from_secs(self.interval)).await;
                 }
 
                 // Dispatch for processing
