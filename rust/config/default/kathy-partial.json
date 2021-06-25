@@ -1,7 +1,7 @@
 {
   "messageInterval": 100,
   "chatGenConfig": {
-    "destination": 1,
+    "destination": 2000,
     "message": "static message",
     "recipient": "recipient",
     "type": "static"
