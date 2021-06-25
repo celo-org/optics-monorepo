@@ -1,33 +1,36 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import {BridgeMessage} from "./BridgeMessage.sol";
+// ============ Internal Imports ============
 import {TokenRegistry} from "./TokenRegistry.sol";
-import {BridgeToken} from "./BridgeToken.sol";
-import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
-
+import {Router} from "../Router.sol";
+import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
+import {BridgeMessage} from "./BridgeMessage.sol";
+// ============ External Imports ============
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {
-    TypeCasts
+TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {
-    IMessageRecipient
-} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
-
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import {Router} from "../Router.sol";
 
+/**
+ * @title BridgeRouter
+ */
 contract BridgeRouter is Router, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
+    // ======== Constructor =========
+
     constructor(address _xAppConnectionManager)
         TokenRegistry(_xAppConnectionManager)
     {} // solhint-disable-line no-empty-blocks
+
+    // ======== External: Handle =========
 
     /**
      * @notice Handles an incoming message
@@ -40,82 +43,98 @@ contract BridgeRouter is Router, TokenRegistry {
         bytes32 _sender,
         bytes memory _message
     ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
+        // parse tokenId and action from message
         bytes29 _msg = _message.ref(0).mustBeMessage();
         bytes29 _tokenId = _msg.tokenId();
         bytes29 _action = _msg.action();
+        // handle message based on the intended action
         if (_action.isTransfer()) {
             _handleTransfer(_tokenId, _action);
         } else if (_action.isDetails()) {
             _handleDetails(_tokenId, _action);
         } else {
-            require(false, "!action");
+            require(false, "!valid action");
         }
     }
 
+    // ======== External: Send Token =========
+
     /**
-     * @notice Sends a Transfer message.
-     * 1. If the token is native, it holds the amount in the
-     *    contract. Otherwise the token is a representational
-     *    asset, and is burned.
-     * 2. Formats new Transfer message and enqueues it to home.
+     * @notice Send tokens to a recipient on a remote chain
      * @param _token The token address
+     * @param _amnt The amount
      * @param _destination The destination domain
      * @param _recipient The recipient address
-     * @param _amnt The amount
      */
     function send(
         address _token,
+        uint256 _amnt,
         uint32 _destination,
-        bytes32 _recipient,
-        uint256 _amnt
+        bytes32 _recipient
     ) external {
+        // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
+        // remove tokens from circulation on this chain
         IERC20 _bridgeToken = IERC20(_token);
-
         if (_isNative(_bridgeToken)) {
+            // if the tokens are native to this chain, hold them in escrow in the Router
             _bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
         } else {
+            // if the token is not native to this chain, burn the tokens on this chain
             _downcast(_bridgeToken).burn(msg.sender, _amnt);
         }
-
-        TokenId memory _tokId = _tokenIdFor(_token);
-        bytes29 _tokenId =
-            BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
+        // format Transfer Tokens action
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
-
+        // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
-            BridgeMessage.formatMessage(_tokenId, _action)
+            BridgeMessage.formatMessage(_formatTokenId(_token), _action)
         );
     }
 
+    // ======== External: Update Token Details =========
+
     /**
-     * @notice Sends a Details message.
+     * @notice Update the token metadata on another chain
      * @param _token The token address
      * @param _destination The destination domain
      */
+    // TODO: should this message be sent to every other remote router?
+    // TODO: should we require that _token is native to this chain?
     function updateDetails(address _token, uint32 _destination) external {
+        // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
+        // format Update Details message
         IBridgeToken _bridgeToken = IBridgeToken(_token);
-
-        TokenId memory _tokId = _tokenIdFor(_token);
-        bytes29 _tokenId =
-            BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
-
         bytes29 _action =
             BridgeMessage.formatDetails(
                 TypeCasts.coerceBytes32(_bridgeToken.name()),
                 TypeCasts.coerceBytes32(_bridgeToken.symbol()),
                 _bridgeToken.decimals()
             );
-
+        // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
-            BridgeMessage.formatMessage(_tokenId, _action)
+            BridgeMessage.formatMessage(_formatTokenId(_token), _action)
         );
     }
+
+    // ============ Internal: Send / UpdateDetails ============
+
+    /**
+     * @notice Given a tokenAddress, format the tokenId
+     * identifier for the message.
+     * @param _token The token address
+     * @param _tokenId The bytes-encoded tokenId
+     */
+    function _formatTokenId(address _token) internal view returns (bytes29 _tokenId) {
+        TokenId memory _tokId = _tokenIdFor(_token);
+        _tokenId = BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
+    }
+
+    // ============ Internal: Handle ============
 
     /**
      * @notice Handles an incoming Transfer message.
@@ -131,11 +150,18 @@ contract BridgeRouter is Router, TokenRegistry {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_action, BridgeMessage.Types.Transfer)
     {
+        // get the token contract for the given tokenId on this chain;
+        // (if the token is not native to this chain and there is
+        // no existing representation token contract, the TokenRegistry will deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
-
+        // send the tokens into circulation on this chain
         if (_isNative(_token)) {
+            // if the token is native, the tokens have been held in escrow in this contract
+            // while they have been circulating on remote chains;
+            // transfer the native token to the recipient
             _token.safeTransfer(_action.evmRecipient(), _action.amnt());
         } else {
+            // if the token is not native, mint the tokens to the recipient on this chain
             _downcast(_token).mint(_action.evmRecipient(), _action.amnt());
         }
     }
@@ -150,9 +176,12 @@ contract BridgeRouter is Router, TokenRegistry {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_action, BridgeMessage.Types.Details)
     {
+        // get the token contract deployed on this chain
         IERC20 _token = _ensureToken(_tokenId);
+        // require that the token is not native to this chain
+        // (or else the Router cannot update its metadata)
         require(!_isNative(_token), "!repr");
-
+        // update the token metadata
         _downcast(_token).setDetails(
             _action.name(),
             _action.symbol(),

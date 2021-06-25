@@ -106,6 +106,11 @@ const _abi = [
         type: "address",
       },
       {
+        internalType: "uint256",
+        name: "_amnt",
+        type: "uint256",
+      },
+      {
         internalType: "uint32",
         name: "_destination",
         type: "uint32",
@@ -114,11 +119,6 @@ const _abi = [
         internalType: "bytes32",
         name: "_recipient",
         type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "_amnt",
-        type: "uint256",
       },
     ],
     name: "send",

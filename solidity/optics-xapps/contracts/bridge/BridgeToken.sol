@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+// ============ Internal Imports ============
+import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {ERC20} from "./OZERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+// ============ External Imports ============
 import {
-    TypeCasts
+TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     /**

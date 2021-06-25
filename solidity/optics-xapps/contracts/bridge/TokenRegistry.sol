@@ -1,60 +1,65 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+// ============ Internal Imports ============
 import {BridgeMessage} from "./BridgeMessage.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {IBridgeToken} from "../../interfaces/token-bridge/IBridgeToken.sol";
-
+import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
+import {XAppConnectionClient} from "../XAppConnectionClient.sol";
+// ============ External Imports ============
 import {
     XAppConnectionManager,
     TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-import {XAppConnectionClient} from "../XAppConnectionClient.sol";
 
-// How the token registry works:
-// We sort token types as "representation" or "native".
-// Native means a contract that is originally deployed on this chain
-// Representation (repr) means a token that originates on some other chain
-//
-// We identify tokens by a 4 byte chain ID and a 32 byte identifier in that
-// chain's native address format. We leave upgradability and management of
-// that identity to the token's deployers.
-//
-// When the router handles an incoming message, it determines whether the
-// transfer is for a native asset. If not, it checks for an existing
-// representation. If no such representation exists, it deploys a new
-// representation token contract. It then stores the relationship in the
-// "reprToCanonical" and "canonicalToRepr" mappings to ensure we can always
-// perform a lookup in either direction
-//
-// Note that native tokens should NEVER be represented in these lookup tables.
 
+/**
+ * @title TokenRegistry
+ * @notice manages a registry of token contracts on this chain
+ *
+ * We sort token types as "representation" or "native".
+ * Native - a token contract that is originally deployed on this chain
+ * Representation (repr) - a token that originates on some other chain
+ *
+ * . We leave upgradability and management of
+ * that identity to the token's deployers.
+ *
+ * When the router handles an incoming message, it determines whether the
+ * transfer is for a native asset. If not, it checks for an existing
+ * representation. If no such representation exists, it deploys a new
+ * representation token contract. It then stores the relationship in the
+ * "reprToCanonical" and "canonicalToRepr" mappings to ensure we can always
+ * perform a lookup in either direction
+ * Note that native tokens should NEVER be represented in these lookup tables.
+ */
 abstract contract TokenRegistry is XAppConnectionClient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
 
-    // simplifies the mapping type if we do it this way
+    // We identify tokens by a TokenId:
+    // domain - 4 byte chain ID
+    // id - 32 byte identifier in native chain's address format
     struct TokenId {
         uint32 domain;
         bytes32 id;
     }
 
-    // We should be able to deploy a new token on demand
+    // Contract bytecode that will be cloned to deploy
+    // new representation token contracts
     address internal tokenTemplate;
 
-    // Map the local address to the token ID.
+    // local representation token address => token ID
     mapping(address => TokenId) internal reprToCanonical;
 
-    // Map the hash of the tightly-packed token ID to the address
-    // of the local representation.
-    //
-    // If the token is native, this MUST be address(0).
+    // hash of the tightly-packed TokenId => local representation token address
+    // If the token is native, this MUST map to address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
+
+    // ======== Constructor =========
 
     constructor(address _xAppConnectionManager)
         XAppConnectionClient(_xAppConnectionManager)
@@ -71,8 +76,8 @@ abstract contract TokenRegistry is XAppConnectionClient {
         tokenTemplate = _newTemplate;
     }
 
-    function _createClone(address _target) internal returns (address result) {
-        bytes20 targetBytes = bytes20(_target);
+    function _cloneTokenContract() internal returns (address result) {
+        bytes20 targetBytes = bytes20(tokenTemplate);
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let _clone := mload(0x40)
@@ -94,12 +99,12 @@ abstract contract TokenRegistry is XAppConnectionClient {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _token)
     {
-        bytes32 _idHash = _tokenId.keccak();
-        _token = _createClone(tokenTemplate);
-
+        // Deploy the token contract by cloning tokenTemplate
+        _token = _cloneTokenContract();
         // Initial details are set to a hash of the ID
+        bytes32 _idHash = _tokenId.keccak();
         IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
-
+        // store token in mappings
         reprToCanonical[_token].domain = _tokenId.domain();
         reprToCanonical[_token].id = _tokenId.id();
         canonicalToRepr[_idHash] = _token;

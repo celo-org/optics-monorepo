@@ -25,7 +25,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "send(address,uint32,bytes32,uint256)": FunctionFragment;
+    "send(address,uint256,uint32,bytes32)": FunctionFragment;
     "setTemplate(address)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -48,7 +48,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "send",
-    values: [string, BigNumberish, BytesLike, BigNumberish]
+    values: [string, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "setTemplate", values: [string]): string;
   encodeFunctionData(
@@ -172,9 +172,9 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
+      _amnt: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
-      _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -223,9 +223,9 @@ export class BridgeRouter extends BaseContract {
 
   send(
     _token: string,
+    _amnt: BigNumberish,
     _destination: BigNumberish,
     _recipient: BytesLike,
-    _amnt: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -272,9 +272,9 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
+      _amnt: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
-      _amnt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -331,9 +331,9 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
+      _amnt: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
-      _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -383,9 +383,9 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
+      _amnt: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
-      _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

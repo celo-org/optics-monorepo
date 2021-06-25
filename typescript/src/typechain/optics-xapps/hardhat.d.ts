@@ -57,14 +57,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TypedMemView__factory>;
     getContractFactory(
-      name: "PingPongRouter",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.PingPongRouter__factory>;
-    getContractFactory(
-      name: "Router",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Router__factory>;
-    getContractFactory(
       name: "BridgeRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BridgeRouter__factory>;
@@ -80,6 +72,14 @@ declare module "hardhat/types/runtime" {
       name: "TokenRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenRegistry__factory>;
+    getContractFactory(
+      name: "PingPongRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PingPongRouter__factory>;
+    getContractFactory(
+      name: "Router",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Router__factory>;
     getContractFactory(
       name: "RouterTemplate",
       signerOrOptions?: ethers.Signer | FactoryOptions
