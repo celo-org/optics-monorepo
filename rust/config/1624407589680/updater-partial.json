@@ -1,8 +1,0 @@
-{
-  "pollingInterval": 5,
-  "updatePause": 15,
-  "updater": {
-    "key": "",
-    "type": "hexKey"
-  }
-}
