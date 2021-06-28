@@ -1,12 +1,9 @@
 import { ethers } from 'ethers';
 
-// const { ethers } = require('hardhat');
-// import 'hardhat';
 const { waffle } = require('hardhat');
 const { provider } = waffle;
-// import { Test } from 'mocha';
 const { expect } = require('chai');
-import { TestMerkle__factory } from '../../typechain/optics-core';
+const { TestMerkle__factory } = require('../../typechain/optics-core');
 
 const { testCases } = require('../../../vectors/merkleTestCases.json');
 
