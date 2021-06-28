@@ -5,9 +5,8 @@ use optics_base::{
     settings::{ChainSetup, SignerConf},
 };
 
-decl_settings!(Settings {
-    agent: "watcher",
+decl_settings!(Watcher {
     watcher: SignerConf,
     connection_managers: Vec<ChainSetup>,
-    polling_interval: u64,
+    polling_interval: String,
 });

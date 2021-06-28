@@ -71,70 +71,68 @@ macro_rules! decl_agent {
 /// Declare a new settings block
 macro_rules! decl_settings {
     (
-        $(#[$outer:meta])*
-        Settings {
-            agent: $name:literal,
+        $name:ident {
             $($(#[$tags:meta])* $prop:ident: $type:ty,)*
         }
     ) => {
+        paste::paste! {
+            #[derive(Debug, serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            #[doc = "Settings for `" $name]
+            pub struct [<$name Settings>] {
+                #[serde(flatten)]
+                pub(crate) base: optics_base::settings::Settings,
+                $(
+                    $(#[$tags])*
+                    pub(crate) $prop: $type,
+                )*
+            }
 
-        $(#[$outer])*
-        #[derive(Debug, serde::Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        pub struct Settings {
-            #[serde(flatten)]
-            pub(crate) base: optics_base::settings::Settings,
-            $(
-                $(#[$tags])*
-                pub(crate) $prop: $type,
-            )*
-        }
+            impl AsRef<optics_base::settings::Settings> for [<$name Settings>] {
+                fn as_ref(&self) -> &optics_base::settings::Settings {
+                    &self.base
+                }
+            }
 
-        impl AsRef<optics_base::settings::Settings> for Settings {
-            fn as_ref(&self) -> &optics_base::settings::Settings {
-                &self.base
+            impl [<$name Settings>] {
+                /// Read settings from the config files and/or env
+                /// The config will be located at `config/default` unless specified
+                /// otherwise
+                ///
+                /// Configs are loaded in the following precedence order:
+                ///
+                /// 1. The file specified by the `RUN_ENV` and `BASE_CONFIG`
+                ///    env vars. `RUN_ENV/BASECONFIG`
+                /// 2. The file specified by the `RUN_ENV` env var and the
+                ///    agent's name. `RUN_ENV/AGENT-partial.json`
+                /// 3. Configuration env vars with the prefix `OPT_BASE` intended
+                ///    to be shared by multiple agents in the same environment
+                /// 4. Configuration env vars with the prefix `OPT_AGENTNAME`
+                ///    intended to be used by a specific agent.
+                ///
+                /// Specify a configuration directory with the `RUN_ENV` env
+                /// variable. Specify a configuration file with the `BASE_CONFIG`
+                /// env variable.
+                pub fn new() -> Result<Self, config::ConfigError> {
+                    let mut s = config::Config::new();
+
+                    let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "default".into());
+
+                    let fname = std::env::var("BASE_CONFIG").unwrap_or_else(|_| "base".into());
+
+                    s.merge(config::File::with_name(&format!("./config/{}/{}", env, fname)))?;
+                    s.merge(config::File::with_name(&format!("./config/{}/{}-partial", env, stringify!($name).to_lowercase())).required(false))?;
+
+                    // Use a base configuration env variable prefix
+                    s.merge(config::Environment::with_prefix(&"OPT_BASE").separator("_"))?;
+
+                    // Derive additional prefix from agent name
+                    let prefix = format!("OPT_{}", stringify!($name).to_ascii_uppercase());
+                    s.merge(config::Environment::with_prefix(&prefix).separator("_"))?;
+
+                    s.try_into()
+                }
             }
         }
-
-        impl Settings {
-            /// Read settings from the config files and/or env
-            /// The config will be located at `config/default` unless specified
-            /// otherwise
-            ///
-            /// Configs are loaded in the following precedence order:
-            ///
-            /// 1. The file specified by the `RUN_ENV` and `BASE_CONFIG`
-            ///    env vars. `RUN_ENV/BASECONFIG`
-            /// 2. The file specified by the `RUN_ENV` env var and the
-            ///    agent's name. `RUN_ENV/AGENT-partial.json`
-            /// 3. Configuration env vars with the prefix `OPT_BASE` intended
-            ///    to be shared by multiple agents in the same environment
-            /// 4. Configuration env vars with the prefix `OPT_AGENTNAME`
-            ///    intended to be used by a specific agent.
-            ///
-            /// Specify a configuration directory with the `RUN_ENV` env
-            /// variable. Specify a configuration file with the `BASE_CONFIG`
-            /// env variable.
-            pub fn new() -> Result<Self, config::ConfigError> {
-                let mut s = config::Config::new();
-
-                let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "default".into());
-
-                let fname = std::env::var("BASE_CONFIG").unwrap_or_else(|_| "base".into());
-
-                s.merge(config::File::with_name(&format!("./config/{}/{}", env, fname)))?;
-                s.merge(config::File::with_name(&format!("./config/{}/{}-partial", env, $name)).required(false))?;
-
-                // Use a base configuration env variable prefix
-                s.merge(config::Environment::with_prefix(&"OPT_BASE").separator("_"))?;
-
-                // Derive additional prefix from agent name
-                let prefix = format!("OPT_{}", $name.to_ascii_uppercase());
-                s.merge(config::Environment::with_prefix(&prefix).separator("_"))?;
-
-                s.try_into()
-            }
-        }
-
     }
 }

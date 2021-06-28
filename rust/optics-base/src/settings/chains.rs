@@ -23,7 +23,7 @@ pub struct ChainSetup {
     /// Chain name
     pub name: String,
     /// Chain domain identifier
-    pub domain: u32,
+    pub domain: String,
     /// Address of contract on the chain
     pub address: String,
     /// The chain connection details
@@ -36,8 +36,13 @@ impl ChainSetup {
     pub async fn try_into_home(&self, signer: Option<Signers>) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
-                conf.try_into_home(&self.name, self.domain, self.address.parse()?, signer)
-                    .await?,
+                conf.try_into_home(
+                    &self.name,
+                    self.domain.parse().expect("invalid uint"),
+                    self.address.parse()?,
+                    signer,
+                )
+                .await?,
             )),
         }
     }
@@ -46,8 +51,13 @@ impl ChainSetup {
     pub async fn try_into_replica(&self, signer: Option<Signers>) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
-                conf.try_into_replica(&self.name, self.domain, self.address.parse()?, signer)
-                    .await?,
+                conf.try_into_replica(
+                    &self.name,
+                    self.domain.parse().expect("invalid uint"),
+                    self.address.parse()?,
+                    signer,
+                )
+                .await?,
             )),
         }
     }
@@ -61,7 +71,7 @@ impl ChainSetup {
             ChainConf::Ethereum(conf) => Ok(ConnectionManagers::Ethereum(
                 conf.try_into_connection_manager(
                     &self.name,
-                    self.domain,
+                    self.domain.parse().expect("invalid uint"),
                     self.address.parse()?,
                     signer,
                 )

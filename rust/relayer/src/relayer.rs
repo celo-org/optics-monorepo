@@ -12,7 +12,7 @@ use optics_base::{
 };
 use optics_core::traits::{Common, Replica};
 
-use crate::settings::Settings;
+use crate::settings::RelayerSettings as Settings;
 
 #[derive(Debug)]
 struct UpdatePoller {
@@ -173,7 +173,7 @@ impl OpticsAgent for Relayer {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.polling_interval,
+            settings.polling_interval.parse().expect("invalid uint"),
             settings.as_ref().try_into_core().await?,
         ))
     }

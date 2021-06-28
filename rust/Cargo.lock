@@ -1540,6 +1540,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "paste",
  "rand 0.8.3",
  "serde 1.0.125",
  "serde_json",
@@ -1895,6 +1896,7 @@ dependencies = [
  "optics-core",
  "optics-ethereum",
  "optics-test",
+ "paste",
  "rocksdb",
  "serde 1.0.125",
  "serde_json",
@@ -2003,6 +2005,12 @@ dependencies = [
  "base64ct",
  "rand_core 0.6.2",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acbf547ad0c65e31259204bd90935776d1c693cec2f4ff7abb7a1bbbd40dfe58"
 
 [[package]]
 name = "pbkdf2"
@@ -2182,6 +2190,7 @@ dependencies = [
  "optics-base",
  "optics-core",
  "optics-test",
+ "paste",
  "rocksdb",
  "serde 1.0.125",
  "serde_json",
@@ -2343,6 +2352,7 @@ dependencies = [
  "optics-base",
  "optics-core",
  "optics-test",
+ "paste",
  "serde 1.0.125",
  "serde_json",
  "thiserror",
@@ -3192,6 +3202,7 @@ dependencies = [
  "optics-core",
  "optics-ethereum",
  "optics-test",
+ "paste",
  "rocksdb",
  "serde 1.0.125",
  "serde_json",
@@ -3352,6 +3363,7 @@ dependencies = [
  "optics-core",
  "optics-ethereum",
  "optics-test",
+ "paste",
  "rocksdb",
  "serde 1.0.125",
  "serde_json",

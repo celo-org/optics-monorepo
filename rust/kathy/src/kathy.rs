@@ -16,7 +16,7 @@ use optics_base::{
 use optics_core::{traits::Home, Message};
 use tracing::info;
 
-use crate::settings::Settings;
+use crate::settings::KathySettings as Settings;
 
 decl_agent!(Kathy {
     duration: u64,
@@ -39,8 +39,8 @@ impl OpticsAgent for Kathy {
 
     async fn from_settings(settings: Settings) -> Result<Self> {
         Ok(Self::new(
-            settings.message_interval,
-            settings.chat_gen.into(),
+            settings.message_interval.parse().expect("invalid u64"),
+            settings.chat.into(),
             settings.base.try_into_core().await?,
         ))
     }
@@ -54,7 +54,7 @@ impl OpticsAgent for Kathy {
             loop {
                 if let Some(message) = generator.gen_chat() {
                     info!(
-                        "Enqueuing message of length {} to {}:{}",
+                        "Enqueuing message of length {} to {}::{}",
                         message.body.len(),
                         message.destination,
                         message.recipient

@@ -28,7 +28,7 @@ use optics_core::{
 
 use crate::{
     prover::{Prover, ProverSync},
-    settings::Settings,
+    settings::ProcessorSettings as Settings,
 };
 
 #[derive(Debug)]
@@ -185,7 +185,7 @@ impl OpticsAgent for Processor {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.polling_interval,
+            settings.polling_interval.parse().expect("invalid integer"),
             settings.as_ref().try_into_core().await?,
         ))
     }

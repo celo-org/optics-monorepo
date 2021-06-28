@@ -11,7 +11,7 @@ use color_eyre::{eyre::eyre, Result};
 
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
-use crate::{kathy::Kathy, settings::Settings};
+use crate::{kathy::Kathy, settings::KathySettings as Settings};
 
 async fn _main(settings: Settings) -> Result<()> {
     let kathy = Kathy::from_settings(settings).await?;
@@ -37,6 +37,8 @@ fn setup() -> Result<Settings> {
         Style::Default => builder.try_init(),
     }
     .map_err(|e| eyre!(e))?;
+
+    dbg!(&settings);
 
     Ok(settings)
 }

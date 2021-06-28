@@ -14,7 +14,7 @@ use color_eyre::{eyre::eyre, Result};
 
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
-use crate::{settings::Settings, updater::Updater};
+use crate::{settings::UpdaterSettings as Settings, updater::Updater};
 
 async fn _main(settings: Settings) -> Result<()> {
     let updater = Updater::from_settings(settings).await?;

@@ -14,7 +14,7 @@ mod watcher;
 
 use color_eyre::{eyre::eyre, Result};
 
-use crate::{settings::Settings, watcher::Watcher};
+use crate::{settings::WatcherSettings as Settings, watcher::Watcher};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {

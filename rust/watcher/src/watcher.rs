@@ -27,7 +27,7 @@ use optics_core::{
     FailureNotification, SignedUpdate, Signers,
 };
 
-use crate::settings::Settings;
+use crate::settings::WatcherSettings as Settings;
 
 #[derive(Debug, Error)]
 enum WatcherError {
@@ -352,7 +352,7 @@ impl OpticsAgent for Watcher {
 
         Ok(Self::new(
             settings.watcher.try_into_signer()?,
-            settings.polling_interval,
+            settings.polling_interval.parse().expect("invalid uint"),
             connection_managers,
             core,
         ))

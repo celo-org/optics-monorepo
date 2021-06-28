@@ -1,9 +1,8 @@
 //! Configuration
 use optics_base::{decl_settings, settings::SignerConf};
 
-decl_settings!(Settings {
-    agent: "updater",
+decl_settings!(Updater {
     updater: SignerConf,
-    polling_interval: u64,
-    update_pause: u64,
+    polling_interval: String,
+    update_pause: String,
 });

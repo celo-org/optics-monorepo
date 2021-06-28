@@ -14,7 +14,7 @@ mod settings;
 
 use color_eyre::{eyre::eyre, Result};
 
-use crate::{processor::Processor, settings::Settings};
+use crate::{processor::Processor, settings::ProcessorSettings as Settings};
 use optics_base::{agent::OpticsAgent, settings::log::Style};
 
 async fn _main(settings: Settings) -> Result<()> {

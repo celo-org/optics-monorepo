@@ -12,7 +12,7 @@
   "replicas": {
     "alfajores": {
       "address": "0x7C478A7c2952D5827E39D93319906E8044E884b7",
-      "domain": 1000,
+      "domain": "1000",
       "name": "alfajores",
       "rpcStyle": "ethereum",
       "connection": {
@@ -23,7 +23,7 @@
   },
   "home": {
     "address": "0xca445BA4554cB9f2cA90f63d14A73D568dE67cc6",
-    "domain": 3000,
+    "domain": "3000",
     "name": "kovan",
     "rpcStyle": "ethereum",
     "connection": {

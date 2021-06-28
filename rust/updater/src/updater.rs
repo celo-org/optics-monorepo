@@ -17,7 +17,7 @@ use optics_core::{
     SignedUpdate, Signers,
 };
 
-use crate::settings::Settings;
+use crate::settings::UpdaterSettings as Settings;
 
 /// An updater agent
 #[derive(Debug)]
@@ -157,8 +157,8 @@ impl OpticsAgent for Updater {
     {
         Ok(Self::new(
             settings.updater.try_into_signer()?,
-            settings.polling_interval,
-            settings.update_pause,
+            settings.polling_interval.parse().expect("invalid uint"),
+            settings.update_pause.parse().expect("invalid uint"),
             settings.as_ref().try_into_core().await?,
         ))
     }

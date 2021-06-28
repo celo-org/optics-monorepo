@@ -24,6 +24,7 @@ rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../optics-ethereum"}
 optics-test = { path = "../optics-test" }
+paste = "1.0.5"
 
 [[example]]
 name = "example"
