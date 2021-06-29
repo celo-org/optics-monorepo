@@ -63,6 +63,7 @@ export interface ChainConfig {
   optimisticSeconds: number;
   watchers?: Address[];
   gasPrice?: ethers.BigNumberish;
+  confirmations?: number;
 }
 
 // deserialized version of the ChainConfig
@@ -76,6 +77,7 @@ export type Chain = {
   optimisticSeconds: number;
   watchers: Address[];
   gasPrice: ethers.BigNumber;
+  confirmations: number;
 };
 
 // data about a chain and its deployed contracts
@@ -103,6 +105,7 @@ export function toChain(config: ChainConfig): Chain {
     optimisticSeconds: config.optimisticSeconds,
     watchers: config.watchers ?? [],
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    confirmations: config.confirmations ?? 5,
   };
 }
 
@@ -117,6 +120,7 @@ export function toTestChain(config: ChainConfig, provider: ethers.providers.Prov
     optimisticSeconds: config.optimisticSeconds,
     watchers: config.watchers ?? [],
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    confirmations: config.confirmations ?? 5,
   };
 }
 

@@ -13,10 +13,10 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
     deploy.chain.deployer,
   );
   deploy.contracts.upgradeBeaconController = await factory.deploy();
-  // deploy.contracts.upgradeBeaconController = await factory.deploy({
-  //   gasPrice: deploy.chain.gasPrice,
-  // });
-  // await deploy.contracts.upgradeBeaconController.deployTransaction.wait(5);
+  deploy.contracts.upgradeBeaconController = await factory.deploy({
+    gasPrice: deploy.chain.gasPrice,
+  });
+  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(deploy.chain.confirmations);
 }
 
 /**
@@ -28,10 +28,10 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
 export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
   deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater);
-  // deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
-  //   gasPrice: deploy.chain.gasPrice,
-  // });
-  // await deploy.contracts.updaterManager.deployTransaction.wait(5);
+  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
+    gasPrice: deploy.chain.gasPrice,
+  });
+  await deploy.contracts.updaterManager.deployTransaction.wait(deploy.chain.confirmations);
 }
 
 /**
@@ -47,7 +47,7 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
   deploy.contracts.xappConnectionManager = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(5);
+  await deploy.contracts.xappConnectionManager.deployTransaction.wait(deploy.chain.confirmations);
 }
 
 /**
@@ -245,7 +245,7 @@ export async function relinquish(deploy: Deploy) {
 
   console.log(`${deploy.chain.name}: Dispatched relinquish home`);
 
-  await tx.wait(5);
+  await tx.wait(deploy.chain.confirmations);
   console.log(`${deploy.chain.name}: Control relinquished`);
 }
 
@@ -263,7 +263,7 @@ export async function enrollReplica(local: Deploy, remote: Deploy) {
     remote.chain.domain,
     { gasPrice: local.chain.gasPrice },
   );
-  await tx.wait(5);
+  await tx.wait(local.chain.confirmations);
 
   console.log(`${local.chain.name}: replica enrollment done`);
 }
@@ -286,7 +286,7 @@ export async function enrollWatchers(left: Deploy, right: Deploy) {
           true,
           { gasPrice: left.chain.gasPrice },
         );
-      await tx.wait(5);
+      await tx.wait(deploy.chain.confirmations);
     }),
   );
 
@@ -306,7 +306,7 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
     toBytes32(remote.contracts.governance!.proxy.address),
     { gasPrice: local.chain.gasPrice },
   );
-  await tx.wait(5);
+  await tx.wait(deploy.chain.confirmations);
   console.log(`${local.chain.name}: governance enrollment done`);
 }
 
@@ -342,7 +342,7 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
     governorAddress,
     { gasPrice: non.chain.gasPrice },
   );
-  await tx.wait(5);
+  await tx.wait(deploy.chain.confirmations);
   console.log(`${non.chain.name}: governorship transferred`);
 }
 
