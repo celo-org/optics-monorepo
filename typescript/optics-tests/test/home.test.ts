@@ -10,8 +10,6 @@ import { OpticsState, Updater } from '../lib';
 
 const UpdaterManager = require('../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
-
-
 const {
   testCases: homeDomainHashTestCases,
 } = require('../../../vectors/homeDomainHashTestCases.json');
