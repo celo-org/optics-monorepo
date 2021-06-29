@@ -1,15 +1,16 @@
-import * as chain from '../../optics-deploy/src/chain';
-import * as deploys from '../../optics-deploy/src/devDeployOptics';
-import { getTestDeploy } from './testChain';
-
 import { ethers, waffle, optics } from 'hardhat';
-import { OpticsState, Updater } from '../lib';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-
 const { deployMockContract } = waffle;
-
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const { expect } = require('chai');
+
+import * as chain from '../../optics-deploy/src/chain';
+import * as deploys from '../../optics-deploy/src/deployOptics';
+import { getTestDeploy } from './testChain';
+import { OpticsState, Updater } from '../lib';
+
 const UpdaterManager = require('../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
+
+
 
 const {
   testCases: homeDomainHashTestCases,
@@ -64,7 +65,7 @@ describe('Home', async () => {
     await mockUpdaterManager.mock.slashUpdater.returns();
 
     // redploy the home before each test run
-    await deploys.devDeployHome(deploy);
+    await deploys.deployHome(deploy);
     home = deploy.contracts.home;
 
     // set home on UpdaterManager
@@ -103,7 +104,7 @@ describe('Home', async () => {
       );
       await deploys.deployUpdaterManager(deploy);
       await deploys.deployUpgradeBeaconController(deploy);
-      await deploys.devDeployHome(deploy);
+      await deploys.deployHome(deploy);
       const tempHome: any = deploy.contracts.home;
       const { expectedDomainHash } = testCase;
       const homeDomainHash = await tempHome!.proxy.testHomeDomainHash();

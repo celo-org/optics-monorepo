@@ -1,9 +1,8 @@
 const { ethers } = require('hardhat');
 const { provider } = ethers;
-
 const { expect } = require('chai');
-const { TestMerkle__factory } = require('../../typechain/optics-core');
 
+const { TestMerkle__factory } = require('../../typechain/optics-core');
 const { testCases } = require('../../../vectors/merkleTestCases.json');
 
 describe('Merkle', async () => {

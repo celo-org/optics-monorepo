@@ -1,7 +1,7 @@
-import { Chain, Deploy } from '../../optics-deploy/src/chain';
 import { ethers } from 'hardhat';
-
 const { BigNumber } = ethers;
+
+import { Chain, Deploy } from '../../optics-deploy/src/chain';
 
 export async function getTestChain(
   domain: number,
