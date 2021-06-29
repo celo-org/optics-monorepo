@@ -21,7 +21,7 @@ import {
  * @param deploy - The deploy instance
  */
 async function deployHome(deploy: Deploy) {
-  await devDeployHome(deploy, false);
+  await devDeployHome(deploy);
 }
 
 /**
@@ -31,7 +31,7 @@ async function deployHome(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 async function deployGovernanceRouter(deploy: Deploy) {
-  await devDeployGovernanceRouter(deploy, false);
+  await devDeployGovernanceRouter(deploy);
 }
 
 /**
@@ -42,7 +42,7 @@ async function deployGovernanceRouter(deploy: Deploy) {
  * @param remote - The remote deploy instance
  */
 async function deployNewReplica(local: Deploy, remote: Deploy) {
-  await devDeployNewReplica(local, remote, false);
+  await devDeployNewReplica(local, remote);
 }
 
 /**
@@ -52,7 +52,7 @@ async function deployNewReplica(local: Deploy, remote: Deploy) {
  * @param remote - The remote deploy instance
  */
 async function enrollRemote(local: Deploy, remote: Deploy) {
-  await devEnrollRemote(local, remote, false);
+  await devEnrollRemote(local, remote);
 }
 
 /**
@@ -62,7 +62,7 @@ async function enrollRemote(local: Deploy, remote: Deploy) {
  * @param deploy - The deploy instance
  */
 async function deployOptics(deploy: Deploy) {
-  await devDeployOptics(deploy, false);
+  await devDeployOptics(deploy);
 }
 
 /**
@@ -77,7 +77,7 @@ async function deployOptics(deploy: Deploy) {
  * @param chains - An array of chain deploys
  */
 async function deployNChains(chains: Deploy[]) {
-  await devDeployNChains(chains, false);
+  await devDeployNChains(chains);
 }
 
 export {

@@ -16,7 +16,9 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
   deploy.contracts.upgradeBeaconController = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(deploy.chain.confirmations);
+  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 }
 
 /**
@@ -31,7 +33,9 @@ export async function deployUpdaterManager(deploy: Deploy) {
   deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.updaterManager.deployTransaction.wait(deploy.chain.confirmations);
+  await deploy.contracts.updaterManager.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 }
 
 /**
@@ -47,7 +51,9 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
   deploy.contracts.xappConnectionManager = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(deploy.chain.confirmations);
+  await deploy.contracts.xappConnectionManager.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 }
 
 /**
@@ -55,12 +61,14 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
  * the deploy instance with the new contract.
  *
  * @param deploy - The deploy instance
- * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployHome(deploy: Deploy, isTestDeploy: boolean) {
+export async function devDeployHome(deploy: Deploy) {
+  const isTestDeploy: boolean = deploy.test ?? false;
+
   const home = isTestDeploy
     ? contracts.TestHome__factory
     : contracts.Home__factory;
+
   let { updaterManager } = deploy.contracts;
   let initData = home
     .createInterface()
@@ -79,12 +87,10 @@ export async function devDeployHome(deploy: Deploy, isTestDeploy: boolean) {
  * the deploy instance with the new contract.
  *
  * @param deploy - The deploy instance
- * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployGovernanceRouter(
-  deploy: Deploy,
-  isTestDeploy: boolean,
-) {
+export async function devDeployGovernanceRouter(deploy: Deploy) {
+  const isTestDeploy: boolean = deploy.test ?? false;
+
   const governanceRouter = isTestDeploy
     ? contracts.TestGovernanceRouter__factory
     : contracts.GovernanceRouter__factory;
@@ -108,13 +114,10 @@ export async function devDeployGovernanceRouter(
  *
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
- * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployNewReplica(
-  local: Deploy,
-  remote: Deploy,
-  isTestDeploy: boolean,
-) {
+export async function devDeployNewReplica(local: Deploy, remote: Deploy) {
+  const isTestDeploy: boolean = deploy.test ?? false;
+
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
@@ -167,9 +170,10 @@ export async function devDeployNewReplica(
  * and updates the deploy instance with the new contracts.
  *
  * @param deploy - The deploy instance
- * @param isTestDeploy - True to deploy the test contract
  */
-export async function devDeployOptics(deploy: Deploy, isTestDeploy: boolean) {
+export async function devDeployOptics(deploy: Deploy) {
+  const isTestDeploy: boolean = deploy.test ?? false;
+
   console.log(`${deploy.chain.name}: awaiting deploy UBC(deploy);`);
   await deployUpgradeBeaconController(deploy);
 
@@ -315,14 +319,9 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
  *
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
- * @param isTestDeploy - True to deploy the test contract
  */
-export async function devEnrollRemote(
-  local: Deploy,
-  remote: Deploy,
-  isTestDeploy: boolean,
-) {
-  await devDeployNewReplica(local, remote, isTestDeploy);
+export async function devEnrollRemote(local: Deploy, remote: Deploy) {
+  await devDeployNewReplica(local, remote);
   await enrollReplica(local, remote);
   await enrollWatchers(local, remote);
   await enrollGovernanceRouter(local, remote);
@@ -354,11 +353,9 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
  * @param gov - The governor chain deploy instance
  * @param non - The non-governor chain deploy instance
  */
-export async function devDeployTwoChains(
-  gov: Deploy,
-  non: Deploy,
-  isTestDeploy: boolean,
-) {
+export async function devDeployTwoChains(gov: Deploy, non: Deploy) {
+  const isTestDeploy: boolean = gov.test ?? non.test ?? false;
+
   await Promise.all([
     devDeployOptics(gov, isTestDeploy),
     devDeployOptics(non, isTestDeploy),
@@ -388,7 +385,9 @@ export async function devDeployTwoChains(
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
-  writeDeployOutput([gov, non]);
+  if (!isTestDeploy) {
+    writeDeployOutput([gov, non]);
+  }
 }
 
 /**
@@ -398,11 +397,9 @@ export async function devDeployTwoChains(
  * @param gov - The governing chain deploy instance
  * @param spokes - An array of remote chain deploy instances
  */
-export async function devDeployHubAndSpokes(
-  gov: Deploy,
-  spokes: Deploy[],
-  isTestDeploy: boolean,
-) {
+export async function devDeployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
+  const isTestDeploy: boolean = gov.test ?? false;
+
   await devDeployOptics(gov, isTestDeploy);
 
   for (const non of spokes) {
@@ -430,25 +427,27 @@ export async function devDeployHubAndSpokes(
  *
  * @param chains - An array of chain deploys
  */
-export async function devDeployNChains(
-  chains: Deploy[],
-  isTestDeploy: boolean,
-) {
+export async function devDeployNChains(chains: Deploy[]) {
+  // there exists any chain marked test
+  const isTestDeploy: boolean = chains.filter((c) => c.test).length > 0;
+
   const govChain = chains[0];
   const nonGovChains = chains.slice(1);
-  await devDeployHubAndSpokes(govChain, nonGovChains, isTestDeploy);
+  await devDeployHubAndSpokes(govChain, nonGovChains);
   for (let local of nonGovChains) {
     for (let remote of nonGovChains) {
       if (remote.chain.domain != local.chain.domain) {
         console.log(
           `enrolling ${remote.chain.domain} on ${local.chain.domain}`,
         );
-        await devEnrollRemote(local, remote, isTestDeploy);
+        await devEnrollRemote(local, remote);
       }
     }
   }
 
-  writeDeployOutput(chains);
+  if (!isTestDeploy) {
+    writeDeployOutput(chains);
+  }
 }
 
 /**

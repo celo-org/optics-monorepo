@@ -1,16 +1,13 @@
-import { ethers } from 'ethers/lib';
-import * as proxyUtils from '../../optics-deploy/src/proxyUtils';
-import * as contracts from '../../typechain/optics-core';
 import * as chain from '../../optics-deploy/src/chain';
-import { config } from '../../../chainConfig';
-import {
-  devDeployHome,
-  deployUpdaterManager,
-  deployUpgradeBeaconController,
-} from '../../optics-deploy/src/devDeployOptics';
+import * as deploys from '../../optics-deploy/src/devDeployOptics';
+import { getTestDeploy } from './testChain';
 
-const { waffle, optics } = require('hardhat');
-const { provider, deployMockContract } = waffle;
+import { ethers, waffle, optics } from 'hardhat';
+import { OpticsState, Updater } from '../lib';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+
+const { deployMockContract } = waffle;
+
 const { expect } = require('chai');
 const UpdaterManager = require('../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
@@ -28,13 +25,13 @@ describe('Home', async () => {
   let deploy: chain.Deploy;
   // TODO: specify types here
   let home: any,
-    signer: any,
-    fakeSigner: any,
-    recipient: any,
-    updater: any,
-    fakeUpdater: any,
+    signer: SignerWithAddress,
+    fakeSigner: SignerWithAddress,
+    recipient: SignerWithAddress,
+    updater: Updater,
+    fakeUpdater: Updater,
     mockUpdaterManager: any;
-  const emptyAddress = '0x' + '00'.repeat(32);
+  const emptyAddress: string = '0x' + '00'.repeat(32);
 
   // Helper function that enqueues message and returns its root.
   // The message recipient is the same for all messages enqueued.
@@ -50,16 +47,15 @@ describe('Home', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner, recipient] = provider.getWallets();
-    updater = await optics.Updater.fromSigner(signer, localDomain);
+    [signer, fakeSigner, recipient] = await ethers.getSigners();
+    updater = await Updater.fromSigner(signer, localDomain);
 
-    deploy = chain.freshDeploy(config);
-    // deploy = chain.freshTestDeploy(config, provider, signer);
+    deploy = await getTestDeploy(localDomain, updater.address, []);
 
-    await deployUpdaterManager(deploy);
-    await deployUpgradeBeaconController(deploy);
+    await deploys.deployUpdaterManager(deploy);
+    await deploys.deployUpgradeBeaconController(deploy);
 
-    fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
+    fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
     mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
   });
 
@@ -67,17 +63,20 @@ describe('Home', async () => {
     await mockUpdaterManager.mock.updater.returns(signer.address);
     await mockUpdaterManager.mock.slashUpdater.returns();
 
-    await devDeployHome(deploy, true);
+    // redploy the home before each test run
+    await deploys.devDeployHome(deploy);
     home = deploy.contracts.home;
   });
-  // it('Cannot be initialized twice', async () => {
-  //   await expect(
-  //     home.implementation.initialize(signer.address),
-  //   ).to.be.revertedWith('Initializable: contract is already initialized');
-  // });
+
+  it('Cannot be initialized twice', async () => {
+    await expect(
+      home.proxy.initialize(mockUpdaterManager.address),
+    ).to.be.revertedWith('Initializable: contract is already initialized');
+  });
+
   it('Halts on fail', async () => {
     await home.proxy.setFailed();
-    expect(await home.proxy.state()).to.equal(optics.State.FAILED);
+    expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
     const message = ethers.utils.formatBytes32String('message');
     await expect(
       home.proxy.enqueue(
@@ -87,6 +86,7 @@ describe('Home', async () => {
       ),
     ).to.be.revertedWith('failed state');
   });
+
   // it('Calculated domain hash matches Rust-produced domain hash', async () => {
   //   // Compare Rust output in json file to solidity output (json file matches
   //   // hash for local domain of 1000)
