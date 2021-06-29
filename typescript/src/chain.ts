@@ -137,7 +137,7 @@ type RustConnection = {
 
 type RustContractBlock = {
   address: string;
-  domain: number;
+  domain: string;
   name: string;
   rpcStyle: string; // TODO
   connection: RustConnection;
@@ -157,7 +157,7 @@ type RustConfig = {
 export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
   const home = {
     address: local.contracts.home!.proxy.address,
-    domain: local.chain.domain,
+    domain: local.chain.domain.toString(),
     name: local.chain.name,
     rpcStyle: 'ethereum', // TODO
     connection: {
@@ -182,7 +182,7 @@ export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
   for (var remote of remotes) {
     const replica = {
       address: remote.contracts.replicas[local.chain.domain].proxy.address,
-      domain: remote.chain.domain,
+      domain: remote.chain.domain.toString(),
       name: remote.chain.name,
       rpcStyle: 'ethereum',
       connection: {
