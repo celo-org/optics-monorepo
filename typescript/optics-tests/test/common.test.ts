@@ -1,9 +1,8 @@
-const { waffle, optics } = require('hardhat');
-const { provider } = waffle;
+const { ethers } = require('hardhat');
 const { expect } = require('chai');
-import { ethers } from 'ethers';
 
 import { TestCommon__factory } from '../../typechain/optics-core';
+import { OpticsState, Updater } from '../lib';
 
 const {
   testCases: signedUpdateTestCases,
@@ -11,14 +10,14 @@ const {
 const localDomain = 1000;
 
 describe('Common', async () => {
-  let common: ethers.Contract;
-  let [signer, fakeSigner] = provider.getWallets();
-  let updater = await optics.Updater.fromSigner(signer, localDomain);
-  let fakeUpdater = await optics.Updater.fromSigner(fakeSigner, localDomain);
+  let common: typeof ethers.Contract;
+  let [signer, fakeSigner] = await ethers.getSigners();
+  let updater = await Updater.fromSigner(signer, localDomain);
+  let fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
 
   beforeEach(async () => {
     let commonFactory = new TestCommon__factory(signer);
-    common = await commonFactory.deploy(localDomain, updater.signer.address);
+    common = await commonFactory.deploy(localDomain, updater.address);
   });
 
   it('Accepts updater signature', async () => {
@@ -61,7 +60,7 @@ describe('Common', async () => {
       common.doubleUpdate(oldRoot, [newRoot, newRoot2], signature, signature2),
     ).to.emit(common, 'DoubleUpdate');
 
-    expect(await common.state()).to.equal(optics.State.FAILED);
+    expect(await common.state()).to.equal(OpticsState.FAILED);
   });
 
   it('Does not fail contract on invalid double update proof', async () => {
@@ -81,8 +80,8 @@ describe('Common', async () => {
     // State should not be failed because double update proof does not
     // demonstrate fraud
     const state = await common.state();
-    expect(state).not.to.equal(optics.State.FAILED);
-    expect(state).to.equal(optics.State.ACTIVE);
+    expect(state).not.to.equal(OpticsState.FAILED);
+    expect(state).to.equal(OpticsState.ACTIVE);
   });
 
   it('Checks Rust-produced SignedUpdate', async () => {
