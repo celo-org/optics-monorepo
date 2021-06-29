@@ -20,20 +20,17 @@ describe('Queue', async () => {
 
   it('should function as a queue', async () => {
     // we put this here for coverage to check that init properly does nothing
-    queue.initializeAgain();
+    await queue.initializeAgain();
 
     const items = Array.from(new Array(10).keys()).map((i) => bytes32(i));
-    // console.log(await queue.provider.getTransactionCount(queue.signer.getAddress()));
 
     for (const [idx, item] of items.entries()) {
-      // console.log(idx, await queue.provider.getTransactionCount(queue.signer.getAddress()));
       await queue.enqueue(item);
       const length = await queue.length();
       expect(length).to.equal(idx + 1);
     }
 
     // last item
-    console.log('l9');
     const last = await queue.lastItem();
     expect(last).to.equal(items[items.length - 1]);
 
