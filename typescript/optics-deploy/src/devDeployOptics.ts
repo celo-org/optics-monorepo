@@ -12,7 +12,6 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
   let factory = new contracts.UpgradeBeaconController__factory(
     deploy.chain.deployer,
   );
-  deploy.contracts.upgradeBeaconController = await factory.deploy();
   deploy.contracts.upgradeBeaconController = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
@@ -29,7 +28,6 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
  */
 export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
-  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater);
   deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
     gasPrice: deploy.chain.gasPrice,
   });
@@ -63,8 +61,7 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function devDeployHome(deploy: Deploy) {
-  const isTestDeploy: boolean = deploy.test ?? false;
-
+  const isTestDeploy: boolean = deploy.test;
   const home = isTestDeploy
     ? contracts.TestHome__factory
     : contracts.Home__factory;
@@ -89,8 +86,7 @@ export async function devDeployHome(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function devDeployGovernanceRouter(deploy: Deploy) {
-  const isTestDeploy: boolean = deploy.test ?? false;
-
+  const isTestDeploy: boolean = deploy.test;
   const governanceRouter = isTestDeploy
     ? contracts.TestGovernanceRouter__factory
     : contracts.GovernanceRouter__factory;
@@ -116,11 +112,10 @@ export async function devDeployGovernanceRouter(deploy: Deploy) {
  * @param remote - The remote deploy instance
  */
 export async function devDeployNewReplica(local: Deploy, remote: Deploy) {
-  const isTestDeploy: boolean = deploy.test ?? false;
-
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
+  const isTestDeploy: boolean = deploy.test;
   const replica = isTestDeploy
     ? contracts.TestReplica__factory
     : contracts.Replica__factory;
@@ -172,7 +167,7 @@ export async function devDeployNewReplica(local: Deploy, remote: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function devDeployOptics(deploy: Deploy) {
-  const isTestDeploy: boolean = deploy.test ?? false;
+  const isTestDeploy: boolean = deploy.test;
 
   console.log(`${deploy.chain.name}: awaiting deploy UBC(deploy);`);
   await deployUpgradeBeaconController(deploy);
@@ -354,7 +349,7 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
  * @param non - The non-governor chain deploy instance
  */
 export async function devDeployTwoChains(gov: Deploy, non: Deploy) {
-  const isTestDeploy: boolean = gov.test ?? non.test ?? false;
+  const isTestDeploy: boolean = gov.test || non.test;
 
   await Promise.all([
     devDeployOptics(gov, isTestDeploy),
@@ -398,7 +393,7 @@ export async function devDeployTwoChains(gov: Deploy, non: Deploy) {
  * @param spokes - An array of remote chain deploy instances
  */
 export async function devDeployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
-  const isTestDeploy: boolean = gov.test ?? false;
+  const isTestDeploy: boolean = gov.test;
 
   await devDeployOptics(gov, isTestDeploy);
 
