@@ -10,7 +10,6 @@ use optics_base::decl_settings;
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ChatGenConfig {
     Static {
-        destination: String,
         recipient: H256,
         message: String,
     },
@@ -19,8 +18,6 @@ pub enum ChatGenConfig {
     },
     Random {
         length: usize,
-        destination: Option<String>,
-        recipient: Option<H256>,
     },
     #[serde(other)]
     Default,
@@ -35,28 +32,14 @@ impl Default for ChatGenConfig {
 impl From<ChatGenConfig> for ChatGenerator {
     fn from(conf: ChatGenConfig) -> ChatGenerator {
         match conf {
-            ChatGenConfig::Static {
-                destination,
-                recipient,
-                message,
-            } => ChatGenerator::Static {
-                destination: destination.parse().expect("invalid uint"),
-                recipient,
-                message,
-            },
+            ChatGenConfig::Static { recipient, message } => {
+                ChatGenerator::Static { recipient, message }
+            }
             ChatGenConfig::OrderedList { messages } => ChatGenerator::OrderedList {
                 messages,
                 counter: 0,
             },
-            ChatGenConfig::Random {
-                length,
-                destination,
-                recipient,
-            } => ChatGenerator::Random {
-                length,
-                destination: destination.map(|d| d.parse().expect("invalid uint")),
-                recipient,
-            },
+            ChatGenConfig::Random { length } => ChatGenerator::Random { length },
             ChatGenConfig::Default => ChatGenerator::Default,
         }
     }

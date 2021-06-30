@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use async_trait::async_trait;
+use color_eyre::eyre::bail;
 use ethers::core::types::H256;
+use optics_core::traits::Replica;
 use tokio::{task::JoinHandle, time::sleep};
 
 use rand::distributions::Alphanumeric;
@@ -46,23 +48,44 @@ impl OpticsAgent for Kathy {
     }
 
     #[tracing::instrument]
-    fn run(&self, _: &str) -> JoinHandle<Result<()>> {
+    fn run(&self, name: &str) -> JoinHandle<Result<()>> {
+        let replica_opt = self.replica_by_name(name);
+        let name = name.to_owned();
         let home = self.home();
+
         let mut generator = self.generator.clone();
         let duration = Duration::from_secs(self.duration);
+
         tokio::spawn(async move {
+            if replica_opt.is_none() {
+                bail!("No replica named {}", name);
+            }
+            let replica = replica_opt.unwrap();
+            let destination = replica.local_domain();
+
             loop {
-                if let Some(message) = generator.gen_chat() {
-                    info!(
-                        "Enqueuing message of length {} to {}::{}",
-                        message.body.len(),
-                        message.destination,
-                        message.recipient
-                    );
-                    home.enqueue(&message).await?;
-                } else {
-                    info!("Reached the end of the static message queue. Shutting down.");
-                    return Ok(());
+                let msg = generator.gen_chat();
+                let recipient = generator.gen_recipient();
+
+                match msg {
+                    Some(body) => {
+                        let message = Message {
+                            destination,
+                            recipient,
+                            body,
+                        };
+                        info!(
+                            "Enqueuing message of length {} to {}::{}",
+                            message.body.len(),
+                            message.destination,
+                            message.recipient
+                        );
+                        home.enqueue(&message).await?;
+                    }
+                    _ => {
+                        info!("Reached the end of the static message queue. Shutting down.");
+                        return Ok(());
+                    }
                 }
 
                 sleep(duration).await;
@@ -75,7 +98,6 @@ impl OpticsAgent for Kathy {
 #[derive(Debug, Clone)]
 pub enum ChatGenerator {
     Static {
-        destination: u32,
         recipient: H256,
         message: String,
     },
@@ -84,9 +106,7 @@ pub enum ChatGenerator {
         counter: usize,
     },
     Random {
-        destination: Option<u32>,
         length: usize,
-        recipient: Option<H256>,
     },
     Default,
 }
@@ -106,43 +126,41 @@ impl ChatGenerator {
             .collect()
     }
 
-    pub fn gen_chat(&mut self) -> Option<Message> {
+    pub fn gen_recipient(&mut self) -> H256 {
+        match self {
+            ChatGenerator::Default => Default::default(),
+            ChatGenerator::Static {
+                recipient,
+                message: _,
+            } => *recipient,
+            ChatGenerator::OrderedList {
+                messages: _,
+                counter: _,
+            } => Default::default(),
+            ChatGenerator::Random { length: _ } => H256::random(),
+        }
+    }
+
+    pub fn gen_chat(&mut self) -> Option<Vec<u8>> {
         match self {
             ChatGenerator::Default => Some(Default::default()),
             ChatGenerator::Static {
-                destination,
-                recipient,
+                recipient: _,
                 message,
-            } => Some(Message {
-                destination: destination.to_owned(),
-                recipient: recipient.to_owned(),
-                body: message.as_bytes().to_vec(),
-            }),
+            } => Some(message.as_bytes().to_vec()),
             ChatGenerator::OrderedList { messages, counter } => {
                 if *counter >= messages.len() {
                     return None;
                 }
 
-                let msg = Message {
-                    destination: Default::default(),
-                    recipient: Default::default(),
-                    body: messages[*counter].clone().into(),
-                };
+                let msg = messages[*counter].clone().into();
 
                 // Increment counter to next message in list
                 *counter += 1;
 
                 Some(msg)
             }
-            ChatGenerator::Random {
-                length,
-                destination,
-                recipient,
-            } => Some(Message {
-                destination: destination.unwrap_or_else(Default::default),
-                recipient: recipient.unwrap_or_else(Default::default),
-                body: Self::rand_string(*length).into(),
-            }),
+            ChatGenerator::Random { length } => Some(Self::rand_string(*length).into()),
         }
     }
 }

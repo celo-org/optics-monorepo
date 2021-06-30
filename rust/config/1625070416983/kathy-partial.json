@@ -1,7 +1,6 @@
 {
   "messageInterval": "100",
   "chat": {
-    "destination": "3000",
     "message": "static message",
     "recipient": "0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
     "type": "static"
