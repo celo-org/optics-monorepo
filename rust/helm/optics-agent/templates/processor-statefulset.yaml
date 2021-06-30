@@ -35,6 +35,7 @@ spec:
       labels:
         {{- include "optics-agent.selectorLabels" . | nindent 8 }}
         role: processor
+        {{- include "optics-agent.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
