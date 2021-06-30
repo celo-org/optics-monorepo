@@ -1,27 +1,23 @@
-import { ethers } from 'ethers';
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
+import { TestMessage__factory } from '../../typechain/optics-core';
 
-const { waffle, optics } = require('hardhat');
-const { provider } = waffle;
-const { expect } = require('chai');
-const { TestMessage__factory } = require('../../typechain/optics-core');
-
-const { testCases } = require('../../../vectors/messageTestCases.json');
+import { testCases } from '../../../vectors/messageTestCases.json';
 
 const remoteDomain = 1000;
 const localDomain = 2000;
 
 describe('Message', async () => {
-  let messageLib: ethers.Contract;
+  let messageLib: any;
 
   before(async () => {
-    let [signer] = provider.getWallets();
+    let [signer] = await ethers.getSigners();
     const Message = new TestMessage__factory(signer);
     messageLib = await Message.deploy();
-    await messageLib.deployed();
   });
 
   it('Returns fields from a message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
     const sequence = 1;
     const body = ethers.utils.formatBytes32String('message');
 
