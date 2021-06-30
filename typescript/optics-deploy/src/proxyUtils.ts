@@ -1,6 +1,6 @@
 import { BytesLike, ethers } from 'ethers';
-import { Deploy } from './chain';
 
+import { Deploy } from './chain';
 import * as contracts from '../../typechain/optics-core';
 
 export type BeaconProxy<T extends ethers.Contract> = {
@@ -37,7 +37,7 @@ export async function deployProxy<T extends ethers.Contract>(
 
   // proxy wait(5) implies implementation and beacon wait(5)
   // due to nonce ordering
-  await proxy.deployTransaction.wait(5);
+  await proxy.deployTransaction.wait(deploy.chain.confirmations);
 
   const { name } = implementation.constructor;
   // add UpgradeBeacon to Etherscan verification
@@ -82,7 +82,7 @@ export async function duplicate<T extends ethers.Contract>(
   initData: BytesLike,
 ): Promise<BeaconProxy<T>> {
   const proxy = await _deployProxy(deploy, prev.beacon, initData);
-  await proxy.deployTransaction.wait(5);
+  await proxy.deployTransaction.wait(deploy.chain.confirmations);
 
   const { name } = prev.implementation.constructor;
   // add UpgradeBeacon to etherscan verification

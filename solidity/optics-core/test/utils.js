@@ -4,16 +4,9 @@ const TestRecipient = require('../artifacts/contracts/test/TestRecipient.sol/Tes
 const [opticsMessageSender] = provider.getWallets();
 
 class MockRecipientObject {
-  constructor() {
-    const [opticsMessageRecipient] = provider.getWallets();
-    this.mockRecipient = deployMockContract(
-      opticsMessageRecipient,
-      TestRecipient.abi,
-    );
-  }
-
   async getRecipient() {
-    return await this.mockRecipient;
+    const [opticsMessageRecipient] = provider.getWallets();
+    return await deployMockContract(opticsMessageRecipient, TestRecipient.abi);
   }
 }
 
