@@ -1,9 +1,9 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { TestQueue__factory } from '../../typechain/optics-core';
+import { TestQueue, TestQueue__factory } from '../../typechain/optics-core';
 
 describe('Queue', async () => {
-  let queue: any;
+  let queue: TestQueue;
 
   // create a proper hex encoded bytes32 filled with number. e.g 0x01010101...
   const bytes32 = (num: number) => `0x${Buffer.alloc(32, num).toString('hex')}`;

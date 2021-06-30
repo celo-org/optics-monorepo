@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { TestMessage__factory } from '../../typechain/optics-core';
+import { TestMessage, TestMessage__factory } from '../../typechain/optics-core';
 
 import { testCases } from '../../../vectors/messageTestCases.json';
 
@@ -8,12 +8,13 @@ const remoteDomain = 1000;
 const localDomain = 2000;
 
 describe('Message', async () => {
-  let messageLib: any;
+  let messageLib: TestMessage;
 
   before(async () => {
     let [signer] = await ethers.getSigners();
     const Message = new TestMessage__factory(signer);
     messageLib = await Message.deploy();
+    await messageLib.deployed();
   });
 
   it('Returns fields from a message', async () => {
