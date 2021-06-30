@@ -23,6 +23,7 @@ interface ReplicaInterface extends ethers.utils.Interface {
   functions: {
     "PROCESS_GAS()": FunctionFragment;
     "RESERVE_GAS()": FunctionFragment;
+    "acceptableRoot(bytes32)": FunctionFragment;
     "canConfirm()": FunctionFragment;
     "confirm()": FunctionFragment;
     "confirmAt(bytes32)": FunctionFragment;
@@ -35,7 +36,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     "nextPending()": FunctionFragment;
     "nextToProcess()": FunctionFragment;
     "optimisticSeconds()": FunctionFragment;
-    "previous()": FunctionFragment;
     "process(bytes)": FunctionFragment;
     "prove(bytes32,bytes32[32],uint256)": FunctionFragment;
     "proveAndProcess(bytes,bytes32[32],uint256)": FunctionFragment;
@@ -55,6 +55,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "RESERVE_GAS",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "acceptableRoot",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "canConfirm",
@@ -95,7 +99,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "previous", values?: undefined): string;
   encodeFunctionData(functionFragment: "process", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "prove",
@@ -207,6 +210,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
     functionFragment: "RESERVE_GAS",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptableRoot",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "canConfirm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "confirm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "confirmAt", data: BytesLike): Result;
@@ -237,7 +244,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "previous", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "process", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "prove", data: BytesLike): Result;
   decodeFunctionResult(
@@ -320,6 +326,11 @@ export class Replica extends BaseContract {
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     canConfirm(overrides?: CallOverrides): Promise<[boolean]>;
 
     confirm(
@@ -362,8 +373,6 @@ export class Replica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<[number]>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    previous(overrides?: CallOverrides): Promise<[string]>;
 
     process(
       _message: BytesLike,
@@ -477,6 +486,8 @@ export class Replica extends BaseContract {
 
   RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
+  acceptableRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
   canConfirm(overrides?: CallOverrides): Promise<boolean>;
 
   confirm(
@@ -517,8 +528,6 @@ export class Replica extends BaseContract {
   nextToProcess(overrides?: CallOverrides): Promise<number>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-  previous(overrides?: CallOverrides): Promise<string>;
 
   process(
     _message: BytesLike,
@@ -629,6 +638,11 @@ export class Replica extends BaseContract {
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     canConfirm(overrides?: CallOverrides): Promise<boolean>;
 
     confirm(overrides?: CallOverrides): Promise<void>;
@@ -669,8 +683,6 @@ export class Replica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-    previous(overrides?: CallOverrides): Promise<string>;
 
     process(_message: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -816,6 +828,11 @@ export class Replica extends BaseContract {
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     canConfirm(overrides?: CallOverrides): Promise<BigNumber>;
 
     confirm(
@@ -854,8 +871,6 @@ export class Replica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-    previous(overrides?: CallOverrides): Promise<BigNumber>;
 
     process(
       _message: BytesLike,
@@ -970,6 +985,11 @@ export class Replica extends BaseContract {
 
     RESERVE_GAS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    acceptableRoot(
+      _root: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     canConfirm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     confirm(
@@ -1014,8 +1034,6 @@ export class Replica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    previous(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     process(
       _message: BytesLike,
