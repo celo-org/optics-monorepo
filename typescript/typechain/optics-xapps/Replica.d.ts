@@ -29,7 +29,7 @@ interface ReplicaInterface extends ethers.utils.Interface {
     "current()": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
-    "initialize(uint32,address,bytes32,uint256,uint256)": FunctionFragment;
+    "initialize(uint32,address,bytes32,uint256,uint32)": FunctionFragment;
     "localDomain()": FunctionFragment;
     "messages(bytes32)": FunctionFragment;
     "nextPending()": FunctionFragment;
@@ -357,7 +357,7 @@ export class Replica extends BaseContract {
       [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
     >;
 
-    nextToProcess(overrides?: CallOverrides): Promise<[BigNumber]>;
+    nextToProcess(overrides?: CallOverrides): Promise<[number]>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -512,7 +512,7 @@ export class Replica extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[string, BigNumber] & { _pending: string; _confirmAt: BigNumber }>;
 
-  nextToProcess(overrides?: CallOverrides): Promise<BigNumber>;
+  nextToProcess(overrides?: CallOverrides): Promise<number>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -664,7 +664,7 @@ export class Replica extends BaseContract {
       [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
     >;
 
-    nextToProcess(overrides?: CallOverrides): Promise<BigNumber>;
+    nextToProcess(overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 

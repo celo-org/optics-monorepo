@@ -3,12 +3,8 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
-const {
-  testCases: homeDomainHashTestCases,
-} = require('../../../vectors/homeDomainHashTestCases.json');
-const {
-  testCases,
-} = require('../../../vectors/destinationSequenceTestCases.json');
+const homeDomainHashTestCases = require('../../../vectors/homeDomainHash.json');
+const destinationSequenceTestCases = require('../../../vectors/destinationSequence.json');
 
 const localDomain = 1000;
 const destDomain = 2000;
@@ -257,7 +253,7 @@ describe('Home', async () => {
   });
 
   it('Correctly calculates destinationAndSequence', async () => {
-    for (let testCase of testCases) {
+    for (let testCase of destinationSequenceTestCases) {
       let { destination, sequence, expectedDestinationAndSequence } = testCase;
 
       const solidityDestinationAndSequence = await home.testDestinationAndSequence(

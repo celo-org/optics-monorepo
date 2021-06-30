@@ -1,7 +1,7 @@
 const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
-const { testCases } = require('../../../vectors/messageTestCases.json');
+const testCases = require('../../../vectors/message.json');
 
 const remoteDomain = 1000;
 const localDomain = 2000;
