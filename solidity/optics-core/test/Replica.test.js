@@ -3,15 +3,9 @@ const { provider } = waffle;
 const { expect } = require('chai');
 const testUtils = require('./utils');
 
-const {
-  testCases: homeDomainHashTestCases,
-} = require('../../../vectors/homeDomainHashTestCases.json');
-const {
-  testCases: merkleTestCases,
-} = require('../../../vectors/merkleTestCases.json');
-const {
-  testCases: proveAndProcessTestCases,
-} = require('../../../vectors/proveAndProcessTestCases.json');
+const homeDomainHashTestCases = require('../../../vectors/homeDomainHash.json');
+const merkleTestCases = require('../../../vectors/merkle.json');
+const proveAndProcessTestCases = require('../../../vectors/proveAndProcess.json');
 
 const remoteDomain = 1000;
 const localDomain = 2000;
@@ -459,21 +453,20 @@ describe('Replica', async () => {
     );
 
     // Assert above message and test case have matching leaves
-    const { leaf, path, index } = proveAndProcessTestCases[0];
+    const { path, index } = proveAndProcessTestCases[0];
     const messageLeaf = optics.messageToLeaf(opticsMessage);
-    expect(messageLeaf).to.equal(leaf);
 
     // Set replica's current root to match newly computed root that includes
     // the new leaf (normally root will have already been computed and path
     // simply verifies leaf is in tree but because it is cryptographically
     // impossible to find the inputs that create a pre-determined root, we
     // simply recalculate root with the leaf using branchRoot)
-    const proofRoot = await replica.testBranchRoot(leaf, path, index);
+    const proofRoot = await replica.testBranchRoot(messageLeaf, path, index);
     await replica.setCurrentRoot(proofRoot);
 
     await replica.proveAndProcess(opticsMessage, path, index);
 
-    expect(await replica.messages(leaf)).to.equal(
+    expect(await replica.messages(messageLeaf)).to.equal(
       optics.MessageStatus.PROCESSED,
     );
     expect(await replica.nextToProcess()).to.equal(sequence + 1);

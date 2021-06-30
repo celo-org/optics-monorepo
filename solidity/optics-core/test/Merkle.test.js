@@ -1,10 +1,10 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { testCases } = require('../../../vectors/merkleTestCases.json');
+const merkleTestCases = require('../../../vectors/merkle.json');
 
 describe('Merkle', async () => {
-  for (let testCase of testCases) {
+  for (let testCase of merkleTestCases) {
     const { testName, leaves, expectedRoot, proofs } = testCase;
 
     describe(testName, async () => {

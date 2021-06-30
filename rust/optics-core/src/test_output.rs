@@ -16,7 +16,7 @@ pub mod output_functions {
 
     use super::*;
 
-    /// Output proof to /vector/messageTestCases.json
+    /// Output proof to /vector/message.json
     pub fn output_message_and_leaf() {
         let optics_message = OpticsMessage {
             origin: 1000,
@@ -40,13 +40,13 @@ pub mod output_functions {
             "body": optics_message.body,
             "leaf": optics_message.to_leaf(),
         });
-        let json = json!({ "testCases": [message_json] }).to_string();
+        let json = json!([message_json]).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/messageTestCases.json")
+            .open("../../vectors/message.json")
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -84,7 +84,7 @@ pub mod output_functions {
             .expect("Failed to write to file");
     }
 
-    /// Outputs domain hash test cases in /vector/domainHashTestCases.json
+    /// Outputs domain hash test cases in /vector/domainHash.json
     pub fn output_home_domain_hashes() {
         let test_cases: Vec<Value> = (1..=3)
             .map(|i| {
@@ -95,13 +95,13 @@ pub mod output_functions {
             })
             .collect();
 
-        let json = json!({ "testCases": test_cases }).to_string();
+        let json = json!(test_cases).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/homeDomainHashTestCases.json")
+            .open("../../vectors/homeDomainHash.json")
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -109,7 +109,7 @@ pub mod output_functions {
     }
 
     /// Outputs combined destination and sequence test cases in /vector/
-    /// destinationSequenceTestCases.json
+    /// destinationSequence.json
     pub fn output_destination_and_sequences() {
         let test_cases: Vec<Value> = (1..=5)
             .map(|i| {
@@ -121,20 +121,20 @@ pub mod output_functions {
             })
             .collect();
 
-        let json = json!({ "testCases": test_cases }).to_string();
+        let json = json!(test_cases).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/destinationSequenceTestCases.json")
+            .open("../../vectors/destinationSequence.json")
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
             .expect("Failed to write to file");
     }
 
-    /// Outputs signed update test cases in /vector/signedUpdateTestCases.json
+    /// Outputs signed update test cases in /vector/signedUpdate.json
     pub fn output_signed_updates() {
         let t = async {
             let signer: ethers::signers::LocalWallet =
@@ -164,13 +164,13 @@ pub mod output_functions {
                 }))
             }
 
-            let json = json!({ "testCases": test_cases }).to_string();
+            let json = json!(test_cases).to_string();
 
             let mut file = OpenOptions::new()
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open("../../vectors/signedUpdateTestCases.json")
+                .open("../../vectors/signedUpdate.json")
                 .expect("Failed to open/create file");
 
             file.write_all(json.as_bytes())
@@ -184,7 +184,7 @@ pub mod output_functions {
             .block_on(t)
     }
 
-    /// Outputs signed update test cases in /vector/signedFailureTestCases.json
+    /// Outputs signed update test cases in /vector/signedFailure.json
     pub fn output_signed_failure_notifications() {
         let t = async {
             let signer: ethers::signers::LocalWallet =
@@ -214,13 +214,13 @@ pub mod output_functions {
                 "signer": signer.address()
             });
 
-            let json = json!({ "testCases": vec!(signed_json) }).to_string();
+            let json = json!(vec!(signed_json)).to_string();
 
             let mut file = OpenOptions::new()
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open("../../vectors/signedFailureTestCases.json")
+                .open("../../vectors/signedFailure.json")
                 .expect("Failed to open/create file");
 
             file.write_all(json.as_bytes())
