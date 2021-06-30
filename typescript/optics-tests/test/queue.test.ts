@@ -1,18 +1,15 @@
-import { ethers } from 'ethers';
-
-const { waffle } = require('hardhat');
-const { provider } = waffle;
-const { expect } = require('chai');
-const { TestQueue__factory } = require('../../typechain/optics-core');
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
+import { TestQueue, TestQueue__factory } from '../../typechain/optics-core';
 
 describe('Queue', async () => {
-  let queue: ethers.Contract;
+  let queue: TestQueue;
 
   // create a proper hex encoded bytes32 filled with number. e.g 0x01010101...
   const bytes32 = (num: number) => `0x${Buffer.alloc(32, num).toString('hex')}`;
 
   before(async () => {
-    let [signer] = provider.getWallets();
+    let [signer] = await ethers.getSigners();
     const Queue = new TestQueue__factory(signer);
     queue = await Queue.deploy();
     await queue.deployed();
