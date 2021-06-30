@@ -1,3 +1,5 @@
+import { UpgradeBeacon } from '../../typechain/optics-core';
+
 export type Domain = number;
 export type Address = string;
 export type AddressBytes32 = string;

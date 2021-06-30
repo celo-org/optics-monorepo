@@ -2,9 +2,7 @@ const { waffle, ethers } = require('hardhat');
 const { provider } = waffle;
 const { expect } = require('chai');
 
-const {
-  testCases: signedUpdateTestCases,
-} = require('../../../vectors/signedUpdateTestCases.json');
+const signedUpdateTestCases = require('../../../vectors/signedUpdate.json');
 const localDomain = 1000;
 
 describe('Common', async () => {

@@ -1,9 +1,11 @@
 import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
+import { NonceManager } from '@ethersproject/experimental';
+
 import { BeaconProxy, ProxyAddresses } from './proxyUtils';
 import * as contracts from '../../typechain/optics-core';
-import { NonceManager } from '@ethersproject/experimental';
-import { Address } from '../../optics-tests/lib/types';
+
+type Address = string;
 
 // Optic's complete contract suite
 export type Contracts = {
@@ -65,12 +67,12 @@ export interface ChainConfig {
   optimisticSeconds: number;
   watchers?: Address[];
   gasPrice?: ethers.BigNumberish;
+  confirmations?: number;
 }
 
 // deserialized version of the ChainConfig
 export type Chain = {
   name: string;
-  config: ChainConfig;
   provider: ethers.providers.Provider;
   deployer: ethers.Signer;
   domain: number;
@@ -80,12 +82,15 @@ export type Chain = {
   optimisticSeconds: number;
   watchers: Address[];
   gasPrice: ethers.BigNumber;
+  confirmations: number;
+  config?: ChainConfig;
 };
 
 // data about a chain and its deployed contracts
 export type Deploy = {
   chain: Chain;
   contracts: Contracts;
+  test?: boolean;
 };
 
 /**
@@ -109,6 +114,7 @@ export function toChain(config: ChainConfig): Chain {
     optimisticSeconds: config.optimisticSeconds,
     watchers: config.watchers ?? [],
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    confirmations: config.confirmations ?? 5,
   };
 }
 
@@ -161,7 +167,7 @@ export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
     rpcStyle: 'ethereum', // TODO
     connection: {
       type: 'http', // TODO
-      url: local.chain.config.rpc,
+      url: local.chain.config!.rpc,
     },
   };
 
@@ -186,7 +192,7 @@ export function buildConfig(local: Deploy, remotes: Deploy[]): RustConfig {
       rpcStyle: 'ethereum',
       connection: {
         type: 'http',
-        url: remote.chain.config.rpc,
+        url: remote.chain.config!.rpc,
       },
     };
 
