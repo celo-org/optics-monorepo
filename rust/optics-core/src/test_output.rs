@@ -40,7 +40,7 @@ pub mod output_functions {
             "body": optics_message.body,
             "leaf": optics_message.to_leaf(),
         });
-        let json = json!({ "testCases": [message_json] }).to_string();
+        let json = json!([message_json]).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
@@ -95,7 +95,7 @@ pub mod output_functions {
             })
             .collect();
 
-        let json = json!({ "testCases": test_cases }).to_string();
+        let json = json!(test_cases).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
@@ -121,7 +121,7 @@ pub mod output_functions {
             })
             .collect();
 
-        let json = json!({ "testCases": test_cases }).to_string();
+        let json = json!(test_cases).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)
@@ -164,7 +164,7 @@ pub mod output_functions {
                 }))
             }
 
-            let json = json!({ "testCases": test_cases }).to_string();
+            let json = json!(test_cases).to_string();
 
             let mut file = OpenOptions::new()
                 .write(true)
@@ -214,7 +214,7 @@ pub mod output_functions {
                 "signer": signer.address()
             });
 
-            let json = json!({ "testCases": vec!(signed_json) }).to_string();
+            let json = json!(vec!(signed_json)).to_string();
 
             let mut file = OpenOptions::new()
                 .write(true)
