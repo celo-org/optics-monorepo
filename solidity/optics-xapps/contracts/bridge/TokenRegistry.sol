@@ -143,12 +143,15 @@ abstract contract TokenRegistry is XAppConnectionClient {
     }
 
     function _isLocalOrigin(address _addr) internal view returns (bool) {
-        // If the token is of local origin,
-        // it will not be stored in the TokenRegistry mapping
+        // If the contract WAS deployed by the TokenRegistry,
+        // it will be stored in this mapping.
+        // If so, it IS NOT of local origin
         if (reprToCanonical[_addr].domain != 0) {
             return false;
         }
-        // Avoid returning true for non-existant contracts
+        // If the contract WAS NOT deployed by the TokenRegistry,
+        // and the contract exists, then it IS of local origin
+        // Return true if code exists at _addr
         uint256 _codeSize;
         // solhint-disable-next-line no-inline-assembly
         assembly {

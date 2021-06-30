@@ -100,9 +100,8 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _token The token address
      * @param _destination The destination domain
      */
-    // TODO: should this message be sent to every other remote router?
-    // TODO: should we require that _token is native to this chain?
     function updateDetails(address _token, uint32 _destination) external {
+        require(_isLocalOrigin(_token), "!local origin");
         // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
         // format Update Details message
@@ -181,7 +180,7 @@ contract BridgeRouter is Router, TokenRegistry {
         // require that the token is of remote origin
         // (otherwise, the BridgeRouter did not deploy the token contract,
         // and therefore cannot update its metadata)
-        require(!_isLocalOrigin(_token), "!repr");
+        require(!_isLocalOrigin(_token), "!remote origin");
         // update the token metadata
         _downcast(_token).setDetails(
             _action.name(),
