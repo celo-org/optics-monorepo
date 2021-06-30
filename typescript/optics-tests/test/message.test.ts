@@ -1,8 +1,8 @@
-import { ethers } from 'hardhat';
+import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
 import { TestMessage, TestMessage__factory } from '../../typechain/optics-core';
 
-import { testCases } from '../../../vectors/messageTestCases.json';
+import testCases from '../../../vectors/message.json';
 
 const remoteDomain = 1000;
 const localDomain = 2000;
