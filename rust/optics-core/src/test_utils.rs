@@ -16,17 +16,9 @@ pub struct MerkleTestCase {
     pub expected_root: H256,
 }
 
-/// Struct containing vec of `MerkleTestCase`s
-#[derive(serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MerkleTestJson {
-    /// Vec of `MerkleTestCase` structs
-    pub test_cases: Vec<MerkleTestCase>,
-}
-
-/// Reads merkle test case json file and returns a `MerkleTestJson`
-pub fn load_merkle_test_json() -> MerkleTestJson {
-    let mut file = File::open("../../vectors/merkleTestCases.json").unwrap();
+/// Reads merkle test case json file and returns a vector of `MerkleTestCase`s
+pub fn load_merkle_test_json() -> Vec<MerkleTestCase> {
+    let mut file = File::open("../../vectors/merkle.json").unwrap();
     let mut data = String::new();
     file.read_to_string(&mut data).unwrap();
     serde_json::from_str(&data).unwrap()

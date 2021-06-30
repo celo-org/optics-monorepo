@@ -3,9 +3,7 @@ const { provider, deployMockContract } = waffle;
 const { expect } = require('chai');
 const UpdaterManager = require('../artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
 
-const {
-  testCases: signedFailureTestCases,
-} = require('../../../vectors/signedFailureTestCases.json');
+const signedFailureTestCases = require('../../../vectors/signedFailure.json');
 const testUtils = require('./utils');
 
 const ONLY_OWNER_REVERT_MSG = 'Ownable: caller is not the owner';

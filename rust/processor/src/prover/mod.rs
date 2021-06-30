@@ -169,8 +169,7 @@ mod test {
 
     #[test]
     fn it_produces_and_verifies_proofs() {
-        let test_json = test_utils::load_merkle_test_json();
-        let test_cases = test_json.test_cases;
+        let test_cases = test_utils::load_merkle_test_json();
 
         for test_case in test_cases.iter() {
             let mut tree = Prover::default();
