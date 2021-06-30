@@ -1,16 +1,15 @@
-const { ethers } = require('hardhat');
-const { provider } = ethers;
-const { expect } = require('chai');
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
 
-const { TestMerkle__factory } = require('../../typechain/optics-core');
-const { testCases } = require('../../../vectors/merkleTestCases.json');
+import { TestMerkle__factory } from '../../typechain/optics-core';
+import merkleTestCases from '../../../vectors/merkle.json';
 
 describe('Merkle', async () => {
-  for (let testCase of testCases) {
+  for (let testCase of merkleTestCases) {
     const { testName, leaves, expectedRoot, proofs } = testCase;
 
     describe(testName, async () => {
-      let merkle: typeof ethers.Contract, root: string;
+      let merkle: any, root: string;
 
       before(async () => {
         let [signer] = await ethers.getSigners();

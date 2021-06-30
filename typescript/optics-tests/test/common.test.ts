@@ -1,16 +1,14 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
 
-import { TestCommon__factory } from '../../typechain/optics-core';
+import { TestCommon__factory, TestCommon } from '../../typechain/optics-core';
 import { OpticsState, Updater } from '../lib';
+import signedUpdateTestCases from '../../../vectors/signedUpdate.json';
 
-const {
-  testCases: signedUpdateTestCases,
-} = require('../../../vectors/signedUpdateTestCases.json');
 const localDomain = 1000;
 
 describe('Common', async () => {
-  let common: typeof ethers.Contract;
+  let common: TestCommon;
   let [signer, fakeSigner] = await ethers.getSigners();
   let updater = await Updater.fromSigner(signer, localDomain);
   let fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);

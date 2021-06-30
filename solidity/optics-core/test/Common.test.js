@@ -4,7 +4,7 @@ const { expect } = require('chai');
 
 const {
   testCases: signedUpdateTestCases,
-} = require('../../../vectors/signedUpdateTestCases.json');
+} = require('../../../vectors/signedUpdate.json');
 const localDomain = 1000;
 
 describe('Common', async () => {

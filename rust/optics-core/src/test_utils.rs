@@ -26,8 +26,8 @@ pub struct MerkleTestJson {
 
 /// Reads merkle test case json file and returns a `MerkleTestJson`
 pub fn load_merkle_test_json() -> MerkleTestJson {
-    let mut file = File::open("../../vectors/merkleTestCases.json").unwrap();
+    let mut file = File::open("../../vectors/merkle.json").unwrap();
     let mut data = String::new();
     file.read_to_string(&mut data).unwrap();
-    serde_json::from_str(&data).unwrap()
+    serde_json::from_str(&data).unwrap();
 }

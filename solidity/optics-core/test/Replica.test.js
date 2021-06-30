@@ -3,15 +3,9 @@ const { provider } = waffle;
 const { expect } = require('chai');
 const testUtils = require('./utils');
 
-const {
-  testCases: homeDomainHashTestCases,
-} = require('../../../vectors/homeDomainHashTestCases.json');
-const {
-  testCases: merkleTestCases,
-} = require('../../../vectors/merkleTestCases.json');
-const {
-  testCases: proveAndProcessTestCases,
-} = require('../../../vectors/proveAndProcessTestCases.json');
+const homeDomainHashTestCases = require('../../../vectors/homeDomainHash.json');
+const merkleTestCases = require('../../../vectors/merkle.json');
+const proveAndProcessTestCases = require('../../../vectors/proveAndProcess.json');
 
 const remoteDomain = 1000;
 const localDomain = 2000;

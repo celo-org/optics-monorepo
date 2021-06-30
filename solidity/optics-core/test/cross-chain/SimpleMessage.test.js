@@ -15,9 +15,7 @@ const {
   getReplica,
   getGovernanceRouter,
 } = require('./deployCrossChainTest');
-const {
-  testCases: proveAndProcessTestCases,
-} = require('../../../../vectors/proveAndProcessTestCases.json');
+const proveAndProcessTestCases = require('../../../../vectors/proveAndProcess.json');
 
 /*
  * Deploy the full Optics suite on two chains

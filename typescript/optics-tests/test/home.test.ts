@@ -1,28 +1,23 @@
 import { ethers, waffle, optics } from 'hardhat';
 const { deployMockContract } = waffle;
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-const { expect } = require('chai');
+import { expect } from 'chai';
 
 import * as chain from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
-
-const UpdaterManager = require('../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json');
-
-const {
-  testCases: homeDomainHashTestCases,
-} = require('../../../vectors/homeDomainHashTestCases.json');
-const {
-  testCases,
-} = require('../../../vectors/destinationSequenceTestCases.json');
+import { TestHome } from '../../typechain/optics-core';
+import UpdaterManager from '../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json';
+import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
+import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
 
 const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
   let deploy: chain.Deploy,
-    home: any,
+    home: TestHome,
     signer: SignerWithAddress,
     fakeSigner: SignerWithAddress,
     recipient: SignerWithAddress,
@@ -35,12 +30,12 @@ describe('Home', async () => {
   // The message recipient is the same for all messages enqueued.
   const enqueueMessageAndGetRoot = async (message: string) => {
     message = ethers.utils.formatBytes32String(message);
-    await home.proxy.enqueue(
+    await home.enqueue(
       destDomain,
       optics.ethersAddressToBytes32(recipient.address),
       message,
     );
-    const [, latestRoot] = await home.proxy.suggestUpdate();
+    const [, latestRoot] = await home.suggestUpdate();
     return latestRoot;
   };
 
@@ -54,6 +49,7 @@ describe('Home', async () => {
     await deploys.deployUpgradeBeaconController(deploy);
 
     fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
+    // TODO: use ts deploy to get mock UpdaterManager instead of waffle?
     mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
   });
 
@@ -63,26 +59,24 @@ describe('Home', async () => {
 
     // redploy the home before each test run
     await deploys.deployHome(deploy);
-    home = deploy.contracts.home;
+    home = deploy.contracts.home?.proxy as TestHome;
 
     // set home on UpdaterManager
-    await deploy.contracts.updaterManager!.setHome(
-      deploy.contracts.home!.proxy.address,
-    );
+    await deploy.contracts.updaterManager!.setHome(home.address);
   });
 
   it('Cannot be initialized twice', async () => {
     await expect(
-      home.proxy.initialize(mockUpdaterManager.address),
+      home.initialize(mockUpdaterManager.address),
     ).to.be.revertedWith('Initializable: contract is already initialized');
   });
 
   it('Halts on fail', async () => {
-    await home.proxy.setFailed();
-    expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
+    await home.setFailed();
+    expect(await home.state()).to.equal(OpticsState.FAILED);
     const message = ethers.utils.formatBytes32String('message');
     await expect(
-      home.proxy.enqueue(
+      home.enqueue(
         destDomain,
         optics.ethersAddressToBytes32(recipient.address),
         message,
@@ -112,7 +106,7 @@ describe('Home', async () => {
   it('Does not enqueue large messages', async () => {
     const message = `0x${Buffer.alloc(3000).toString('hex')}`;
     await expect(
-      home.proxy
+      home
         .connect(signer)
         .enqueue(
           destDomain,
@@ -124,7 +118,7 @@ describe('Home', async () => {
 
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
-    const sequence = await home.proxy.sequences(localDomain);
+    const sequence = await home.sequences(localDomain);
     // Format data that will be emitted from Dispatch event
     const destinationAndSequence = optics.destinationAndSequence(
       destDomain,
@@ -139,10 +133,10 @@ describe('Home', async () => {
       message,
     );
     const leaf = optics.messageToLeaf(opticsMessage);
-    const leafIndex = await home.proxy.nextLeafIndex();
+    const leafIndex = await home.nextLeafIndex();
     // Send message with signer address as msg.sender
     await expect(
-      home.proxy
+      home
         .connect(signer)
         .enqueue(
           destDomain,
@@ -150,56 +144,56 @@ describe('Home', async () => {
           message,
         ),
     )
-      .to.emit(home.proxy, 'Dispatch')
+      .to.emit(home, 'Dispatch')
       .withArgs(leafIndex, destinationAndSequence, leaf, opticsMessage);
   });
 
   it('Suggests current root and latest root on suggestUpdate', async () => {
-    const currentRoot = await home.proxy.current();
+    const currentRoot = await home.current();
     const message = ethers.utils.formatBytes32String('message');
-    await home.proxy.enqueue(
+    await home.enqueue(
       destDomain,
       optics.ethersAddressToBytes32(recipient.address),
       message,
     );
-    const latestEnqueuedRoot = await home.proxy.queueEnd();
-    const [suggestedCurrent, suggestedNew] = await home.proxy.suggestUpdate();
+    const latestEnqueuedRoot = await home.queueEnd();
+    const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
     expect(suggestedCurrent).to.equal(currentRoot);
     expect(suggestedNew).to.equal(latestEnqueuedRoot);
   });
 
   it('Suggests empty update values when queue is empty', async () => {
-    const length = await home.proxy.queueLength();
+    const length = await home.queueLength();
     expect(length).to.equal(0);
-    const [suggestedCurrent, suggestedNew] = await home.proxy.suggestUpdate();
+    const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
     expect(suggestedCurrent).to.equal(emptyAddress);
     expect(suggestedNew).to.equal(emptyAddress);
   });
 
   it('Accepts a valid update', async () => {
-    const currentRoot = await home.proxy.current();
+    const currentRoot = await home.current();
     const newRoot = await enqueueMessageAndGetRoot('message');
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
-    await expect(home.proxy.update(currentRoot, newRoot, signature))
-      .to.emit(home.proxy, 'Update')
+    await expect(home.update(currentRoot, newRoot, signature))
+      .to.emit(home, 'Update')
       .withArgs(localDomain, currentRoot, newRoot, signature);
-    expect(await home.proxy.current()).to.equal(newRoot);
-    expect(await home.proxy.queueContains(newRoot)).to.be.false;
+    expect(await home.current()).to.equal(newRoot);
+    expect(await home.queueContains(newRoot)).to.be.false;
   });
 
   it('Batch-accepts several updates', async () => {
-    const currentRoot = await home.proxy.current();
+    const currentRoot = await home.current();
     const newRoot1 = await enqueueMessageAndGetRoot('message1');
     const newRoot2 = await enqueueMessageAndGetRoot('message2');
     const newRoot3 = await enqueueMessageAndGetRoot('message3');
     const { signature } = await updater.signUpdate(currentRoot, newRoot3);
-    await expect(home.proxy.update(currentRoot, newRoot3, signature))
-      .to.emit(home.proxy, 'Update')
+    await expect(home.update(currentRoot, newRoot3, signature))
+      .to.emit(home, 'Update')
       .withArgs(localDomain, currentRoot, newRoot3, signature);
-    expect(await home.proxy.current()).to.equal(newRoot3);
-    expect(await home.proxy.queueContains(newRoot1)).to.be.false;
-    expect(await home.proxy.queueContains(newRoot2)).to.be.false;
-    expect(await home.proxy.queueContains(newRoot3)).to.be.false;
+    expect(await home.current()).to.equal(newRoot3);
+    expect(await home.queueContains(newRoot1)).to.be.false;
+    expect(await home.queueContains(newRoot2)).to.be.false;
+    expect(await home.queueContains(newRoot3)).to.be.false;
   });
 
   it('Rejects update that does not build off of current root', async () => {
@@ -209,34 +203,35 @@ describe('Home', async () => {
     // Try to submit update that skips the current (first) root
     const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
     await expect(
-      home.proxy.update(secondRoot, thirdRoot, signature),
+      home.update(secondRoot, thirdRoot, signature),
     ).to.be.revertedWith('not a current update');
   });
 
   it('Rejects update that does not exist in queue', async () => {
-    const currentRoot = await home.proxy.current();
+    const currentRoot = await home.current();
     const fakeNewRoot = ethers.utils.formatBytes32String('fake root');
     const { signature } = await updater.signUpdate(currentRoot, fakeNewRoot);
-    await expect(
-      home.proxy.update(currentRoot, fakeNewRoot, signature),
-    ).to.emit(home.proxy, 'ImproperUpdate');
-    expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
+    await expect(home.update(currentRoot, fakeNewRoot, signature)).to.emit(
+      home,
+      'ImproperUpdate',
+    );
+    expect(await home.state()).to.equal(OpticsState.FAILED);
   });
 
   it('Rejects update from non-updater address', async () => {
-    const currentRoot = await home.proxy.current();
+    const currentRoot = await home.current();
     const newRoot = await enqueueMessageAndGetRoot('message');
     const { signature: fakeSignature } = await fakeUpdater.signUpdate(
       currentRoot,
       newRoot,
     );
     await expect(
-      home.proxy.update(currentRoot, newRoot, fakeSignature),
+      home.update(currentRoot, newRoot, fakeSignature),
     ).to.be.revertedWith('bad sig');
   });
 
   it('Fails on valid double update proof', async () => {
-    const firstRoot = await home.proxy.current();
+    const firstRoot = await home.current();
     const secondRoot = await enqueueMessageAndGetRoot('message');
     const thirdRoot = await enqueueMessageAndGetRoot('message2');
     const { signature } = await updater.signUpdate(firstRoot, secondRoot);
@@ -245,21 +240,21 @@ describe('Home', async () => {
       thirdRoot,
     );
     await expect(
-      home.proxy.doubleUpdate(
+      home.doubleUpdate(
         firstRoot,
         [secondRoot, thirdRoot],
         signature,
         signature2,
       ),
-    ).to.emit(home.proxy, 'DoubleUpdate');
-    expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
+    ).to.emit(home, 'DoubleUpdate');
+    expect(await home.state()).to.equal(OpticsState.FAILED);
   });
 
   it('Correctly calculates destinationAndSequence', async () => {
-    for (let testCase of testCases) {
+    for (let testCase of destinationSequenceTestCases) {
       let { destination, sequence, expectedDestinationAndSequence } = testCase;
       const solidityDestinationAndSequence =
-        await home.proxy.testDestinationAndSequence(destination, sequence);
+        await home.testDestinationAndSequence(destination, sequence);
       expect(solidityDestinationAndSequence).to.equal(
         expectedDestinationAndSequence,
       );
