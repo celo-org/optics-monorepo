@@ -100,6 +100,9 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _token The token address
      * @param _destination The destination domain
      */
+    // TODO: people can call this for nonsense non-ERC-20 tokens
+    // name, symbol, decimals could be nonsense
+    // remote chains will deploy a token contract based on this message
     function updateDetails(address _token, uint32 _destination) external {
         require(_isLocalOrigin(_token), "!local origin");
         // get remote BridgeRouter address; revert if not found
