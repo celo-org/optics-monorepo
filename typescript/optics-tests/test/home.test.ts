@@ -21,9 +21,8 @@ const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
-  let deploy: chain.Deploy;
-  // TODO: specify types here
-  let home: any,
+  let deploy: chain.Deploy,
+    home: any,
     signer: SignerWithAddress,
     fakeSigner: SignerWithAddress,
     recipient: SignerWithAddress,
@@ -109,6 +108,7 @@ describe('Home', async () => {
       expect(homeDomainHash).to.equal(expectedDomainHash);
     }
   });
+
   it('Does not enqueue large messages', async () => {
     const message = `0x${Buffer.alloc(3000).toString('hex')}`;
     await expect(
@@ -121,6 +121,7 @@ describe('Home', async () => {
         ),
     ).to.be.revertedWith('!too big');
   });
+
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
     const sequence = await home.proxy.sequences(localDomain);
@@ -152,6 +153,7 @@ describe('Home', async () => {
       .to.emit(home.proxy, 'Dispatch')
       .withArgs(leafIndex, destinationAndSequence, leaf, opticsMessage);
   });
+
   it('Suggests current root and latest root on suggestUpdate', async () => {
     const currentRoot = await home.proxy.current();
     const message = ethers.utils.formatBytes32String('message');
@@ -165,6 +167,7 @@ describe('Home', async () => {
     expect(suggestedCurrent).to.equal(currentRoot);
     expect(suggestedNew).to.equal(latestEnqueuedRoot);
   });
+
   it('Suggests empty update values when queue is empty', async () => {
     const length = await home.proxy.queueLength();
     expect(length).to.equal(0);
@@ -172,6 +175,7 @@ describe('Home', async () => {
     expect(suggestedCurrent).to.equal(emptyAddress);
     expect(suggestedNew).to.equal(emptyAddress);
   });
+
   it('Accepts a valid update', async () => {
     const currentRoot = await home.proxy.current();
     const newRoot = await enqueueMessageAndGetRoot('message');
@@ -182,6 +186,7 @@ describe('Home', async () => {
     expect(await home.proxy.current()).to.equal(newRoot);
     expect(await home.proxy.queueContains(newRoot)).to.be.false;
   });
+
   it('Batch-accepts several updates', async () => {
     const currentRoot = await home.proxy.current();
     const newRoot1 = await enqueueMessageAndGetRoot('message1');
@@ -196,6 +201,7 @@ describe('Home', async () => {
     expect(await home.proxy.queueContains(newRoot2)).to.be.false;
     expect(await home.proxy.queueContains(newRoot3)).to.be.false;
   });
+
   it('Rejects update that does not build off of current root', async () => {
     // First root is current root
     const secondRoot = await enqueueMessageAndGetRoot('message');
@@ -206,6 +212,7 @@ describe('Home', async () => {
       home.proxy.update(secondRoot, thirdRoot, signature),
     ).to.be.revertedWith('not a current update');
   });
+
   it('Rejects update that does not exist in queue', async () => {
     const currentRoot = await home.proxy.current();
     const fakeNewRoot = ethers.utils.formatBytes32String('fake root');
@@ -215,6 +222,7 @@ describe('Home', async () => {
     ).to.emit(home.proxy, 'ImproperUpdate');
     expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
   });
+
   it('Rejects update from non-updater address', async () => {
     const currentRoot = await home.proxy.current();
     const newRoot = await enqueueMessageAndGetRoot('message');
@@ -226,6 +234,7 @@ describe('Home', async () => {
       home.proxy.update(currentRoot, newRoot, fakeSignature),
     ).to.be.revertedWith('bad sig');
   });
+
   it('Fails on valid double update proof', async () => {
     const firstRoot = await home.proxy.current();
     const secondRoot = await enqueueMessageAndGetRoot('message');
@@ -245,6 +254,7 @@ describe('Home', async () => {
     ).to.emit(home.proxy, 'DoubleUpdate');
     expect(await home.proxy.state()).to.equal(OpticsState.FAILED);
   });
+
   it('Correctly calculates destinationAndSequence', async () => {
     for (let testCase of testCases) {
       let { destination, sequence, expectedDestinationAndSequence } = testCase;
