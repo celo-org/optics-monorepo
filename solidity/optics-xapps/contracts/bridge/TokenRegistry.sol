@@ -20,20 +20,17 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * @title TokenRegistry
  * @notice manages a registry of token contracts on this chain
  *
- * We sort token types as "representation" or "native".
- * Native - a token contract that is originally deployed on this chain
- * Representation (repr) - a token that originates on some other chain
- *
- * . We leave upgradability and management of
- * that identity to the token's deployers.
+ * We sort token types as "representation token" or "locally originating token".
+ * Locally originating - a token contract that was originally deployed on the local chain
+ * Representation (repr) - a token that was originally deployed on some other chain
  *
  * When the router handles an incoming message, it determines whether the
- * transfer is for a native asset. If not, it checks for an existing
- * representation. If no such representation exists, it deploys a new
- * representation token contract. It then stores the relationship in the
+ * transfer is for an asset of local origin. If not, it checks for an existing
+ * representation contract. If no such representation exists, it deploys a new
+ * representation contract. It then stores the relationship in the
  * "reprToCanonical" and "canonicalToRepr" mappings to ensure we can always
  * perform a lookup in either direction
- * Note that native tokens should NEVER be represented in these lookup tables.
+ * Note that locally originating tokens should NEVER be represented in these lookup tables.
  */
 abstract contract TokenRegistry is XAppConnectionClient {
     using TypedMemView for bytes;
@@ -41,8 +38,8 @@ abstract contract TokenRegistry is XAppConnectionClient {
     using BridgeMessage for bytes29;
 
     // We identify tokens by a TokenId:
-    // domain - 4 byte chain ID
-    // id - 32 byte identifier in native chain's address format
+    // domain - 4 byte chain ID of the chain from which the token originates
+    // id - 32 byte identifier of the token address on the origin chain, in that chain's address format
     struct TokenId {
         uint32 domain;
         bytes32 id;
@@ -56,7 +53,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
     mapping(address => TokenId) internal reprToCanonical;
 
     // hash of the tightly-packed TokenId => local representation token address
-    // If the token is native, this MUST map to address(0).
+    // If the token is of local origin, this MUST map to address(0).
     mapping(bytes32 => address) internal canonicalToRepr;
 
     // ======== Constructor =========
@@ -115,15 +112,15 @@ abstract contract TokenRegistry is XAppConnectionClient {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
-        // Native
+        // Token is of local origin
         if (_tokenId.domain() == _localDomain()) {
             return IERC20(_tokenId.evmId());
         }
-
-        // Repr
+        // Token is a representation of a token of remote origin
         address _local = canonicalToRepr[_tokenId.keccak()];
         if (_local == address(0)) {
-            // DEPLO
+            // Representation does not exist yet;
+            // deploy representation contract
             _local = _deployToken(_tokenId);
         }
         return IERC20(_local);
@@ -141,9 +138,13 @@ abstract contract TokenRegistry is XAppConnectionClient {
         }
     }
 
-    function _isNative(IERC20 _token) internal view returns (bool) {
-        address _addr = address(_token);
-        // If this contract deployed it, it isn't native.
+    function _isLocalOrigin(IERC20 _token) internal view returns (bool) {
+        return _isLocalOrigin(address(_token));
+    }
+
+    function _isLocalOrigin(address _addr) internal view returns (bool) {
+        // If the token is of local origin,
+        // it will not be stored in the TokenRegistry mapping
         if (reprToCanonical[_addr].domain != 0) {
             return false;
         }

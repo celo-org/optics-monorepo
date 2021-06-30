@@ -76,11 +76,11 @@ contract BridgeRouter is Router, TokenRegistry {
         bytes32 _remote = _mustHaveRemote(_destination);
         // remove tokens from circulation on this chain
         IERC20 _bridgeToken = IERC20(_token);
-        if (_isNative(_bridgeToken)) {
-            // if the tokens are native to this chain, hold them in escrow in the Router
+        if (_isLocalOrigin(_bridgeToken)) {
+            // if the token originates on this chain, hold the tokens in escrow in the Router
             _bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
         } else {
-            // if the token is not native to this chain, burn the tokens on this chain
+            // if the token originates on a remote chain, burn the representation tokens on this chain
             _downcast(_bridgeToken).burn(msg.sender, _amnt);
         }
         // format Transfer Tokens action
@@ -139,8 +139,8 @@ contract BridgeRouter is Router, TokenRegistry {
     /**
      * @notice Handles an incoming Transfer message.
      *
-     * If the token is native, the amount is unlocked. Otherwise, a
-     * representational (non-native) token is minted.
+     * If the token is of local origin, the amount is sent from escrow.
+     * Otherwise, a representation token is minted.
      *
      * @param _tokenId The token ID
      * @param _action The action
@@ -151,17 +151,17 @@ contract BridgeRouter is Router, TokenRegistry {
         typeAssert(_action, BridgeMessage.Types.Transfer)
     {
         // get the token contract for the given tokenId on this chain;
-        // (if the token is not native to this chain and there is
+        // (if the token is of remote origin and there is
         // no existing representation token contract, the TokenRegistry will deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
         // send the tokens into circulation on this chain
-        if (_isNative(_token)) {
-            // if the token is native, the tokens have been held in escrow in this contract
+        if (_isLocalOrigin(_token)) {
+            // if the token is of local origin, the tokens have been held in escrow in this contract
             // while they have been circulating on remote chains;
-            // transfer the native token to the recipient
+            // transfer the tokens to the recipient
             _token.safeTransfer(_action.evmRecipient(), _action.amnt());
         } else {
-            // if the token is not native, mint the tokens to the recipient on this chain
+            // if the token is of remote origin, mint the tokens to the recipient on this chain
             _downcast(_token).mint(_action.evmRecipient(), _action.amnt());
         }
     }
@@ -178,9 +178,10 @@ contract BridgeRouter is Router, TokenRegistry {
     {
         // get the token contract deployed on this chain
         IERC20 _token = _ensureToken(_tokenId);
-        // require that the token is not native to this chain
-        // (or else the Router cannot update its metadata)
-        require(!_isNative(_token), "!repr");
+        // require that the token is of remote origin
+        // (otherwise, the BridgeRouter did not deploy the token contract,
+        // and therefore cannot update its metadata)
+        require(!_isLocalOrigin(_token), "!repr");
         // update the token metadata
         _downcast(_token).setDetails(
             _action.name(),
