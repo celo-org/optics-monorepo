@@ -75,7 +75,7 @@ export async function duplicate<T extends ethers.Contract>(
  * @param deploy - The deploy
  * @param implementation - The implementation
  */
-export async function _deployBeacon(
+async function _deployBeacon(
   deploy: Deploy,
   implementation: ethers.Contract,
 ): Promise<contracts.UpgradeBeacon> {
@@ -99,7 +99,7 @@ export async function _deployBeacon(
  * @param beacon - The UpgradeBeacon
  * @param implementation - The implementation
  */
-export async function _deployProxy<T>(
+async function _deployProxy<T>(
   deploy: Deploy,
   beacon: contracts.UpgradeBeacon,
   initData: BytesLike,

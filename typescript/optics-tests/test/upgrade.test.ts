@@ -1,15 +1,16 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Test } from 'mocha';
-import * as ProxyUtils from '../../optics-deploy/src/proxyUtils';
-import * as deploys from '../../optics-deploy/src/deployOptics';
-import * as contracts from '../../typechain/optics-core';
+import * as types from 'ethers';
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib';
-// import { ethers } from 'ethers';
+import * as ProxyUtils from '../../optics-deploy/src/proxyUtils';
+import * as deploys from '../../optics-deploy/src/deployOptics';
+import { Deploy } from '../../optics-deploy/src/chain';
+import * as contracts from '../../typechain/optics-core';
 
 describe('Upgrade', async () => {
-  let proxy: any,
+  let signer: types.Signer,
+    proxy: contracts.MysteryMathV1,
     upgradeBeacon: contracts.UpgradeBeacon,
     upgradeBeaconController: contracts.UpgradeBeaconController;
   const a = 5;
@@ -17,32 +18,46 @@ describe('Upgrade', async () => {
   const stateVar = 17;
 
   async function deployProxy(): Promise<any> {
-    let [signer] = await ethers.getSigners();
-    const factory = new contracts.MysteryMathV1__factory(signer);
-    // const implementation = await factory.deploy() as ethers.Contract;
-    const implementation = await factory.deploy();
+    // set up fresh test deploy
+    const deploy = await getTestDeploy(1000, ethers.constants.AddressZero, []);
 
-    let updater = await Updater.fromSigner(signer, 1000);
-    const deploy = await getTestDeploy(1000, updater.address, []);
+    // deploy implementation
+    const mysteryMathFactory = new contracts.MysteryMathV1__factory(signer);
+    const implementation = await mysteryMathFactory.deploy();
+
+    // deploy UpdaterManager and UpgradeBeaconController
     await deploys.deployUpdaterManager(deploy);
     await deploys.deployUpgradeBeaconController(deploy);
-    const beacon = await ProxyUtils._deployBeacon(deploy, implementation);
-    const proxy = await ProxyUtils._deployProxy(deploy, beacon, []);
-    await proxy.deployTransaction.wait(0);
 
-    // proxy = factory.attach(proxy.address) as ethers.Contract;
+    // deploy upgrade beacon
+    const beaconFactory = new contracts.UpgradeBeacon__factory(
+      deploy.chain.deployer,
+    );
+    const beacon = await beaconFactory.deploy(
+      implementation.address,
+      deploy.contracts.upgradeBeaconController!.address,
+      { gasPrice: deploy.chain.gasPrice, gasLimit: 2_000_000 },
+    );
+
+    // deploy proxy
+    let factory = new contracts.UpgradeBeaconProxy__factory(
+      deploy.chain.deployer,
+    );
+
+    const proxy = await factory.deploy(beacon.address, []);
+
     return {
       upgradeBeacon: beacon,
       upgradeBeaconController: deploy.contracts.upgradeBeaconController,
-      proxy: factory.attach(proxy.address),
+      proxy: mysteryMathFactory.attach(proxy.address),
     };
   }
 
   before(async () => {
+    // set signer
+    [signer] = await ethers.getSigners();
+
     // SETUP CONTRACT SUITE
-    // const { contracts } = await optics.deployUpgradeSetupAndProxy(
-    //   'MysteryMathV1',
-    // );
     const MysteryMathV1 = await deployProxy();
 
     proxy = MysteryMathV1.proxy;
@@ -70,7 +85,6 @@ describe('Upgrade', async () => {
 
   it('Upgrades without problem', async () => {
     // Deploy Implementation 2
-    let [signer] = await ethers.getSigners();
     const factory = new contracts.MysteryMathV2__factory(signer);
     const implementation = await factory.deploy();
 
