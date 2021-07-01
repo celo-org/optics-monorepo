@@ -1,33 +1,31 @@
-import { ethers, waffle, optics } from 'hardhat';
-const { provider, deployMockContract } = waffle;
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import type { Contract } from "ethers";
-import { EthereumProvider } from 'hardhat/types';
-const TestRecipient = require('../artifacts/contracts/test/TestRecipient.sol/TestRecipient.json');
+import { ethers } from 'hardhat';
+import { TestRecipient__factory } from '../../typechain/optics-core';
+import { MockProvider } from 'ethereum-waffle';
 
-export async function getMockOpticsMessageSender(): Promise<SignerWithAddress> {
+async function getMockRecipient() {
+  const [signer] = await ethers.getSigners();
+  const factory = new TestRecipient__factory(signer);
+  const recipient = await factory.deploy();
+  return recipient.address;
+}
+async function getMockSender() {
   const [opticsMessageSender] = await ethers.getSigners();
-  return opticsMessageSender;
+  return opticsMessageSender
 }
 
-export async function getMockOpticsMessageRecipient(): Promise<Contract> {
-  const [opticsMessageRecipient] = await ethers.getSigners();
-  return await deployMockContract(opticsMessageRecipient, TestRecipient.abi);
-}
-
-const increaseTimestampBy = async (provider: EthereumProvider, increaseTime: number) => {
+const increaseTimestampBy = async (provider: MockProvider, increaseTime: number) => {
   await provider.send('evm_increaseTime', [increaseTime]);
-  await provider.send('evm_mine');
+  await provider.send('evm_mine', []);
 };
 
 class WalletProvider {
-  provider: EthereumProvider;
-  wallets: Promise<SignerWithAddress[]>;
+  provider: MockProvider;
+  wallets: any[];
   numUsedWallets: number;
 
-  constructor(provider: EthereumProvider) {
+  constructor(provider: MockProvider) {
     this.provider = provider;
-    this.wallets = ethers.getSigners();
+    this.wallets = provider.getWallets();
     this.numUsedWallets = 0;
   }
 
@@ -42,21 +40,21 @@ class WalletProvider {
     );
   }
 
-  getWalletsPersistent(numWallets) {
+  getWalletsPersistent(numWallets: number) {
     const wallets = this._getWallets(numWallets);
     this.numUsedWallets += numWallets;
     return wallets;
   }
 
-  getWalletsEphemeral(numWallets) {
+  getWalletsEphemeral(numWallets: number) {
     return this._getWallets(numWallets);
   }
 }
 
 const testUtils = {
+  getMockRecipient,
+  getMockSender,
   increaseTimestampBy,
-  opticsMessageSender,
-  opticsMessageMockRecipient: new MockRecipientObject(),
   WalletProvider,
 };
 
