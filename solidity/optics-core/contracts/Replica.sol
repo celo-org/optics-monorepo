@@ -45,7 +45,7 @@ contract Replica is Initializable, Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    event ProcessError(bytes error);
+    event ProcessError(uint32 indexed sequence, address indexed recipient, bytes returnData);
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
@@ -232,7 +232,7 @@ contract Replica is Initializable, Common, QueueManager {
         (_success, _returnData) = _recipient.call{gas: PROCESS_GAS}(abi.encodeWithSignature("handle(uint32,bytes32,bytes)", _m.origin(), _m.sender(), _m.body().clone()));
 
         if (!_success) {
-            emit ProcessError(_returnData);
+            emit ProcessError(_sequence, _recipient, _returnData);
         }
 
         nextToProcess = _sequence + 1;
