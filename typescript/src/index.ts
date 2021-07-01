@@ -423,6 +423,27 @@ export async function deployNChains(chains: Deploy[]) {
 }
 
 /**
+ * Copies the partial configs from the default directory to the specified directory.
+ *
+ * @param dir - relative path to folder where partial configs will be written
+ */
+export function writePartials(dir: string) {
+  // make folder if it doesn't exist already
+  fs.mkdirSync(dir, { recursive: true });
+  const defaultDir = "../rust/config/default";
+  const partialNames = ["kathy", "processor", "relayer", "updater", "watcher"];
+  // copy partial config from default directory to given directory
+  for (let partialName of partialNames) {
+    const filename = `${partialName}-partial.json`;
+    fs.copyFile( `${defaultDir}/${filename}`, `${dir}/${filename}`, (err) => {
+      if(err) {
+        console.error(err);
+      }
+    });
+  }
+}
+
+/**
  * Outputs the values for chains that have been deployed.
  *
  * @param deploys - The array of chain deploys
@@ -446,4 +467,5 @@ export function writeDeployOutput(deploys: Deploy[]) {
     );
     fs.writeFileSync(`${dir}/${name}_contracts.json`, toJson(local.contracts));
   }
+  writePartials(dir);
 }
