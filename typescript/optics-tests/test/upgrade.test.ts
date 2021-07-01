@@ -4,6 +4,7 @@ import * as types from 'ethers';
 import { getTestDeploy } from './testChain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import * as contracts from '../../typechain/optics-core';
+import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
 
 describe('Upgrade', async () => {
   let signer: types.Signer,
@@ -14,7 +15,11 @@ describe('Upgrade', async () => {
   const b = 10;
   const stateVar = 17;
 
-  async function deployProxy(): Promise<any> {
+  before(async () => {
+    // set signer
+    [signer] = await ethers.getSigners();
+
+    // SETUP CONTRACT SUITE
     // set up fresh test deploy
     const deploy = await getTestDeploy(1000, ethers.constants.AddressZero, []);
 
@@ -22,15 +27,18 @@ describe('Upgrade', async () => {
     const mysteryMathFactory = new contracts.MysteryMathV1__factory(signer);
     const implementation = await mysteryMathFactory.deploy();
 
-    // deploy UpdaterManager and UpgradeBeaconController
+    // deploy UpdaterManager
     await deploys.deployUpdaterManager(deploy);
-    await deploys.deployUpgradeBeaconController(deploy);
 
-    // deploy upgrade beacon
+    // deploy and set UpgradeBeaconController
+    await deploys.deployUpgradeBeaconController(deploy);
+    upgradeBeaconController = deploy.contracts.upgradeBeaconController!;
+
+    // deploy and set upgrade beacon
     const beaconFactory = new contracts.UpgradeBeacon__factory(
       deploy.chain.deployer,
     );
-    const beacon = await beaconFactory.deploy(
+    upgradeBeacon = await beaconFactory.deploy(
       implementation.address,
       deploy.contracts.upgradeBeaconController!.address,
       { gasPrice: deploy.chain.gasPrice, gasLimit: 2_000_000 },
@@ -40,25 +48,10 @@ describe('Upgrade', async () => {
     let factory = new contracts.UpgradeBeaconProxy__factory(
       deploy.chain.deployer,
     );
-    const proxy = await factory.deploy(beacon.address, []);
+    const upgradeBeaconProxy = await factory.deploy(upgradeBeacon.address, []);
 
-    return {
-      upgradeBeacon: beacon,
-      upgradeBeaconController: deploy.contracts.upgradeBeaconController,
-      proxy: mysteryMathFactory.attach(proxy.address),
-    };
-  }
-
-  before(async () => {
-    // set signer
-    [signer] = await ethers.getSigners();
-
-    // SETUP CONTRACT SUITE
-    const MysteryMathV1 = await deployProxy();
-
-    proxy = MysteryMathV1.proxy;
-    upgradeBeacon = MysteryMathV1.upgradeBeacon;
-    upgradeBeaconController = MysteryMathV1.upgradeBeaconController;
+    // set proxy
+    proxy = mysteryMathFactory.attach(proxy.address);
 
     // Set state of proxy
     await proxy.setState(stateVar);
