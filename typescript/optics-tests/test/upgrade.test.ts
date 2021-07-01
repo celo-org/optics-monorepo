@@ -51,7 +51,7 @@ describe('Upgrade', async () => {
     const upgradeBeaconProxy = await factory.deploy(upgradeBeacon.address, []);
 
     // set proxy
-    proxy = mysteryMathFactory.attach(proxy.address);
+    proxy = mysteryMathFactory.attach(upgradeBeaconProxy.address);
 
     // Set state of proxy
     await proxy.setState(stateVar);
