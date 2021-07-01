@@ -228,17 +228,11 @@ contract Replica is Initializable, Common, QueueManager {
 
         address _recipient = _m.recipientAddress();
 
-        try
-            IMessageRecipient(_recipient).handle{gas: PROCESS_GAS}(
-                _m.origin(),
-                _m.sender(),
-                _m.body().clone()
-            )
-        {
-            _success = true;
-        } catch (bytes memory _err) {
-            _success = false;
-            emit ProcessError(_err);
+        bytes memory _returnData;
+        (_success, _returnData) = _recipient.call{gas: PROCESS_GAS}(abi.encodeWithSignature("handle(uint32,bytes32,bytes)", _m.origin(), _m.sender(), _m.body().clone()));
+
+        if (!_success) {
+            emit ProcessError(_returnData);
         }
 
         nextToProcess = _sequence + 1;
