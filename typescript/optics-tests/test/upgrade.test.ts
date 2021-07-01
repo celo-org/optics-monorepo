@@ -2,10 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import * as types from 'ethers';
 import { getTestDeploy } from './testChain';
-import { Updater } from '../lib';
-import * as ProxyUtils from '../../optics-deploy/src/proxyUtils';
 import * as deploys from '../../optics-deploy/src/deployOptics';
-import { Deploy } from '../../optics-deploy/src/chain';
 import * as contracts from '../../typechain/optics-core';
 
 describe('Upgrade', async () => {
@@ -43,7 +40,6 @@ describe('Upgrade', async () => {
     let factory = new contracts.UpgradeBeaconProxy__factory(
       deploy.chain.deployer,
     );
-
     const proxy = await factory.deploy(beacon.address, []);
 
     return {
