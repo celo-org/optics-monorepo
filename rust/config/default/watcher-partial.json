@@ -1,13 +1,13 @@
 {
-  "pollingInterval": 100,
+  "pollingInterval": "100",
   "watcher": {
-    "key": "380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc",
+    "key": "",
     "type": "hexKey"
   },
   "connectionManagers": [
     {
       "address": "0x0000000000000000000000000000000000000000",
-      "domain": 60,
+      "domain": "60",
       "name": "ethereum",
       "rpcStyle": "ethereum",
       "config": {
@@ -19,7 +19,7 @@
     },
     {
       "address": "0x0000000000000000000000000000000000000000",
-      "domain": 61,
+      "domain": "61",
       "name": "eth-classic",
       "rpcStyle": "ethereum",
       "config": {
