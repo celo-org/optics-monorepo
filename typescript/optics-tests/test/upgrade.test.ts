@@ -19,20 +19,16 @@ describe('Upgrade', async () => {
   async function deployProxy(): Promise<any> {
     let [signer] = await ethers.getSigners();
     const factory = new contracts.MysteryMathV1__factory(signer);
-    console.log('a');
     // const implementation = await factory.deploy() as ethers.Contract;
     const implementation = await factory.deploy();
-    console.log(1);
 
     let updater = await Updater.fromSigner(signer, 1000);
     const deploy = await getTestDeploy(1000, updater.address, []);
-    console.log(2);
     await deploys.deployUpdaterManager(deploy);
     await deploys.deployUpgradeBeaconController(deploy);
     const beacon = await ProxyUtils._deployBeacon(deploy, implementation);
     const proxy = await ProxyUtils._deployProxy(deploy, beacon, []);
     await proxy.deployTransaction.wait(0);
-    console.log(3);
 
     // proxy = factory.attach(proxy.address) as ethers.Contract;
     return {
@@ -74,8 +70,8 @@ describe('Upgrade', async () => {
 
   it('Upgrades without problem', async () => {
     // Deploy Implementation 2
-    const factory = new contracts.MysteryMathV2__factory();
-    // const implementation = await optics.deployImplementation('MysteryMathV2');
+    let [signer] = await ethers.getSigners();
+    const factory = new contracts.MysteryMathV2__factory(signer);
     const implementation = await factory.deploy();
 
     // Upgrade to implementation 2
