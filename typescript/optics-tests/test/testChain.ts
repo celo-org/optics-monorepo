@@ -14,6 +14,8 @@ export async function getTestChain(
     provider: ethers.provider,
     deployer,
     domain,
+    recoveryTimelock: 1,
+    recoveryManager: ethers.constants.AddressZero,
     updater,
     optimisticSeconds: 5,
     watchers,
