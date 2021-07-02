@@ -59,9 +59,14 @@ export async function deployUpdaterManager(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function deployXAppConnectionManager(deploy: Deploy) {
-  let factory = new contracts.XAppConnectionManager__factory(
-    deploy.chain.deployer,
-  );
+  const isTestDeploy: boolean = deploy.test;
+  if (isTestDeploy) warn('deploying test XAppConnectionManager')
+
+  const deployer = deploy.chain.deployer;
+  const factory = isTestDeploy
+    ? new contracts.TestXAppConnectionManager__factory(deployer)
+    : contracts.XAppConnectionManager__factory(deployer);
+
   deploy.contracts.xAppConnectionManager = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
