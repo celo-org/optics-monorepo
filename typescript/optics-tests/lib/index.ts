@@ -1,4 +1,5 @@
 import '@nomiclabs/hardhat-waffle';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert } from 'chai';
 import { extendEnvironment } from 'hardhat/config';
 
@@ -14,11 +15,11 @@ declare module 'hardhat/types/runtime' {
 
 export class Updater {
   localDomain: types.Domain;
-  signer: ethers.Signer;
+  signer: SignerWithAddress;
   address: types.Address;
 
   constructor(
-    signer: ethers.Signer,
+    signer: SignerWithAddress,
     address: types.Address,
     localDomain: types.Domain,
     disableWarn: boolean,
@@ -31,7 +32,7 @@ export class Updater {
     this.address = address;
   }
 
-  static async fromSigner(signer: ethers.Signer, localDomain: types.Domain) {
+  static async fromSigner(signer: SignerWithAddress, localDomain: types.Domain) {
     return new Updater(signer, await signer.getAddress(), localDomain, true);
   }
 
