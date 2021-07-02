@@ -1,5 +1,4 @@
 import { ethers, waffle, optics } from 'hardhat';
-const { deployMockContract } = waffle;
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
@@ -7,8 +6,7 @@ import * as chain from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
-import { TestHome } from '../../typechain/optics-core';
-import UpdaterManager from '../../../solidity/optics-core/artifacts/contracts/UpdaterManager.sol/UpdaterManager.json';
+import { TestHome, UpdaterManager__factory } from '../../typechain/optics-core';
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
 
@@ -23,7 +21,7 @@ describe('Home', async () => {
     recipient: SignerWithAddress,
     updater: Updater,
     fakeUpdater: Updater,
-    mockUpdaterManager: any;
+    fakeUpdaterManager: any;
   const emptyAddress: string = '0x' + '00'.repeat(32);
 
   // Helper function that enqueues message and returns its root.
@@ -49,15 +47,14 @@ describe('Home', async () => {
     await deploys.deployUpgradeBeaconController(deploy);
 
     fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
-    // TODO: use ts deploy to get mock UpdaterManager instead of waffle?
-    mockUpdaterManager = await deployMockContract(signer, UpdaterManager.abi);
+
+    // deploy fake UpdaterManager
+    const updaterManagerFactory = new UpdaterManager__factory(signer);
+    fakeUpdaterManager = await updaterManagerFactory.deploy(updater.address);
   });
 
   beforeEach(async () => {
-    await mockUpdaterManager.mock.updater.returns(signer.address);
-    await mockUpdaterManager.mock.slashUpdater.returns();
-
-    // redploy the home before each test run
+    // redeploy the home before each test run
     await deploys.deployHome(deploy);
     home = deploy.contracts.home?.proxy as TestHome;
 
@@ -67,7 +64,7 @@ describe('Home', async () => {
 
   it('Cannot be initialized twice', async () => {
     await expect(
-      home.initialize(mockUpdaterManager.address),
+      home.initialize(fakeUpdaterManager.address),
     ).to.be.revertedWith('Initializable: contract is already initialized');
   });
 
@@ -90,7 +87,7 @@ describe('Home', async () => {
     for (let testCase of homeDomainHashTestCases) {
       let deploy = await getTestDeploy(
         testCase.homeDomain,
-        mockUpdaterManager.address,
+        fakeUpdaterManager.address,
         [],
       );
       await deploys.deployUpdaterManager(deploy);
