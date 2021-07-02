@@ -2,7 +2,7 @@ import { ethers, waffle, optics } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
-import * as chain from '../../optics-deploy/src/chain';
+import { Deploy } from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
@@ -14,7 +14,7 @@ const localDomain = 1000;
 const destDomain = 2000;
 
 describe('Home', async () => {
-  let deploy: chain.Deploy,
+  let deploy: Deploy,
     home: TestHome,
     signer: SignerWithAddress,
     fakeSigner: SignerWithAddress,
@@ -51,6 +51,9 @@ describe('Home', async () => {
     // deploy fake UpdaterManager
     const updaterManagerFactory = new UpdaterManager__factory(signer);
     fakeUpdaterManager = await updaterManagerFactory.deploy(updater.address);
+
+    const ret = await fakeUpdaterManager.updater();
+    expect(ret).to.equal(signer.address);
   });
 
   beforeEach(async () => {

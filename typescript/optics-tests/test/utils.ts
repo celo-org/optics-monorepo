@@ -10,10 +10,13 @@ async function getMockRecipient() {
 }
 async function getMockSender() {
   const [opticsMessageSender] = await ethers.getSigners();
-  return opticsMessageSender
+  return opticsMessageSender;
 }
 
-const increaseTimestampBy = async (provider: MockProvider, increaseTime: number) => {
+const increaseTimestampBy = async (
+  provider: MockProvider,
+  increaseTime: number,
+) => {
   await provider.send('evm_increaseTime', [increaseTime]);
   await provider.send('evm_mine', []);
 };

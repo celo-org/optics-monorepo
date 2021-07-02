@@ -62,10 +62,10 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
   let factory = new contracts.XAppConnectionManager__factory(
     deploy.chain.deployer,
   );
-  deploy.contracts.xappConnectionManager = await factory.deploy({
+  deploy.contracts.xAppConnectionManager = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(
+  await deploy.contracts.xAppConnectionManager.deployTransaction.wait(
     deploy.chain.confirmations,
   );
 }
@@ -108,10 +108,13 @@ export async function deployGovernanceRouter(deploy: Deploy) {
   const governanceRouter = isTestDeploy
     ? contracts.TestGovernanceRouter__factory
     : contracts.GovernanceRouter__factory;
-  let { xappConnectionManager } = deploy.contracts;
+  let { xAppConnectionManager } = deploy.contracts;
+  // TODO: add recoveryManager
+  const recoveryManager = ethers.constants.AddressZero;
+  const recoveryTimelock = 1;
   let initData = governanceRouter
     .createInterface()
-    .encodeFunctionData('initialize', [xappConnectionManager!.address, recoveryManager]);
+    .encodeFunctionData('initialize', [xAppConnectionManager!.address, recoveryManager]);
 
   deploy.contracts.governance =
     await proxyUtils.deployProxy<contracts.GovernanceRouter>(
@@ -119,7 +122,7 @@ export async function deployGovernanceRouter(deploy: Deploy) {
       new governanceRouter(deploy.chain.deployer),
       initData,
       deploy.chain.domain,
-      recoverTimelock,
+      recoveryTimelock,
     );
 }
 
@@ -134,27 +137,22 @@ export async function deployNewReplica(local: Deploy, remote: Deploy) {
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
-  const isTestDeploy: boolean = deploy.test;
+  const isTestDeploy: boolean = remote.test;
   if (isTestDeploy) warn('deploying test Replica')
   const replica = isTestDeploy
     ? contracts.TestReplica__factory
     : contracts.Replica__factory;
   const factory = new replica(local.chain.deployer);
 
-  // Workaround because typechain doesn't handle overloads well, and Replica
-  // has two public initializers
-  const iface = replica.createInterface();
-  const initIFace = new ethers.utils.Interface([
-    iface.functions['initialize(uint32,address,bytes32,uint256,uint256)'],
-  ]);
-
-  const initData = initIFace.encodeFunctionData('initialize', [
-    remote.chain.domain,
-    remote.chain.updater,
-    ethers.constants.HashZero, // TODO: allow configuration
-    remote.chain.optimisticSeconds,
-    0, // TODO: allow configuration
-  ]);
+  let initData = replica
+    .createInterface()
+    .encodeFunctionData('initialize', [
+      remote.chain.domain,
+      remote.chain.updater,
+      ethers.constants.HashZero, // TODO: allow configuration
+      remote.chain.optimisticSeconds,
+      0, // TODO: allow configuration
+    ]);
 
   // if we have no replicas, deploy the whole setup.
   // otherwise just deploy a fresh proxy
@@ -205,9 +203,9 @@ export async function deployOptics(deploy: Deploy) {
   await deployHome(deploy, isTestDeploy);
 
   console.log(
-    `${deploy.chain.name}: awaiting xappConnectionManager.setHome(...);`,
+    `${deploy.chain.name}: awaiting XAppConnectionManager.setHome(...);`,
   );
-  await deploy.contracts.xappConnectionManager!.setHome(
+  await deploy.contracts.xAppConnectionManager!.setHome(
     deploy.contracts.home!.proxy.address,
     { gasPrice: deploy.chain.gasPrice },
   );
@@ -240,13 +238,13 @@ export async function relinquish(deploy: Deploy) {
 
   console.log(`${deploy.chain.name}: Dispatched relinquish updatermanager`);
 
-  await deploy.contracts.xappConnectionManager!.transferOwnership(
+  await deploy.contracts.xAppConnectionManager!.transferOwnership(
     deploy.contracts.governance!.proxy.address,
     { gasPrice: deploy.chain.gasPrice },
   );
 
   console.log(
-    `${deploy.chain.name}: Dispatched relinquish xappConnectionManager`,
+    `${deploy.chain.name}: Dispatched relinquish XAppConnectionManager`,
   );
 
   await deploy.contracts.upgradeBeaconController!.transferOwnership(
@@ -278,7 +276,7 @@ export async function relinquish(deploy: Deploy) {
 export async function enrollReplica(local: Deploy, remote: Deploy) {
   console.log(`${local.chain.name}: starting replica enrollment`);
 
-  let tx = await local.contracts.xappConnectionManager!.ownerEnrollReplica(
+  let tx = await local.contracts.xAppConnectionManager!.ownerEnrollReplica(
     local.contracts.replicas[remote.chain.domain].proxy.address,
     remote.chain.domain,
     { gasPrice: local.chain.gasPrice },
@@ -300,7 +298,7 @@ export async function enrollWatchers(left: Deploy, right: Deploy) {
   await Promise.all(
     left.chain.watchers.map(async (watcher) => {
       const tx =
-        await left.contracts.xappConnectionManager!.setWatcherPermission(
+        await left.contracts.xAppConnectionManager!.setWatcherPermission(
           watcher,
           right.chain.domain,
           true,
@@ -326,7 +324,7 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
     toBytes32(remote.contracts.governance!.proxy.address),
     { gasPrice: local.chain.gasPrice },
   );
-  await tx.wait(deploy.chain.confirmations);
+  await tx.wait(local.chain.confirmations);
   console.log(`${local.chain.name}: governance enrollment done`);
 }
 
