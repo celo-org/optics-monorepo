@@ -8,8 +8,9 @@ macro_rules! report_tx {
         tracing::trace!("Call nonce {:?}", $tx.tx.nonce);
         let dispatch_fut = $tx.send();
         let dispatched = dispatch_fut.await?;
-        tracing::debug!("dispatched tx with tx_hash {}", *dispatched);
-        let result = dispatched.await?;
+        tracing::debug!("dispatched tx with tx_hash {:?}", *dispatched);
+        let result =
+            tokio::time::timeout(std::time::Duration::from_secs(600), dispatched).await??;
         tracing::debug!(
             "confirmed transaction with tx_hash {}",
             result.transaction_hash

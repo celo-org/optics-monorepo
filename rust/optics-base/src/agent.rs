@@ -56,7 +56,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     #[allow(clippy::unit_arg)]
     #[tracing::instrument]
     fn run_report_error(&self, replica: &str) -> JoinHandle<Result<()>> {
-        let m = format!("Replica named {} failed", replica);
+        let m = format!("Task for replica named {} failed", replica);
         let handle = self.run(replica);
 
         let fut = async move { handle.await?.wrap_err(m) };

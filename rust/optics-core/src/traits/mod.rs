@@ -14,6 +14,7 @@ use ethers::{
     providers::{Middleware, ProviderError},
 };
 use std::error::Error as StdError;
+use tokio::time::error::Elapsed;
 
 use crate::{OpticsError, SignedUpdate};
 
@@ -65,6 +66,9 @@ pub enum ChainCommunicationError {
     /// Provider Error
     #[error("{0}")]
     ProviderError(#[from] ProviderError),
+    /// A transaction timed out during submission
+    #[error("Transaction tracking timed out during submission. {0}")]
+    TimeoutError(#[from] Elapsed),
     /// Any other error
     #[error("{0}")]
     CustomError(#[from] Box<dyn StdError + Send + Sync>),

@@ -70,7 +70,8 @@ impl UpdatePoller {
             if lock.is_err() {
                 return Ok(()); // tx in flight. just do nothing
             }
-            self.replica.update(&signed_update).await?;
+            // don't care if it succeeds
+            let _ = self.replica.update(&signed_update).await;
             // lock dropped here
         } else {
             info!(
@@ -200,16 +201,15 @@ impl OpticsAgent for Relayer {
 
             let (res, _, _) = select_all(vec![confirm_task, update_task]).await;
 
-            let res = res?;
-
-            tracing::error!("Relayer error. {:?}", res);
-            res
+            res?
         })
     }
 }
 
 #[cfg(test)]
 mod test {
+    // // TODO: refactor and re-enable
+
     // use ethers::{core::types::H256, prelude::LocalWallet};
     // use std::sync::Arc;
 
