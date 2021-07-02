@@ -54,11 +54,9 @@ class WalletProvider {
   }
 }
 
-const testUtils = {
+export default {
   getMockRecipient,
   getMockSender,
   increaseTimestampBy,
   WalletProvider,
 };
-
-module.exports = testUtils;

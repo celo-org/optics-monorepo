@@ -1,24 +1,21 @@
-const { waffle, ethers, optics } = require('hardhat');
+import { waffle, ethers, optics } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const { provider } = waffle;
-const { expect } = require('chai');
+import { expect } from 'chai';
 import * as types from 'ethers';
 import { getTestDeploy } from './testChain';
+import { Updater } from '../lib';
 import { Deploy } from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
 import * as contracts from '../../typechain/optics-core';
-import { Updater } from '../lib';
 
-const signedFailureTestCases = require('../../../vectors/signedFailure.json');
-const testUtils = require('./utils');
+import signedFailureTestCases from '../../../vectors/signedFailure.json';
+import testUtils from './utils';
 
 const ONLY_OWNER_REVERT_MSG = 'Ownable: caller is not the owner';
 const localDomain = 1000;
 const remoteDomain = 2000;
-const optimisticSeconds = 3;
-const initialCurrentRoot = ethers.utils.formatBytes32String('current');
-const initialIndex = 0;
-const controller = null;
 const walletProvider = new testUtils.WalletProvider(provider);
 
 describe('XAppConnectionManager', async () => {
@@ -29,39 +26,35 @@ describe('XAppConnectionManager', async () => {
     enrolledReplica: contracts.TestReplica,
     home: BeaconProxy<contracts.Home>,
     signer: types.Signer,
-    updater: any;
+    updater: Updater;
 
   before(async () => {
     [signer] = await ethers.getSigners();
-    updater = await Updater.fromSigner(signer, localDomain);
-
-    // deploy = await getTestDeploy(localDomain, updater.address, []);
-
-    // await deploys.deployUpdaterManager(deploy);
-    // await deploys.deployUpgradeBeaconController(deploy);
+    updater = await Updater.fromSigner(
+      signer as SignerWithAddress,
+      localDomain,
+    );
   });
 
   beforeEach(async () => {
-    // deploy UpdaterManager
+    // get fresh test deploys
     localDeploy = await getTestDeploy(localDomain, updater.address, []);
     remoteDeploy = await getTestDeploy(remoteDomain, updater.address, []);
+
+    // deploy optics on both domains
     await deploys.deployOptics(localDeploy);
     await deploys.deployOptics(remoteDeploy);
 
+    // deploy replica and enroll on local deploy
     await deploys.enrollRemote(localDeploy, remoteDeploy);
-    // console.log(localDeploy);
 
-    const {
-      xAppConnectionManager,
-      updaterManager: UM,
-      replicas,
-      home: h,
-    } = localDeploy.contracts;
-    connectionManager =
-      xAppConnectionManager! as contracts.TestXAppConnectionManager;
-    updaterManager = UM!;
-    enrolledReplica = replicas[remoteDomain].proxy as contracts.TestReplica;
-    home = h!;
+    // set respective variables
+    connectionManager = localDeploy.contracts
+      .xAppConnectionManager! as contracts.TestXAppConnectionManager;
+    updaterManager = localDeploy.contracts.updaterManager!;
+    enrolledReplica = localDeploy.contracts.replicas[remoteDomain]
+      .proxy as contracts.TestReplica;
+    home = localDeploy.contracts.home!;
   });
 
   it('Returns the local domain', async () => {
@@ -107,26 +100,26 @@ describe('XAppConnectionManager', async () => {
     );
     // await deploys.deployOptics(newRemoteDeploy);
     await deploys.deployNewReplica(localDeploy, newRemoteDeploy);
-    const newReplicaProxy = localDeploy.contracts.replicas[remoteDomain].proxy;
-    // const newReplica = newReplicaContracts.proxyWithImplementation;
+    const newReplicaProxy =
+      localDeploy.contracts.replicas[newRemoteDomain].proxy;
 
-    // // Assert new replica not considered replica before enrolled
-    // expect(await connectionManager.isReplica(newReplicaProxy.address)).to.be
-    //   .false;
+    // Assert new replica not considered replica before enrolled
+    expect(await connectionManager.isReplica(newReplicaProxy.address)).to.be
+      .false;
 
-    // await expect(
-    //   connectionManager.ownerEnrollReplica(
-    //     newReplicaProxy.address,
-    //     newRemoteDomain,
-    //   ),
-    // ).to.emit(connectionManager, 'ReplicaEnrolled');
+    await expect(
+      connectionManager.ownerEnrollReplica(
+        newReplicaProxy.address,
+        newRemoteDomain,
+      ),
+    ).to.emit(connectionManager, 'ReplicaEnrolled');
 
-    // expect(await connectionManager.domainToReplica(newRemoteDomain)).to.equal(
-    //   newReplicaProxy.address,
-    // );
-    // expect(
-    //   await connectionManager.replicaToDomain(newReplicaProxy.address),
-    // ).to.equal(newRemoteDomain);
+    expect(await connectionManager.domainToReplica(newRemoteDomain)).to.equal(
+      newReplicaProxy.address,
+    );
+    expect(
+      await connectionManager.replicaToDomain(newReplicaProxy.address),
+    ).to.equal(newRemoteDomain);
     expect(await connectionManager.isReplica(newReplicaProxy.address)).to.be
       .true;
   });
