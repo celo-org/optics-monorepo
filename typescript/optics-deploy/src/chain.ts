@@ -10,7 +10,7 @@ type Address = string;
 // Optic's complete contract suite
 export type Contracts = {
   upgradeBeaconController?: contracts.UpgradeBeaconController;
-  xappConnectionManager?: contracts.XAppConnectionManager;
+  xAppConnectionManager?: contracts.XAppConnectionManager;
   updaterManager?: contracts.UpdaterManager;
 
   governance?: BeaconProxy<contracts.GovernanceRouter>;
@@ -36,7 +36,7 @@ export function toJson(contracts: Contracts): string {
   return JSON.stringify(
     {
       upgradeBeaconController: contracts.upgradeBeaconController!.address,
-      xappConnectionManager: contracts.xappConnectionManager!.address,
+      xAppConnectionManager: contracts.xAppConnectionManager!.address,
       updaterManager: contracts.updaterManager!.address,
       governance: {
         implementation: contracts.governance!.implementation.address,
