@@ -33,6 +33,9 @@ module.exports = {
     goerli: {
       url: 'https://goerli.infura.io/v3/5c456d7844fa40a683e934df60534c60',
     },
+    kovan: {
+      url: 'https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60',
+    },
   },
 
   typechain: {
@@ -43,4 +46,7 @@ module.exports = {
   mocha: {
     bail: true,
   },
+  etherscan: {
+    apiKey: "[INSERT KEY]"
+  }
 };
