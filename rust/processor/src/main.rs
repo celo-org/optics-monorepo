@@ -12,10 +12,10 @@ mod processor;
 mod prover;
 mod settings;
 
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::Result;
 
 use crate::{processor::Processor, settings::ProcessorSettings as Settings};
-use optics_base::{agent::OpticsAgent, settings::log::Style};
+use optics_base::agent::OpticsAgent;
 
 async fn _main(settings: Settings) -> Result<()> {
     let processor = Processor::from_settings(settings).await?;
@@ -26,19 +26,8 @@ async fn _main(settings: Settings) -> Result<()> {
 
 fn setup() -> Result<Settings> {
     color_eyre::install()?;
-
     let settings = Settings::new()?;
-
-    let builder = tracing_subscriber::fmt::fmt().with_max_level(settings.base.tracing.level);
-
-    match settings.base.tracing.style {
-        Style::Pretty => builder.pretty().try_init(),
-        Style::Json => builder.json().try_init(),
-        Style::Compact => builder.compact().try_init(),
-        Style::Default => builder.try_init(),
-    }
-    .map_err(|e| eyre!(e))?;
-
+    settings.base.tracing.try_init_tracing()?;
     Ok(settings)
 }
 

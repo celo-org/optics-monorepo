@@ -1,20 +1,20 @@
+use crate::{agent::AgentCore, db, home::Homes, replica::Replicas};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use optics_core::{utils::HexString, Signers};
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
-
-use crate::{agent::AgentCore, db, home::Homes, replica::Replicas};
-
-/// Tracing configuration
-pub mod log;
+use tracing::instrument;
 
 /// Chain configuartion
 pub mod chains;
 
 pub use chains::ChainSetup;
 
-use log::TracingConfig;
+/// Tracing subscriber management
+pub mod trace;
+
+use crate::settings::trace::TracingConfig;
 
 // TODO: figure out how to take inputs for Ledger and YubiWallet variants
 /// Ethereum signer types
@@ -39,7 +39,7 @@ impl Default for SignerConf {
 
 impl SignerConf {
     /// Try to convert the ethereum signer to a local wallet
-    #[tracing::instrument(err)]
+    #[instrument(err)]
     pub fn try_into_signer(&self) -> Result<Signers, Report> {
         match self {
             SignerConf::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),

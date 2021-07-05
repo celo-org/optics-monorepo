@@ -285,6 +285,16 @@ impl OpticsMessage {
     }
 }
 
+impl std::fmt::Display for OpticsMessage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "OpticsMessage {}->{}:{}",
+            self.origin, self.destination, self.sequence,
+        )
+    }
+}
+
 /// An Optics update message
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Update {

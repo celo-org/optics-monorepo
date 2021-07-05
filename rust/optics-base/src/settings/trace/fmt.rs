@@ -2,8 +2,8 @@
 ///
 /// See the subscriber builder page for full details: [link](https://docs.rs/tracing-subscriber/0.2.15/tracing_subscriber/fmt/struct.SubscriberBuilder.html).
 ///
-#[derive(Debug, serde::Deserialize)]
-pub struct TracingConfig {
+#[derive(Debug, Copy, Clone, serde::Deserialize)]
+pub struct FmtConfig {
     /// The logging style. json | pretty | compact | default
     #[serde(default)]
     pub style: Style,

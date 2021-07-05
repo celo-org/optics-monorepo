@@ -25,6 +25,12 @@ optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../optics-ethereum"}
 optics-test = { path = "../optics-test" }
 paste = "1.0.5"
+tracing-error = "0.1.2"
+
+# these versions are important!
+tracing-opentelemetry = "0.13.0"
+opentelemetry = "0.14.0"
+opentelemetry-jaeger = "0.13.0"
 
 [[example]]
 name = "example"
