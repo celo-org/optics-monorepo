@@ -31,7 +31,7 @@ pub enum Level {
 }
 
 impl Level {
-    fn to_filter(&self) -> LevelFilter {
+    fn to_filter(self) -> LevelFilter {
         self.into()
     }
 }
@@ -42,8 +42,8 @@ impl Default for Level {
     }
 }
 
-impl From<&Level> for LevelFilter {
-    fn from(level: &Level) -> LevelFilter {
+impl From<Level> for LevelFilter {
+    fn from(level: Level) -> LevelFilter {
         match level {
             Level::Off => LevelFilter::OFF,
             Level::Error => LevelFilter::ERROR,
