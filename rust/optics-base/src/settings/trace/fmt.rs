@@ -7,7 +7,7 @@ use tracing_subscriber::{
         format::{Compact, DefaultFields, Format, Full, Json, JsonFields, Pretty},
     },
     registry::LookupSpan,
-    Layer, Registry,
+    Layer,
 };
 
 /// Basic tracing configuration
@@ -31,11 +31,23 @@ impl Default for Style {
     }
 }
 
+/// Unification of the fmt Subscriber formatting modes
+#[derive(Debug)]
 pub enum LogOutputLayer<S, N = DefaultFields, W = fn() -> Stdout> {
+    /// Full log output (default mode)
     Full(fmt::Layer<S, N, Format<Full>, W>),
+    /// Pretty log output
     Pretty(fmt::Layer<S, Pretty, Format<Pretty>, W>),
+    /// Compact log output
     Compact(fmt::Layer<S, N, Format<Compact>, W>),
+    /// Json log output
     Json(fmt::Layer<S, JsonFields, Format<Json>, W>),
+}
+
+impl<S> Default for LogOutputLayer<S> {
+    fn default() -> Self {
+        Self::Full(Default::default())
+    }
 }
 
 impl<S> From<Style> for LogOutputLayer<S> {

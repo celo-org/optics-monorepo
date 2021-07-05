@@ -62,21 +62,23 @@ pub struct TracingConfig {
 impl TracingConfig {
     /// Attempt to instantiate a register a tracing subscriber setup from settings.
     pub fn try_init_tracing(&self) -> Result<()> {
-        // // this is all ugly
-
         let fmt_layer: LogOutputLayer<Registry> = self.fmt.into();
         let err_layer = tracing_error::ErrorLayer::default();
 
-        if let Some(jaeger) = self.jaeger {
-            let tracer = jaeger.into_tracer()?;
-            let telemetry: OpenTelemetryLayer<Registry, _> =
-                tracing_opentelemetry::layer().with_tracer(tracer);
+        let subscriber = tracing_subscriber::Registry::default()
+            .with(fmt_layer)
+            .with(err_layer);
+
+        match self.jaeger {
+            None => subscriber.try_init()?,
+            Some(jaeger) => {
+                let tracer = jaeger.into_tracer()?;
+                let telemetry: OpenTelemetryLayer<_, _> =
+                    tracing_opentelemetry::layer().with_tracer(tracer);
+                subscriber.with(telemetry).try_init()?;
+            }
         }
 
-        tracing_subscriber::Registry::default()
-            .with(fmt_layer)
-            .with(err_layer)
-            .try_init()?;
         Ok(())
     }
 }
