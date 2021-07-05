@@ -1,16 +1,14 @@
-/// A configuration for a tracing subscriber
-///
-/// See the subscriber builder page for full details: [link](https://docs.rs/tracing-subscriber/0.2.15/tracing_subscriber/fmt/struct.SubscriberBuilder.html).
-///
-#[derive(Debug, Copy, Clone, serde::Deserialize)]
-pub struct FmtConfig {
-    /// The logging style. json | pretty | compact | default
-    #[serde(default)]
-    pub style: Style,
-    /// The logging level. Defaults to info
-    #[serde(default)]
-    pub level: Level,
-}
+use std::io::Stdout;
+
+use tracing::{span, Subscriber};
+use tracing_subscriber::{
+    fmt::{
+        self,
+        format::{Compact, DefaultFields, Format, Full, Json, JsonFields, Pretty},
+    },
+    registry::LookupSpan,
+    Layer, Registry,
+};
 
 /// Basic tracing configuration
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
@@ -24,49 +22,160 @@ pub enum Style {
     Compact,
     /// Default style
     #[serde(other)]
-    Default,
+    Full,
 }
 
 impl Default for Style {
     fn default() -> Self {
-        Style::Default
+        Style::Full
     }
 }
 
-/// Logging level
-#[derive(Debug, Clone, Copy, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum Level {
-    /// Off
-    Off,
-    /// Error
-    Error,
-    /// Warn
-    Warn,
-    /// Debug
-    Debug,
-    /// Trace
-    Trace,
-    /// Info
-    #[serde(other)]
-    Info,
+pub enum LogOutputLayer<S, N = DefaultFields, W = fn() -> Stdout> {
+    Full(fmt::Layer<S, N, Format<Full>, W>),
+    Pretty(fmt::Layer<S, Pretty, Format<Pretty>, W>),
+    Compact(fmt::Layer<S, N, Format<Compact>, W>),
+    Json(fmt::Layer<S, JsonFields, Format<Json>, W>),
 }
 
-impl Default for Level {
-    fn default() -> Self {
-        Level::Info
+impl<S> From<Style> for LogOutputLayer<S> {
+    fn from(style: Style) -> Self {
+        match style {
+            Style::Full => Self::Full(fmt::layer()),
+            Style::Pretty => Self::Pretty(fmt::layer().pretty()),
+            Style::Compact => Self::Compact(fmt::layer().compact()),
+            Style::Json => Self::Json(fmt::layer().json()),
+        }
     }
 }
 
-impl From<Level> for tracing_subscriber::filter::LevelFilter {
-    fn from(level: Level) -> tracing_subscriber::filter::LevelFilter {
-        match level {
-            Level::Off => tracing_subscriber::filter::LevelFilter::OFF,
-            Level::Error => tracing_subscriber::filter::LevelFilter::ERROR,
-            Level::Warn => tracing_subscriber::filter::LevelFilter::WARN,
-            Level::Debug => tracing_subscriber::filter::LevelFilter::DEBUG,
-            Level::Trace => tracing_subscriber::filter::LevelFilter::TRACE,
-            Level::Info => tracing_subscriber::filter::LevelFilter::INFO,
+impl<S> Layer<S> for LogOutputLayer<S>
+where
+    S: Subscriber + for<'a> LookupSpan<'a>,
+{
+    fn register_callsite(
+        &self,
+        metadata: &'static tracing::Metadata<'static>,
+    ) -> tracing::subscriber::Interest {
+        match self {
+            LogOutputLayer::Full(inner) => inner.register_callsite(metadata),
+            LogOutputLayer::Pretty(inner) => inner.register_callsite(metadata),
+            LogOutputLayer::Compact(inner) => inner.register_callsite(metadata),
+            LogOutputLayer::Json(inner) => inner.register_callsite(metadata),
+        }
+    }
+
+    fn enabled(
+        &self,
+        metadata: &tracing::Metadata<'_>,
+        ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) -> bool {
+        match self {
+            LogOutputLayer::Full(inner) => inner.enabled(metadata, ctx),
+            LogOutputLayer::Pretty(inner) => inner.enabled(metadata, ctx),
+            LogOutputLayer::Compact(inner) => inner.enabled(metadata, ctx),
+            LogOutputLayer::Json(inner) => inner.enabled(metadata, ctx),
+        }
+    }
+
+    fn new_span(
+        &self,
+        attrs: &span::Attributes<'_>,
+        id: &span::Id,
+        ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.new_span(attrs, id, ctx),
+            LogOutputLayer::Pretty(inner) => inner.new_span(attrs, id, ctx),
+            LogOutputLayer::Compact(inner) => inner.new_span(attrs, id, ctx),
+            LogOutputLayer::Json(inner) => inner.new_span(attrs, id, ctx),
+        }
+    }
+
+    fn max_level_hint(&self) -> Option<tracing::metadata::LevelFilter> {
+        match self {
+            LogOutputLayer::Full(inner) => inner.max_level_hint(),
+            LogOutputLayer::Pretty(inner) => inner.max_level_hint(),
+            LogOutputLayer::Compact(inner) => inner.max_level_hint(),
+            LogOutputLayer::Json(inner) => inner.max_level_hint(),
+        }
+    }
+
+    fn on_record(
+        &self,
+        span: &span::Id,
+        values: &span::Record<'_>,
+        ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_record(span, values, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_record(span, values, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_record(span, values, ctx),
+            LogOutputLayer::Json(inner) => inner.on_record(span, values, ctx),
+        }
+    }
+
+    fn on_follows_from(
+        &self,
+        span: &span::Id,
+        follows: &span::Id,
+        ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_follows_from(span, follows, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_follows_from(span, follows, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_follows_from(span, follows, ctx),
+            LogOutputLayer::Json(inner) => inner.on_follows_from(span, follows, ctx),
+        }
+    }
+
+    fn on_event(&self, event: &tracing::Event<'_>, ctx: tracing_subscriber::layer::Context<'_, S>) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_event(event, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_event(event, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_event(event, ctx),
+            LogOutputLayer::Json(inner) => inner.on_event(event, ctx),
+        }
+    }
+
+    fn on_enter(&self, id: &span::Id, ctx: tracing_subscriber::layer::Context<'_, S>) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_enter(id, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_enter(id, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_enter(id, ctx),
+            LogOutputLayer::Json(inner) => inner.on_enter(id, ctx),
+        }
+    }
+
+    fn on_exit(&self, id: &span::Id, ctx: tracing_subscriber::layer::Context<'_, S>) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_exit(id, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_exit(id, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_exit(id, ctx),
+            LogOutputLayer::Json(inner) => inner.on_exit(id, ctx),
+        }
+    }
+
+    fn on_close(&self, id: span::Id, ctx: tracing_subscriber::layer::Context<'_, S>) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_close(id, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_close(id, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_close(id, ctx),
+            LogOutputLayer::Json(inner) => inner.on_close(id, ctx),
+        }
+    }
+
+    fn on_id_change(
+        &self,
+        old: &span::Id,
+        new: &span::Id,
+        ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        match self {
+            LogOutputLayer::Full(inner) => inner.on_id_change(old, new, ctx),
+            LogOutputLayer::Pretty(inner) => inner.on_id_change(old, new, ctx),
+            LogOutputLayer::Compact(inner) => inner.on_id_change(old, new, ctx),
+            LogOutputLayer::Json(inner) => inner.on_id_change(old, new, ctx),
         }
     }
 }

@@ -8,53 +8,75 @@ use crate::settings::trace::fmt::Style;
 /// Manage a `tracing_subscriber::fmt` Layer outputting to stdout
 pub mod fmt;
 
-use fmt::FmtConfig;
-
-use self::jaeger::JaegerConfig;
+use self::{fmt::LogOutputLayer, jaeger::JaegerConfig};
 
 /// Manage a Layer using `tracing_opentelemtry` + `opentelemetry-jaeger`
 pub mod jaeger;
 
+/// Logging level
+#[derive(Debug, Clone, Copy, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Level {
+    /// Off
+    Off,
+    /// Error
+    Error,
+    /// Warn
+    Warn,
+    /// Debug
+    Debug,
+    /// Trace
+    Trace,
+    /// Info
+    #[serde(other)]
+    Info,
+}
+
+impl Default for Level {
+    fn default() -> Self {
+        Level::Info
+    }
+}
+
+impl From<Level> for tracing_subscriber::filter::LevelFilter {
+    fn from(level: Level) -> tracing_subscriber::filter::LevelFilter {
+        match level {
+            Level::Off => tracing_subscriber::filter::LevelFilter::OFF,
+            Level::Error => tracing_subscriber::filter::LevelFilter::ERROR,
+            Level::Warn => tracing_subscriber::filter::LevelFilter::WARN,
+            Level::Debug => tracing_subscriber::filter::LevelFilter::DEBUG,
+            Level::Trace => tracing_subscriber::filter::LevelFilter::TRACE,
+            Level::Info => tracing_subscriber::filter::LevelFilter::INFO,
+        }
+    }
+}
+
 /// Configuration for the tracing subscribers used by Optics agents
 #[derive(Debug, Copy, Clone, serde::Deserialize)]
 pub struct TracingConfig {
-    fmt: Option<FmtConfig>,
+    #[serde(default)]
+    fmt: Style,
     jaeger: Option<JaegerConfig>,
 }
 
 impl TracingConfig {
     /// Attempt to instantiate a register a tracing subscriber setup from settings.
     pub fn try_init_tracing(&self) -> Result<()> {
-        // this is all ugly
-        let subscriber = tracing_subscriber::Registry::default();
+        // // this is all ugly
 
+        let fmt_layer: LogOutputLayer<Registry> = self.fmt.into();
         let err_layer = tracing_error::ErrorLayer::default();
+
         if let Some(jaeger) = self.jaeger {
             let tracer = jaeger.into_tracer()?;
             let telemetry: OpenTelemetryLayer<Registry, _> =
                 tracing_opentelemetry::layer().with_tracer(tracer);
-            err_layer.and_then(telemetry);
         }
 
-        if let Some(fmt) = self.fmt {
-            // ugly
-            let fmt_layer = tracing_subscriber::fmt::layer();
-            match fmt.style {
-                Style::Pretty => {
-                    subscriber.with(fmt_layer.pretty()).try_init()?;
-                }
-                Style::Json => {
-                    subscriber.with(fmt_layer.json()).try_init()?;
-                }
-                Style::Compact => {
-                    subscriber.with(fmt_layer.compact()).try_init()?;
-                }
-                Style::Default => {
-                    subscriber.with(fmt_layer).try_init()?;
-                }
-            }
-        }
-
+        tracing_subscriber::Registry::default()
+            .with(fmt_layer)
+            .with(err_layer)
+            .try_init()?;
         Ok(())
     }
 }
