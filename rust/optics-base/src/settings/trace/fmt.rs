@@ -32,6 +32,18 @@ impl Default for Style {
 }
 
 /// Unification of the fmt Subscriber formatting modes
+///
+/// You may be asking yourself, why does this exist. I ask myself the same thing
+/// every day.
+///
+/// It exists because the type params on the Layer affect the type params type
+/// params on the produced `Layered` Subscriber once the layer has been
+/// applied. This increases the complexity of the code that instantiates the
+/// `Registry` and adds the layers. Because each combination of layers produces
+/// a different type, each combination must be handled explicitly. This is fine
+/// if you expect a static configuration of layers, but since we really want
+/// this to be configurable and the code to be legible, we do a little
+/// unification here :)
 #[derive(Debug)]
 pub enum LogOutputLayer<S, N = DefaultFields, W = fn() -> Stdout> {
     /// Full log output (default mode)
