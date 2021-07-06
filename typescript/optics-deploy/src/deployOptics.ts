@@ -237,16 +237,18 @@ export async function deployOptics(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function relinquish(deploy: Deploy) {
+  const govRouter = await deploy.contracts.governance!.proxy.address;
+
   console.log(`${deploy.chain.name}: Relinquishing control`);
   await deploy.contracts.updaterManager!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
   console.log(`${deploy.chain.name}: Dispatched relinquish updatermanager`);
 
   await deploy.contracts.xAppConnectionManager!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
@@ -255,7 +257,7 @@ export async function relinquish(deploy: Deploy) {
   );
 
   await deploy.contracts.upgradeBeaconController!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
@@ -264,7 +266,7 @@ export async function relinquish(deploy: Deploy) {
   );
 
   let tx = await deploy.contracts.home!.proxy.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 

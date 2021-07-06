@@ -28,11 +28,11 @@ export async function getTestChain(
 export async function getTestDeploy(
   domain: number,
   updater: string,
-  watcher: string[],
+  watchers: string[],
   recoveryManager?: string,
 ): Promise<Deploy> {
   return {
-    chain: await getTestChain(domain, updater, watcher, recoveryManager),
+    chain: await getTestChain(domain, updater, watchers, recoveryManager),
     contracts: { replicas: {} },
     test: true,
   };
