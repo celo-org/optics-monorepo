@@ -1,0 +1,89 @@
+[
+  {
+    "name": "UpgradeBeaconController",
+    "address": "0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4",
+    "constructorArguments": []
+  },
+  {
+    "name": "UpdaterManager",
+    "address": "0xD9516288726feC4DBffC35fFB7A763CB2B9C10c7",
+    "constructorArguments": [
+      "0x4177372FD9581ceb2367e0Ce84adC5DAD9DF8D55"
+    ]
+  },
+  {
+    "name": "XAppConnectionManager",
+    "address": "0x19202526767DA87b526b451Be02B500513829f9b",
+    "constructorArguments": []
+  },
+  {
+    "name": "Implementation",
+    "address": "0x9952ae1a1b50EDACBFfa210Ab3E39237ed0C0aCF",
+    "constructorArguments": [
+      3000
+    ]
+  },
+  {
+    "name": "UpgradeBeacon",
+    "address": "0xc93dC22c701A454C37063980CB2bF320120aAC91",
+    "constructorArguments": [
+      "0x9952ae1a1b50EDACBFfa210Ab3E39237ed0C0aCF",
+      "0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4"
+    ]
+  },
+  {
+    "name": "Proxy",
+    "address": "0x221b992117c0D509b99Df73e95C1Fe76E64FE881",
+    "constructorArguments": [
+      "0xc93dC22c701A454C37063980CB2bF320120aAC91",
+      "0xc4d66de8000000000000000000000000d9516288726fec4dbffc35ffb7a763cb2b9c10c7"
+    ]
+  },
+  {
+    "name": "Implementation",
+    "address": "0xFaE0a2F3603616063bb291cA57Bd9d397AD02e72",
+    "constructorArguments": [
+      3000,
+      180
+    ]
+  },
+  {
+    "name": "UpgradeBeacon",
+    "address": "0xdFeAd12447618EB409a47fDF9C687909ABBAbfB3",
+    "constructorArguments": [
+      "0xFaE0a2F3603616063bb291cA57Bd9d397AD02e72",
+      "0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4"
+    ]
+  },
+  {
+    "name": "Proxy",
+    "address": "0xD0e501A40EfC4793cEB1FeE077A5e7290C1D32C3",
+    "constructorArguments": [
+      "0xdFeAd12447618EB409a47fDF9C687909ABBAbfB3",
+      "0x485cc95500000000000000000000000019202526767da87b526b451be02b500513829f9b00000000000000000000000024f6c874f56533d9a1422e85e5c7a806ed11c036"
+    ]
+  },
+  {
+    "name": "Implementation",
+    "address": "0x84709618D5C13F8AC24Bacb5fABCcB9f82B46f5d",
+    "constructorArguments": [
+      3000
+    ]
+  },
+  {
+    "name": "UpgradeBeacon",
+    "address": "0xC762952Cd9593849DE7AF68f81B742f89E60CC1d",
+    "constructorArguments": [
+      "0x84709618D5C13F8AC24Bacb5fABCcB9f82B46f5d",
+      "0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4"
+    ]
+  },
+  {
+    "name": "Proxy",
+    "address": "0x56A77dCbfeF81788A43cF87174634A0e14081af9",
+    "constructorArguments": [
+      "0xC762952Cd9593849DE7AF68f81B742f89E60CC1d",
+      "0xbf30a55d00000000000000000000000000000000000000000000000000000000000003e80000000000000000000000004177372fd9581ceb2367e0ce84adc5dad9df8d550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000"
+    ]
+  }
+]
