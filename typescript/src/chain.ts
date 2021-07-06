@@ -83,10 +83,17 @@ export type Chain = {
   gasPrice: ethers.BigNumber;
 };
 
+export type ContractVerificationInput = {
+  name: string,
+  address: Address,
+  constructorArguments: any[]
+};
+
 // data about a chain and its deployed contracts
 export type Deploy = {
   chain: Chain;
   contracts: Contracts;
+  verificationInput: ContractVerificationInput[]
 };
 
 /**
@@ -122,6 +129,7 @@ export function freshDeploy(config: ChainConfig): Deploy {
   return {
     chain: toChain(config),
     contracts: { replicas: {} },
+    verificationInput: [],
   };
 }
 
