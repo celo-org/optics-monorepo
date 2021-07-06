@@ -1,4 +1,6 @@
 use color_eyre::Result;
+use std::convert::TryInto;
+use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, prelude::*};
 
 use crate::settings::trace::fmt::Style;
@@ -78,9 +80,10 @@ impl TracingConfig {
 
         match self.jaeger {
             None => subscriber.try_init()?,
-            Some(ref jaeger) => subscriber
-                .with(jaeger.try_into_telemetry_layer()?)
-                .try_init()?,
+            Some(ref jaeger) => {
+                let layer: OpenTelemetryLayer<_, _> = jaeger.try_into()?;
+                subscriber.with(layer).try_init()?
+            }
         }
 
         Ok(())

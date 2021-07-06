@@ -1,3 +1,5 @@
+use std::convert::{TryFrom, TryInto};
+
 use opentelemetry::{sdk::trace::Tracer, trace::TraceError};
 use opentelemetry_jaeger::PipelineBuilder;
 use tracing::Subscriber;
@@ -26,24 +28,6 @@ pub struct JaegerConfig {
     name: String,
 }
 
-impl JaegerConfig {
-    /// Convert into a tracer, consuming self
-    pub fn try_into_tracer(&self) -> Result<Tracer, TraceError> {
-        let pipeline: PipelineBuilder = self.into();
-        pipeline.install_simple()
-    }
-
-    /// Convert into an `OpenTelemetryLayer` for use with `tracing` Subscribers
-    pub fn try_into_telemetry_layer<S>(&self) -> Result<OpenTelemetryLayer<S, Tracer>, TraceError>
-    where
-        S: Subscriber + for<'a> LookupSpan<'a>,
-    {
-        let tracer = self.try_into_tracer()?;
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-        Ok(telemetry)
-    }
-}
-
 impl From<&JaegerConfig> for PipelineBuilder {
     fn from(conf: &JaegerConfig) -> Self {
         let builder = PipelineBuilder::default()
@@ -57,5 +41,25 @@ impl From<&JaegerConfig> for PipelineBuilder {
         } else {
             builder
         }
+    }
+}
+
+impl TryFrom<&JaegerConfig> for Tracer {
+    type Error = TraceError;
+
+    fn try_from(value: &JaegerConfig) -> Result<Self, Self::Error> {
+        let p: PipelineBuilder = value.into();
+        p.install_simple()
+    }
+}
+
+impl<S> TryFrom<&JaegerConfig> for OpenTelemetryLayer<S, Tracer>
+where
+    S: Subscriber + for<'a> LookupSpan<'a>,
+{
+    type Error = TraceError;
+
+    fn try_from(value: &JaegerConfig) -> Result<Self, Self::Error> {
+        Ok(tracing_opentelemetry::layer().with_tracer(value.try_into()?))
     }
 }
