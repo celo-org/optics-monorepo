@@ -409,7 +409,7 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
     governorAddress,
     { gasPrice: non.chain.gasPrice },
   );
-  await tx.wait(deploy.chain.confirmations);
+  await tx.wait(gov.chain.confirmations);
   console.log(`${non.chain.name}: governorship transferred`);
 }
 
@@ -425,15 +425,15 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
   const isTestDeploy: boolean = gov.test || non.test;
 
   await Promise.all([
-    deployOptics(gov, isTestDeploy),
-    deployOptics(non, isTestDeploy),
+    deployOptics(gov),
+    deployOptics(non),
   ]);
 
   console.log('initial deploys done');
 
   await Promise.all([
-    deployNewReplica(gov, non, isTestDeploy),
-    deployNewReplica(non, gov, isTestDeploy),
+    deployNewReplica(gov, non),
+    deployNewReplica(non, gov),
   ]);
 
   console.log('replica deploys done');
@@ -468,13 +468,13 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
 export async function deployHubAndSpokes(gov: Deploy, spokes: Deploy[]) {
   const isTestDeploy: boolean = gov.test;
 
-  await deployOptics(gov, isTestDeploy);
+  await deployOptics(gov);
 
   for (const non of spokes) {
-    await deployOptics(non, isTestDeploy);
+    await deployOptics(non);
 
-    await enrollRemote(gov, non, isTestDeploy);
-    await enrollRemote(non, gov, isTestDeploy);
+    await enrollRemote(gov, non);
+    await enrollRemote(non, gov);
 
     await transferGovernorship(gov, non);
 
