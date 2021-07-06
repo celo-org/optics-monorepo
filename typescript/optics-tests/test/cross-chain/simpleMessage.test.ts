@@ -33,15 +33,21 @@ import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
  * TODO prove and process messages on Replica
  */
 describe('SimpleCrossChainMessage', async () => {
+  const walletProvider = new testUtils.WalletProvider(provider);
+
   const domains = [1000, 2000];
   const localDomain = domains[0];
   const remoteDomain = domains[1];
-  let deploys: Deploy[] = [];
-  const walletProvider = new testUtils.WalletProvider(provider);
-  // let localDeploy: Deploy, remoteDeploy: Deploy;
 
-  let randomSigner: any, firstRootEnqueuedToReplica: string, updater: Updater;
-  let latestRoot: string, latestUpdate: Update;
+  // deploys[0] is the local deploy and governor chain
+  // deploys[1] is the remote deploy
+  let deploys: Deploy[] = [];
+
+  let randomSigner: any,
+    firstRootEnqueuedToReplica: string,
+    updater: Updater,
+    latestRoot: string,
+    latestUpdate: Update;
 
   before(async () => {
     [randomSigner] = walletProvider.getWalletsPersistent(2);
@@ -53,29 +59,29 @@ describe('SimpleCrossChainMessage', async () => {
     await deployTwoChains(deploys[0], deploys[1]);
   });
 
-  // it('All Homes have correct initial state', async () => {
-  //   const nullRoot = ethers.utils.formatBytes32String(0);
+  it('All Homes have correct initial state', async () => {
+    const nullRoot = '0x' + '00'.repeat(32);
 
-  //   // governorHome has 1 updates
-  //   const governorHome = deploys[0].contracts.home?.proxy!;
+    // governorHome has 1 updates
+    const governorHome = deploys[0].contracts.home?.proxy!;
 
-  //   let length = await governorHome.queueLength();
-  //   expect(length).to.equal(1);
+    let length = await governorHome.queueLength();
+    expect(length).to.equal(1);
 
-  //   let [suggestedCurrent, suggestedNew] = await governorHome.suggestUpdate();
-  //   expect(suggestedCurrent).to.equal(nullRoot);
-  //   expect(suggestedNew).to.not.equal(nullRoot);
+    let [suggestedCurrent, suggestedNew] = await governorHome.suggestUpdate();
+    expect(suggestedCurrent).to.equal(nullRoot);
+    expect(suggestedNew).to.not.equal(nullRoot);
 
-  //   // nonGovernorHome has 2 updates
-  //   const nonGovernorHome = deploys[1].contracts.home?.proxy!;
+    // nonGovernorHome has 2 updates
+    const nonGovernorHome = deploys[1].contracts.home?.proxy!;
 
-  //   length = await nonGovernorHome.queueLength();
-  //   expect(length).to.equal(2);
+    length = await nonGovernorHome.queueLength();
+    expect(length).to.equal(2);
 
-  //   [suggestedCurrent, suggestedNew] = await nonGovernorHome.suggestUpdate();
-  //   expect(suggestedCurrent).to.equal(nullRoot);
-  //   expect(suggestedNew).to.not.equal(nullRoot);
-  // });
+    [suggestedCurrent, suggestedNew] = await nonGovernorHome.suggestUpdate();
+    expect(suggestedCurrent).to.equal(nullRoot);
+    expect(suggestedNew).to.not.equal(nullRoot);
+  });
 
   it('All Replicas have empty queue of pending updates', async () => {
     for (let deploy of deploys) {
