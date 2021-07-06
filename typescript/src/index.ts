@@ -23,6 +23,13 @@ async function deployUpgradeBeaconController(deploy: Deploy) {
     gasPrice: deploy.chain.gasPrice,
   });
   await deploy.contracts.upgradeBeaconController.deployTransaction.wait(5);
+
+  // add contract information to Etherscan verification array
+  deploy.verificationInput.push({
+    name: "UpgradeBeaconController",
+    address: deploy.contracts.upgradeBeaconController!.address,
+    constructorArguments: []
+  });
 }
 
 /**
@@ -37,6 +44,13 @@ async function deployUpdaterManager(deploy: Deploy) {
     gasPrice: deploy.chain.gasPrice,
   });
   await deploy.contracts.updaterManager.deployTransaction.wait(5);
+
+  // add contract information to Etherscan verification array
+  deploy.verificationInput.push({
+    name: "UpdaterManager",
+    address: deploy.contracts.updaterManager!.address,
+    constructorArguments: [deploy.chain.updater]
+  });
 }
 
 /**
@@ -53,6 +67,13 @@ async function deployXAppConnectionManager(deploy: Deploy) {
     gasPrice: deploy.chain.gasPrice,
   });
   await deploy.contracts.xappConnectionManager.deployTransaction.wait(5);
+
+  // add contract information to Etherscan verification array
+  deploy.verificationInput.push({
+    name: "XAppConnectionManager",
+    address: deploy.contracts.xappConnectionManager!.address,
+    constructorArguments: []
+  });
 }
 
 /**
@@ -69,6 +90,7 @@ async function deployHome(deploy: Deploy) {
   );
 
   const home = await proxyUtils.deployProxy<contracts.Home>(
+      "Home",
     deploy,
     new contracts.Home__factory(deploy.chain.deployer),
     initData,
@@ -94,6 +116,7 @@ async function deployGovernanceRouter(deploy: Deploy) {
     );
 
   const governance = await proxyUtils.deployProxy<contracts.GovernanceRouter>(
+    "GovernanceRouter",
     deploy,
     new contracts.GovernanceRouter__factory(deploy.chain.deployer),
     initData,
@@ -138,6 +161,7 @@ async function deployNewReplica(local: Deploy, remote: Deploy) {
   if (Object.keys(local.contracts.replicas).length === 0) {
     console.log(`${local.chain.name}: initial Replica deploy`);
     proxy = await proxyUtils.deployProxy<contracts.Replica>(
+        "Replica",
       local,
       factory,
       initData,
@@ -147,6 +171,7 @@ async function deployNewReplica(local: Deploy, remote: Deploy) {
     console.log(`${local.chain.name}: additional Replica deploy`);
     const prev = Object.entries(local.contracts.replicas)[0][1];
     proxy = await proxyUtils.duplicate<contracts.Replica>(
+        "Replica",
       local,
       prev,
       initData,
@@ -466,6 +491,10 @@ export function writeDeployOutput(deploys: Deploy[]) {
       JSON.stringify(config, null, 2),
     );
     fs.writeFileSync(`${dir}/${name}_contracts.json`, toJson(local.contracts));
+    fs.writeFileSync(
+        `${dir}/${name}_verification.json`,
+        JSON.stringify(local.verificationInput, null, 2),
+    );
   }
   writePartials(dir);
 }
