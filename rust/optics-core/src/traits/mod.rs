@@ -14,7 +14,6 @@ use ethers::{
     providers::{Middleware, ProviderError},
 };
 use std::error::Error as StdError;
-use tokio::time::error::Elapsed;
 
 use crate::{OpticsError, SignedUpdate};
 
@@ -54,7 +53,8 @@ impl From<TransactionReceipt> for TxOutcome {
     }
 }
 
-/// ChainCommunicationError is a type-erased, thread safe, std error
+/// ChainCommunicationError contains errors returned when attempting to
+/// call a chain or dispatch a transaction
 #[derive(Debug, thiserror::Error)]
 pub enum ChainCommunicationError {
     /// Optics Error
@@ -66,9 +66,9 @@ pub enum ChainCommunicationError {
     /// Provider Error
     #[error("{0}")]
     ProviderError(#[from] ProviderError),
-    /// A transaction timed out during submission
-    #[error("Transaction tracking timed out during submission. {0}")]
-    TimeoutError(#[from] Elapsed),
+    /// A transaction was dropped from the mempool
+    #[error("Transaction dropped from mempool {0:?}")]
+    DroppedError(H256),
     /// Any other error
     #[error("{0}")]
     CustomError(#[from] Box<dyn StdError + Send + Sync>),

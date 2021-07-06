@@ -8,9 +8,15 @@ macro_rules! report_tx {
         tracing::trace!("Call nonce {:?}", $tx.tx.nonce);
         let dispatch_fut = $tx.send();
         let dispatched = dispatch_fut.await?;
-        tracing::debug!("dispatched tx with tx_hash {:?}", *dispatched);
-        let result =
-            tokio::time::timeout(std::time::Duration::from_secs(600), dispatched).await??;
+
+        let tx_hash: ethers::core::types::H256 = *dispatched;
+
+        tracing::debug!("Dispatched tx with tx_hash {}", tx_hash);
+
+        let result = dispatched
+            .await?
+            .ok_or_else(|| optics_core::traits::ChainCommunicationError::DroppedError(tx_hash))?;
+
         tracing::debug!(
             "confirmed transaction with tx_hash {}",
             result.transaction_hash

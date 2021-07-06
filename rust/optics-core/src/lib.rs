@@ -83,9 +83,6 @@ pub enum OpticsError {
     /// IO error from Read/Write usage
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    // /// ChainCommunicationError
-    // #[error(transparent)]
-    // ChainCommunicationError(#[from] ChainCommunicationError),
 }
 
 /// Error types for Signers
