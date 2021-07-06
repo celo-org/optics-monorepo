@@ -19,8 +19,6 @@ pub struct JaegerCollector {
     auth: Option<CollectorAuth>,
 }
 
-/// Config parameters fo
-
 /// Config parameters for collection via Jaeger
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct JaegerConfig {
