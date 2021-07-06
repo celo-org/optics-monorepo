@@ -1,11 +1,11 @@
-import { ethers, waffle, optics } from 'hardhat';
+import { ethers, optics } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
-import { Deploy } from '../../optics-deploy/src/chain';
-import * as deploys from '../../optics-deploy/src/deployOptics';
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
+import { Deploy } from '../../optics-deploy/src/chain';
+import * as deploys from '../../optics-deploy/src/deployOptics';
 import { TestHome, UpdaterManager__factory } from '../../typechain/optics-core';
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
