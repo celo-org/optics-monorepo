@@ -81,9 +81,9 @@ export enum OpticsState {
 }
 
 export enum GovernanceMessage {
-  CALL = 0,
-  TRANSFERGOVERNOR,
-  SETROUTER,
+  CALL = 1,
+  TRANSFERGOVERNOR = 2,
+  SETROUTER = 3,
 }
 
 export enum MessageStatus {

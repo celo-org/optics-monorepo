@@ -40,18 +40,12 @@ describe('SimpleCrossChainMessage', async () => {
   const walletProvider = new testUtils.WalletProvider(provider);
   // let localDeploy: Deploy, remoteDeploy: Deploy;
 
-  let signer: types.Signer,
-    randomSigner: any,
-    recoveryManager: any,
-    firstRootEnqueuedToReplica: string,
-    updater: Updater;
+  let randomSigner: any, firstRootEnqueuedToReplica: string, updater: Updater;
   let latestRoot: string, latestUpdate: Update;
 
   before(async () => {
-    // [randomSigner, recoveryManager] = provider.getWallets();
-    [randomSigner, recoveryManager] = walletProvider.getWalletsPersistent(2);
-    const [signer] = await ethers.getSigners();
-    updater = await Updater.fromSigner(signer, localDomain);
+    [randomSigner] = walletProvider.getWalletsPersistent(2);
+    updater = await Updater.fromSigner(randomSigner, localDomain);
 
     deploys.push(await getTestDeploy(localDomain, updater.address, []));
     deploys.push(await getTestDeploy(remoteDomain, updater.address, []));
@@ -171,7 +165,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     const replica = deploys[1].contracts.replicas[localDomain]
       .proxy as TestReplica;
-    const testRecipientFactory = new TestRecipient__factory(signer);
+    const testRecipientFactory = new TestRecipient__factory(randomSigner);
     const TestRecipient = await testRecipientFactory.deploy();
 
     // ensure `processed` has an initial value of false
