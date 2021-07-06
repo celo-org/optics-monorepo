@@ -56,7 +56,7 @@ impl From<Level> for LevelFilter {
 }
 
 /// Configuration for the tracing subscribers used by Optics agents
-#[derive(Debug, Copy, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct TracingConfig {
     jaeger: Option<JaegerConfig>,
     #[serde(default)]
@@ -78,7 +78,7 @@ impl TracingConfig {
 
         match self.jaeger {
             None => subscriber.try_init()?,
-            Some(jaeger) => subscriber
+            Some(ref jaeger) => subscriber
                 .with(jaeger.try_into_telemetry_layer()?)
                 .try_init()?,
         }

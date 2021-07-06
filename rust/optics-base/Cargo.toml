@@ -30,7 +30,7 @@ tracing-error = "0.1.2"
 # these versions are important!
 tracing-opentelemetry = "0.13.0"
 opentelemetry = "0.14.0"
-opentelemetry-jaeger = "0.13.0"
+opentelemetry-jaeger = { version = "0.13.0", features = ["collector_client"] }
 
 [[example]]
 name = "example"
