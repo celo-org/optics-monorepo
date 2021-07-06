@@ -1,25 +1,20 @@
-const { expect } = require('chai');
-const { ethers, optics } = require('hardhat');
+import { expect } from 'chai';
+import { ethers, optics } from 'hardhat';
 import * as types from 'ethers';
+
 import { Updater } from '../../lib';
-import { Deploy } from '../../../optics-deploy/src/chain';
+import { Update, CallData, Address } from '../../lib/types';
 import {
+  Replica,
   TestReplica,
   Home,
   TestGovernanceRouter,
 } from '../../../typechain/optics-core';
-import { Address } from '../../lib/types';
 
 type MessageDetails = {
   message: string;
   destinationDomain: number;
   recipientAddress: Address;
-};
-
-type Update = {
-  startRoot: string;
-  finalRoot: string;
-  signature: string;
 };
 
 /*
@@ -35,10 +30,10 @@ type Update = {
  *
  * @return newRoot - bytes32 of the latest root
  */
-async function enqueueMessageToHome(
+export async function enqueueMessageToHome(
   home: Home,
   messageDetails: MessageDetails,
-) {
+): Promise<string> {
   const { message, destinationDomain, recipientAddress } = messageDetails;
 
   // Send message with random signer address as msg.sender
@@ -63,15 +58,14 @@ async function enqueueMessageToHome(
  *
  * @return update - Update type
  */
-async function enqueueMessagesAndUpdateHome(
-  deploy: Deploy,
+export async function enqueueMessagesAndUpdateHome(
+  home: Home,
   messages: MessageDetails[],
   updater: Updater,
-) {
-  const home = deploy.contracts.home?.proxy!;
+): Promise<Update> {
   const homeDomain = await home.localDomain();
 
-  const startRoot = await home.current();
+  const oldRoot = await home.current();
 
   // enqueue each message to Home and get the intermediate root
   const enqueuedRoots = [];
@@ -87,17 +81,17 @@ async function enqueueMessagesAndUpdateHome(
     expect(await home.queueContains(root)).to.be.true;
   }
 
-  // sign & submit an update from startRoot to finalRoot
-  const finalRoot = enqueuedRoots[enqueuedRoots.length - 1];
+  // sign & submit an update from oldRoot to newRoot
+  const newRoot = enqueuedRoots[enqueuedRoots.length - 1];
 
-  const { signature } = await updater.signUpdate(startRoot, finalRoot);
+  const { signature } = await updater.signUpdate(oldRoot, newRoot);
 
-  await expect(home.update(startRoot, finalRoot, signature))
+  await expect(home.update(oldRoot, newRoot, signature))
     .to.emit(home, 'Update')
-    .withArgs(homeDomain, startRoot, finalRoot, signature);
+    .withArgs(homeDomain, oldRoot, newRoot, signature);
 
-  // ensure that Home root is now finalRoot
-  expect(await home.current()).to.equal(finalRoot);
+  // ensure that Home root is now newRoot
+  expect(await home.current()).to.equal(newRoot);
 
   // ensure that Home queue no longer contains
   // any of the roots we just enqueued -
@@ -106,13 +100,11 @@ async function enqueueMessagesAndUpdateHome(
     expect(await home.queueContains(root)).to.be.false;
   }
 
-  const update = {
-    startRoot,
-    finalRoot,
+  return {
+    oldRoot,
+    newRoot,
     signature,
   };
-
-  return update;
 }
 
 /*
@@ -125,20 +117,20 @@ async function enqueueMessagesAndUpdateHome(
  *
  * @return finalRoot - updated state root enqueued to the Replica
  */
-async function enqueueUpdateToReplica(
+export async function enqueueUpdateToReplica(
   latestUpdateOnOriginChain: Update,
-  replica: TestReplica,
-) {
+  replica: Replica,
+): Promise<string> {
   const homeDomain = await replica.remoteDomain();
-  const { startRoot, finalRoot, signature } = latestUpdateOnOriginChain;
+  const { oldRoot, newRoot, signature } = latestUpdateOnOriginChain;
 
-  await expect(replica.update(startRoot, finalRoot, signature))
+  await expect(replica.update(oldRoot, newRoot, signature))
     .to.emit(replica, 'Update')
-    .withArgs(homeDomain, startRoot, finalRoot, signature);
+    .withArgs(homeDomain, oldRoot, newRoot, signature);
 
-  expect(await replica.queueEnd()).to.equal(finalRoot);
+  expect(await replica.queueEnd()).to.equal(newRoot);
 
-  return finalRoot;
+  return newRoot;
 }
 
 /*
@@ -150,7 +142,7 @@ async function enqueueUpdateToReplica(
  *
  * @return message - Message type
  */
-function formatMessage(
+export function formatMessage(
   message: string,
   destinationDomain: number,
   recipientAddress: Address,
@@ -162,12 +154,12 @@ function formatMessage(
   };
 }
 
-async function formatOpticsMessage(
+export async function formatOpticsMessage(
   replica: TestReplica,
   governorRouter: TestGovernanceRouter,
   destinationRouter: TestGovernanceRouter,
   message: string,
-) {
+): Promise<string> {
   const sequence = await replica.nextToProcess();
   const governorDomain = await governorRouter.localDomain();
   const destinationDomain = await destinationRouter.localDomain();
@@ -189,11 +181,11 @@ async function formatOpticsMessage(
   return opticsMessage;
 }
 
-async function formatCall(
+export async function formatCall(
   destinationContract: types.Contract,
   functionStr: string,
   functionArgs: any[],
-) {
+): Promise<CallData> {
   // Set up data for call message
   const callFunc = destinationContract.interface.getFunction(functionStr);
   const callDataEncoded = destinationContract.interface.encodeFunctionData(
@@ -211,31 +203,7 @@ function encodeData(
   contract: types.Contract,
   functionName: string,
   args: any[],
-) {
+): string {
   const func = contract.interface.getFunction(functionName);
   return contract.interface.encodeFunctionData(func, args);
 }
-
-// Send a transaction from the specified signer
-async function sendFromSigner(
-  signer: types.Signer,
-  contract: types.Contract,
-  functionName: string,
-  args: any[],
-) {
-  const data = encodeData(contract, functionName, args);
-
-  return signer.sendTransaction({
-    to: contract.address,
-    data,
-  });
-}
-
-module.exports = {
-  enqueueUpdateToReplica,
-  enqueueMessagesAndUpdateHome,
-  formatMessage,
-  formatCall,
-  formatOpticsMessage,
-  sendFromSigner,
-};

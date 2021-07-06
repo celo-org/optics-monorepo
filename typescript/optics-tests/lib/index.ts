@@ -64,7 +64,7 @@ const formatMessage = (
   destinationDomain: types.Domain,
   recipientAddr: types.Address,
   body: types.HexString,
-) => {
+): string => {
   senderAddr = ethersAddressToBytes32(senderAddr);
   recipientAddr = ethersAddressToBytes32(recipientAddr);
 
@@ -95,31 +95,31 @@ export enum MessageStatus {
 function formatTransferGovernor(
   newDomain: types.Domain,
   newAddress: types.Address,
-) {
+): string {
   return ethers.utils.solidityPack(
     ['bytes1', 'uint32', 'bytes32'],
     [GovernanceMessage.TRANSFERGOVERNOR, newDomain, newAddress],
   );
 }
 
-function formatSetRouter(domain: types.Domain, address: types.Address) {
+function formatSetRouter(domain: types.Domain, address: types.Address): string {
   return ethers.utils.solidityPack(
     ['bytes1', 'uint32', 'bytes32'],
     [GovernanceMessage.SETROUTER, domain, address],
   );
 }
 
-function messageToLeaf(message: types.HexString) {
+function messageToLeaf(message: types.HexString): string {
   return ethers.utils.solidityKeccak256(['bytes'], [message]);
 }
 
-function ethersAddressToBytes32(address: types.Address) {
+function ethersAddressToBytes32(address: types.Address): string {
   return ethers.utils
     .hexZeroPad(ethers.utils.hexStripZeros(address), 32)
     .toLowerCase();
 }
 
-function destinationAndSequence(destination: types.Domain, sequence: number) {
+function destinationAndSequence(destination: types.Domain, sequence: number): ethers.BigNumber {
   assert(destination < Math.pow(2, 32) - 1);
   assert(sequence < Math.pow(2, 32) - 1);
 
@@ -139,7 +139,7 @@ async function signedFailureNotification(
   signer: ethers.Signer,
   domain: types.Domain,
   updaterAddress: types.Address,
-) {
+): Promise<types.SignedFailureNotification> {
   const domainCommitment = domainHash(domain);
   const updaterBytes32 = ethersAddressToBytes32(updaterAddress);
 
@@ -161,7 +161,7 @@ async function signedFailureNotification(
   };
 }
 
-function formatCalls(callsData: types.CallData[]) {
+function formatCalls(callsData: types.CallData[]): string {
   let callBody = '0x';
   const numCalls = callsData.length;
 
