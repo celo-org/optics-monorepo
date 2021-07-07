@@ -7,14 +7,19 @@ import { getTestDeploy } from '../testChain';
 import testUtils from '../utils';
 import { Updater, MessageStatus } from '../../lib';
 import { Update } from '../../lib/types';
+import { Deploy } from '../../../optics-deploy/src/chain';
+import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 import {
   TestRecipient__factory,
   TestReplica,
 } from '../../../typechain/optics-core';
-import { Deploy } from '../../../optics-deploy/src/chain';
-import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 
 import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
+
+const walletProvider = new testUtils.WalletProvider(provider);
+const domains = [1000, 2000];
+const localDomain = domains[0];
+const remoteDomain = domains[1];
 
 /*
  * Deploy the full Optics suite on two chains
@@ -25,11 +30,6 @@ import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
  * TODO prove and process messages on Replica
  */
 describe('SimpleCrossChainMessage', async () => {
-  const walletProvider = new testUtils.WalletProvider(provider);
-
-  const domains = [1000, 2000];
-  const localDomain = domains[0];
-  const remoteDomain = domains[1];
 
   // deploys[0] is the local deploy and governor chain
   // deploys[1] is the remote deploy

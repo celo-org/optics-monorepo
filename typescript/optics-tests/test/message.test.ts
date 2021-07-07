@@ -11,10 +11,10 @@ describe('Message', async () => {
   let messageLib: TestMessage;
 
   before(async () => {
-    let [signer] = await ethers.getSigners();
+    const [signer] = await ethers.getSigners();
+
     const Message = new TestMessage__factory(signer);
     messageLib = await Message.deploy();
-    await messageLib.deployed();
   });
 
   it('Returns fields from a message', async () => {
