@@ -3,11 +3,13 @@ require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
 require('./js');
-
+const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
 const envy = require('envy');
 const env = envy();
 
 const path = require('path');
+
+task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -46,7 +48,6 @@ module.exports = {
   mocha: {
     bail: true,
   },
-  defaultNetwork: env.hardhatNetwork,
   etherscan: {
     apiKey: env.etherscanApiKey
   }

@@ -1,11 +1,6 @@
-const hardhat = require('hardhat');
 const fs = require('fs');
-const envy = require('envy');
 
-// pull HARDHAT_NETWORK variable from ../.env
-const env = envy();
-const {hardhatNetwork} = env;
-const envError = (network) => `ensure HARDHAT_NETWORK variable is set in solidity/optics-core/.env (current HARDHAT_NETWORK=${network})`;
+const envError = (network) => `pass --network tag to hardhat task (current network=${network})`;
 
 // list of networks supported by Etherscan
 const etherscanNetworks = ["mainnet", "kovan", "goerli", "ropsten", "rinkeby"];
@@ -13,15 +8,15 @@ const etherscanNetworks = ["mainnet", "kovan", "goerli", "ropsten", "rinkeby"];
 /*
 * Parse the contract verification inputs
 * that were output by the latest contract deploy
-* for one network (specified by HARDHAT_NETWORK .env variable)
+* for the network that hardhat is configured to
 * and attempt to verify those contracts' source code on Etherscan
 * */
-async function verifyLatestDeploy(network) {
+async function verifyLatestDeploy() {
+  const network = hre.network.name;
+
   // assert that network from .env is supported by Etherscan
   if(!etherscanNetworks.includes(network)) {
     throw new Error(`Network not supported by Etherscan; ${envError(network)}`)
-  } else if(hardhat.network.name != network) {
-    throw new Error(`Hardhat network doesn't match network in .env (hardhat: ${hardhat.network.name}); ${envError(network)}`);
   }
   console.log(`VERIFY ${network}`);
 
@@ -47,7 +42,7 @@ async function verifyContract(network, verificationInput) {
     console.log(
       `   Attempt to verify ${name}   -  ${etherscanLink(network, address)}`,
     );
-    await hardhat.run('verify:verify', {
+    await hre.run('verify:verify', {
       network,
       address,
       constructorArguments,
@@ -71,7 +66,7 @@ function etherscanLink(network, address) {
 /*
 * Parse the contract verification inputs
 * that were output by the latest contract deploy
-* for one network (specified by HARDHAT_NETWORK .env variable)
+* for the network that hardhat is configured to
 * Throw if the file is not found
 * */
 function getVerificationInputsForNetwork(network) {
@@ -111,4 +106,6 @@ function getVerificationInputsForNetwork(network) {
   return JSON.parse(fs.readFileSync(`${path}/${targetFileName}`));
 }
 
-verifyLatestDeploy(hardhatNetwork);
+module.exports = {
+  verifyLatestDeploy,
+};
