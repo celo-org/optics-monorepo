@@ -7,11 +7,13 @@ import { OpticsState, Updater } from '../lib';
 import { Deploy } from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { TestHome, UpdaterManager__factory } from '../../typechain/optics-core';
+
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
 
 const localDomain = 1000;
 const destDomain = 2000;
+const emptyAddress: string = '0x' + '00'.repeat(32);
 
 describe('Home', async () => {
   let deploy: Deploy,
@@ -22,7 +24,6 @@ describe('Home', async () => {
     updater: Updater,
     fakeUpdater: Updater,
     fakeUpdaterManager: any;
-  const emptyAddress: string = '0x' + '00'.repeat(32);
 
   // Helper function that enqueues message and returns its root.
   // The message recipient is the same for all messages enqueued.
@@ -74,6 +75,7 @@ describe('Home', async () => {
   it('Halts on fail', async () => {
     await home.setFailed();
     expect(await home.state()).to.equal(OpticsState.FAILED);
+
     const message = ethers.utils.formatBytes32String('message');
     await expect(
       home.enqueue(
@@ -96,6 +98,7 @@ describe('Home', async () => {
       await deploys.deployUpdaterManager(deploy);
       await deploys.deployUpgradeBeaconController(deploy);
       await deploys.deployHome(deploy);
+
       const tempHome: any = deploy.contracts.home;
       const { expectedDomainHash } = testCase;
       const homeDomainHash = await tempHome!.proxy.testHomeDomainHash();
@@ -119,11 +122,13 @@ describe('Home', async () => {
   it('Enqueues a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
     const sequence = await home.sequences(localDomain);
+
     // Format data that will be emitted from Dispatch event
     const destinationAndSequence = optics.destinationAndSequence(
       destDomain,
       sequence,
     );
+
     const opticsMessage = optics.formatMessage(
       localDomain,
       signer.address,
@@ -134,6 +139,7 @@ describe('Home', async () => {
     );
     const leaf = optics.messageToLeaf(opticsMessage);
     const leafIndex = await home.nextLeafIndex();
+
     // Send message with signer address as msg.sender
     await expect(
       home
@@ -165,6 +171,7 @@ describe('Home', async () => {
   it('Suggests empty update values when queue is empty', async () => {
     const length = await home.queueLength();
     expect(length).to.equal(0);
+
     const [suggestedCurrent, suggestedNew] = await home.suggestUpdate();
     expect(suggestedCurrent).to.equal(emptyAddress);
     expect(suggestedNew).to.equal(emptyAddress);
@@ -174,6 +181,7 @@ describe('Home', async () => {
     const currentRoot = await home.current();
     const newRoot = await enqueueMessageAndGetRoot('message');
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
+
     await expect(home.update(currentRoot, newRoot, signature))
       .to.emit(home, 'Update')
       .withArgs(localDomain, currentRoot, newRoot, signature);
@@ -187,6 +195,7 @@ describe('Home', async () => {
     const newRoot2 = await enqueueMessageAndGetRoot('message2');
     const newRoot3 = await enqueueMessageAndGetRoot('message3');
     const { signature } = await updater.signUpdate(currentRoot, newRoot3);
+
     await expect(home.update(currentRoot, newRoot3, signature))
       .to.emit(home, 'Update')
       .withArgs(localDomain, currentRoot, newRoot3, signature);
@@ -200,6 +209,7 @@ describe('Home', async () => {
     // First root is current root
     const secondRoot = await enqueueMessageAndGetRoot('message');
     const thirdRoot = await enqueueMessageAndGetRoot('message2');
+
     // Try to submit update that skips the current (first) root
     const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
     await expect(
@@ -211,6 +221,7 @@ describe('Home', async () => {
     const currentRoot = await home.current();
     const fakeNewRoot = ethers.utils.formatBytes32String('fake root');
     const { signature } = await updater.signUpdate(currentRoot, fakeNewRoot);
+
     await expect(home.update(currentRoot, fakeNewRoot, signature)).to.emit(
       home,
       'ImproperUpdate',

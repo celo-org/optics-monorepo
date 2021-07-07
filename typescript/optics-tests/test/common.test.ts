@@ -9,12 +9,13 @@ const localDomain = 1000;
 
 describe('Common', async () => {
   let common: TestCommon;
-  let [signer, fakeSigner] = await ethers.getSigners();
-  let updater = await Updater.fromSigner(signer, localDomain);
-  let fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
+
+  const [signer, fakeSigner] = await ethers.getSigners();
+  const updater = await Updater.fromSigner(signer, localDomain);
+  const fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
 
   beforeEach(async () => {
-    let commonFactory = new TestCommon__factory(signer);
+    const commonFactory = new TestCommon__factory(signer);
     common = await commonFactory.deploy(localDomain, updater.address);
   });
 

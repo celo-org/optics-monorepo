@@ -4,7 +4,6 @@ import * as types from 'ethers';
 import { getTestDeploy } from './testChain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import * as contracts from '../../typechain/optics-core';
-import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
 
 describe('Upgrade', async () => {
   let signer: types.Signer,

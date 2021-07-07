@@ -1,8 +1,9 @@
 import { waffle, ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const { provider } = waffle;
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import * as types from 'ethers';
+
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib';
 import { Deploy } from '../../optics-deploy/src/chain';
