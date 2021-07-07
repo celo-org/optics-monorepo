@@ -12,6 +12,9 @@ on:
 
 jobs:
   optics-core:
+    env:
+      ETHERSCAN_API_KEY: ""
+
     runs-on: ubuntu-latest
 
     defaults:
@@ -31,6 +34,9 @@ jobs:
         run: npm run lint
 
   optics-xapps:
+    env:
+      ETHERSCAN_API_KEY: ""
+
     runs-on: ubuntu-latest
 
     defaults:
@@ -48,7 +54,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-
 
   complete:
     runs-on: ubuntu-latest
