@@ -3,9 +3,14 @@ use color_eyre::{
     eyre::{bail, eyre, WrapErr},
     Result,
 };
+use ethers::prelude::H256;
 use futures_util::future::select_all;
 use rocksdb::DB;
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    time::Duration,
+};
 use tokio::{
     sync::{oneshot::channel, RwLock},
     task::JoinHandle,
@@ -19,7 +24,7 @@ use optics_base::{
     home::Homes,
     persistence::UsingPersistence,
     replica::Replicas,
-    reset_loop_if,
+    reset_loop, reset_loop_if,
 };
 use optics_core::{
     accumulator::merkle::Proof,
@@ -37,6 +42,8 @@ pub(crate) struct ReplicaProcessor {
     replica: Arc<Replicas>,
     home: Arc<Homes>,
     db: Arc<DB>,
+    allowed: Option<Arc<HashSet<H256>>>,
+    denied: Option<Arc<HashSet<H256>>>,
 }
 
 impl UsingPersistence<usize, Proof> for ReplicaProcessor {
@@ -53,12 +60,16 @@ impl ReplicaProcessor {
         replica: Arc<Replicas>,
         home: Arc<Homes>,
         db: Arc<DB>,
+        allowed: Option<Arc<HashSet<H256>>>,
+        denied: Option<Arc<HashSet<H256>>>,
     ) -> Self {
         Self {
             interval,
             replica,
             home,
             db,
+            allowed,
+            denied,
         }
     }
 
@@ -76,8 +87,8 @@ impl ReplicaProcessor {
             //      - If not, wait and poll again
             // 4. Check if the proof is valid under the replica
             // 5. Submit the proof to the replica
+            let mut sequence = self.replica.next_to_process().await?;
             loop {
-                let sequence = self.replica.next_to_process().await?;
                 info!(
                     "Next to process for replica {} is {}",
                     self.replica.name(),
@@ -94,6 +105,20 @@ impl ReplicaProcessor {
                 );
 
                 let message = message.unwrap();
+
+                // check allow/deny lists
+
+                // if we have an allow list, filter senders not on it
+                if let Some(false) = self.allowed.as_ref().map(|set| set.contains(&message.message.sender)) {
+                    sequence += 1;
+                    reset_loop!(self.interval);
+                }
+
+                // if we have a deny list, filter senders on it
+                if let Some(true) = self.denied.as_ref().map(|set| set.contains(&message.message.sender)) {
+                    sequence += 1;
+                    reset_loop!(self.interval);
+                }
 
                 let proof_opt = Self::db_get(&self.db, message.leaf_index as usize)?;
 
@@ -127,7 +152,7 @@ impl ReplicaProcessor {
                     domain, sequence
                 );
                 self.process(message, proof).await?;
-
+                sequence = self.replica.next_to_process().await?;
                 sleep(Duration::from_secs(self.interval)).await;
             }
         }.in_current_span())
@@ -160,17 +185,26 @@ decl_agent!(
         interval: u64,
         prover: Arc<RwLock<Prover>>,
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
+        allowed: Option<Arc<HashSet<H256>>>,
+        denied: Option<Arc<HashSet<H256>>>,
     }
 );
 
 impl Processor {
     /// Instantiate a new processor
-    pub fn new(interval: u64, core: AgentCore) -> Self {
+    pub fn new(
+        interval: u64,
+        core: AgentCore,
+        allowed: Option<HashSet<H256>>,
+        denied: Option<HashSet<H256>>,
+    ) -> Self {
         Self {
             interval,
             prover: Arc::new(RwLock::new(Prover::from_disk(&core.db))),
             core,
             replica_tasks: Default::default(),
+            allowed: allowed.map(Arc::new),
+            denied: denied.map(Arc::new),
         }
     }
 }
@@ -187,6 +221,8 @@ impl OpticsAgent for Processor {
         Ok(Self::new(
             settings.polling_interval.parse().expect("invalid integer"),
             settings.as_ref().try_into_core().await?,
+            settings.allowed,
+            settings.denied,
         ))
     }
 
@@ -198,9 +234,12 @@ impl OpticsAgent for Processor {
         let name = name.to_owned();
         let db = self.db();
 
+        let allowed = self.allowed.clone();
+        let denied = self.denied.clone();
+
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
-            ReplicaProcessor::new(interval, replica, home, db)
+            ReplicaProcessor::new(interval, replica, home, db, allowed, denied)
                 .spawn()
                 .await?
         })
