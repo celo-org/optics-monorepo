@@ -235,6 +235,9 @@ describe('RecoveryManager', async () => {
       ?.proxy! as contracts.TestGovernanceRouter;
     home = deploys[0].contracts.home?.proxy! as contracts.TestHome;
     updaterManager = deploys[0].contracts.updaterManager!;
+
+    // set governor
+    await governanceRouter.transferGovernor(localDomain, governor.address);
   });
 
   it('Before Recovery Initiated: Timelock has not been set', async () => {
