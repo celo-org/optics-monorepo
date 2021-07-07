@@ -31,7 +31,8 @@
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile && hardhat --network hardhat test",
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && eslint test/",
-    "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol' && eslint --fix test/"
+    "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol' && eslint --fix test/",
+    "verify": "node js/verifyLatestDeploy.js"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",

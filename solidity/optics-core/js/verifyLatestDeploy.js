@@ -1,7 +1,47 @@
 const hardhat = require('hardhat');
 const fs = require('fs');
+const envy = require('envy');
 
-async function verifyContract(verificationInput, network) {
+// pull HARDHAT_NETWORK variable from ../.env
+const env = envy();
+const {hardhatNetwork} = env;
+const envError = (network) => `ensure HARDHAT_NETWORK variable is set in solidity/optics-core/.env (current HARDHAT_NETWORK=${network})`;
+
+// list of networks supported by Etherscan
+const etherscanNetworks = ["mainnet", "kovan", "goerli", "ropsten", "rinkeby"];
+
+/*
+* Parse the contract verification inputs
+* that were output by the latest contract deploy
+* for one network (specified by HARDHAT_NETWORK .env variable)
+* and attempt to verify those contracts' source code on Etherscan
+* */
+async function verifyLatestDeploy(network) {
+  // assert that network from .env is supported by Etherscan
+  if(!etherscanNetworks.includes(network)) {
+    throw new Error(`Network not supported by Etherscan; ${envError(network)}`)
+  } else if(hardhat.network.name != network) {
+    throw new Error(`Hardhat network doesn't match network in .env (hardhat: ${hardhat.network.name}); ${envError(network)}`);
+  }
+  console.log(`VERIFY ${network}`);
+
+  // get the JSON verification inputs for the given network
+  // from the latest contract deploy; throw if not found
+  const verificationInputs = getVerificationInputsForNetwork(network);
+
+  // loop through each verification input for each contract in the file
+  for (let verificationInput of verificationInputs) {
+    // attempt to verify contract on etherscan
+    // (await one-by-one so that Etherscan doesn't rate limit)
+    await verifyContract(network, verificationInput);
+  }
+}
+
+/*
+* Given one contract verification input,
+* attempt to verify the contracts' source code on Etherscan
+* */
+async function verifyContract(network, verificationInput) {
   const { name, address, constructorArguments } = verificationInput;
   try {
     console.log(
@@ -20,60 +60,34 @@ async function verifyContract(verificationInput, network) {
   console.log('\n\n'); // add space after each attempt
 }
 
-async function verifyChain(path, fileName) {
-  // names of networks not supported by Etherscan
-  const nonEtherscanNetworks = ['alfajores', 'celo'];
-
-  // parse network from file name
-  const nameTokens = fileName.split('_');
-  const network = nameTokens[0];
-
-  // skip verifying networks that are not supported by Etherscan
-  if (nonEtherscanNetworks.includes(network)) {
-    return;
-  }
-
-  console.log(`VERIFY CHAIN: ${network}`);
-
-  // read JSON contents from file
-  let verificationInputs = JSON.parse(fs.readFileSync(`${path}/${fileName}`));
-
-  // loop through each verification input in file
-  for (let verificationInput of verificationInputs) {
-    // attempt to verify contract on etherscan
-    // (await one-by-one so that Etherscan doesn't rate limit)
-    await verifyContract(verificationInput, network);
-  }
-}
-
-async function verifyLatestDeploy() {
-  const { path, files } = getVerificationFilePathsForLatestDeploy();
-
-  for (let file of files) {
-    await verifyChain(path, file);
-  }
-}
-
+/*
+* Generate link to Etherscan for an address on the given network
+* */
 function etherscanLink(network, address) {
   const prefix = network == 'mainnet' ? '' : network + '.';
   return `https://${prefix}etherscan.io/address/${address}`;
 }
 
-function getVerificationFilePathsForLatestDeploy() {
+/*
+* Parse the contract verification inputs
+* that were output by the latest contract deploy
+* for one network (specified by HARDHAT_NETWORK .env variable)
+* Throw if the file is not found
+* */
+function getVerificationInputsForNetwork(network) {
   const configPath = '../../rust/config';
   const defaultConfigName = 'default';
   const verificationFileSuffix = 'verification.json';
 
-  // get the names of all non-default config folders within the relative configPath
+  // get the names of all non-default config directories within the relative configPath
   let configFolders = fs
     .readdirSync(configPath, { withFileTypes: true })
-    .filter((dirEntry) => dirEntry.isDirectory())
-    .map((dirEntry) => dirEntry.name)
-    .filter((dirEntry) => dirEntry != defaultConfigName);
+    .filter((dirEntry) => dirEntry.isDirectory() && dirEntry.name != defaultConfigName)
+    .map((dirEntry) => dirEntry.name);
 
   // if no non-default config folders are found, return
   if (configFolders.length == 0) {
-    return [];
+    throw new Error("No config folders found");
   }
 
   // get path to newest generated config folder
@@ -84,15 +98,17 @@ function getVerificationFilePathsForLatestDeploy() {
   const path = `${configPath}/${newestConfigFolder}`;
 
   // filter for files with "verification" in the file name within the newest config folder
-  const files = fs
-    .readdirSync(path, { withFileTypes: true })
-    .map((dirEntry) => dirEntry.name)
-    .filter((filePath) => filePath.includes(verificationFileSuffix));
+  const targetFileName = `${network}_${verificationFileSuffix}`;
 
-  return {
-    path, // relative path to the newest config folder
-    files, // array of verification files within newest config folder
-  };
+  const file = fs
+    .readdirSync(path, { withFileTypes: true })
+    .find((dirEntry) => dirEntry.name == targetFileName);
+
+  if(!file) {
+    throw new Error(`No verification inputs found for ${network} at ${path}/${targetFileName}; ${envError(network)}`);
+  }
+
+  return JSON.parse(fs.readFileSync(`${path}/${targetFileName}`));
 }
 
-verifyLatestDeploy();
+verifyLatestDeploy(hardhatNetwork);
