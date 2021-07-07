@@ -90,7 +90,6 @@ async function deployHome(deploy: Deploy) {
   );
 
   const home = await proxyUtils.deployProxy<contracts.Home>(
-      "Home",
     deploy,
     new contracts.Home__factory(deploy.chain.deployer),
     initData,
@@ -116,7 +115,6 @@ async function deployGovernanceRouter(deploy: Deploy) {
     );
 
   const governance = await proxyUtils.deployProxy<contracts.GovernanceRouter>(
-    "GovernanceRouter",
     deploy,
     new contracts.GovernanceRouter__factory(deploy.chain.deployer),
     initData,
@@ -161,7 +159,6 @@ async function deployNewReplica(local: Deploy, remote: Deploy) {
   if (Object.keys(local.contracts.replicas).length === 0) {
     console.log(`${local.chain.name}: initial Replica deploy`);
     proxy = await proxyUtils.deployProxy<contracts.Replica>(
-        "Replica",
       local,
       factory,
       initData,
@@ -171,7 +168,6 @@ async function deployNewReplica(local: Deploy, remote: Deploy) {
     console.log(`${local.chain.name}: additional Replica deploy`);
     const prev = Object.entries(local.contracts.replicas)[0][1];
     proxy = await proxyUtils.duplicate<contracts.Replica>(
-        "Replica",
       local,
       prev,
       initData,

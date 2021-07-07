@@ -21,7 +21,6 @@ export type ProxyAddresses = {
  * @param T - The contract
  */
 export async function deployProxy<T extends ethers.Contract>(
-  name: string,
   deploy: Deploy,
   factory: ethers.ContractFactory,
   initData: BytesLike,
@@ -40,6 +39,7 @@ export async function deployProxy<T extends ethers.Contract>(
   // due to nonce ordering
   await proxy.deployTransaction.wait(5);
 
+  const {name} = implementation.constructor;
   // add UpgradeBeacon to Etherscan verification
   deploy.verificationInput.push({
     name: `${name} Implementation`,
@@ -74,7 +74,6 @@ export async function deployProxy<T extends ethers.Contract>(
  * @param T - The contract
  */
 export async function duplicate<T extends ethers.Contract>(
-    name: string,
   deploy: Deploy,
   prev: BeaconProxy<T>,
   initData: BytesLike,
@@ -82,6 +81,7 @@ export async function duplicate<T extends ethers.Contract>(
   const proxy = await _deployProxy(deploy, prev.beacon, initData);
   await proxy.deployTransaction.wait(5);
 
+  const {name} = prev.implementation.constructor;
   // add UpgradeBeacon to etherscan verification
   // add Proxy to etherscan verification
   deploy.verificationInput.push({
