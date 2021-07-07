@@ -199,6 +199,21 @@ export async function formatCall(
   };
 }
 
+// Send a transaction from the specified signer
+export async function sendFromSigner(
+  signer: types.Signer,
+  contract: types.Contract,
+  functionName: string,
+  args: any[],
+) {
+  const data = encodeData(contract, functionName, args);
+
+  return signer.sendTransaction({
+    to: contract.address,
+    data,
+  });
+}
+
 function encodeData(
   contract: types.Contract,
   functionName: string,
