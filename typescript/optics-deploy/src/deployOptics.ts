@@ -162,10 +162,11 @@ export async function deployGovernanceRouter(deploy: Deploy) {
   const governanceRouter = isTestDeploy
     ? contracts.TestGovernanceRouter__factory
     : contracts.GovernanceRouter__factory;
+
   let { xAppConnectionManager } = deploy.contracts;
-  // TODO: add recoveryManager
-  const recoveryManager = ethers.constants.AddressZero;
+  const recoveryManager = deploy.chain.recoveryManager;
   const recoveryTimelock = 1;
+
   let initData = governanceRouter
     .createInterface()
     .encodeFunctionData('initialize', [xAppConnectionManager!.address, recoveryManager]);
