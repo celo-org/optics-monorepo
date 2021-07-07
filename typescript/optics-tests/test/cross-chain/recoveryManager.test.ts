@@ -3,17 +3,13 @@ const { provider } = waffle;
 import { expect } from 'chai';
 import * as types from 'ethers';
 
-import testUtils from '../utils';
-// import { domainsToTestConfigs } from './generateTestChainConfigs';
 import { formatCall, sendFromSigner } from './utils';
-// import { Address } from '../../lib/types';
+import testUtils from '../utils';
+import { getTestDeploy } from '../testChain';
+import { Updater } from '../../lib';
+import { Deploy } from '../../../optics-deploy/src/chain';
+import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 import * as contracts from '../../../typechain/optics-core';
-// import {
-//   deployMultipleChains,
-//   getHome,
-//   getGovernanceRouter,
-//   getUpdaterManager,
-// } from './deployCrossChainTest';
 
 async function expectNotInRecovery(
   updaterManager: contracts.UpdaterManager,
@@ -105,10 +101,10 @@ async function expectNotInRecovery(
 }
 
 async function expectOnlyRecoveryManagerCanTransferRole(
-  governor,
-  governanceRouter,
-  randomSigner,
-  recoveryManager,
+  governor: any,
+  governanceRouter: contracts.TestGovernanceRouter,
+  randomSigner: any,
+  recoveryManager: any,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
@@ -143,10 +139,10 @@ async function expectOnlyRecoveryManagerCanTransferRole(
 }
 
 async function expectOnlyRecoveryManagerCanExitRecovery(
-  governor,
-  governanceRouter,
-  randomSigner,
-  recoveryManager,
+  governor: any,
+  governanceRouter: contracts.TestGovernanceRouter,
+  randomSigner: any,
+  recoveryManager: any,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'exitRecovery', []),
@@ -164,10 +160,10 @@ async function expectOnlyRecoveryManagerCanExitRecovery(
 }
 
 async function expectOnlyRecoveryManagerCanInitiateRecovery(
-  governor,
-  governanceRouter,
-  randomSigner,
-  recoveryManager,
+  governor: any,
+  governanceRouter: contracts.TestGovernanceRouter,
+  randomSigner: any,
+  recoveryManager: any,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'initiateRecoveryTimelock', []),
@@ -200,35 +196,45 @@ async function expectOnlyRecoveryManagerCanInitiateRecovery(
  * Deploy the full Optics suite on two chains
  */
 describe('RecoveryManager', async () => {
-  const domains = [1000, 2000];
-  const domain = 1000;
+  // const domains = [1000, 2000];
+  const localDomain = 1000;
+  const remoteDomain = 2000;
   const walletProvider = new testUtils.WalletProvider(provider);
-  const [
-    governor,
-    recoveryManager,
-    randomSigner,
-  ] = walletProvider.getWalletsPersistent(5);
+  const [governor, recoveryManager, randomSigner] =
+    walletProvider.getWalletsPersistent(5);
 
-  let governanceRouter, home, updaterManager, chainDetails;
+  let governanceRouter: contracts.TestGovernanceRouter,
+    home: contracts.TestHome,
+    updaterManager: contracts.UpdaterManager;
+
+  let deploys: Deploy[] = [];
 
   before(async () => {
-    // generate TestChainConfigs for the given domains
-    const configs = await domainsToTestConfigs(
-      domains,
-      recoveryManager.address,
+    const updater = await Updater.fromSigner(randomSigner, localDomain);
+
+    deploys.push(
+      await getTestDeploy(
+        localDomain,
+        updater.address,
+        [],
+        recoveryManager.address,
+      ),
+    );
+    deploys.push(
+      await getTestDeploy(
+        remoteDomain,
+        updater.address,
+        [],
+        recoveryManager.address,
+      ),
     );
 
-    // deploy the entire Optics suite on each chain
-    chainDetails = await deployMultipleChains(configs);
+    await deployTwoChains(deploys[0], deploys[1]);
 
-    // get the governance router
-    governanceRouter = getGovernanceRouter(chainDetails, domain);
-    // transfer governorship to the governor signer
-    await governanceRouter.transferGovernor(domain, governor.address);
-
-    home = getHome(chainDetails, domain);
-
-    updaterManager = getUpdaterManager(chainDetails, domain);
+    governanceRouter = deploys[0].contracts.governance
+      ?.proxy! as contracts.TestGovernanceRouter;
+    home = deploys[0].contracts.home?.proxy! as contracts.TestHome;
+    updaterManager = deploys[0].contracts.updaterManager!;
   });
 
   it('Before Recovery Initiated: Timelock has not been set', async () => {
@@ -357,7 +363,8 @@ describe('RecoveryManager', async () => {
 
   it('Recovery Active: RecoveryManager CAN set xAppConnectionManager', async () => {
     // set xApp Connection Manager
-    const xAppConnectionManager = await governanceRouter.xAppConnectionManager();
+    const xAppConnectionManager =
+      await governanceRouter.xAppConnectionManager();
     await expect(
       sendFromSigner(
         recoveryManager,

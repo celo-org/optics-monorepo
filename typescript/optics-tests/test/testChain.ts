@@ -7,6 +7,7 @@ export async function getTestChain(
   domain: number,
   updater: string,
   watchers: string[],
+  recoveryManager?: string,
 ): Promise<Chain> {
   const [, , , , , , , deployer] = await ethers.getSigners();
   return {
@@ -15,7 +16,7 @@ export async function getTestChain(
     deployer,
     domain,
     recoveryTimelock: 1,
-    recoveryManager: ethers.constants.AddressZero,
+    recoveryManager: recoveryManager || ethers.constants.AddressZero,
     updater,
     optimisticSeconds: 5,
     watchers,
@@ -28,9 +29,10 @@ export async function getTestDeploy(
   domain: number,
   updater: string,
   watcher: string[],
+  recoveryManager?: string,
 ): Promise<Deploy> {
   return {
-    chain: await getTestChain(domain, updater, watcher),
+    chain: await getTestChain(domain, updater, watcher, recoveryManager),
     contracts: { replicas: {} },
     test: true,
   };
