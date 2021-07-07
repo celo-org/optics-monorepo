@@ -1,10 +1,11 @@
 require('hardhat-gas-reporter');
 require('solidity-coverage');
-
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
-
 require('./js');
+
+const envy = require('envy');
+const env = envy();
 
 const path = require('path');
 
@@ -37,7 +38,6 @@ module.exports = {
       url: 'https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60',
     },
   },
-
   typechain: {
     outDir: '../../typescript/src/typechain/optics-core',
     target: 'ethers-v5',
@@ -46,7 +46,8 @@ module.exports = {
   mocha: {
     bail: true,
   },
+  defaultNetwork: env.hardhatNetwork,
   etherscan: {
-    apiKey: "[INSERT KEY]"
+    apiKey: env.etherscanApiKey
   }
 };
