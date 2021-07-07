@@ -69,6 +69,10 @@ for more details.
 
 ## Working on Optics
 
+### Commit signature verification
+
+Commits (and tags) for this repo require [signature verification](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification/about-commit-signature-verification). If you'd like to contribute to Optics, make sure that your commits are signed locally.
+
 ### Pre-commit hooks
 
 Set up your pre-commit hook:
