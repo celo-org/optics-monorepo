@@ -368,7 +368,7 @@ describe('GovernanceRouter', async () => {
     const currentRoot = await governorHome.current();
 
     // dispatch call on local governorRouter
-    governorRouter.callRemote(nonGovernorDomain, [call]);
+    await governorRouter.callRemote(nonGovernorDomain, [call]);
 
     const [, latestRoot] = await governorHome.suggestUpdate();
 
@@ -383,7 +383,7 @@ describe('GovernanceRouter', async () => {
 
     await enqueueUpdateToReplica(
       { oldRoot: currentRoot, newRoot: latestRoot, signature },
-      deploys[1].contracts.replicas[governorDomain].proxy,
+      governorReplicaOnNonGovernorChain,
     );
 
     const [pending] = await governorReplicaOnNonGovernorChain.nextPending();
