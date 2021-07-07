@@ -4,9 +4,8 @@ require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
 require('./js');
 const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
-const envy = require('envy');
-const env = envy();
 
+const env = require("./env");
 const path = require('path');
 
 task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
@@ -49,6 +48,6 @@ module.exports = {
     bail: true,
   },
   etherscan: {
-    apiKey: env.etherscanApiKey
+    apiKey: env ? env.etherscanApiKey : undefined
   }
 };
