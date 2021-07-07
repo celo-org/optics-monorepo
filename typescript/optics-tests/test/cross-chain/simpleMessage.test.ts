@@ -8,11 +8,11 @@ import { getTestDeploy } from '../testChain';
 import testUtils from '../utils';
 import { Updater, MessageStatus } from '../../lib';
 import { Update } from '../../lib/types';
-import { Deploy } from '../../../optics-deploy/src/chain';
 import {
   TestRecipient__factory,
   TestReplica,
 } from '../../../typechain/optics-core';
+import { Deploy } from '../../../optics-deploy/src/chain';
 import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 
 import {
