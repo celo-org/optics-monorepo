@@ -3,3 +3,4 @@ cache/
 artifacts/
 coverage/
 coverage.json
+.env
