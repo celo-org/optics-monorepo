@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0",
-    "@types/node": "^15.6.1"
+    "@types/node": "^15.6.1",
+    "ethers": "^5.2.0"
   },
   "name": "optics-ts",
   "version": "1.0.0",
@@ -25,7 +26,9 @@
   "main": "src/index.ts",
   "scripts": {
     "prettier": "prettier --write ./test ./lib",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy-core": "npx ts-node src/deploy-scripts/alfajoresKovan.ts && cd ../solidity/optics-core && npm run verify-core",
+    "deploy-bridge": "npx ts-node src/deploy-scripts/bridgeAlfajoresKovan.ts && cd ../solidity/optics-core && npm run verify-bridge"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"

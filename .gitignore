@@ -1,6 +1,8 @@
 node_modules
 test_deploy.env
 
+typescript/.env
+
 rust/tmp_db
 rust/tmp.env
 tmp.env

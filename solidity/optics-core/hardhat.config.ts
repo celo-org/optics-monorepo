@@ -2,19 +2,15 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-etherscan";
-
 import { task } from "hardhat/config";
-
+const {verifyLatestCoreDeploy} = require("./ts/verifyLatestDeploy");
 import * as dotenv from "dotenv";
-
 dotenv.config();
-
-import { verifyLatestDeploy } from "./ts/verifyLatestDeploy";
 
 task(
   "verify-latest-deploy",
   "Verifies the source code of the latest contract deploy"
-).setAction(verifyLatestDeploy);
+).setAction(verifyLatestCoreDeploy);
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

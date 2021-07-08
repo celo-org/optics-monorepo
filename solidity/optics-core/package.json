@@ -33,7 +33,7 @@
     "test": "./test.sh",
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol'",
-    "verify": "hardhat --network kovan verify-latest-deploy"
+    "verify-core": "hardhat --network kovan verify-latest-deploy"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",

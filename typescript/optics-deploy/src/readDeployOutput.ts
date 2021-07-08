@@ -5,7 +5,7 @@ import fs from 'fs';
  * @return list of networks deployed sas strings
  * */
 export function getNetworksFromLatestDeploy(): string[] {
-  const path = getPathToLatestDeployConfig();
+  const path = getPathToLatestDeploy();
   const targetFileSuffix = `_contracts.json`;
 
   const deployOutputFileNames = fs
@@ -35,7 +35,7 @@ export function getOutputFromLatestDeploy(
   network: string,
   fileSuffix: string,
 ): any {
-  const path = getPathToLatestDeployConfig();
+  const path = getPathToLatestDeploy();
   const targetFileName = `${network}_${fileSuffix}.json`;
 
   const file = fs
@@ -59,7 +59,7 @@ export function getOutputFromLatestDeploy(
  * @notice Return the path to the *most recent* contract deploy configs
  * @return path to folder
  * */
-function getPathToLatestDeployConfig(): string {
+export function getPathToLatestDeploy(): string {
   const configPath = '../rust/config';
   const defaultConfigName = 'default';
 
