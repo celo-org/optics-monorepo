@@ -40,12 +40,20 @@ contract Replica is Initializable, Common, QueueManager {
     mapping(bytes32 => uint256) public confirmAt;
 
     /// @notice Status of message
-    enum MessageStatus {None, Pending, Processed}
+    enum MessageStatus {
+        None,
+        Pending,
+        Processed
+    }
 
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
-    event ProcessError(uint32 indexed sequence, address indexed recipient, bytes returnData);
+    event ProcessError(
+        uint32 indexed sequence,
+        address indexed recipient,
+        bytes returnData
+    );
 
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
@@ -229,7 +237,14 @@ contract Replica is Initializable, Common, QueueManager {
         address _recipient = _m.recipientAddress();
 
         bytes memory _returnData;
-        (_success, _returnData) = _recipient.call{gas: PROCESS_GAS}(abi.encodeWithSignature("handle(uint32,bytes32,bytes)", _m.origin(), _m.sender(), _m.body().clone()));
+        (_success, _returnData) = _recipient.call{gas: PROCESS_GAS}(
+            abi.encodeWithSignature(
+                "handle(uint32,bytes32,bytes)",
+                _m.origin(),
+                _m.sender(),
+                _m.body().clone()
+            )
+        );
 
         if (!_success) {
             emit ProcessError(_sequence, _recipient, _returnData);

@@ -2,11 +2,23 @@ require('hardhat-gas-reporter');
 require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
+const path = require('path');
+const envy = require('envy');
 require('./js');
 const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
 
-const env = require("./env");
-const path = require('path');
+/*
+* envy loads variables from .env and
+* creates an object with camelCase properties.
+* Docs: https://www.npmjs.com/package/envy
+* */
+let env = {};
+try {
+  env = envy();
+} catch (e) {
+  // if envy doesn't find a .env file, we swallow the error and
+  // return an empty object
+}
 
 task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
 

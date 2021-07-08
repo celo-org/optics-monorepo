@@ -95,8 +95,16 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    cd ../optics-XApps
    npm i
    ```
+   
+2. Setup your `.env` file
+   ```bash
+   cd solidity/optics-core
+   touch .env && cat .env.example > .env && chmod 600 '.env'
+   
+   ```
+   Then, add values to the keys in `.env`.
 
-2. Install jq
+3. Install jq
 
    ```bash
    brew install jq
@@ -108,7 +116,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    sudo apt-get install jq
    ```
 
-3. Install solhint
+4. Install solhint
 
    ```bash
    npm install -g solhint
