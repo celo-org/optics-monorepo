@@ -1,15 +1,13 @@
-import { waffle, ethers, optics } from 'hardhat';
-const { provider } = waffle;
+import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
-import * as types from 'ethers';
 
-import testUtils from './utils';
+import { increaseTimestampBy } from './utils';
 import { getTestDeploy } from './testChain';
 import { Updater, OpticsState, MessageStatus } from '../lib';
 import * as contracts from '../../typechain/optics-core';
 import { Deploy } from '../../optics-deploy/src/chain';
 import {
-  deployNewReplica,
+  deployUnenrolledReplica,
   deployUpgradeBeaconController,
   deployUpdaterManager,
 } from '../../optics-deploy/src/deployOptics';
@@ -18,12 +16,13 @@ import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import merkleTestCases from '../../../vectors/merkle.json';
 import proveAndProcessTestCases from '../../../vectors/proveAndProcess.json';
 
-const [opticsMessageSender] = provider.getWallets();
 const localDomain = 2000;
 const remoteDomain = 1000;
 const optimisticSeconds = 3;
 
 describe('Replica', async () => {
+  const [opticsMessageSender] = await ethers.getSigners();
+
   let deploys: Deploy[] = [];
   let replica: contracts.TestReplica,
     signer: any,
@@ -79,7 +78,7 @@ describe('Replica', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner] = provider.getWallets();
+    [signer, fakeSigner] = await ethers.getSigners();
     updater = await Updater.fromSigner(signer, remoteDomain);
     fakeUpdater = await Updater.fromSigner(fakeSigner, remoteDomain);
   });
@@ -93,7 +92,7 @@ describe('Replica', async () => {
     await deployUpdaterManager(deploys[0]);
     await deployUpgradeBeaconController(deploys[0]);
 
-    await deployNewReplica(deploys[0], deploys[1]);
+    await deployUnenrolledReplica(deploys[0], deploys[1]);
 
     replica = deploys[0].contracts.replicas[remoteDomain]
       .proxy! as contracts.TestReplica;
@@ -138,7 +137,7 @@ describe('Replica', async () => {
         deploys[0].contracts.upgradeBeaconController;
 
       // deploy replica
-      await deployNewReplica(testDeploy, testDeploy);
+      await deployUnenrolledReplica(testDeploy, testDeploy);
       const tempReplica = testDeploy.contracts.replicas[testCase.homeDomain]
         .proxy! as contracts.TestReplica;
 
@@ -245,7 +244,7 @@ describe('Replica', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
     await enqueueValidUpdate(newRoot);
 
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds);
+    await increaseTimestampBy(ethers.provider, optimisticSeconds);
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
@@ -260,7 +259,7 @@ describe('Replica', async () => {
     await enqueueValidUpdate(secondNewRoot);
 
     // Increase time enough for both updates to be confirmable
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
+    await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
@@ -281,7 +280,7 @@ describe('Replica', async () => {
     // Don't increase time enough for update to be confirmable.
     // Note that we use optimisticSeconds - 2 because the call to enqueue
     // the valid root has already increased the timestamp by 1.
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds - 2);
+    await increaseTimestampBy(ethers.provider, optimisticSeconds - 2);
 
     expect(await replica.canConfirm()).to.be.false;
     await expect(replica.confirm()).to.be.revertedWith('!time');
@@ -364,7 +363,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process an unproved message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
     const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
@@ -406,7 +405,7 @@ describe('Replica', async () => {
   }
 
   it('Fails to process out-of-order message', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
 
     // Skip sequence ordering by adding 1 to nextToProcess
     const sequence = (await replica.nextToProcess()) + 1;
@@ -427,7 +426,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process message with wrong destination Domain', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
     const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
@@ -447,7 +446,7 @@ describe('Replica', async () => {
   });
 
   it('Fails to process an undergased transaction', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
     const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
@@ -539,7 +538,7 @@ describe('Replica', async () => {
   });
 
   it('Has proveAndProcess fail if prove fails', async () => {
-    const [sender, recipient] = provider.getWallets();
+    const [sender, recipient] = await ethers.getSigners();
     const sequence = await replica.nextToProcess();
 
     // Use 1st proof of 1st merkle vector test case

@@ -1,5 +1,4 @@
-import { ethers, waffle, optics } from 'hardhat';
-const { provider } = waffle;
+import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
 
 import {
@@ -7,8 +6,7 @@ import {
   formatCall,
   formatOpticsMessage,
 } from './utils';
-import testUtils from '../utils';
-import * as upgradeUtils from '../upgradeUtils';
+import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Address } from '../../lib/types';
@@ -21,15 +19,16 @@ import * as contracts from '../../../typechain/optics-core';
 
 const { proof } = require('../../../../vectors/proof.json');
 
+const governorDomain = 1000;
+const nonGovernorDomain = 2000;
+const thirdDomain = 3000;
+
 /*
  * Deploy the full Optics suite on two chains
  */
 describe('GovernanceRouter', async () => {
-  const governorDomain = 1000;
-  const nonGovernorDomain = 2000;
-  const thirdDomain = 3000;
-  const walletProvider = new testUtils.WalletProvider(provider);
-  const [thirdRouter] = walletProvider.getWalletsPersistent(1);
+  const [thirdRouter, signer, secondGovernorSigner] = await ethers.getSigners();
+
   let deploys: Deploy[] = [];
 
   let governorRouter: contracts.TestGovernanceRouter,
@@ -39,8 +38,6 @@ describe('GovernanceRouter', async () => {
     nonGovernorReplicaOnGovernorChain: contracts.TestReplica,
     firstGovernor: Address,
     secondGovernor: Address,
-    signer: any,
-    secondGovernorSigner: any,
     updater: any;
 
   async function expectGovernor(
@@ -56,7 +53,6 @@ describe('GovernanceRouter', async () => {
 
   beforeEach(async () => {
     deploys = [];
-    [signer, secondGovernorSigner] = provider.getWallets();
     updater = await Updater.fromSigner(signer, governorDomain);
 
     // get fresh test deploy objects
@@ -172,7 +168,7 @@ describe('GovernanceRouter', async () => {
 
   it('Accepts valid set router message', async () => {
     // Create address for router to enroll and domain for router
-    const [router] = provider.getWallets();
+    const [router] = await ethers.getSigners();
 
     // Create SetRouter message
     const setRouterMessage = optics.governance.formatSetRouter(
@@ -310,6 +306,7 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Upgrades using GovernanceRouter call', async () => {
+    const upgradeUtils = new UpgradeTestHelpers();
     const deploy = deploys[0];
 
     const mysteryMath = await upgradeUtils.deployMysteryMathUpgradeSetup(
@@ -343,6 +340,7 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Sends cross-chain message to upgrade contract', async () => {
+    const upgradeUtils = new UpgradeTestHelpers();
     const deploy = deploys[1];
 
     const mysteryMath = await upgradeUtils.deployMysteryMathUpgradeSetup(
@@ -391,7 +389,7 @@ describe('GovernanceRouter', async () => {
 
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = deploys[0].chain.optimisticSeconds;
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
+    await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
     expect(await governorReplicaOnNonGovernorChain.canConfirm()).to.be.true;
@@ -428,7 +426,7 @@ describe('GovernanceRouter', async () => {
   });
 
   it('Calls UpdaterManager to change the Updater on Home', async () => {
-    const [newUpdater] = provider.getWallets();
+    const [newUpdater] = await ethers.getSigners();
     const updaterManager = deploys[0].contracts.updaterManager!;
 
     // check current Updater address on Home
