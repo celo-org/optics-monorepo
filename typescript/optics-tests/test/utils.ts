@@ -1,22 +1,6 @@
-import { ethers } from 'hardhat';
-import { TestRecipient__factory } from '../../typechain/optics-core';
 import { MockProvider } from 'ethereum-waffle';
 
-async function getMockRecipient() {
-  const [signer] = await ethers.getSigners();
-  const factory = new TestRecipient__factory(signer);
-  const recipient = await factory.deploy();
-  return recipient.address;
-}
-async function getMockSender() {
-  const [opticsMessageSender] = await ethers.getSigners();
-  return opticsMessageSender;
-}
-
-const increaseTimestampBy = async (
-  provider: MockProvider,
-  increaseTime: number,
-) => {
+const increaseTimestampBy = async (provider: any, increaseTime: number) => {
   await provider.send('evm_increaseTime', [increaseTime]);
   await provider.send('evm_mine', []);
 };
@@ -55,8 +39,6 @@ class WalletProvider {
 }
 
 export default {
-  getMockRecipient,
-  getMockSender,
   increaseTimestampBy,
   WalletProvider,
 };

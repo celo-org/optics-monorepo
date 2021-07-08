@@ -193,7 +193,8 @@ export async function deployNewReplica(local: Deploy, remote: Deploy) {
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
   const isTestDeploy: boolean = remote.test;
-  if (isTestDeploy) warn('deploying test Replica')
+  if (isTestDeploy) warn('deploying test Replica');
+
   const replica = isTestDeploy
     ? contracts.TestReplica__factory
     : contracts.Replica__factory;
