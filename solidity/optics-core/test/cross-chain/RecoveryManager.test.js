@@ -198,11 +198,8 @@ describe('RecoveryManager', async () => {
   const domains = [1000, 2000];
   const domain = 1000;
   const walletProvider = new testUtils.WalletProvider(provider);
-  const [
-    governor,
-    recoveryManager,
-    randomSigner,
-  ] = walletProvider.getWalletsPersistent(5);
+  const [governor, recoveryManager, randomSigner] =
+    walletProvider.getWalletsPersistent(5);
 
   let governanceRouter, home, updaterManager, chainDetails;
 
@@ -352,7 +349,8 @@ describe('RecoveryManager', async () => {
 
   it('Recovery Active: RecoveryManager CAN set xAppConnectionManager', async () => {
     // set xApp Connection Manager
-    const xAppConnectionManager = await governanceRouter.xAppConnectionManager();
+    const xAppConnectionManager =
+      await governanceRouter.xAppConnectionManager();
     await expect(
       sendFromSigner(
         recoveryManager,

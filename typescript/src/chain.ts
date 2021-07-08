@@ -84,16 +84,16 @@ export type Chain = {
 };
 
 export type ContractVerificationInput = {
-  name: string,
-  address: Address,
-  constructorArguments: any[]
+  name: string;
+  address: Address;
+  constructorArguments: any[];
 };
 
 // data about a chain and its deployed contracts
 export type Deploy = {
   chain: Chain;
   contracts: Contracts;
-  verificationInput: ContractVerificationInput[]
+  verificationInput: ContractVerificationInput[];
 };
 
 /**

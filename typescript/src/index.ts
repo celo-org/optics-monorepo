@@ -26,9 +26,9 @@ async function deployUpgradeBeaconController(deploy: Deploy) {
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
-    name: "UpgradeBeaconController",
+    name: 'UpgradeBeaconController',
     address: deploy.contracts.upgradeBeaconController!.address,
-    constructorArguments: []
+    constructorArguments: [],
   });
 }
 
@@ -47,9 +47,9 @@ async function deployUpdaterManager(deploy: Deploy) {
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
-    name: "UpdaterManager",
+    name: 'UpdaterManager',
     address: deploy.contracts.updaterManager!.address,
-    constructorArguments: [deploy.chain.updater]
+    constructorArguments: [deploy.chain.updater],
   });
 }
 
@@ -70,9 +70,9 @@ async function deployXAppConnectionManager(deploy: Deploy) {
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
-    name: "XAppConnectionManager",
+    name: 'XAppConnectionManager',
     address: deploy.contracts.xappConnectionManager!.address,
-    constructorArguments: []
+    constructorArguments: [],
   });
 }
 
@@ -451,13 +451,13 @@ export async function deployNChains(chains: Deploy[]) {
 export function writePartials(dir: string) {
   // make folder if it doesn't exist already
   fs.mkdirSync(dir, { recursive: true });
-  const defaultDir = "../rust/config/default";
-  const partialNames = ["kathy", "processor", "relayer", "updater", "watcher"];
+  const defaultDir = '../rust/config/default';
+  const partialNames = ['kathy', 'processor', 'relayer', 'updater', 'watcher'];
   // copy partial config from default directory to given directory
   for (let partialName of partialNames) {
     const filename = `${partialName}-partial.json`;
-    fs.copyFile( `${defaultDir}/${filename}`, `${dir}/${filename}`, (err) => {
-      if(err) {
+    fs.copyFile(`${defaultDir}/${filename}`, `${dir}/${filename}`, (err) => {
+      if (err) {
         console.error(err);
       }
     });
@@ -488,8 +488,8 @@ export function writeDeployOutput(deploys: Deploy[]) {
     );
     fs.writeFileSync(`${dir}/${name}_contracts.json`, toJson(local.contracts));
     fs.writeFileSync(
-        `${dir}/${name}_verification.json`,
-        JSON.stringify(local.verificationInput, null, 2),
+      `${dir}/${name}_verification.json`,
+      JSON.stringify(local.verificationInput, null, 2),
     );
   }
   writePartials(dir);

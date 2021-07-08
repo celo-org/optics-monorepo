@@ -16,6 +16,7 @@
   "description": "Optics typescript tools",
   "main": "src/index.ts",
   "scripts": {
+    "prettier": "npx prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "npx ts-node ./scripts/deploy.ts && cd ../solidity/optics-core && npm run verify"
   },

@@ -39,26 +39,29 @@ export async function deployProxy<T extends ethers.Contract>(
   // due to nonce ordering
   await proxy.deployTransaction.wait(5);
 
-  const {name} = implementation.constructor;
+  const { name } = implementation.constructor;
   // add UpgradeBeacon to Etherscan verification
   deploy.verificationInput.push({
     name: `${name} Implementation`,
     address: implementation!.address,
-    constructorArguments: deployArgs
+    constructorArguments: deployArgs,
   });
 
   // add UpgradeBeacon to Etherscan verification
   deploy.verificationInput.push({
     name: `${name} UpgradeBeacon`,
     address: beacon!.address,
-    constructorArguments: [implementation.address, deploy.contracts.upgradeBeaconController!.address]
+    constructorArguments: [
+      implementation.address,
+      deploy.contracts.upgradeBeaconController!.address,
+    ],
   });
 
   // add Proxy to Etherscan verification
   deploy.verificationInput.push({
     name: `${name} Proxy`,
     address: proxy!.address,
-    constructorArguments: [beacon!.address, initData]
+    constructorArguments: [beacon!.address, initData],
   });
 
   return {
@@ -81,13 +84,13 @@ export async function duplicate<T extends ethers.Contract>(
   const proxy = await _deployProxy(deploy, prev.beacon, initData);
   await proxy.deployTransaction.wait(5);
 
-  const {name} = prev.implementation.constructor;
+  const { name } = prev.implementation.constructor;
   // add UpgradeBeacon to etherscan verification
   // add Proxy to etherscan verification
   deploy.verificationInput.push({
     name: `${name} Proxy`,
     address: proxy!.address,
-    constructorArguments: [prev.beacon!.address, initData]
+    constructorArguments: [prev.beacon!.address, initData],
   });
 
   return {
