@@ -4,6 +4,9 @@
 MIN_GIT=2.25.0
 MIN_CARGO=1.51.0
 
+# prevent envy from borking
+export ETHERSCAN_API_KEY=""
+
 echo_abort ()
 {
     echo >&2 '
