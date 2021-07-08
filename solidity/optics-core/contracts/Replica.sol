@@ -40,7 +40,7 @@ contract Replica is Initializable, Common, QueueManager {
     mapping(bytes32 => uint256) public confirmAt;
 
     /// @dev re-entrancy guard
-    uint8 private entered = 1;
+    uint8 private entered;
 
     /// @notice Status of message
     enum MessageStatus {
