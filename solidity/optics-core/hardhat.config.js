@@ -5,7 +5,7 @@ require('@nomiclabs/hardhat-etherscan');
 const path = require('path');
 const envy = require('envy');
 require('./js');
-const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
+const {verifyLatestCoreDeploy, verifyLatestBridgeDeploy} = require("./js/verifyLatestDeploy");
 
 /*
 * envy loads variables from .env and
@@ -20,7 +20,16 @@ try {
   // return an empty object
 }
 
-task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
+task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
+    .addParam("type", "The deploy type (`core` or `bridge`)")
+    .setAction(async (args) => {
+      const {type} = args;
+      if(type == "core") {
+        await verifyLatestCoreDeploy();
+      } else if (type == "bridge") {
+        await verifyLatestBridgeDeploy();
+      }
+    });
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

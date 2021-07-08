@@ -11,10 +11,19 @@ export type Contracts = {
   upgradeBeaconController?: contracts.UpgradeBeaconController;
   xappConnectionManager?: contracts.XAppConnectionManager;
   updaterManager?: contracts.UpdaterManager;
-
   governance?: BeaconProxy<contracts.GovernanceRouter>;
   home?: BeaconProxy<contracts.Home>;
   replicas: Record<number, BeaconProxy<contracts.Replica>>;
+};
+
+export type ContractDeployOutput = {
+  upgradeBeaconController: string;
+  xappConnectionManager: string;
+  updaterManager: string;
+  governance: ProxyAddresses;
+  home: ProxyAddresses;
+  replicas?: Record<string, ProxyAddresses>;
+  bridgeRouter: string;
 };
 
 /**
@@ -32,55 +41,63 @@ export function toJson(contracts: Contracts): string {
     };
   });
 
-  return JSON.stringify(
-    {
-      upgradeBeaconController: contracts.upgradeBeaconController!.address,
-      xappConnectionManager: contracts.xappConnectionManager!.address,
-      updaterManager: contracts.updaterManager!.address,
-      governance: {
-        implementation: contracts.governance!.implementation.address,
-        proxy: contracts.governance!.proxy.address,
-        beacon: contracts.governance!.beacon.address,
-      },
-      home: {
-        implementation: contracts.home!.implementation.address,
-        proxy: contracts.home!.proxy.address,
-        beacon: contracts.home!.beacon.address,
-      },
-      replicas,
+  const deployOutput: ContractDeployOutput = {
+    upgradeBeaconController: contracts.upgradeBeaconController!.address,
+    xappConnectionManager: contracts.xappConnectionManager!.address,
+    updaterManager: contracts.updaterManager!.address,
+    governance: {
+      implementation: contracts.governance!.implementation.address,
+      proxy: contracts.governance!.proxy.address,
+      beacon: contracts.governance!.beacon.address,
     },
+    home: {
+      implementation: contracts.home!.implementation.address,
+      proxy: contracts.home!.proxy.address,
+      beacon: contracts.home!.beacon.address,
+    },
+    replicas,
+  };
+
+  return JSON.stringify(
+    deployOutput,
     null,
     2,
   );
 }
 
-// config for generating a Chain
 export interface ChainConfig {
   name: string;
   rpc: string;
   deployerKey: string;
-  domain: number;
-  updater: Address;
-  recoveryTimelock: number;
-  recoveryManager: Address;
-  optimisticSeconds: number;
-  watchers?: Address[];
   gasPrice?: ethers.BigNumberish;
 }
 
-// deserialized version of the ChainConfig
+// config for generating a Chain
+export interface OpticsChainConfig extends ChainConfig {
+  domain: number;
+  updater: Address;
+  recoveryManager: Address;
+  watchers?: Address[];
+  recoveryTimelock: number;
+  optimisticSeconds: number;
+}
+
 export type Chain = {
   name: string;
-  config: ChainConfig;
   provider: ethers.providers.Provider;
   deployer: ethers.Signer;
+  gasPrice: ethers.BigNumber;
+  config: ChainConfig;
+};
+
+// deserialized version of the ChainConfig
+export type OpticsChain = Chain & {
   domain: number;
   updater: Address;
   recoveryTimelock: number;
   recoveryManager: Address;
   optimisticSeconds: number;
   watchers: Address[];
-  gasPrice: ethers.BigNumber;
 };
 
 export type ContractVerificationInput = {
@@ -91,32 +108,39 @@ export type ContractVerificationInput = {
 
 // data about a chain and its deployed contracts
 export type Deploy = {
-  chain: Chain;
+  chain: OpticsChain;
   contracts: Contracts;
   verificationInput: ContractVerificationInput[];
 };
+
+export function toChain(config:ChainConfig): Chain {
+  const provider = new ethers.providers.JsonRpcProvider(config.rpc);
+  const signer = new ethers.Wallet(config.deployerKey, provider);
+  const deployer = new NonceManager(signer);
+  return {
+    name: config.name,
+    provider,
+    deployer,
+    gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    config,
+  };
+}
 
 /**
  * Builds Chain from config
  *
  * @param config - The chain config
  */
-export function toChain(config: ChainConfig): Chain {
-  const provider = new ethers.providers.JsonRpcProvider(config.rpc);
-  const signer = new ethers.Wallet(config.deployerKey, provider);
-  const deployer = new NonceManager(signer);
+export function toOpticsChain(config: OpticsChainConfig): OpticsChain {
+  const chain = toChain(config);
   return {
-    name: config.name,
-    config: config,
-    provider,
-    deployer,
+    ...chain,
     domain: config.domain,
     updater: config.updater,
-    recoveryTimelock: config.recoveryTimelock,
-    recoveryManager: config.recoveryManager,
-    optimisticSeconds: config.optimisticSeconds,
     watchers: config.watchers ?? [],
-    gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    recoveryManager: config.recoveryManager,
+    recoveryTimelock: config.recoveryTimelock,
+    optimisticSeconds: config.optimisticSeconds,
   };
 }
 
@@ -125,9 +149,9 @@ export function toChain(config: ChainConfig): Chain {
  *
  * @param config - The chain config
  */
-export function freshDeploy(config: ChainConfig): Deploy {
+export function freshDeploy(config: OpticsChainConfig): Deploy {
   return {
-    chain: toChain(config),
+    chain: toOpticsChain(config),
     contracts: { replicas: {} },
     verificationInput: [],
   };

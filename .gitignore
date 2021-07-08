@@ -3,6 +3,8 @@ test_deploy.env
 config.json
 
 typescript/tmp.ts
+typescript/.env
+
 rust/tmp_db
 rust/tmp.env
 tmp.env

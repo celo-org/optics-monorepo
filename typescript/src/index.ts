@@ -1,10 +1,11 @@
 import * as ethers from 'ethers';
 import * as contracts from './typechain/optics-core';
+import * as xAppContracts from './typechain/optics-xapps';
 import fs from 'fs';
 import * as proxyUtils from './proxyUtils';
 import { Deploy, toJson, buildConfig } from './chain';
 
-function toBytes32(address: string): string {
+export function toBytes32(address: string): string {
   let addr = ethers.utils.getAddress(address);
   return '0x' + '00'.repeat(12) + address.slice(2);
 }
@@ -216,7 +217,7 @@ export async function deploy(deploy: Deploy) {
     `${deploy.chain.name}: awaiting deploy GovernanceRouter(deploy);`,
   );
   await deployGovernanceRouter(deploy);
-
+  
   console.log(`${deploy.chain.name}: initial chain deploy completed`);
 }
 
