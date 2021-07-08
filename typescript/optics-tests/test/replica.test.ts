@@ -43,13 +43,40 @@ describe('Replica', async () => {
     await replica.update(oldRoot, newRoot, signature);
   };
 
-  function getTypedKey(obj: object, key: string, type: any) {
-    const keyValue: any =
-      <T extends object, U extends keyof T>(key: U) =>
-      (obj: T) =>
-        obj[key];
-    return keyValue as typeof type;
-  }
+  const deployBadRecipient = async (version: number) => {
+    let factory: any;
+    switch (version) {
+      case 1: {
+        factory = contracts.BadRecipient1__factory;
+        break;
+      }
+      case 2: {
+        factory = contracts.BadRecipient2__factory;
+        break;
+      }
+      case 3: {
+        factory = contracts.BadRecipient3__factory;
+        break;
+      }
+      case 4: {
+        factory = contracts.BadRecipient4__factory;
+        break;
+      }
+      case 5: {
+        factory = contracts.BadRecipient5__factory;
+        break;
+      }
+      case 6: {
+        factory = contracts.BadRecipient6__factory;
+        break;
+      }
+      default: {
+        return null;
+      }
+    }
+    const contractFactory = new factory(signer);
+    return await contractFactory.deploy();
+  };
 
   before(async () => {
     [signer, fakeSigner] = provider.getWallets();
@@ -76,9 +103,9 @@ describe('Replica', async () => {
     let initData = replica.interface.encodeFunctionData('initialize', [
       deploys[0].chain.domain,
       deploys[0].chain.updater,
-      ethers.constants.HashZero, // TODO: allow configuration
+      ethers.constants.HashZero,
       deploys[0].chain.optimisticSeconds,
-      0, // TODO: allow configuration
+      0,
     ]);
 
     await expect(
@@ -141,8 +168,7 @@ describe('Replica', async () => {
 
     const [pending, confirmAt] = await replica.nextPending();
     expect(pending).to.equal(firstNewRoot);
-    // TODO:
-    // expect(confirmAt).to.equal(beforeTimestamp.add(optimisticSeconds));
+    expect(confirmAt).to.equal(beforeTimestamp.add(optimisticSeconds));
   });
 
   it('Returns the current value when the queue is empty', async () => {
@@ -215,16 +241,16 @@ describe('Replica', async () => {
     expect(await replica.state()).to.equal(OpticsState.FAILED);
   });
 
-  // it('Confirms a ready update', async () => {
-  //   const newRoot = ethers.utils.formatBytes32String('new root');
-  //   await enqueueValidUpdate(newRoot);
+  it('Confirms a ready update', async () => {
+    const newRoot = ethers.utils.formatBytes32String('new root');
+    await enqueueValidUpdate(newRoot);
 
-  //   await testUtils.increaseTimestampBy(provider, optimisticSeconds);
+    await testUtils.increaseTimestampBy(provider, optimisticSeconds);
 
-  //   expect(await replica.canConfirm()).to.be.true;
-  //   await replica.confirm();
-  //   expect(await replica.current()).to.equal(newRoot);
-  // });
+    expect(await replica.canConfirm()).to.be.true;
+    await replica.confirm();
+    expect(await replica.current()).to.equal(newRoot);
+  });
 
   it('Batch-confirms several ready updates', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
@@ -354,40 +380,30 @@ describe('Replica', async () => {
     await expect(replica.process(opticsMessage)).to.be.revertedWith('!pending');
   });
 
-  // for (let i = 1; i <= 6; i++) {
-  //   it(
-  //     'Processes a message from a badly implemented recipient (' + i + ')',
-  //     async () => {
-  //       const sender = opticsMessageSender;
-  //       // const mockRecipient = await optics.deployImplementation(
-  //       //   `BadRecipient${i}`,
-  //       // );
-  //       const factoryString = `BadRecipient${i}__factory`;
-  //       const contractString = `BadRecipient${i}`;
+  for (let i = 1; i <= 6; i++) {
+    it(
+      'Processes a message from a badly implemented recipient (' + i + ')',
+      async () => {
+        const sender = opticsMessageSender;
+        const testRecipient = await deployBadRecipient(i);
 
-  //       const factoryObj: types.ContractFactory = contracts[factoryString];
-  //       // const factoryObj = getTypedKey(contracts, BadRe);
-  //       let test: typeof contracts[contractString];
+        const sequence = await replica.nextToProcess();
+        const opticsMessage = optics.formatMessage(
+          remoteDomain,
+          sender.address,
+          sequence,
+          localDomain,
+          testRecipient.address,
+          '0x',
+        );
 
-  //       const factory = new factoryObj(signer);
-
-  //       const sequence = await replica.nextToProcess();
-  //       const opticsMessage = optics.formatMessage(
-  //         remoteDomain,
-  //         sender.address,
-  //         sequence,
-  //         localDomain,
-  //         testRecipient.address,
-  //         '0x',
-  //       );
-
-  //       // Set message status to MessageStatus.Pending
-  //       await replica.setMessagePending(opticsMessage);
-  //       await replica.process(opticsMessage);
-  //       expect(await replica.nextToProcess()).to.equal(sequence + 1);
-  //     },
-  //   );
-  // }
+        // Set message status to MessageStatus.Pending
+        await replica.setMessagePending(opticsMessage);
+        await replica.process(opticsMessage);
+        expect(await replica.nextToProcess()).to.equal(sequence + 1);
+      },
+    );
+  }
 
   it('Fails to process out-of-order message', async () => {
     const [sender, recipient] = provider.getWallets();
@@ -453,34 +469,37 @@ describe('Replica', async () => {
     ).to.be.revertedWith('!gas');
   });
 
-  // it('Returns false when processing message for bad handler function', async () => {
-  //   const sender = opticsMessageSender;
-  //   const mockRecipient = await testUtils.getMockRecipient();
+  it('Returns false when processing message for bad handler function', async () => {
+    const sender = opticsMessageSender;
+    const factory = new contracts.TestRecipient__factory(signer);
+    const testRecipient = await factory.deploy();
 
-  //   // Recipient handler function reverts
-  //   await mockRecipient.handle.reverts();
+    // Recipient handler function reverts
+    await expect(testRecipient.handle(0, '0x' + '00'.repeat(32), '0x')).to.be
+      .reverted;
 
-  //   const sequence = await replica.nextToProcess();
-  //   const opticsMessage = optics.formatMessage(
-  //     remoteDomain,
-  //     sender.address,
-  //     sequence,
-  //     localDomain,
-  //     mockRecipient.address,
-  //     '0x',
-  //   );
+    const sequence = await replica.nextToProcess();
+    const opticsMessage = optics.formatMessage(
+      remoteDomain,
+      sender.address,
+      sequence,
+      localDomain,
+      testRecipient.address,
+      '0x',
+    );
 
-  //   // Set message status to MessageStatus.Pending
-  //   await replica.setMessagePending(opticsMessage);
+    // Set message status to MessageStatus.Pending
+    await replica.setMessagePending(opticsMessage);
 
-  //   // Ensure bad handler function causes process to return false
-  //   let success = await replica.callStatic.process(opticsMessage);
-  //   expect(success).to.be.false;
-  // });
+    // Ensure bad handler function causes process to return false
+    let success = await replica.callStatic.process(opticsMessage);
+    expect(success).to.be.false;
+  });
 
   it('Proves and processes a message', async () => {
     const sender = opticsMessageSender;
-    const mockRecipient = await testUtils.getMockRecipient();
+    const testRecipientFactory = new contracts.TestRecipient__factory(signer);
+    const testRecipient = await testRecipientFactory.deploy();
 
     const sequence = await replica.nextToProcess();
 
@@ -491,7 +510,7 @@ describe('Replica', async () => {
       sender.address,
       sequence,
       localDomain,
-      mockRecipient,
+      testRecipient.address,
       '0x',
     );
 
