@@ -75,16 +75,15 @@ contract Replica is Initializable, Common, QueueManager {
         uint256 _optimisticSeconds,
         uint32 _nextToProcess
     ) public initializer {
-        remoteDomain = _remoteDomain;
-
+        Common.initialize(_updater);
         queue.initialize();
 
+        entered = 1;
+        remoteDomain = _remoteDomain;
         current = _current;
         confirmAt[_current] = 1;
         optimisticSeconds = _optimisticSeconds;
         nextToProcess = _nextToProcess;
-
-        Common.initialize(_updater);
     }
 
     /**
