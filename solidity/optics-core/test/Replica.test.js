@@ -371,27 +371,6 @@ describe('Replica', async () => {
     );
   }
 
-  it('Fails to process out-of-order message', async () => {
-    const [sender, recipient] = provider.getWallets();
-
-    // Skip sequence ordering by adding 1 to nextToProcess
-    const sequence = (await replica.nextToProcess()) + 1;
-    const body = ethers.utils.formatBytes32String('message');
-
-    const opticsMessage = optics.formatMessage(
-      remoteDomain,
-      sender.address,
-      sequence,
-      localDomain,
-      recipient.address,
-      body,
-    );
-
-    await expect(replica.process(opticsMessage)).to.be.revertedWith(
-      '!sequence',
-    );
-  });
-
   it('Fails to process message with wrong destination Domain', async () => {
     const [sender, recipient] = provider.getWallets();
     const sequence = await replica.nextToProcess();
