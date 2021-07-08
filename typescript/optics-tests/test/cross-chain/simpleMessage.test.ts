@@ -1,9 +1,8 @@
-import { waffle, ethers, optics } from 'hardhat';
+import { waffle, optics } from 'hardhat';
 const { provider } = waffle;
 import { expect } from 'chai';
-import * as types from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
+import * as utils from './utils';
 import { getTestDeploy } from '../testChain';
 import testUtils from '../utils';
 import { Updater, MessageStatus } from '../../lib';
@@ -14,13 +13,6 @@ import {
 } from '../../../typechain/optics-core';
 import { Deploy } from '../../../optics-deploy/src/chain';
 import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
-
-import {
-  enqueueUpdateToReplica,
-  enqueueMessagesAndUpdateHome,
-  formatMessage,
-  formatCall,
-} from './utils';
 
 import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
 
@@ -101,9 +93,9 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts one valid update', async () => {
     const messages = ['message'].map((message) =>
-      formatMessage(message, remoteDomain, randomSigner.address),
+      utils.formatMessage(message, remoteDomain, randomSigner.address),
     );
-    const update = await enqueueMessagesAndUpdateHome(
+    const update = await utils.enqueueMessagesAndUpdateHome(
       deploys[0].contracts.home?.proxy!,
       messages,
       updater,
@@ -114,7 +106,7 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Destination Replica Accepts the first update', async () => {
-    firstRootEnqueuedToReplica = await enqueueUpdateToReplica(
+    firstRootEnqueuedToReplica = await utils.enqueueUpdateToReplica(
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy!,
     );
@@ -122,9 +114,9 @@ describe('SimpleCrossChainMessage', async () => {
 
   it('Origin Home Accepts an update with several batched messages', async () => {
     const messages = ['message1', 'message2', 'message3'].map((message) =>
-      formatMessage(message, remoteDomain, randomSigner.address),
+      utils.formatMessage(message, remoteDomain, randomSigner.address),
     );
-    const update = await enqueueMessagesAndUpdateHome(
+    const update = await utils.enqueueMessagesAndUpdateHome(
       deploys[0].contracts.home?.proxy!,
       messages,
       updater,
@@ -135,7 +127,7 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Destination Replica Accepts the second update', async () => {
-    await enqueueUpdateToReplica(
+    await utils.enqueueUpdateToReplica(
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy,
     );
@@ -179,7 +171,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     // create Call message to test recipient that calls `processCall`
     const arg = true;
-    const call = await formatCall(TestRecipient, 'processCall', [arg]);
+    const call = await utils.formatCall(TestRecipient, 'processCall', [arg]);
     const callMessage = optics.governance.formatCalls([call]);
 
     // Create Optics message that is sent from the governor domain and governor

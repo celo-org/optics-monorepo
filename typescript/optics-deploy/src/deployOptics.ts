@@ -133,13 +133,13 @@ export async function deployGovernanceRouter(deploy: Deploy) {
 }
 
 /**
- * Deploys a Replica proxy on the local chain and updates the local deploy
- * instance with the new contract.
+ * Deploys an unenrolled Replica proxy on the local chain and updates the local
+ * deploy instance with the new contract.
  *
  * @param local - The local deploy instance
  * @param remote - The remote deploy instance
  */
-export async function deployNewReplica(local: Deploy, remote: Deploy) {
+export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
   console.log(
     `${local.chain.name}: deploying replica for domain ${remote.chain.name}`,
   );
@@ -237,16 +237,18 @@ export async function deployOptics(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function relinquish(deploy: Deploy) {
+  const govRouter = await deploy.contracts.governance!.proxy.address;
+
   console.log(`${deploy.chain.name}: Relinquishing control`);
   await deploy.contracts.updaterManager!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
   console.log(`${deploy.chain.name}: Dispatched relinquish updatermanager`);
 
   await deploy.contracts.xAppConnectionManager!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
@@ -255,7 +257,7 @@ export async function relinquish(deploy: Deploy) {
   );
 
   await deploy.contracts.upgradeBeaconController!.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
@@ -264,7 +266,7 @@ export async function relinquish(deploy: Deploy) {
   );
 
   let tx = await deploy.contracts.home!.proxy.transferOwnership(
-    deploy.contracts.governance!.proxy.address,
+    govRouter,
     { gasPrice: deploy.chain.gasPrice },
   );
 
@@ -342,7 +344,7 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
  * @param remote - The remote deploy instance
  */
 export async function enrollRemote(local: Deploy, remote: Deploy) {
-  await deployNewReplica(local, remote);
+  await deployUnenrolledReplica(local, remote);
   await enrollReplica(local, remote);
   await enrollWatchers(local, remote);
   await enrollGovernanceRouter(local, remote);
@@ -385,8 +387,8 @@ export async function deployTwoChains(gov: Deploy, non: Deploy) {
   console.log('initial deploys done');
 
   await Promise.all([
-    deployNewReplica(gov, non),
-    deployNewReplica(non, gov),
+    deployUnenrolledReplica(gov, non),
+    deployUnenrolledReplica(non, gov),
   ]);
 
   console.log('replica deploys done');
