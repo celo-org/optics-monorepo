@@ -18,7 +18,7 @@ export async function getTestChain(
     recoveryTimelock: 1,
     recoveryManager: recoveryManager || ethers.constants.AddressZero,
     updater,
-    optimisticSeconds: 5,
+    optimisticSeconds: 3,
     watchers,
     gasPrice: BigNumber.from('20000000000'),
     confirmations: 0,
