@@ -2,9 +2,7 @@
 pragma solidity >=0.6.11;
 
 // ============ External Imports ============
-import {
-    IMessageRecipient
-} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
+import {IMessageRecipient} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract Router is Ownable, IMessageRecipient {
