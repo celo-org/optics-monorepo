@@ -7,7 +7,7 @@ const fs = require('fs');
 * of Bridge deploys for the
 * most recent Optics core system deploy
 * */
-export function getPathToLatestBridgeConfig() {
+function getPathToLatestBridgeConfig() {
   const configPath = getPathToLatestDeployConfig();
   return getPathToLatestConfig(configPath);
 }
@@ -16,7 +16,7 @@ export function getPathToLatestBridgeConfig() {
 * Get path to *most recent* config folder
 * of Optics core system deploys
 * */
-export function getPathToLatestDeployConfig() {
+function getPathToLatestDeployConfig() {
   const configPath = '../../rust/config';
   const ignoreFolders = ["default"];
   return getPathToLatestConfig(configPath, ignoreFolders);
