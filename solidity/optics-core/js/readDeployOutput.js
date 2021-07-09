@@ -9,7 +9,8 @@ const fs = require('fs');
 * */
 function getPathToLatestBridgeConfig() {
   const configPath = getPathToLatestDeployConfig();
-  return getPathToLatestConfig(configPath);
+  const bridgeConfigPath = `${configPath}/bridge`;
+  return getPathToLatestConfig(bridgeConfigPath);
 }
 
 /*
@@ -34,7 +35,7 @@ function getPathToLatestConfig(configPath, ignoreFolders = []) {
 
   // if no non-default config folders are found, return
   if (configFolders.length == 0) {
-    throw new Error('No config folders found');
+    throw new Error(`No config folders found at ${configPath}`);
   }
 
   // get path to newest generated config folder
