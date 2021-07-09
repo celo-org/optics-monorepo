@@ -10,7 +10,7 @@ import {ChainConfig, OpticsChainConfig} from "../chain";
 * if envy doesn't find a .env file, we swallow the error and
 * return an empty object
 * */
-let env = {};
+let env: any = {};
 try {
     env = envy();
 } catch (e) {}
@@ -18,7 +18,7 @@ try {
 export const alfajores:ChainConfig = {
     name: 'alfajores',
     rpc: "https://alfajores-forno.celo-testnet.org",
-    deployerKey: process.env.alfajoresDeployerKey,
+    deployerKey: env.alfajoresDeployerKey,
 };
 
 export const opticsAlfajores:OpticsChainConfig = {

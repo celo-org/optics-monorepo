@@ -10,7 +10,7 @@ import {ChainConfig, OpticsChainConfig} from "../chain";
 * if envy doesn't find a .env file, we swallow the error and
 * return an empty object
 * */
-let env = {};
+let env: any = {};
 try {
     env = envy();
 } catch (e) {}
@@ -18,7 +18,7 @@ try {
 export const kovan:ChainConfig = {
     name: 'kovan',
     rpc: "https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60",
-    deployerKey: process.env.kovanDeployerKey,
+    deployerKey: env.kovanDeployerKey,
 };
 
 export const opticsKovan:OpticsChainConfig = {

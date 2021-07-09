@@ -67,7 +67,7 @@ export function toJson(contracts: Contracts): string {
 export interface ChainConfig {
   name: string;
   rpc: string;
-  deployerKey: string;
+  deployerKey?: string;
   gasPrice?: ethers.BigNumberish;
 }
 
@@ -114,7 +114,7 @@ export type Deploy = {
 
 export function toChain(config:ChainConfig): Chain {
   const provider = new ethers.providers.JsonRpcProvider(config.rpc);
-  const signer = new ethers.Wallet(config.deployerKey, provider);
+  const signer = new ethers.Wallet(config.deployerKey!, provider);
   const deployer = new NonceManager(signer);
   return {
     name: config.name,
