@@ -89,5 +89,5 @@ function parseFileFromDeploy(path, network, fileSuffix) {
 module.exports = {
   getVerificationInputFromDeploy,
   getPathToLatestDeployConfig,
-  getPathToLatestBridgeConfig,
+  getPathToLatestBridgeConfig
 };
