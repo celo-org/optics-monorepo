@@ -23,7 +23,6 @@ export type ContractDeployOutput = {
   governance: ProxyAddresses;
   home: ProxyAddresses;
   replicas?: Record<string, ProxyAddresses>;
-  bridgeRouter: string;
 };
 
 /**
