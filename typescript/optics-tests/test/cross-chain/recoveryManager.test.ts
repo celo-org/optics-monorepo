@@ -1,4 +1,5 @@
 import { ethers, optics } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import * as types from 'ethers';
 
@@ -198,15 +199,17 @@ const remoteDomain = 2000;
  * Deploy the full Optics suite on two chains
  */
 describe('RecoveryManager', async () => {
-  const [governor, recoveryManager, randomSigner] = await ethers.getSigners();
-
-  let governanceRouter: contracts.TestGovernanceRouter,
+  let governor: SignerWithAddress,
+    recoveryManager: SignerWithAddress,
+    randomSigner: SignerWithAddress,
+    governanceRouter: contracts.TestGovernanceRouter,
     home: contracts.TestHome,
     updaterManager: contracts.UpdaterManager;
 
   let deploys: Deploy[] = [];
 
   before(async () => {
+    [governor, recoveryManager, randomSigner] = await ethers.getSigners();
     const updater = await Updater.fromSigner(randomSigner, localDomain);
 
     deploys.push(

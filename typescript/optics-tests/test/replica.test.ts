@@ -1,4 +1,5 @@
 import { ethers, optics } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import { increaseTimestampBy } from './utils';
@@ -21,12 +22,11 @@ const remoteDomain = 1000;
 const optimisticSeconds = 3;
 
 describe('Replica', async () => {
-  const [opticsMessageSender] = await ethers.getSigners();
-
   let deploys: Deploy[] = [];
   let replica: contracts.TestReplica,
-    signer: any,
-    fakeSigner: any,
+    signer: SignerWithAddress,
+    fakeSigner: SignerWithAddress,
+    opticsMessageSender: SignerWithAddress,
     updater: Updater,
     fakeUpdater: Updater;
 
@@ -78,17 +78,15 @@ describe('Replica', async () => {
   };
 
   before(async () => {
-    [signer, fakeSigner] = await ethers.getSigners();
+    [signer, fakeSigner, opticsMessageSender] = await ethers.getSigners();
     updater = await Updater.fromSigner(signer, remoteDomain);
     fakeUpdater = await Updater.fromSigner(fakeSigner, remoteDomain);
-  });
-
-  beforeEach(async () => {
-    updater = await Updater.fromSigner(signer, remoteDomain);
 
     deploys.push(await getTestDeploy(localDomain, updater.address, []));
     deploys.push(await getTestDeploy(remoteDomain, updater.address, []));
+  });
 
+  beforeEach(async () => {
     await deployUpdaterManager(deploys[0]);
     await deployUpgradeBeaconController(deploys[0]);
 

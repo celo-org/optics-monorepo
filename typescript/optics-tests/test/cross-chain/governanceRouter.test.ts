@@ -1,4 +1,5 @@
 import { ethers, optics } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import {
@@ -27,11 +28,12 @@ const thirdDomain = 3000;
  * Deploy the full Optics suite on two chains
  */
 describe('GovernanceRouter', async () => {
-  const [thirdRouter, signer, secondGovernorSigner] = await ethers.getSigners();
-
   let deploys: Deploy[] = [];
 
-  let governorRouter: contracts.TestGovernanceRouter,
+  let signer: SignerWithAddress,
+    secondGovernorSigner: SignerWithAddress,
+    thirdRouter: SignerWithAddress,
+    governorRouter: contracts.TestGovernanceRouter,
     governorHome: contracts.Home,
     governorReplicaOnNonGovernorChain: contracts.TestReplica,
     nonGovernorRouter: contracts.TestGovernanceRouter,
@@ -51,15 +53,17 @@ describe('GovernanceRouter', async () => {
     expect(await governanceRouter.governor()).to.equal(expectedGovernor);
   }
 
-  beforeEach(async () => {
-    deploys = [];
+  before(async () => {
+    [thirdRouter, signer, secondGovernorSigner] = await ethers.getSigners();
     updater = await Updater.fromSigner(signer, governorDomain);
 
     // get fresh test deploy objects
     deploys.push(await getTestDeploy(governorDomain, updater.address, []));
     deploys.push(await getTestDeploy(nonGovernorDomain, updater.address, []));
     deploys.push(await getTestDeploy(thirdDomain, updater.address, []));
+  });
 
+  beforeEach(async () => {
     // deploy the entire Optics suite on each chain
     await deployTwoChains(deploys[0], deploys[1]);
 

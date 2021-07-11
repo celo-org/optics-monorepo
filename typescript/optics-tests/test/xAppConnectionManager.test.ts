@@ -32,16 +32,19 @@ describe('XAppConnectionManager', async () => {
       signer as SignerWithAddress,
       localDomain,
     );
-  });
 
-  beforeEach(async () => {
     // get fresh test deploys
     localDeploy = await getTestDeploy(localDomain, updater.address, []);
     remoteDeploy = await getTestDeploy(remoteDomain, updater.address, []);
 
-    // deploy optics on both domains
-    await deploys.deployOptics(localDeploy);
+    // deploy optics on remote domain
+    // NB: as tests stand currently, this only needs to be done once
     await deploys.deployOptics(remoteDeploy);
+  });
+
+  beforeEach(async () => {
+    // deploy optics on local domain
+    await deploys.deployOptics(localDeploy);
 
     // deploy replica and enroll on local deploy
     await deploys.enrollRemote(localDeploy, remoteDeploy);
