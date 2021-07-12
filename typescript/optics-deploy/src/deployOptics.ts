@@ -4,10 +4,10 @@
 import * as ethers from 'ethers';
 import fs from 'fs';
 
-import * as contracts from './typechain/optics-core';
 import * as proxyUtils from './proxyUtils';
 import { Deploy, toJson, buildConfig } from './chain';
-import { toBytes32 } from './lib/utils';
+import { toBytes32 } from '../../optics-tests/lib/utils';
+import * as contracts from '../../typechain/optics-core';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
