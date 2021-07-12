@@ -26,7 +26,7 @@
   "scripts": {
     "prettier": "prettier --write ./test",
     "compile": "hardhat compile && npm run prettier",
-    "test": "npm run compile"
+    "test": "npm run compile && hardhat test"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"

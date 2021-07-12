@@ -34,6 +34,13 @@ export async function getTestDeploy(
   return {
     chain: await getTestChain(domain, updater, watchers, recoveryManager),
     contracts: { replicas: {} },
+    verificationInput: [
+      {
+        name: 'string',
+        address: 'Address',
+        constructorArguments: ['arg'],
+      },
+    ],
     test: true,
   };
 }
