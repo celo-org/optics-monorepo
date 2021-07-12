@@ -127,9 +127,11 @@ export async function enrollAllBridgeRouters(deploy:BridgeDeploy, allDeploys: Br
 export async function enrollBridgeRouter(local: BridgeDeploy, remote: BridgeDeploy) {
   console.log(`enrolling ${remote.chain.name} BridgeRouter on ${local.chain.name}`);
 
-  // TODO: we don't have the domain (yet)
+  const remoteHome: contracts.Home = contracts.Home__factory.connect(remote.coreContractAddresses.home.proxy, remote.chain.deployer);
+  const remoteDomain = await remoteHome.localDomain();
+
   let tx = await local.contracts.bridgeRouter!.enrollRemoteRouter(
-      remote.chain.domain,
+      remoteDomain,
       toBytes32(remote.contracts.bridgeRouter!.address),
       { gasPrice: local.chain.gasPrice },
   );
