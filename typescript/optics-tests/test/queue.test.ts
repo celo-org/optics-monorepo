@@ -2,17 +2,16 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { TestQueue, TestQueue__factory } from '../../typechain/optics-core';
 
+// create a proper hex encoded bytes32 filled with number. e.g 0x01010101...
+const bytes32 = (num: number) => `0x${Buffer.alloc(32, num).toString('hex')}`;
+
 describe('Queue', async () => {
   let queue: TestQueue;
 
-  // create a proper hex encoded bytes32 filled with number. e.g 0x01010101...
-  const bytes32 = (num: number) => `0x${Buffer.alloc(32, num).toString('hex')}`;
-
   before(async () => {
-    let [signer] = await ethers.getSigners();
-    const Queue = new TestQueue__factory(signer);
-    queue = await Queue.deploy();
-    await queue.deployed();
+    const [signer] = await ethers.getSigners();
+    const queueFactory = new TestQueue__factory(signer);
+    queue = await queueFactory.deploy();
   });
 
   it('should function as a queue', async () => {

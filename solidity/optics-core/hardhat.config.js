@@ -2,7 +2,6 @@ require('hardhat-gas-reporter');
 require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
-const path = require('path');
 const envy = require('envy');
 require('./js');
 const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");

@@ -1,10 +1,10 @@
-import { waffle, optics } from 'hardhat';
-const { provider } = waffle;
+import { ethers, optics } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import * as types from 'ethers';
 
 import { formatCall, sendFromSigner } from './utils';
-import testUtils from '../utils';
+import { increaseTimestampBy } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Deploy } from '../../../optics-deploy/src/chain';
@@ -192,24 +192,24 @@ async function expectOnlyRecoveryManagerCanInitiateRecovery(
   expect(await governanceRouter.recoveryActiveAt()).to.not.equal(0);
 }
 
+const localDomain = 1000;
+const remoteDomain = 2000;
+
 /*
  * Deploy the full Optics suite on two chains
  */
 describe('RecoveryManager', async () => {
-  // const domains = [1000, 2000];
-  const localDomain = 1000;
-  const remoteDomain = 2000;
-  const walletProvider = new testUtils.WalletProvider(provider);
-  const [governor, recoveryManager, randomSigner] =
-    walletProvider.getWalletsPersistent(5);
-
-  let governanceRouter: contracts.TestGovernanceRouter,
+  let governor: SignerWithAddress,
+    recoveryManager: SignerWithAddress,
+    randomSigner: SignerWithAddress,
+    governanceRouter: contracts.TestGovernanceRouter,
     home: contracts.TestHome,
     updaterManager: contracts.UpdaterManager;
 
   let deploys: Deploy[] = [];
 
   before(async () => {
+    [governor, recoveryManager, randomSigner] = await ethers.getSigners();
     const updater = await Updater.fromSigner(randomSigner, localDomain);
 
     deploys.push(
@@ -331,7 +331,7 @@ describe('RecoveryManager', async () => {
   it('Recovery Active: inRecovery becomes true when timelock expires', async () => {
     // increase timestamp on-chain
     const timelock = await governanceRouter.recoveryTimelock();
-    await testUtils.increaseTimestampBy(provider, timelock.toNumber());
+    await increaseTimestampBy(ethers.provider, timelock.toNumber());
     expect(await governanceRouter.inRecovery()).to.be.true;
   });
 

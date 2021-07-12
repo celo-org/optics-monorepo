@@ -1,8 +1,8 @@
-import { waffle, ethers, optics } from 'hardhat';
+import { ethers, optics } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-const { provider } = waffle;
 import { expect } from 'chai';
 import * as types from 'ethers';
+
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib';
 import { Deploy } from '../../optics-deploy/src/chain';
@@ -11,12 +11,10 @@ import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
 import * as contracts from '../../typechain/optics-core';
 
 import signedFailureTestCases from '../../../vectors/signedFailure.json';
-import testUtils from './utils';
 
 const ONLY_OWNER_REVERT_MSG = 'Ownable: caller is not the owner';
 const localDomain = 1000;
 const remoteDomain = 2000;
-const walletProvider = new testUtils.WalletProvider(provider);
 
 describe('XAppConnectionManager', async () => {
   let localDeploy: Deploy,
@@ -34,16 +32,19 @@ describe('XAppConnectionManager', async () => {
       signer as SignerWithAddress,
       localDomain,
     );
-  });
 
-  beforeEach(async () => {
     // get fresh test deploys
     localDeploy = await getTestDeploy(localDomain, updater.address, []);
     remoteDeploy = await getTestDeploy(remoteDomain, updater.address, []);
 
-    // deploy optics on both domains
-    await deploys.deployOptics(localDeploy);
+    // deploy optics on remote domain
+    // NB: as tests stand currently, this only needs to be done once
     await deploys.deployOptics(remoteDeploy);
+  });
+
+  beforeEach(async () => {
+    // deploy optics on local domain
+    await deploys.deployOptics(localDeploy);
 
     // deploy replica and enroll on local deploy
     await deploys.enrollRemote(localDeploy, remoteDeploy);
@@ -62,21 +63,21 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('onlyOwner function rejects call from non-owner', async () => {
-    const [nonOwner, nonHome] = walletProvider.getWalletsEphemeral(2);
+    const [nonOwner, nonHome] = await ethers.getSigners();
     await expect(
       connectionManager.connect(nonOwner).setHome(nonHome.address),
     ).to.be.revertedWith(ONLY_OWNER_REVERT_MSG);
   });
 
   it('isOwner returns true for owner and false for non-owner', async () => {
-    const [newOwner, nonOwner] = walletProvider.getWalletsEphemeral(2);
+    const [newOwner, nonOwner] = await ethers.getSigners();
     await connectionManager.transferOwnership(newOwner.address);
     expect(await connectionManager.isOwner(newOwner.address)).to.be.true;
     expect(await connectionManager.isOwner(nonOwner.address)).to.be.false;
   });
 
   it('isReplica returns true for enrolledReplica and false for non-enrolled Replica', async () => {
-    const [nonEnrolledReplica] = walletProvider.getWalletsEphemeral(1);
+    const [nonEnrolledReplica] = await ethers.getSigners();
     expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
       .true;
     expect(await connectionManager.isReplica(nonEnrolledReplica.address)).to.be
@@ -140,7 +141,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('Owner can set watcher permissions', async () => {
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await ethers.getSigners();
     expect(
       await connectionManager.watcherPermission(watcher.address, remoteDomain),
     ).to.be.false;
@@ -160,7 +161,7 @@ describe('XAppConnectionManager', async () => {
 
   it('Unenrolls a replica given valid SignedFailureNotification', async () => {
     // Set watcher permissions for domain of currently enrolled replica
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await ethers.getSigners();
     await connectionManager.setWatcherPermission(
       watcher.address,
       remoteDomain,
@@ -202,7 +203,7 @@ describe('XAppConnectionManager', async () => {
     const noReplicaDomain = 3000;
 
     // Set watcher permissions for noReplicaDomain
-    const [watcher] = walletProvider.getWalletsEphemeral(1);
+    const [watcher] = await ethers.getSigners();
     await connectionManager.setWatcherPermission(
       watcher.address,
       noReplicaDomain,
@@ -228,7 +229,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('unenrollReplica reverts if provided updater does not match replica updater', async () => {
-    const [watcher, nonUpdater] = walletProvider.getWalletsEphemeral(2);
+    const [watcher, nonUpdater] = await ethers.getSigners();
 
     // Set watcher permissions
     await connectionManager.setWatcherPermission(
@@ -256,7 +257,7 @@ describe('XAppConnectionManager', async () => {
   });
 
   it('unenrollReplica reverts if incorrect watcher provided', async () => {
-    const [watcher, nonWatcher] = walletProvider.getWalletsEphemeral(2);
+    const [watcher, nonWatcher] = await ethers.getSigners();
 
     // Set watcher permissions
     await connectionManager.setWatcherPermission(
