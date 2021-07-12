@@ -1,8 +1,15 @@
-import {Chain, ContractDeployOutput, ContractVerificationInput, ChainConfig, toChain, Deploy} from './chain';
+import {
+  Chain,
+  ContractDeployOutput,
+  ContractVerificationInput,
+  ChainConfig,
+  toChain,
+} from './chain';
 import {parseFileFromDeploy} from "./readDeployConfig";
 import * as xAppContracts from "./typechain/optics-xapps";
 import * as contracts from "./typechain/optics-core";
 import {toBytes32} from "./index";
+import fs from "fs";
 
 export type BridgeContracts = {
   bridgeRouter?: xAppContracts.BridgeRouter
@@ -72,7 +79,9 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
   }
   await Promise.all(enrollPromises);
 
-  // TODO: output the Bridge deploy information to a bridge subdirectory of the cor system deploy config folder
+  // output the Bridge deploy information to a subdirectory
+  // of the core system deploy config folder
+  writeBridgeDeployOutput(deploys);
 }
 
 /**
@@ -158,4 +167,37 @@ export async function transferOwnershipToGovernance(deploy: BridgeDeploy) {
   await tx.wait(5);
 
   console.log(`transferred ownership of ${deploy.chain.name} BridgeRouter`);
+}
+
+/**
+ * Outputs the values for bridges that have been deployed.
+ *
+ * @param deploys - The array of bridge deploys
+ */
+export function writeBridgeDeployOutput(deploys: BridgeDeploy[]) {
+  console.log(`Have ${deploys.length} bridge deploys`);
+  if(deploys.length == 0) {
+    return;
+  }
+
+  // ensure bridge directory exists within core deploy config folder
+  const root = `${deploys[0].coreDeployPath}/bridge`;
+  fs.mkdirSync(root, { recursive: true });
+
+  // create dir for this bridge deploy's outputs
+  const dir = `${root}/${Date.now()}`;
+  fs.mkdirSync(dir, { recursive: true });
+
+  // for each deploy, write contracts and verification inputs to file
+  for (const deploy of deploys) {
+    const name = deploy.chain.name;
+    const contracts = {
+      bridgeRouter: deploy.contracts.bridgeRouter!.address
+    };
+    fs.writeFileSync(`${dir}/${name}_contracts.json`, JSON.stringify(contracts, null, 2));
+    fs.writeFileSync(
+        `${dir}/${name}_verification.json`,
+        JSON.stringify(deploy.verificationInput, null, 2),
+    );
+  }
 }
