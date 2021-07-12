@@ -4,8 +4,6 @@ require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
 
-require('./js');
-
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
