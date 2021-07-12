@@ -153,9 +153,10 @@ contract PingPongRouter is Router, XAppConnectionClient {
         bytes32 _remoteRouterAddress = _mustHaveRemote(_destinationDomain);
 
         // format the ping message
-        bytes memory _message = _isPing
-            ? PingPongMessage.formatPing(_match, _count)
-            : PingPongMessage.formatPong(_match, _count);
+        bytes memory _message =
+            _isPing
+                ? PingPongMessage.formatPing(_match, _count)
+                : PingPongMessage.formatPong(_match, _count);
 
         // send the message to the xApp Router
         (_home()).enqueue(_destinationDomain, _remoteRouterAddress, _message);

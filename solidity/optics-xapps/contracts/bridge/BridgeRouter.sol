@@ -9,7 +9,7 @@ import {BridgeMessage} from "./BridgeMessage.sol";
 // ============ External Imports ============
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {
-TypeCasts
+    TypeCasts
 } from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -131,7 +131,11 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _token The token address
      * @param _tokenId The bytes-encoded tokenId
      */
-    function _formatTokenId(address _token) internal view returns (bytes29 _tokenId) {
+    function _formatTokenId(address _token)
+        internal
+        view
+        returns (bytes29 _tokenId)
+    {
         TokenId memory _tokId = _tokenIdFor(_token);
         _tokenId = BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
     }

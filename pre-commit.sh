@@ -142,7 +142,6 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-core ./vectors; then
     echo "+Running optics core tests"
     cd ./solidity/optics-core
     npm run lint
-    cd ../../typescript/optics-tests
     npm test
     cd ../..
 else
@@ -154,7 +153,7 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
     echo "+Running optics-xapps tests"
     cd ./solidity/optics-xapps
     npm run lint
-    # TODO: Add tests
+    npm test
     cd ../..
 else
     echo "+Skipping optics-xapps tests"
