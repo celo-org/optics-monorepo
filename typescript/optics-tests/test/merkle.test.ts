@@ -12,11 +12,10 @@ describe('Merkle', async () => {
       let merkle: any, root: string;
 
       before(async () => {
-        let [signer] = await ethers.getSigners();
-        const Merkle = new TestMerkle__factory(signer);
+        const [signer] = await ethers.getSigners();
 
-        merkle = await Merkle.deploy();
-        await merkle.deployed();
+        const merkleFactory = new TestMerkle__factory(signer);
+        merkle = await merkleFactory.deploy();
 
         //insert the leaves
         for (let leaf of leaves) {

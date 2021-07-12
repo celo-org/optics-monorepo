@@ -1,18 +1,15 @@
-import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import * as types from 'ethers';
 
 import { getTestDeploy } from './testChain';
-import * as utils from './upgradeUtils';
+import { UpgradeTestHelpers, MysteryMathUpgrade } from './utils';
 import * as contracts from '../../typechain/optics-core';
 
 describe('Upgrade', async () => {
+  const utils = new UpgradeTestHelpers();
   let signer: types.Signer,
-    mysteryMath: utils.MysteryMathUpgrade,
+    mysteryMath: MysteryMathUpgrade,
     upgradeBeaconController: contracts.UpgradeBeaconController;
-  const a = 5;
-  const b = 10;
-  const stateVar = 17;
 
   before(async () => {
     // set signer

@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import { TestCommon__factory, TestCommon } from '../../typechain/optics-core';
@@ -8,13 +9,20 @@ import signedUpdateTestCases from '../../../vectors/signedUpdate.json';
 const localDomain = 1000;
 
 describe('Common', async () => {
-  let common: TestCommon;
-  let [signer, fakeSigner] = await ethers.getSigners();
-  let updater = await Updater.fromSigner(signer, localDomain);
-  let fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
+  let signer: SignerWithAddress,
+    fakeSigner: SignerWithAddress,
+    common: TestCommon,
+    updater: Updater,
+    fakeUpdater: Updater;
+
+  before(async () => {
+    [signer, fakeSigner] = await ethers.getSigners();
+    updater = await Updater.fromSigner(signer, localDomain);
+    fakeUpdater = await Updater.fromSigner(fakeSigner, localDomain);
+  });
 
   beforeEach(async () => {
-    let commonFactory = new TestCommon__factory(signer);
+    const commonFactory = new TestCommon__factory(signer);
     common = await commonFactory.deploy(localDomain, updater.address);
   });
 

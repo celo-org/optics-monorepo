@@ -1,20 +1,23 @@
-import { waffle, optics } from 'hardhat';
-const { provider } = waffle;
+import { optics, ethers } from 'hardhat';
 import { expect } from 'chai';
 
 import * as utils from './utils';
 import { getTestDeploy } from '../testChain';
-import testUtils from '../utils';
+import { increaseTimestampBy } from '../utils';
 import { Updater, MessageStatus } from '../../lib';
 import { Update } from '../../lib/types';
+import { Deploy } from '../../../optics-deploy/src/chain';
+import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 import {
   TestRecipient__factory,
   TestReplica,
 } from '../../../typechain/optics-core';
-import { Deploy } from '../../../optics-deploy/src/chain';
-import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 
 import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
+
+const domains = [1000, 2000];
+const localDomain = domains[0];
+const remoteDomain = domains[1];
 
 /*
  * Deploy the full Optics suite on two chains
@@ -25,12 +28,6 @@ import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
  * TODO prove and process messages on Replica
  */
 describe('SimpleCrossChainMessage', async () => {
-  const walletProvider = new testUtils.WalletProvider(provider);
-
-  const domains = [1000, 2000];
-  const localDomain = domains[0];
-  const remoteDomain = domains[1];
-
   // deploys[0] is the local deploy and governor chain
   // deploys[1] is the remote deploy
   let deploys: Deploy[] = [];
@@ -42,7 +39,7 @@ describe('SimpleCrossChainMessage', async () => {
     latestUpdate: Update;
 
   before(async () => {
-    [randomSigner] = walletProvider.getWalletsPersistent(2);
+    [randomSigner] = await ethers.getSigners();
     updater = await Updater.fromSigner(randomSigner, localDomain);
 
     deploys.push(await getTestDeploy(localDomain, updater.address, []));
@@ -144,7 +141,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = deploys[0].chain.optimisticSeconds;
-    await testUtils.increaseTimestampBy(provider, optimisticSeconds * 2);
+    await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
     expect(await replica.canConfirm()).to.be.true;
