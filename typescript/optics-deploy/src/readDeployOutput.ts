@@ -56,6 +56,39 @@ export function getOutputFromLatestDeploy(
 }
 
 /*
+ * @notice Return the JSON-parsed file specified
+ * for the contract deploy at path
+ * for the network & filetype
+ * Throw if the file is not found
+ * @param path relative path to core system deploy
+ * @param network target network to parse ("alfajores", "kovan"")
+ * @param fileSuffix target file suffix to parse ("config", "contracts", "verification")
+ * */
+export function parseFileFromDeploy(
+    path: string,
+    network: string,
+    fileSuffix: string,
+): any {
+  const targetFileName = `${network}_${fileSuffix}.json`;
+
+  const file = fs
+      .readdirSync(path, { withFileTypes: true })
+      .find((dirEntry: fs.Dirent) => dirEntry.name == targetFileName);
+
+  if (!file) {
+    throw new Error(
+        `No ${fileSuffix} files found for ${network} at ${path}/${targetFileName}`,
+    );
+  }
+
+  const fileString: string = fs
+      .readFileSync(`${path}/${targetFileName}`)
+      .toString();
+
+  return JSON.parse(fileString);
+}
+
+/*
  * @notice Return the path to the *most recent* contract deploy configs
  * @return path to folder
  * */
