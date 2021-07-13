@@ -81,7 +81,7 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
   deploy.contracts.xappConnectionManager = await factory.deploy({
     gasPrice: deploy.chain.gasPrice,
   });
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(5);
+  await deploy.contracts.xappConnectionManager.deployTransaction.wait(deploy.chain.confirmations);
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({

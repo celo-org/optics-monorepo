@@ -1,9 +1,6 @@
 node_modules
 test_deploy.env
-config.json
-chainConfig.ts
 
-typescript/tmp.ts
 rust/tmp_db
 rust/tmp.env
 tmp.env

@@ -2,23 +2,23 @@ require('hardhat-gas-reporter');
 require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
-// const envy = require('envy');
-// const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
+const envy = require('envy');
+const {verifyLatestDeploy} = require("./js/verifyLatestDeploy");
 
-// /*
-// * envy loads variables from .env and
-// * creates an object with camelCase properties.
-// * Docs: https://www.npmjs.com/package/envy
-// * */
-// let env = {};
-// try {
-//   env = envy();
-// } catch (e) {
-//   // if envy doesn't find a .env file, we swallow the error and
-//   // return an empty object
-// }
+/*
+* envy loads variables from .env and
+* creates an object with camelCase properties.
+* Docs: https://www.npmjs.com/package/envy
+* */
+let env = {};
+try {
+  env = envy();
+} catch (e) {
+  // if envy doesn't find a .env file, we swallow the error and
+  // return an empty object
+}
 
-// task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
+task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestDeploy);
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -56,8 +56,8 @@ module.exports = {
   },
   mocha: {
     bail: true,
+  },
+  etherscan: {
+    apiKey: env.etherscanApiKey
   }
-  // etherscan: {
-  //   apiKey: env.etherscanApiKey
-  // }
 };
