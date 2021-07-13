@@ -18,7 +18,7 @@ import {
 } from '../../../optics-deploy/src/deployOptics';
 import * as contracts from '../../../typechain/optics-core';
 
-const { proof } = require('../../../../vectors/proof.json');
+const helpers = require('../../../../vectors/proof.json');
 
 const governorDomain = 1000;
 const nonGovernorDomain = 2000;
@@ -372,9 +372,14 @@ describe('GovernanceRouter', async () => {
     const currentRoot = await governorHome.current();
 
     // dispatch call on local governorRouter
-    governorRouter.callRemote(nonGovernorDomain, [call]);
+    let tx = await governorRouter.callRemote(nonGovernorDomain, [call]);
+    let receipt = await tx.wait(0);
+    let leaf = receipt.events?.[0].topics[3];
+
+    expect(leaf).to.equal(helpers.proof.leaf);
 
     const [, latestRoot] = await governorHome.suggestUpdate();
+    expect(latestRoot).to.equal(helpers.root);
 
     const { signature } = await updater.signUpdate(currentRoot, latestRoot);
 
@@ -411,28 +416,29 @@ describe('GovernanceRouter', async () => {
     );
 
     // TODO: fix prove
-    // const callMessage = optics.governance.formatCalls([call]);
+    const callMessage = optics.governance.formatCalls([call]);
 
-    // const sequence = await governorHome.sequences(governorDomain);
-    // const opticsMessage = optics.formatMessage(
-    //   governorDomain,
-    //   governorRouter.address,
-    //   sequence,
-    //   nonGovernorDomain,
-    //   nonGovernorRouter.address,
-    //   callMessage,
-    // );
+    const sequence = await governorHome.sequences(nonGovernorDomain);
+    const opticsMessage = optics.formatMessage(
+      governorDomain,
+      governorRouter.address,
+      sequence - 1,
+      nonGovernorDomain,
+      nonGovernorRouter.address,
+      callMessage,
+    );
 
-    // const { path } = proof;
-    // const index = 0;
-    // await governorReplicaOnNonGovernorChain.proveAndProcess(
-    //   opticsMessage,
-    //   path,
-    //   index,
-    // );
+    expect(ethers.utils.keccak256(opticsMessage)).to.equal(leaf);
 
-    // // test implementation was upgraded
-    // await upgradeUtils.expectMysteryMathV2(mysteryMath.proxy);
+    const { path, index } = helpers.proof;
+    await governorReplicaOnNonGovernorChain.proveAndProcess(
+      opticsMessage,
+      path,
+      index,
+    );
+
+    // test implementation was upgraded
+    await upgradeUtils.expectMysteryMathV2(mysteryMath.proxy);
   });
 
   it('Calls UpdaterManager to change the Updater on Home', async () => {
