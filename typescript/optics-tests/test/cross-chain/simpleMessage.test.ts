@@ -5,7 +5,7 @@ import * as utils from './utils';
 import { getTestDeploy } from '../testChain';
 import { increaseTimestampBy } from '../utils';
 import { Updater, MessageStatus } from '../../lib';
-import { Update } from '../../lib/types';
+import { Update, Signer, BytesArray } from '../../lib/types';
 import { Deploy } from '../../../optics-deploy/src/chain';
 import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 import {
@@ -32,7 +32,7 @@ describe('SimpleCrossChainMessage', async () => {
   // deploys[1] is the remote deploy
   let deploys: Deploy[] = [];
 
-  let randomSigner: any,
+  let randomSigner: Signer,
     firstRootEnqueuedToReplica: string,
     updater: Updater,
     latestRoot: string,
@@ -188,11 +188,15 @@ describe('SimpleCrossChainMessage', async () => {
     const leaf = optics.messageToLeaf(opticsMessage);
 
     // set root
-    const proofRoot = await replica.testBranchRoot(leaf, path as any, index);
+    const proofRoot = await replica.testBranchRoot(
+      leaf,
+      path as BytesArray,
+      index,
+    );
     await replica.setCurrentRoot(proofRoot);
 
     // prove and process message
-    await replica.proveAndProcess(opticsMessage, path as any, index);
+    await replica.proveAndProcess(opticsMessage, path as BytesArray, index);
 
     // expect call to have been processed
     expect(await TestRecipient.processed()).to.be.true;

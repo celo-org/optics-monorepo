@@ -1,7 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { TestMerkle__factory } from '../../typechain/optics-core';
+import { BytesArray } from '../lib/types';
+import { TestMerkle, TestMerkle__factory } from '../../typechain/optics-core';
 import merkleTestCases from '../../../vectors/merkle.json';
 
 describe('Merkle', async () => {
@@ -9,7 +10,7 @@ describe('Merkle', async () => {
     const { testName, leaves, expectedRoot, proofs } = testCase;
 
     describe(testName, async () => {
-      let merkle: any, root: string;
+      let merkle: TestMerkle, root: string;
 
       before(async () => {
         const [signer] = await ethers.getSigners();
@@ -38,7 +39,11 @@ describe('Merkle', async () => {
         for (let proof of proofs) {
           const { leaf, path, index } = proof;
 
-          const proofRoot = await merkle.branchRoot(leaf, path, index);
+          const proofRoot = await merkle.branchRoot(
+            leaf,
+            path as BytesArray,
+            index,
+          );
           expect(proofRoot).to.equal(root);
         }
       });

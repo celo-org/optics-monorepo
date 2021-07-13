@@ -1,5 +1,4 @@
 import { ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import {
@@ -10,7 +9,7 @@ import {
 import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
-import { Address } from '../../lib/types';
+import { Address, Signer } from '../../lib/types';
 import { Deploy } from '../../../optics-deploy/src/chain';
 import {
   deployTwoChains,
@@ -30,9 +29,9 @@ const thirdDomain = 3000;
 describe('GovernanceRouter', async () => {
   let deploys: Deploy[] = [];
 
-  let signer: SignerWithAddress,
-    secondGovernorSigner: SignerWithAddress,
-    thirdRouter: SignerWithAddress,
+  let signer: Signer,
+    secondGovernorSigner: Signer,
+    thirdRouter: Signer,
     governorRouter: contracts.TestGovernanceRouter,
     governorHome: contracts.Home,
     governorReplicaOnNonGovernorChain: contracts.TestReplica,
@@ -40,7 +39,7 @@ describe('GovernanceRouter', async () => {
     nonGovernorReplicaOnGovernorChain: contracts.TestReplica,
     firstGovernor: Address,
     secondGovernor: Address,
-    updater: any;
+    updater: Updater;
 
   async function expectGovernor(
     governanceRouter: contracts.TestGovernanceRouter,

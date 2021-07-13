@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import ethers from 'ethers';
 
+import { Signer } from '../lib/types';
 import { Deploy } from '../../optics-deploy/src/chain';
 import {
   deployUpdaterManager,
@@ -29,7 +30,7 @@ export class UpgradeTestHelpers {
 
   async deployMysteryMathUpgradeSetup(
     deploy: Deploy,
-    signer: any,
+    signer: Signer,
     isNewDeploy?: boolean,
   ): Promise<MysteryMathUpgrade> {
     // deploy implementation

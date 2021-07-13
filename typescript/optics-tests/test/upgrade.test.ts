@@ -1,13 +1,13 @@
 import { ethers } from 'hardhat';
-import * as types from 'ethers';
 
 import { getTestDeploy } from './testChain';
 import { UpgradeTestHelpers, MysteryMathUpgrade } from './utils';
+import { Signer } from '../lib/types';
 import * as contracts from '../../typechain/optics-core';
 
 describe('Upgrade', async () => {
   const utils = new UpgradeTestHelpers();
-  let signer: types.Signer,
+  let signer: Signer,
     mysteryMath: MysteryMathUpgrade,
     upgradeBeaconController: contracts.UpgradeBeaconController;
 

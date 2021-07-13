@@ -1,5 +1,4 @@
 import { ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import * as types from 'ethers';
 
@@ -7,6 +6,7 @@ import { formatCall, sendFromSigner } from './utils';
 import { increaseTimestampBy } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
+import { Signer } from '../../lib/types';
 import { Deploy } from '../../../optics-deploy/src/chain';
 import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
 import * as contracts from '../../../typechain/optics-core';
@@ -14,8 +14,8 @@ import * as contracts from '../../../typechain/optics-core';
 async function expectNotInRecovery(
   updaterManager: contracts.UpdaterManager,
   recoveryManager: types.Signer,
-  randomSigner: any,
-  governor: any,
+  randomSigner: Signer,
+  governor: Signer,
   governanceRouter: contracts.TestGovernanceRouter,
   home: contracts.TestHome,
 ) {
@@ -101,10 +101,10 @@ async function expectNotInRecovery(
 }
 
 async function expectOnlyRecoveryManagerCanTransferRole(
-  governor: any,
+  governor: Signer,
   governanceRouter: contracts.TestGovernanceRouter,
-  randomSigner: any,
-  recoveryManager: any,
+  randomSigner: Signer,
+  recoveryManager: Signer,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'transferRecoveryManager', [
@@ -139,10 +139,10 @@ async function expectOnlyRecoveryManagerCanTransferRole(
 }
 
 async function expectOnlyRecoveryManagerCanExitRecovery(
-  governor: any,
+  governor: Signer,
   governanceRouter: contracts.TestGovernanceRouter,
-  randomSigner: any,
-  recoveryManager: any,
+  randomSigner: Signer,
+  recoveryManager: Signer,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'exitRecovery', []),
@@ -160,10 +160,10 @@ async function expectOnlyRecoveryManagerCanExitRecovery(
 }
 
 async function expectOnlyRecoveryManagerCanInitiateRecovery(
-  governor: any,
+  governor: Signer,
   governanceRouter: contracts.TestGovernanceRouter,
-  randomSigner: any,
-  recoveryManager: any,
+  randomSigner: Signer,
+  recoveryManager: Signer,
 ) {
   await expect(
     sendFromSigner(governor, governanceRouter, 'initiateRecoveryTimelock', []),
@@ -199,9 +199,9 @@ const remoteDomain = 2000;
  * Deploy the full Optics suite on two chains
  */
 describe('RecoveryManager', async () => {
-  let governor: SignerWithAddress,
-    recoveryManager: SignerWithAddress,
-    randomSigner: SignerWithAddress,
+  let governor: Signer,
+    recoveryManager: Signer,
+    randomSigner: Signer,
     governanceRouter: contracts.TestGovernanceRouter,
     home: contracts.TestHome,
     updaterManager: contracts.UpdaterManager;

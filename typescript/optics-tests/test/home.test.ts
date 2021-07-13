@@ -1,12 +1,16 @@
 import { ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
+import { Signer } from '../lib/types';
 import { Deploy } from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
-import { TestHome, UpdaterManager__factory } from '../../typechain/optics-core';
+import {
+  TestHome,
+  UpdaterManager__factory,
+  UpdaterManager,
+} from '../../typechain/optics-core';
 
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
@@ -18,12 +22,12 @@ const emptyAddress: string = '0x' + '00'.repeat(32);
 describe('Home', async () => {
   let deploy: Deploy,
     home: TestHome,
-    signer: SignerWithAddress,
-    fakeSigner: SignerWithAddress,
-    recipient: SignerWithAddress,
+    signer: Signer,
+    fakeSigner: Signer,
+    recipient: Signer,
     updater: Updater,
     fakeUpdater: Updater,
-    fakeUpdaterManager: any;
+    fakeUpdaterManager: UpdaterManager;
 
   // Helper function that enqueues message and returns its root.
   // The message recipient is the same for all messages enqueued.
@@ -99,9 +103,9 @@ describe('Home', async () => {
       await deploys.deployUpgradeBeaconController(deploy);
       await deploys.deployHome(deploy);
 
-      const tempHome: any = deploy.contracts.home;
+      const tempHome = deploy.contracts.home?.proxy! as TestHome;
       const { expectedDomainHash } = testCase;
-      const homeDomainHash = await tempHome!.proxy.testHomeDomainHash();
+      const homeDomainHash = await tempHome.testHomeDomainHash();
       expect(homeDomainHash).to.equal(expectedDomainHash);
     }
   });

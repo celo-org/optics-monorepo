@@ -1,16 +1,16 @@
 import { ethers } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import { TestCommon__factory, TestCommon } from '../../typechain/optics-core';
 import { OpticsState, Updater } from '../lib';
+import { Signer } from '../lib/types';
 import signedUpdateTestCases from '../../../vectors/signedUpdate.json';
 
 const localDomain = 1000;
 
 describe('Common', async () => {
-  let signer: SignerWithAddress,
-    fakeSigner: SignerWithAddress,
+  let signer: Signer,
+    fakeSigner: Signer,
     common: TestCommon,
     updater: Updater,
     fakeUpdater: Updater;
