@@ -1,5 +1,8 @@
 use crate::{
-    accumulator::{merkle::MerkleTree, TREE_DEPTH},
+    accumulator::{
+        merkle::{merkle_root_from_branch, MerkleTree},
+        TREE_DEPTH,
+    },
     utils::{destination_and_sequence, home_domain_hash},
     FailureNotification, OpticsMessage, Update,
 };
@@ -57,21 +60,27 @@ pub mod output_functions {
     pub fn output_merkle_proof() {
         let mut tree = MerkleTree::create(&[], TREE_DEPTH);
 
-        let optics_message = OpticsMessage {
-            origin: 1000,
-            sender: H256::from(H160::from_str("0xd753c12650c280383Ce873Cc3a898F6f53973d16").unwrap()),
-            destination: 2000,
-            recipient: H256::from(H160::from_str("0xa779C1D17bC5230c07afdC51376CAC1cb3Dd5314").unwrap()),
-            sequence: 1,
-            body: Vec::from_hex("01010000000000000000000000006b39b761b1b64c8c095bf0e3bb0c6a74705b4788000000000000000000000000000000000000000000000000000000000000004499a88ec400000000000000000000000024432a08869578aaf4d1eada12e1e78f171b1a2b000000000000000000000000f66cfdf074d2ffd6a4037be3a669ed04380aef2b").unwrap(),
-        };
+        let index = 1;
 
-        tree.push_leaf(optics_message.to_leaf(), TREE_DEPTH)
-            .unwrap();
-        let proof = tree.generate_proof(0, TREE_DEPTH);
+        // kludge. this is a manual entry of the hash of the messages sent by the cross-chain governance upgrade tests
+        tree.push_leaf(
+            "0xd89959d277019eee21f1c3c270a125964d63b71876880724d287fbb8b8de55f1"
+                .parse()
+                .unwrap(),
+            TREE_DEPTH,
+        )
+        .unwrap();
+        tree.push_leaf(
+            "0x7d2185e5a65904eeb35980b8e335f72d31feccfdc12b9bc0f6cbe32073ea7fba"
+                .parse()
+                .unwrap(),
+            TREE_DEPTH,
+        )
+        .unwrap();
+        let proof = tree.generate_proof(index, TREE_DEPTH);
 
-        let proof_json = json!({ "leaf": proof.0, "path": proof.1 });
-        let json = json!({ "proof": proof_json }).to_string();
+        let proof_json = json!({ "leaf": proof.0, "path": proof.1, "index": index});
+        let json = json!({ "proof": proof_json, "root": merkle_root_from_branch(proof.0, &proof.1, 32, index)}).to_string();
 
         let mut file = OpenOptions::new()
             .write(true)

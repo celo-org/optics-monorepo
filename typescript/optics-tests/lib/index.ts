@@ -7,12 +7,6 @@ import * as ethers from 'ethers';
 import * as types from './types';
 import { getHexStringByteLength } from './utils';
 
-declare module 'hardhat/types/runtime' {
-  interface HardhatRuntimeEnvironment {
-    optics: HardhatOpticsHelpers;
-  }
-}
-
 export class Updater {
   localDomain: types.Domain;
   signer: SignerWithAddress;
@@ -32,7 +26,10 @@ export class Updater {
     this.address = address;
   }
 
-  static async fromSigner(signer: SignerWithAddress, localDomain: types.Domain) {
+  static async fromSigner(
+    signer: SignerWithAddress,
+    localDomain: types.Domain,
+  ) {
     return new Updater(signer, await signer.getAddress(), localDomain, true);
   }
 
@@ -119,7 +116,10 @@ function ethersAddressToBytes32(address: types.Address): string {
     .toLowerCase();
 }
 
-function destinationAndSequence(destination: types.Domain, sequence: number): ethers.BigNumber {
+function destinationAndSequence(
+  destination: types.Domain,
+  sequence: number,
+): ethers.BigNumber {
   assert(destination < Math.pow(2, 32) - 1);
   assert(sequence < Math.pow(2, 32) - 1);
 
@@ -186,20 +186,6 @@ function formatCalls(callsData: types.CallData[]): string {
     ['bytes1', 'bytes1', 'bytes'],
     [GovernanceMessage.CALL, numCalls, callBody],
   );
-}
-
-export interface HardhatOpticsHelpers {
-  formatMessage: Function;
-  governance: {
-    formatTransferGovernor: Function;
-    formatSetRouter: Function;
-    formatCalls: Function;
-  };
-  messageToLeaf: Function;
-  ethersAddressToBytes32: Function;
-  destinationAndSequence: Function;
-  domainHash: Function;
-  signedFailureNotification: Function;
 }
 
 // HardhatRuntimeEnvironment
