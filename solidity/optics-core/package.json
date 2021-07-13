@@ -32,8 +32,7 @@
     "test": "npm run compile && hardhat test",
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && eslint test/",
     "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol' && eslint --fix test/",
-    "verify-core": "hardhat --network kovan verify-latest-deploy --type core",
-    "verify-bridge": "hardhat --network kovan verify-latest-deploy --type bridge"
+    "verify-core": "hardhat --network kovan verify-latest-deploy"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
