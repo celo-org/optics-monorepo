@@ -6,6 +6,7 @@ import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 contract TestRecipient is IMessageRecipient {
     bool public processed = false;
 
+    // solhint-disable-next-line payable-fallback
     fallback() external {
         revert("Fallback");
     }
@@ -14,7 +15,7 @@ contract TestRecipient is IMessageRecipient {
         uint32,
         bytes32,
         bytes memory
-    ) external pure override {}
+    ) external pure override {} // solhint-disable-line no-empty-blocks
 
     function receiveString(string calldata _str)
         public
