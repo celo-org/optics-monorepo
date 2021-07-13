@@ -9,7 +9,7 @@
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0",
     "@types/node": "^15.6.1",
-    "envy": "^2.0.0",
+    "dotenv": "^10.0.0",
     "ethers": "^5.2.0"
   },
   "name": "optics-ts",

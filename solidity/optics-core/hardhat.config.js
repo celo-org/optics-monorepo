@@ -2,23 +2,10 @@ require('hardhat-gas-reporter');
 require('solidity-coverage');
 require('@typechain/hardhat');
 require('@nomiclabs/hardhat-etherscan');
-const path = require('path');
-const envy = require('envy');
+const dotenv = require('dotenv');
+dotenv.config();
 require('./js');
 const {verifyLatestCoreDeploy, verifyLatestBridgeDeploy} = require("./js/verifyLatestDeploy");
-
-/*
-* envy loads variables from .env and
-* creates an object with camelCase properties.
-* Docs: https://www.npmjs.com/package/envy
-* */
-let env = {};
-try {
-  env = envy();
-} catch (e) {
-  // if envy doesn't find a .env file, we swallow the error and
-  // return an empty object
-}
 
 task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
     .addParam("type", "The deploy type (`core` or `bridge`)")
@@ -69,6 +56,6 @@ module.exports = {
     bail: true,
   },
   etherscan: {
-    apiKey: env.etherscanApiKey
+    apiKey: process.env.ETHERSCAN_API_KEY
   }
 };

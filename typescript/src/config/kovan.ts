@@ -1,24 +1,11 @@
-const envy = require('envy');
+const dotenv = require('dotenv');
+dotenv.config();
 import {ChainConfig, OpticsChainConfig} from "../chain";
-
-/*
-* envy Docs: https://www.npmjs.com/package/envy
-*
-* envy loads variables from .env and
-* creates an object with camelCase properties.
-*
-* if envy doesn't find a .env file, we swallow the error and
-* return an empty object
-* */
-let env: any = {};
-try {
-    env = envy();
-} catch (e) {}
 
 export const kovan:ChainConfig = {
     name: 'kovan',
     rpc: "https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60",
-    deployerKey: env.kovanDeployerKey,
+    deployerKey: process.env.KOVAN_DEPLOYER_KEY,
 };
 
 export const opticsKovan:OpticsChainConfig = {

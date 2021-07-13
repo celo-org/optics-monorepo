@@ -1,24 +1,11 @@
-const envy = require('envy');
+const dotenv = require('dotenv');
+dotenv.config();
 import {ChainConfig, OpticsChainConfig} from "../chain";
-
-/*
-* envy Docs: https://www.npmjs.com/package/envy
-*
-* envy loads variables from .env and
-* creates an object with camelCase properties.
-*
-* if envy doesn't find a .env file, we swallow the error and
-* return an empty object
-* */
-let env: any = {};
-try {
-    env = envy();
-} catch (e) {}
 
 export const alfajores:ChainConfig = {
     name: 'alfajores',
     rpc: "https://alfajores-forno.celo-testnet.org",
-    deployerKey: env.alfajoresDeployerKey,
+    deployerKey: process.env.ALFAJORES_DEPLOYER_KEY,
 };
 
 export const opticsAlfajores:OpticsChainConfig = {
