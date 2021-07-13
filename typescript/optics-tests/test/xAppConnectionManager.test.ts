@@ -1,10 +1,9 @@
 import { ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import * as types from 'ethers';
 
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib';
+import { Signer } from '../lib/types';
 import { Deploy } from '../../optics-deploy/src/chain';
 import * as deploys from '../../optics-deploy/src/deployOptics';
 import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
@@ -23,15 +22,12 @@ describe('XAppConnectionManager', async () => {
     updaterManager: contracts.UpdaterManager,
     enrolledReplica: contracts.TestReplica,
     home: BeaconProxy<contracts.Home>,
-    signer: types.Signer,
+    signer: Signer,
     updater: Updater;
 
   before(async () => {
     [signer] = await ethers.getSigners();
-    updater = await Updater.fromSigner(
-      signer as SignerWithAddress,
-      localDomain,
-    );
+    updater = await Updater.fromSigner(signer, localDomain);
 
     // get fresh test deploys
     localDeploy = await getTestDeploy(localDomain, updater.address, []);

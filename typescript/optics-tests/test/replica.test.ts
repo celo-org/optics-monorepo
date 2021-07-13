@@ -1,10 +1,10 @@
 import { ethers, optics } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 import { increaseTimestampBy } from './utils';
 import { getTestDeploy } from './testChain';
 import { Updater, OpticsState, MessageStatus } from '../lib';
+import { Signer, BytesArray } from '../lib/types';
 import * as contracts from '../../typechain/optics-core';
 import { Deploy } from '../../optics-deploy/src/chain';
 import {
@@ -16,7 +16,6 @@ import {
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import merkleTestCases from '../../../vectors/merkle.json';
 import proveAndProcessTestCases from '../../../vectors/proveAndProcess.json';
-import { keccak256 } from 'ethers/lib/utils';
 
 const localDomain = 2000;
 const remoteDomain = 1000;
@@ -25,9 +24,9 @@ const optimisticSeconds = 3;
 describe('Replica', async () => {
   let deploys: Deploy[] = [];
   let replica: contracts.TestReplica,
-    signer: SignerWithAddress,
-    fakeSigner: SignerWithAddress,
-    opticsMessageSender: SignerWithAddress,
+    signer: Signer,
+    fakeSigner: Signer,
+    opticsMessageSender: Signer,
     updater: Updater,
     fakeUpdater: Updater;
 
@@ -293,9 +292,10 @@ describe('Replica', async () => {
     await replica.setCurrentRoot(testCase.expectedRoot);
 
     // Ensure proper static call return value
-    expect(await replica.callStatic.prove(leaf, path as any, index)).to.be.true;
+    expect(await replica.callStatic.prove(leaf, path as BytesArray, index)).to
+      .be.true;
 
-    await replica.prove(leaf, path as any, index);
+    await replica.prove(leaf, path as BytesArray, index);
     expect(await replica.messages(leaf)).to.equal(MessageStatus.PENDING);
   });
 
@@ -306,13 +306,13 @@ describe('Replica', async () => {
     await replica.setCurrentRoot(testCase.expectedRoot);
 
     // Prove message, which changes status to MessageStatus.Pending
-    await replica.prove(leaf, path as any, index);
+    await replica.prove(leaf, path as BytesArray, index);
     expect(await replica.messages(leaf)).to.equal(MessageStatus.PENDING);
 
     // Try to prove message again
-    await expect(replica.prove(leaf, path as any, index)).to.be.revertedWith(
-      '!MessageStatus.None',
-    );
+    await expect(
+      replica.prove(leaf, path as BytesArray, index),
+    ).to.be.revertedWith('!MessageStatus.None');
   });
 
   it('Rejects invalid message proof', async () => {
@@ -327,10 +327,10 @@ describe('Replica', async () => {
 
     await replica.setCurrentRoot(testCase.expectedRoot);
 
-    expect(await replica.callStatic.prove(leaf, path as any, index)).to.be
-      .false;
+    expect(await replica.callStatic.prove(leaf, path as BytesArray, index)).to
+      .be.false;
 
-    await replica.prove(leaf, path as any, index);
+    await replica.prove(leaf, path as BytesArray, index);
     expect(await replica.messages(leaf)).to.equal(MessageStatus.NONE);
   });
 
@@ -502,12 +502,12 @@ describe('Replica', async () => {
     // simply recalculate root with the leaf using branchRoot)
     const proofRoot = await replica.testBranchRoot(
       messageLeaf,
-      path as any,
+      path as BytesArray,
       index,
     );
     await replica.setCurrentRoot(proofRoot);
 
-    await replica.proveAndProcess(opticsMessage, path as any, index);
+    await replica.proveAndProcess(opticsMessage, path as BytesArray, index);
 
     expect(await replica.messages(messageLeaf)).to.equal(
       MessageStatus.PROCESSED,
@@ -536,11 +536,15 @@ describe('Replica', async () => {
     // Ensure root given in proof and actual root don't match so that
     // replica.prove(...) will fail
     const actualRoot = await replica.current();
-    const proofRoot = await replica.testBranchRoot(leaf, path as any, index);
+    const proofRoot = await replica.testBranchRoot(
+      leaf,
+      path as BytesArray,
+      index,
+    );
     expect(proofRoot).to.not.equal(actualRoot);
 
     await expect(
-      replica.proveAndProcess(opticsMessage, path as any, index),
+      replica.proveAndProcess(opticsMessage, path as BytesArray, index),
     ).to.be.revertedWith('!prove');
   });
 });
