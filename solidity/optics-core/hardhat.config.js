@@ -5,10 +5,18 @@ require('@nomiclabs/hardhat-etherscan');
 const dotenv = require('dotenv');
 dotenv.config();
 require('./js');
-const {verifyLatestCoreDeploy} = require("./js/verifyLatestDeploy");
+const {verifyLatestCoreDeploy, verifyLatestBridgeDeploy} = require("./js/verifyLatestDeploy");
 
-task("verify-latest-deploy", "Verifies the source code of the latest contract deploy").setAction(verifyLatestCoreDeploy);
-
+task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
+    .addParam("type", "The deploy type (`core` or `bridge`)")
+    .setAction(async (args) => {
+      const {type} = args;
+      if(type == "core") {
+        await verifyLatestCoreDeploy();
+      } else if (type == "bridge") {
+        await verifyLatestBridgeDeploy();
+      }
+    });
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

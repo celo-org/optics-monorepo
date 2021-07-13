@@ -3,6 +3,17 @@ const fs = require('fs');
 // TODO: deprecate this file & import from ../../typescript/src/readDeployConfig.ts
 
 /*
+ * Get path to *most recent* config folder
+ * of Bridge deploys for the
+ * most recent Optics core system deploy
+ * */
+function getPathToLatestBridgeConfig() {
+  const configPath = getPathToLatestDeployConfig();
+  const bridgeConfigPath = `${configPath}/bridge`;
+  return getPathToLatestConfig(bridgeConfigPath);
+}
+
+/*
 /*
 * Get path to *most recent* config folder
 * of Optics core system deploys
@@ -80,4 +91,5 @@ function parseFileFromDeploy(path, network, fileSuffix) {
 module.exports = {
   getVerificationInputFromDeploy,
   getPathToLatestDeployConfig,
+  getPathToLatestBridgeConfig,
 };
