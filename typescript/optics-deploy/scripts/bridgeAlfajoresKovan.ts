@@ -1,5 +1,5 @@
 import {getPathToLatestDeploy} from '../src/readDeployOutput';
-import {getBridgeDeploy, deployBridges} from '../src/bridge';
+import {deployBridges, getBridgeDeploy} from '../src/bridge';
 import { alfajores } from "../config/alfajores";
 import { kovan } from "../config/kovan";
 

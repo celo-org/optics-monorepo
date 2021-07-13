@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-// TODO: deprecate this file & import from ../../typescript/src/readDeployConfig.ts
+// TODO: deprecate this file & import from ../../typescript/optics-deploy/src/readDeployOutput.ts
 
 /*
 /*
