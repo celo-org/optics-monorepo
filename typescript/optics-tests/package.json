@@ -29,7 +29,7 @@
     "prettier": "prettier --write ./test ./lib",
     "test": "hardhat test",
     "deploy-core": "npx ts-node src/deploy-scripts/alfajoresKovan.ts && cd ../solidity/optics-core && npm run verify-core",
-    "deploy-bridge": "npx ts-node src/deploy-scripts/bridgeAlfajoresKovan.ts && cd ../solidity/optics-core && npm run verify-bridge"
+    "deploy-bridge": "npx ts-node src/deploy-scripts/bridgeAlfajoresKovan.ts"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"

@@ -1,4 +1,7 @@
-const {getPathToLatestDeployConfig, getPathToLatestBridgeConfig, getVerificationInputFromDeploy} = require("./readDeployOutput");
+const {
+  getPathToLatestDeployConfig,
+  getVerificationInputFromDeploy,
+} = require('./readDeployOutput');
 
 const envError = (network) =>
     `pass --network tag to hardhat task (current network=${network})`;
@@ -22,17 +25,6 @@ function etherscanLink(network, address) {
  * */
 async function verifyLatestCoreDeploy() {
   const path = getPathToLatestDeployConfig();
-  return verifyDeploy(path);
-}
-
-/*
- * Parse the contract verification inputs
- * that were output by the latest contract deploy
- * for the network that hardhat is configured to
- * and attempt to verify those contracts' source code on Etherscan
- * */
-async function verifyLatestBridgeDeploy() {
-  const path = getPathToLatestBridgeConfig();
   return verifyDeploy(path);
 }
 
@@ -88,5 +80,4 @@ async function verifyContract(network, verificationInput) {
 
 module.exports = {
   verifyLatestCoreDeploy,
-  verifyLatestBridgeDeploy
 };
