@@ -22,6 +22,15 @@ const remoteDomain = 1000;
 const optimisticSeconds = 3;
 
 describe('Replica', async () => {
+  const badRecipientFactories = [
+    contracts.BadRecipient1__factory,
+    contracts.BadRecipient2__factory,
+    contracts.BadRecipient3__factory,
+    contracts.BadRecipient4__factory,
+    contracts.BadRecipient5__factory,
+    contracts.BadRecipient6__factory,
+  ];
+
   let deploys: Deploy[] = [];
   let replica: contracts.TestReplica,
     signer: Signer,
@@ -40,41 +49,6 @@ describe('Replica', async () => {
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
     await replica.update(oldRoot, newRoot, signature);
-  };
-
-  const deployBadRecipient = async (version: number) => {
-    let factory: any;
-    switch (version) {
-      case 1: {
-        factory = contracts.BadRecipient1__factory;
-        break;
-      }
-      case 2: {
-        factory = contracts.BadRecipient2__factory;
-        break;
-      }
-      case 3: {
-        factory = contracts.BadRecipient3__factory;
-        break;
-      }
-      case 4: {
-        factory = contracts.BadRecipient4__factory;
-        break;
-      }
-      case 5: {
-        factory = contracts.BadRecipient5__factory;
-        break;
-      }
-      case 6: {
-        factory = contracts.BadRecipient6__factory;
-        break;
-      }
-      default: {
-        return null;
-      }
-    }
-    const contractFactory = new factory(signer);
-    return await contractFactory.deploy();
   };
 
   before(async () => {
@@ -378,29 +352,29 @@ describe('Replica', async () => {
     await expect(replica.process(opticsMessage)).to.be.revertedWith('!pending');
   });
 
-  for (let i = 1; i <= 6; i++) {
-    it(
-      'Processes a message from a badly implemented recipient (' + i + ')',
-      async () => {
-        const sender = opticsMessageSender;
-        const testRecipient = await deployBadRecipient(i);
+  for (let i = 0; i < badRecipientFactories.length; i++) {
+    it(`Processes a message from a badly implemented recipient (${
+      i + 1
+    })`, async () => {
+      const sender = opticsMessageSender;
+      const factory = new badRecipientFactories[i](signer);
+      const badRecipient = await factory.deploy();
 
-        const sequence = await replica.nextToProcess();
-        const opticsMessage = optics.formatMessage(
-          remoteDomain,
-          sender.address,
-          sequence,
-          localDomain,
-          testRecipient.address,
-          '0x',
-        );
+      const sequence = await replica.nextToProcess();
+      const opticsMessage = optics.formatMessage(
+        remoteDomain,
+        sender.address,
+        sequence,
+        localDomain,
+        badRecipient.address,
+        '0x',
+      );
 
-        // Set message status to MessageStatus.Pending
-        await replica.setMessagePending(opticsMessage);
-        await replica.process(opticsMessage);
-        expect(await replica.nextToProcess()).to.equal(sequence + 1);
-      },
-    );
+      // Set message status to MessageStatus.Pending
+      await replica.setMessagePending(opticsMessage);
+      await replica.process(opticsMessage);
+      expect(await replica.nextToProcess()).to.equal(sequence + 1);
+    });
   }
 
   it('Fails to process message with wrong destination Domain', async () => {
@@ -448,12 +422,9 @@ describe('Replica', async () => {
 
   it('Returns false when processing message for bad handler function', async () => {
     const sender = opticsMessageSender;
-    const factory = new contracts.TestRecipient__factory(signer);
+    const [recipient] = await ethers.getSigners();
+    const factory = new contracts.BadRecipientHandle__factory(recipient);
     const testRecipient = await factory.deploy();
-
-    // Recipient handler function reverts
-    await expect(testRecipient.handle(0, '0x' + '00'.repeat(32), '0x')).to.be
-      .reverted;
 
     const sequence = await replica.nextToProcess();
     const opticsMessage = optics.formatMessage(
