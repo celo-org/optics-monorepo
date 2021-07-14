@@ -8,9 +8,7 @@ import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {BridgeMessage} from "./BridgeMessage.sol";
 // ============ External Imports ============
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
-import {
-    TypeCasts
-} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -109,12 +107,11 @@ contract BridgeRouter is Router, TokenRegistry {
         bytes32 _remote = _mustHaveRemote(_destination);
         // format Update Details message
         IBridgeToken _bridgeToken = IBridgeToken(_token);
-        bytes29 _action =
-            BridgeMessage.formatDetails(
-                TypeCasts.coerceBytes32(_bridgeToken.name()),
-                TypeCasts.coerceBytes32(_bridgeToken.symbol()),
-                _bridgeToken.decimals()
-            );
+        bytes29 _action = BridgeMessage.formatDetails(
+            TypeCasts.coerceBytes32(_bridgeToken.name()),
+            TypeCasts.coerceBytes32(_bridgeToken.symbol()),
+            _bridgeToken.decimals()
+        );
         // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
