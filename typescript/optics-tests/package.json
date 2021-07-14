@@ -24,9 +24,8 @@
   "description": "Optics typescript tools",
   "main": "src/index.ts",
   "scripts": {
-    "prettier": "prettier --write ./test",
-    "compile": "hardhat compile && npm run prettier",
-    "test": "npm run compile && hardhat test"
+    "prettier": "prettier --write ./test ./lib",
+    "test": "hardhat test"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"
