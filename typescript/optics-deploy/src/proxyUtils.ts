@@ -29,9 +29,10 @@ export async function deployProxy<T extends ethers.Contract>(
   // deploy in order
   // we cast here because Factories don't have associated types :(
   // this is unsafe if the specified typevar doesn't match the factory output
-  const implementation = (await factory.deploy(...deployArgs, {
-    gasPrice: deploy.chain.gasPrice,
-  })) as T;
+  const implementation = (await factory.deploy(
+    ...deployArgs,
+    deploy.overrides,
+  )) as T;
   const beacon = await _deployBeacon(deploy, implementation);
   const proxy = await _deployProxy(deploy, beacon, initData);
 
@@ -118,7 +119,7 @@ async function _deployBeacon(
   let beacon = factory.deploy(
     implementation.address,
     deploy.contracts.upgradeBeaconController!.address,
-    { gasPrice: deploy.chain.gasPrice, gasLimit: 2_000_000 },
+    deploy.overrides,
   );
   return beacon;
 }
@@ -142,8 +143,5 @@ async function _deployProxy<T>(
     deploy.chain.deployer,
   );
 
-  return await factory.deploy(beacon.address, initData, {
-    gasPrice: deploy.chain.gasPrice,
-    gasLimit: 1_000_000,
-  });
+  return await factory.deploy(beacon.address, initData, deploy.overrides);
 }
