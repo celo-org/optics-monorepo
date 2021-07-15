@@ -412,7 +412,6 @@ describe('Replica', async () => {
 
     // Set message status to MessageStatus.Pending
     await replica.setMessagePending(opticsMessage);
-    await replica.process(opticsMessage);
     await expect(replica.process(opticsMessage)).to.not.be.reverted;
   });
 
