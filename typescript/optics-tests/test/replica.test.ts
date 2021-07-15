@@ -397,7 +397,7 @@ describe('Replica', async () => {
     );
   });
 
-  it('Fails to process message sent to a non-existent contract address', async () => {
+  it('Processes message sent to a non-existent contract address', async () => {
     const sequence = await replica.nextToProcess();
     const body = ethers.utils.formatBytes32String('message');
 
