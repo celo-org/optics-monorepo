@@ -1,8 +1,7 @@
-rm -rf typescript/src/typechain
+git rm -rf typescript/typechain
 cd solidity/optics-core 
 hardhat compile
 cd ../optics-xapps
 hardhat compile
 cd ../..
-git add typescript/src/typechain
-git rebase --continue
+git add typescript/typechain
