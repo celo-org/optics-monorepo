@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "ethers": "^5.3.1"
+    "ethers": "^5.4.1"
   },
   "name": "typechain",
   "version": "1.0.0",

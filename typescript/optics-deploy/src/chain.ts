@@ -81,9 +81,9 @@ export type Chain = {
   recoveryManager: Address;
   optimisticSeconds: number;
   watchers: Address[];
-  gasPrice: ethers.BigNumber;
   confirmations: number;
   config?: ChainConfig;
+  gasPrice: ethers.BigNumber;
 };
 
 export type ContractVerificationInput = {
@@ -92,13 +92,44 @@ export type ContractVerificationInput = {
   constructorArguments: any[];
 };
 
-// data about a chain and its deployed contracts
-export type Deploy = {
-  chain: Chain;
+export class Deploy {
+  readonly chain: Chain;
   contracts: Contracts;
   verificationInput: ContractVerificationInput[];
-  test?: boolean;
-};
+  readonly test?: boolean;
+
+  constructor(chain: Chain) {
+    this.chain = chain;
+    this.contracts = { replicas: {} };
+    this.verificationInput = [];
+  }
+
+  static freshFromConfig(config: ChainConfig): Deploy {
+    return new Deploy(toChain(config));
+  }
+
+  get deployer(): ethers.Signer {
+    return this.chain.deployer;
+  }
+
+  get provider(): ethers.providers.Provider {
+    return this.chain.provider;
+  }
+
+  get supports1559(): boolean {
+    let notSupported = ['kovan', 'alfajores', 'baklava', 'celo'];
+    return notSupported.indexOf(this.chain.name) === -1;
+  }
+
+  // this is currently a kludge to account for ethers issues
+  get overrides(): ethers.Overrides {
+    return {
+      type: this.supports1559 ? 2 : 0,
+      gasPrice: this.chain.gasPrice,
+      gasLimit: this.supports1559 ? undefined : 5_000_000,
+    };
+  }
+}
 
 /**
  * Builds Chain from config
@@ -131,11 +162,7 @@ export function toChain(config: ChainConfig): Chain {
  * @param config - The chain config
  */
 export function freshDeploy(config: ChainConfig): Deploy {
-  return {
-    chain: toChain(config),
-    contracts: { replicas: {} },
-    verificationInput: [],
-  };
+  return Deploy.freshFromConfig(config);
 }
 
 type RustSigner = {

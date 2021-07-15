@@ -17,27 +17,27 @@ function log(isTest: boolean, str: string) {
 
 function warn(text: string, padded: boolean) {
   if (padded) {
-    const padding = '*'.repeat(text.length + 8)
+    const padding = '*'.repeat(text.length + 8);
     console.log(
       `
       ${padding}
       *** ${text.toUpperCase()} ***
       ${padding}
-      `
-    )
+      `,
+    );
   } else {
-    console.log(`**** ${text.toUpperCase()} ****`)
+    console.log(`**** ${text.toUpperCase()} ****`);
   }
 }
 
 export async function deployUpgradeBeaconController(deploy: Deploy) {
-  let factory = new contracts.UpgradeBeaconController__factory(
-    deploy.chain.deployer,
+  let factory = new contracts.UpgradeBeaconController__factory(deploy.deployer);
+  deploy.contracts.upgradeBeaconController = await factory.deploy(
+    deploy.overrides,
   );
-  deploy.contracts.upgradeBeaconController = await factory.deploy({
-    gasPrice: deploy.chain.gasPrice,
-  });
-  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(deploy.chain.confirmations);
+  await deploy.contracts.upgradeBeaconController.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
@@ -54,11 +54,14 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function deployUpdaterManager(deploy: Deploy) {
-  let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
-  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
-    gasPrice: deploy.chain.gasPrice,
-  });
-  await deploy.contracts.updaterManager!.deployTransaction.wait(deploy.chain.confirmations);
+  let factory = new contracts.UpdaterManager__factory(deploy.deployer);
+  deploy.contracts.updaterManager = await factory.deploy(
+    deploy.chain.updater,
+    deploy.overrides,
+  );
+  await deploy.contracts.updaterManager!.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
@@ -75,13 +78,13 @@ export async function deployUpdaterManager(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function deployXAppConnectionManager(deploy: Deploy) {
-  let factory = new contracts.XAppConnectionManager__factory(
-    deploy.chain.deployer,
+  let factory = new contracts.XAppConnectionManager__factory(deploy.deployer);
+  deploy.contracts.xappConnectionManager = await factory.deploy(
+    deploy.overrides,
   );
-  deploy.contracts.xappConnectionManager = await factory.deploy({
-    gasPrice: deploy.chain.gasPrice,
-  });
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(deploy.chain.confirmations);
+  await deploy.contracts.xappConnectionManager.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
@@ -98,10 +101,11 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
  * @param deploy - The deploy instance
  */
 export async function deployUpdaterManager(deploy: Deploy) {
-  let factory = new contracts.UpdaterManager__factory(deploy.chain.deployer);
-  deploy.contracts.updaterManager = await factory.deploy(deploy.chain.updater, {
-    gasPrice: deploy.chain.gasPrice,
-  });
+  let factory = new contracts.UpdaterManager__factory(deploy.deployer);
+  deploy.contracts.updaterManager = await factory.deploy(
+    deploy.chain.updater,
+    deploy.overrides,
+  );
   await deploy.contracts.updaterManager.deployTransaction.wait(
     deploy.chain.confirmations,
   );
@@ -115,16 +119,16 @@ export async function deployUpdaterManager(deploy: Deploy) {
  */
 export async function deployXAppConnectionManager(deploy: Deploy) {
   const isTestDeploy: boolean = deploy.test;
-  if (isTestDeploy) warn('deploying test XAppConnectionManager')
+  if (isTestDeploy) warn('deploying test XAppConnectionManager');
 
-  const deployer = deploy.chain.deployer;
+  const deployer = deploy.deployer;
   const factory = isTestDeploy
     ? new contracts.TestXAppConnectionManager__factory(deployer)
-    : contracts.XAppConnectionManager__factory(deployer);
+    : new contracts.XAppConnectionManager__factory(deployer);
 
-  deploy.contracts.xAppConnectionManager = await factory.deploy({
-    gasPrice: deploy.chain.gasPrice,
-  });
+  deploy.contracts.xAppConnectionManager = await factory.deploy(
+    deploy.overrides,
+  );
   await deploy.contracts.xAppConnectionManager.deployTransaction.wait(
     deploy.chain.confirmations,
   );
@@ -138,7 +142,7 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
  */
 export async function deployHome(deploy: Deploy) {
   const isTestDeploy: boolean = deploy.test;
-  if (isTestDeploy) warn('deploying test Home')
+  if (isTestDeploy) warn('deploying test Home');
   const home = isTestDeploy
     ? contracts.TestHome__factory
     : contracts.Home__factory;
@@ -150,7 +154,7 @@ export async function deployHome(deploy: Deploy) {
 
   deploy.contracts.home = await proxyUtils.deployProxy<contracts.Home>(
     deploy,
-    new home(deploy.chain.deployer),
+    new home(deploy.deployer),
     initData,
     deploy.chain.domain,
   );
@@ -164,7 +168,7 @@ export async function deployHome(deploy: Deploy) {
  */
 export async function deployGovernanceRouter(deploy: Deploy) {
   const isTestDeploy: boolean = deploy.test;
-  if (isTestDeploy) warn('deploying test GovernanceRouter')
+  if (isTestDeploy) warn('deploying test GovernanceRouter');
   const governanceRouter = isTestDeploy
     ? contracts.TestGovernanceRouter__factory
     : contracts.GovernanceRouter__factory;
@@ -175,12 +179,15 @@ export async function deployGovernanceRouter(deploy: Deploy) {
 
   let initData = governanceRouter
     .createInterface()
-    .encodeFunctionData('initialize', [xAppConnectionManager!.address, recoveryManager]);
+    .encodeFunctionData('initialize', [
+      xAppConnectionManager!.address,
+      recoveryManager,
+    ]);
 
   deploy.contracts.governance =
     await proxyUtils.deployProxy<contracts.GovernanceRouter>(
       deploy,
-      new governanceRouter(deploy.chain.deployer),
+      new governanceRouter(deploy.deployer),
       initData,
       deploy.chain.domain,
       recoveryTimelock,
@@ -207,15 +214,13 @@ export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
     : contracts.Replica__factory;
   const factory = new replica(local.chain.deployer);
 
-  let initData = replica
-    .createInterface()
-    .encodeFunctionData('initialize', [
-      remote.chain.domain,
-      remote.chain.updater,
-      ethers.constants.HashZero, // TODO: allow configuration
-      remote.chain.optimisticSeconds,
-      0, // TODO: allow configuration
-    ]);
+  let initData = replica.createInterface().encodeFunctionData('initialize', [
+    remote.chain.domain,
+    remote.chain.updater,
+    ethers.constants.HashZero, // TODO: allow configuration
+    remote.chain.optimisticSeconds,
+    0, // TODO: allow configuration
+  ]);
 
   // if we have no replicas, deploy the whole setup.
   // otherwise just deploy a fresh proxy
@@ -238,7 +243,10 @@ export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
     );
   }
   local.contracts.replicas[remote.chain.domain] = proxy;
-  log(isTestDeploy, `${local.chain.name}: replica deployed for ${remote.chain.name}`);
+  log(
+    isTestDeploy,
+    `${local.chain.name}: replica deployed for ${remote.chain.name}`,
+  );
 }
 
 /**
@@ -249,15 +257,21 @@ export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
  */
 export async function deployOptics(deploy: Deploy) {
   const isTestDeploy: boolean = deploy.test;
-  if (isTestDeploy) { warn('deploying test contracts', true) };
+  if (isTestDeploy) {
+    warn('deploying test contracts', true);
+  }
 
   log(isTestDeploy, `${deploy.chain.name}: awaiting deploy UBC(deploy);`);
   await deployUpgradeBeaconController(deploy);
 
-  log(isTestDeploy, `${deploy.chain.name}: awaiting deploy UpdaterManager(deploy);`);
+  log(
+    isTestDeploy,
+    `${deploy.chain.name}: awaiting deploy UpdaterManager(deploy);`,
+  );
   await deployUpdaterManager(deploy);
 
-  log(isTestDeploy,
+  log(
+    isTestDeploy,
     `${deploy.chain.name}: awaiting deploy XappConnectionManager(deploy);`,
   );
   await deployXAppConnectionManager(deploy);
@@ -265,21 +279,26 @@ export async function deployOptics(deploy: Deploy) {
   log(isTestDeploy, `${deploy.chain.name}: awaiting deploy Home(deploy);`);
   await deployHome(deploy, isTestDeploy);
 
-  log(isTestDeploy,
+  log(
+    isTestDeploy,
     `${deploy.chain.name}: awaiting XAppConnectionManager.setHome(...);`,
   );
   await deploy.contracts.xAppConnectionManager!.setHome(
     deploy.contracts.home!.proxy.address,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
-  log(isTestDeploy, `${deploy.chain.name}: awaiting updaterManager.setHome(...);`);
+  log(
+    isTestDeploy,
+    `${deploy.chain.name}: awaiting updaterManager.setHome(...);`,
+  );
   await deploy.contracts.updaterManager!.setHome(
     deploy.contracts.home!.proxy.address,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
-  log(isTestDeploy,
+  log(
+    isTestDeploy,
     `${deploy.chain.name}: awaiting deploy GovernanceRouter(deploy);`,
   );
   await deployGovernanceRouter(deploy, isTestDeploy);
@@ -299,32 +318,37 @@ export async function relinquish(deploy: Deploy) {
   log(isTestDeploy, `${deploy.chain.name}: Relinquishing control`);
   await deploy.contracts.updaterManager!.transferOwnership(
     govRouter,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
-  log(isTestDeploy, `${deploy.chain.name}: Dispatched relinquish updatermanager`);
+  log(
+    isTestDeploy,
+    `${deploy.chain.name}: Dispatched relinquish updatermanager`,
+  );
 
   await deploy.contracts.xAppConnectionManager!.transferOwnership(
     govRouter,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
-  log(isTestDeploy,
+  log(
+    isTestDeploy,
     `${deploy.chain.name}: Dispatched relinquish XAppConnectionManager`,
   );
 
   await deploy.contracts.upgradeBeaconController!.transferOwnership(
     govRouter,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
-  log(isTestDeploy,
+  log(
+    isTestDeploy,
     `${deploy.chain.name}: Dispatched relinquish upgradeBeaconController`,
   );
 
   let tx = await deploy.contracts.home!.proxy.transferOwnership(
     govRouter,
-    { gasPrice: deploy.chain.gasPrice },
+    deploy.overrides,
   );
 
   log(isTestDeploy, `${deploy.chain.name}: Dispatched relinquish home`);
@@ -346,7 +370,7 @@ export async function enrollReplica(local: Deploy, remote: Deploy) {
   let tx = await local.contracts.xAppConnectionManager!.ownerEnrollReplica(
     local.contracts.replicas[remote.chain.domain].proxy.address,
     remote.chain.domain,
-    { gasPrice: local.chain.gasPrice },
+    local.overrides,
   );
   await tx.wait(local.chain.confirmations);
 
@@ -370,7 +394,7 @@ export async function enrollWatchers(left: Deploy, right: Deploy) {
           watcher,
           right.chain.domain,
           true,
-          { gasPrice: left.chain.gasPrice },
+          left.overrides,
         );
       await tx.wait(deploy.chain.confirmations);
     }),
@@ -391,7 +415,7 @@ export async function enrollGovernanceRouter(local: Deploy, remote: Deploy) {
   let tx = await local.contracts.governance!.proxy.setRouter(
     remote.chain.domain,
     toBytes32(remote.contracts.governance!.proxy.address),
-    { gasPrice: local.chain.gasPrice },
+    local.overrides,
   );
   await tx.wait(local.chain.confirmations);
   log(isTestDeploy, `${local.chain.name}: governance enrollment done`);
@@ -423,7 +447,7 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
   let tx = await non.contracts.governance!.proxy.transferGovernor(
     gov.chain.domain,
     governorAddress,
-    { gasPrice: non.chain.gasPrice },
+    non.overrides,
   );
   await tx.wait(gov.chain.confirmations);
   log(isTestDeploy, `${non.chain.name}: governorship transferred`);
@@ -440,10 +464,7 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
 export async function deployTwoChains(gov: Deploy, non: Deploy) {
   const isTestDeploy: boolean = gov.test || non.test;
 
-  await Promise.all([
-    deployOptics(gov),
-    deployOptics(non),
-  ]);
+  await Promise.all([deployOptics(gov), deployOptics(non)]);
 
   log(isTestDeploy, 'initial deploys done');
 
@@ -519,7 +540,8 @@ export async function deployNChains(chains: Deploy[]) {
   for (let local of nonGovChains) {
     for (let remote of nonGovChains) {
       if (remote.chain.domain != local.chain.domain) {
-        log(isTestDeploy,
+        log(
+          isTestDeploy,
           `enrolling ${remote.chain.domain} on ${local.chain.domain}`,
         );
         await enrollRemote(local, remote);
