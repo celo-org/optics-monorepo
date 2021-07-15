@@ -397,6 +397,25 @@ describe('Replica', async () => {
     );
   });
 
+  it('Fails to process message sent to a non-existent contract address', async () => {
+    const sequence = await replica.nextToProcess();
+    const body = ethers.utils.formatBytes32String('message');
+
+    const opticsMessage = optics.formatMessage(
+      remoteDomain,
+      opticsMessageSender.address,
+      sequence,
+      localDomain,
+      '0x1234567890123456789012345678901234567890', // non-existent contract address
+      body,
+    );
+
+    // Set message status to MessageStatus.Pending
+    await replica.setMessagePending(opticsMessage);
+    await replica.process(opticsMessage);
+    await expect(replica.process(opticsMessage)).to.not.be.reverted;
+  });
+
   it('Fails to process an undergased transaction', async () => {
     const [sender, recipient] = await ethers.getSigners();
     const sequence = await replica.nextToProcess();
