@@ -24,12 +24,10 @@
   "name": "optics-ts",
   "version": "1.0.0",
   "description": "Optics typescript tools",
-  "main": "src/index.ts",
+  "main": "index.ts",
   "scripts": {
     "prettier": "prettier --write ./test ./lib",
-    "test": "hardhat test",
-    "deploy-core": "npx ts-node src/deploy-scripts/alfajoresKovan.ts && cd ../solidity/optics-core && npm run verify-core",
-    "deploy-bridge": "npx ts-node src/deploy-scripts/bridgeAlfajoresKovan.ts"
+    "test": "hardhat test"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"
