@@ -113,7 +113,7 @@ export class Deploy {
   verificationInput: ContractVerificationInput[];
   readonly test?: boolean;
 
-  constructor(chain: Chain, test: boolean = false) {
+  constructor(chain: OpticsChain, test: boolean = false) {
     this.chain = chain;
     this.contracts = { replicas: {} };
     this.verificationInput = [];

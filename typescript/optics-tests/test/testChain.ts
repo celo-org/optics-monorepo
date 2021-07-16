@@ -1,14 +1,14 @@
 import { ethers } from 'hardhat';
 const { BigNumber } = ethers;
 
-import { Chain, Deploy } from '../../optics-deploy/src/chain';
+import {Deploy, OpticsChain} from '../../optics-deploy/src/chain';
 
 export async function getTestChain(
   domain: number,
   updater: string,
   watchers: string[],
   recoveryManager?: string,
-): Promise<Chain> {
+): Promise<OpticsChain> {
   const [, , , , , , , deployer] = await ethers.getSigners();
   return {
     name: 'hh',
@@ -22,6 +22,10 @@ export async function getTestChain(
     watchers,
     gasPrice: BigNumber.from('20000000000'),
     confirmations: 0,
+    config: {
+      name: "hh",
+      rpc: "NA"
+    }
   };
 }
 
