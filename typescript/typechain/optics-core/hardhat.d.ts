@@ -8,7 +8,7 @@ import {
   HardhatEthersHelpers as HardhatEthersHelpersBase,
 } from "@nomiclabs/hardhat-ethers/types";
 
-import * as Contracts from "./index";
+import * as Contracts from ".";
 
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
@@ -16,6 +16,10 @@ declare module "hardhat/types/runtime" {
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
+    getContractFactory(
+      name: "IERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
       name: "TypedMemView",
       signerOrOptions?: ethers.Signer | FactoryOptions

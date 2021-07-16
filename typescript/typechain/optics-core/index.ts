@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Ownable } from "./Ownable";
+export type { IERC20 } from "./IERC20";
 export type { TypedMemView } from "./TypedMemView";
 export type { Common } from "./Common";
 export type { GovernanceRouter } from "./GovernanceRouter";
@@ -37,6 +38,7 @@ export type { IMessageRecipient } from "./IMessageRecipient";
 export type { IUpdaterManager } from "./IUpdaterManager";
 
 export { Ownable__factory } from "./factories/Ownable__factory";
+export { IERC20__factory } from "./factories/IERC20__factory";
 export { TypedMemView__factory } from "./factories/TypedMemView__factory";
 export { Common__factory } from "./factories/Common__factory";
 export { GovernanceRouter__factory } from "./factories/GovernanceRouter__factory";
