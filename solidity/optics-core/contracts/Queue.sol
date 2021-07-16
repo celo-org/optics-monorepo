@@ -7,7 +7,7 @@ import "../libs/Queue.sol";
  * @title QueueManager
  * @author Celo Labs Inc.
  * @notice Contract containing a queue instance and view operations on the
- * queue.
+ * queue. 
  **/
 contract QueueManager {
     using QueueLib for QueueLib.Queue;
