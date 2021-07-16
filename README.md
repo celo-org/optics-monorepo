@@ -98,9 +98,9 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    
 2. Setup your `.env` files
    ```bash
-   cd typescript
+   cd typescript/optics-deploy
    touch .env && cat .env.example > .env'
-   cd ../solidity/optics-core
+   cd ../../solidity/optics-core
    touch .env && cat .env.example > .env'
    ```
    Then, add values to the keys in the newly created `.env` files.

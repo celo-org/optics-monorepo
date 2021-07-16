@@ -1,7 +1,7 @@
 node_modules
 test_deploy.env
 
-typescript/.env
+typescript/optics-deploy/.env
 
 rust/tmp_db
 rust/tmp.env
