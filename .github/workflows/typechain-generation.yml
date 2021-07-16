@@ -10,7 +10,7 @@ on:
 
 jobs:
   typechain-generation:
-    if: github.event.review.state == 'approved'
+    # if: github.event.review.state == 'approved'
 
     runs-on: ubuntu-latest
 
