@@ -1,6 +1,5 @@
 import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
-
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib';
 import { Signer } from '../lib/types';

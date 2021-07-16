@@ -2,7 +2,6 @@ import '@nomiclabs/hardhat-waffle';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert } from 'chai';
 import { extendEnvironment } from 'hardhat/config';
-
 import * as ethers from 'ethers';
 import * as types from './types';
 import { getHexStringByteLength } from './utils';
