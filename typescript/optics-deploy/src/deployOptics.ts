@@ -396,7 +396,7 @@ export async function enrollWatchers(left: Deploy, right: Deploy) {
           true,
           left.overrides,
         );
-      await tx.wait(deploy.chain.confirmations);
+      await tx.wait(left.chain.confirmations);
     }),
   );
 
@@ -562,7 +562,7 @@ export async function deployNChains(chains: Deploy[]) {
 export function writePartials(dir: string) {
   // make folder if it doesn't exist already
   fs.mkdirSync(dir, { recursive: true });
-  const defaultDir = '../rust/config/default';
+  const defaultDir = '../../rust/config/default';
   const partialNames = ['kathy', 'processor', 'relayer', 'updater', 'watcher'];
   // copy partial config from default directory to given directory
   for (let partialName of partialNames) {
