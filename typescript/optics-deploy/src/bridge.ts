@@ -10,18 +10,58 @@ import * as xAppContracts from "../../typechain/optics-xapps";
 import * as contracts from "../../typechain/optics-core";
 import {toBytes32} from "../../optics-tests/lib/utils";
 import fs from "fs";
+import * as ethers from "ethers";
 
 export type BridgeContracts = {
   bridgeRouter?: xAppContracts.BridgeRouter
 };
 
-export type BridgeDeploy = {
-  coreDeployPath: string;
-  coreContractAddresses: ContractDeployOutput,
-  chain: Chain;
+export class BridgeDeploy {
+  readonly coreDeployPath: string;
+  readonly coreContractAddresses: ContractDeployOutput;
+  readonly chain: Chain;
   contracts: BridgeContracts;
-  verificationInput: ContractVerificationInput[],
-};
+  verificationInput: ContractVerificationInput[];
+
+  constructor(chain: Chain, coreDeployPath: string) {
+    this.chain = chain;
+    this.contracts = {};
+    this.verificationInput = [];
+    this.coreDeployPath = coreDeployPath;
+    this.coreContractAddresses = parseFileFromDeploy(
+        coreDeployPath,
+        chain.config.name,
+        'contracts',
+    );
+  }
+
+  static freshFromConfig(config: ChainConfig, coreDeployPath: string): BridgeDeploy {
+    return new BridgeDeploy(toChain(config), coreDeployPath);
+  }
+
+  get deployer(): ethers.Signer {
+    return this.chain.deployer;
+  }
+
+  get provider(): ethers.providers.Provider {
+    return this.chain.provider;
+  }
+
+  get supports1559(): boolean {
+    let notSupported = ['kovan', 'alfajores', 'baklava', 'celo'];
+    return notSupported.indexOf(this.chain.name) === -1;
+  }
+
+  // this is currently a kludge to account for ethers issues
+  get overrides(): ethers.Overrides {
+    return {
+      type: this.supports1559 ? 2 : 0,
+      gasPrice: this.chain.gasPrice,
+      gasLimit: this.supports1559 ? undefined : 5_000_000,
+    };
+  }
+}
+
 
 export type BridgeDeployOutput = {
   bridgeRouter?: string;
@@ -35,20 +75,8 @@ export type BridgeDeployOutput = {
  * @param coreDeployPath - relative path to the directory with Optics core contract deploy configs
  * @param config - ChainConfig to configure connection & deployer signer for a given chain
  */
-export function getBridgeDeploy(coreDeployPath: string, config: ChainConfig): BridgeDeploy {
-  const coreContractAddresses: ContractDeployOutput = parseFileFromDeploy(
-      coreDeployPath,
-      config.name,
-      'contracts',
-  );
-
-  return {
-    chain: toChain(config),
-    contracts: {},
-    verificationInput: [],
-    coreDeployPath,
-    coreContractAddresses,
-  };
+export function getBridgeDeploy(config: ChainConfig, coreDeployPath: string): BridgeDeploy {
+  return BridgeDeploy.freshFromConfig(config, coreDeployPath);
 }
 
 /**
@@ -60,9 +88,12 @@ export function getBridgeDeploy(coreDeployPath: string, config: ChainConfig): Br
  */
 export async function deployBridges(deploys: BridgeDeploy[]) {
   // deploy BridgeRouters
+  const deployPromises: Promise<void>[] = [];
   for(let deploy of deploys) {
-    await deployBridgeRouter(deploy);
+    deployPromises.push(deployBridgeRouter(deploy));
   }
+  await Promise.all(deployPromises);
+
 
   // enroll peer BridgeRouters with each other
   const enrollPromises: Promise<void>[] = [];
@@ -77,7 +108,7 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
   for (let deploy of deploys) {
     transferPromises.push(transferOwnershipToGovernance(deploy));
   }
-  await Promise.all(enrollPromises);
+  await Promise.all(transferPromises);
 
   // output the Bridge deploy information to a subdirectory
   // of the core system deploy config folder
@@ -91,15 +122,15 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
  * @param deploy - The deploy instance
  */
 async function deployBridgeRouter(deploy: BridgeDeploy) {
+  console.log(`deploying ${deploy.chain.name} BridgeRouter`);
+
   let factory = new xAppContracts.BridgeRouter__factory(
       deploy.chain.deployer,
   );
 
-  const bridgeRouter = await factory.deploy(deploy.coreContractAddresses.xappConnectionManager, {
-    gasPrice: deploy.chain.gasPrice,
-  });
+  const bridgeRouter = await factory.deploy(deploy.coreContractAddresses.xappConnectionManager, deploy.overrides);
 
-  await bridgeRouter.deployTransaction.wait(5);
+  await bridgeRouter.deployTransaction.wait(deploy.chain.confirmations);
 
   deploy.contracts.bridgeRouter = bridgeRouter;
 
@@ -109,6 +140,8 @@ async function deployBridgeRouter(deploy: BridgeDeploy) {
     address: bridgeRouter!.address,
     constructorArguments: [deploy.coreContractAddresses.xappConnectionManager]
   });
+
+  console.log(`deployed ${deploy.chain.name} BridgeRouter`);
 }
 
 /**
@@ -142,7 +175,7 @@ export async function enrollBridgeRouter(local: BridgeDeploy, remote: BridgeDepl
   let tx = await local.contracts.bridgeRouter!.enrollRemoteRouter(
       remoteDomain,
       toBytes32(remote.contracts.bridgeRouter!.address),
-      { gasPrice: local.chain.gasPrice },
+      local.overrides,
   );
 
   await tx.wait(5);
@@ -161,7 +194,7 @@ export async function transferOwnershipToGovernance(deploy: BridgeDeploy) {
 
   let tx = await deploy.contracts.bridgeRouter!.transferOwnership(
       deploy.coreContractAddresses.governance.proxy,
-      { gasPrice: deploy.chain.gasPrice },
+      deploy.overrides,
   );
 
   await tx.wait(5);

@@ -6,8 +6,8 @@ import { kovan } from "../config/kovan";
 // get the path to the latest core system deploy
 const path = getPathToLatestDeploy();
 
-const alfajoresDeploy = getBridgeDeploy(path, alfajores);
-const kovanDeploy = getBridgeDeploy(path, kovan);
+const alfajoresDeploy = getBridgeDeploy(alfajores, path);
+const kovanDeploy = getBridgeDeploy(kovan, path);
 
 deployBridges([alfajoresDeploy, kovanDeploy]);
 
