@@ -31,16 +31,6 @@ export async function getTestDeploy(
   watchers: string[],
   recoveryManager?: string,
 ): Promise<Deploy> {
-  return {
-    chain: await getTestChain(domain, updater, watchers, recoveryManager),
-    contracts: { replicas: {} },
-    verificationInput: [
-      {
-        name: 'string',
-        address: 'Address',
-        constructorArguments: ['arg'],
-      },
-    ],
-    test: true,
-  };
+  const chain = await getTestChain(domain, updater, watchers, recoveryManager);
+  return new Deploy(chain, true);
 }

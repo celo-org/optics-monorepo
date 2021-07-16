@@ -98,10 +98,11 @@ export class Deploy {
   verificationInput: ContractVerificationInput[];
   readonly test?: boolean;
 
-  constructor(chain: Chain) {
+  constructor(chain: Chain, test: boolean = false) {
     this.chain = chain;
     this.contracts = { replicas: {} };
     this.verificationInput = [];
+    this.test = test;
   }
 
   static freshFromConfig(config: ChainConfig): Deploy {
