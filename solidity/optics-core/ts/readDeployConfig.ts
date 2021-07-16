@@ -68,7 +68,7 @@ export function getPathToLatestBridgeDeploy(): string {
  * @return path to folder
  * */
 export function getPathToLatestDeploy(): string {
-    const configPath = '../rust/config';
+    const configPath = '../../rust/config';
     const ignoreFolders = ["default"];
     return getPathToLatestConfig(configPath, ignoreFolders);
 }

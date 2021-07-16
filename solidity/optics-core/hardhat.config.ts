@@ -50,6 +50,6 @@ module.exports = {
     bail: true,
   },
   etherscan: {
-    apiKey: process.env.etherscanApiKey,
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };

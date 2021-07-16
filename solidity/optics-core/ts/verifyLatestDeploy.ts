@@ -1,4 +1,3 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { parseFileFromDeploy, getPathToLatestDeploy } from "./readDeployConfig";
 
 const envError = (network: string) =>
@@ -21,9 +20,9 @@ function etherscanLink(network: string, address: string) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-export async function verifyLatestCoreDeploy(hre: HardhatRuntimeEnvironment) {
+export async function verifyLatestCoreDeploy() {
   const path = getPathToLatestDeploy();
-  return verifyDeploy(path, hre);
+  return verifyDeploy(path);
 }
 
 /*
@@ -32,7 +31,8 @@ export async function verifyLatestCoreDeploy(hre: HardhatRuntimeEnvironment) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-export async function verifyDeploy(path: string, hre: HardhatRuntimeEnvironment) {
+export async function verifyDeploy(path: string) {
+  // @ts-ignore
   const network = hre.network.name;
 
   // assert that network from .env is supported by Etherscan
@@ -49,7 +49,7 @@ export async function verifyDeploy(path: string, hre: HardhatRuntimeEnvironment)
   for (let verificationInput of verificationInputs) {
     // attempt to verify contract on etherscan
     // (await one-by-one so that Etherscan doesn't rate limit)
-    await verifyContract(network, verificationInput, hre);
+    await verifyContract(network, verificationInput);
   }
 }
 
@@ -59,14 +59,14 @@ export async function verifyDeploy(path: string, hre: HardhatRuntimeEnvironment)
  * */
 export async function verifyContract(
   network: string,
-  verificationInput: any,
-  hre: HardhatRuntimeEnvironment
+  verificationInput: any
 ) {
   const { name, address, constructorArguments } = verificationInput;
   try {
     console.log(
       `   Attempt to verify ${name}   -  ${etherscanLink(network, address)}`
     );
+    // @ts-ignore
     await hre.run("verify:verify", {
       network,
       address,
