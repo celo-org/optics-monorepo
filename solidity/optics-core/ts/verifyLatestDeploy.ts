@@ -21,17 +21,6 @@ function etherscanLink(network: string, address: string) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-export async function verifyLatest(hre: HardhatRuntimeEnvironment) {
-  const path = getPathToLatestDeploy();
-  return verifyDeploy(path, hre);
-}
-
-/*
- * Parse the contract verification inputs
- * that were output by the latest contract deploy
- * for the network that hardhat is configured to
- * and attempt to verify those contracts' source code on Etherscan
- * */
 export async function verifyLatestCoreDeploy(hre: HardhatRuntimeEnvironment) {
   const path = getPathToLatestDeploy();
   return verifyDeploy(path, hre);
