@@ -229,7 +229,7 @@ export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
     log(isTestDeploy, `${local.chain.name}: initial Replica deploy`);
     proxy = await proxyUtils.deployProxy<contracts.Replica>(
       local,
-      factory,
+      new replica(local.deployer),
       initData,
       local.chain.domain,
     );
@@ -582,7 +582,7 @@ export function writePartials(dir: string) {
  */
 export function writeDeployOutput(deploys: Deploy[]) {
   log(deploys[0].test, `Have ${deploys.length} deploys`);
-  const dir = `../rust/config/${Date.now()}`;
+  const dir = `../../rust/config/${Date.now()}`;
   for (const local of deploys) {
     // get remotes
     const remotes = deploys
