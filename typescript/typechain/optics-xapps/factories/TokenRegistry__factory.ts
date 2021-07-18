@@ -30,19 +30,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint32",
         name: "domain",
         type: "uint32",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "bytes32",
         name: "id",
         type: "bytes32",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "representation",
         type: "address",

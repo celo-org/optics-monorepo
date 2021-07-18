@@ -42,9 +42,9 @@ abstract contract TokenRegistry is XAppConnectionClient {
     }
 
     event TokenDeployed(
-        uint32 domain,
-        bytes32 id,
-        address representation
+        uint32 indexed domain,
+        bytes32 indexed id,
+        address indexed representation
     );
 
     // Contract bytecode that will be cloned to deploy

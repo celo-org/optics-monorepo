@@ -248,9 +248,9 @@ export class TokenRegistry extends BaseContract {
     >;
 
     TokenDeployed(
-      domain?: null,
-      id?: null,
-      representation?: null
+      domain?: BigNumberish | null,
+      id?: BytesLike | null,
+      representation?: string | null
     ): TypedEventFilter<
       [number, string, string],
       { domain: number; id: string; representation: string }
