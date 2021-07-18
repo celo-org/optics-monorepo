@@ -41,16 +41,22 @@ abstract contract TokenRegistry is XAppConnectionClient {
         bytes32 id;
     }
 
+    event TokenDeployed(
+        uint32 domain,
+        bytes32 id,
+        address representation
+    );
+
     // Contract bytecode that will be cloned to deploy
     // new representation token contracts
     address internal tokenTemplate;
 
     // local representation token address => token ID
-    mapping(address => TokenId) internal reprToCanonical;
+    mapping(address => TokenId) public representationToCanonical;
 
     // hash of the tightly-packed TokenId => local representation token address
     // If the token is of local origin, this MUST map to address(0).
-    mapping(bytes32 => address) internal canonicalToRepr;
+    mapping(bytes32 => address) public canonicalToRepresentation;
 
     // ======== Constructor =========
 
@@ -98,9 +104,11 @@ abstract contract TokenRegistry is XAppConnectionClient {
         bytes32 _idHash = _tokenId.keccak();
         IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
         // store token in mappings
-        reprToCanonical[_token].domain = _tokenId.domain();
-        reprToCanonical[_token].id = _tokenId.id();
-        canonicalToRepr[_idHash] = _token;
+        representationToCanonical[_token].domain = _tokenId.domain();
+        representationToCanonical[_token].id = _tokenId.id();
+        canonicalToRepresentation[_idHash] = _token;
+        // emit event
+        emit TokenDeployed(_tokenId.domain(), _tokenId.id(), _token);
     }
 
     function _ensureToken(bytes29 _tokenId)
@@ -113,7 +121,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
             return IERC20(_tokenId.evmId());
         }
         // Token is a representation of a token of remote origin
-        address _local = canonicalToRepr[_tokenId.keccak()];
+        address _local = canonicalToRepresentation[_tokenId.keccak()];
         if (_local == address(0)) {
             // Representation does not exist yet;
             // deploy representation contract
@@ -127,7 +135,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
         view
         returns (TokenId memory _id)
     {
-        _id = reprToCanonical[_token];
+        _id = representationToCanonical[_token];
         if (_id.domain == 0) {
             _id.domain = _localDomain();
             _id.id = TypeCasts.addressToBytes32(_token);
@@ -142,7 +150,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
         // If the contract WAS deployed by the TokenRegistry,
         // it will be stored in this mapping.
         // If so, it IS NOT of local origin
-        if (reprToCanonical[_addr].domain != 0) {
+        if (representationToCanonical[_addr].domain != 0) {
             return false;
         }
         // If the contract WAS NOT deployed by the TokenRegistry,
@@ -162,7 +170,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
-        return IERC20(canonicalToRepr[_tokenId.keccak()]);
+        return IERC20(canonicalToRepresentation[_tokenId.keccak()]);
     }
 
     function _downcast(IERC20 _token) internal pure returns (IBridgeToken) {
