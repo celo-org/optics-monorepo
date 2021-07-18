@@ -21,10 +21,12 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface BridgeRouterInterface extends ethers.utils.Interface {
   functions: {
+    "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "representationToCanonical(address)": FunctionFragment;
     "send(address,uint256,uint32,bytes32)": FunctionFragment;
     "setTemplate(address)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
@@ -33,6 +35,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "xAppConnectionManager()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "canonicalToRepresentation",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "enrollRemoteRouter",
     values: [BigNumberish, BytesLike]
@@ -45,6 +51,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "representationToCanonical",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "send",
@@ -69,6 +79,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "canonicalToRepresentation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "enrollRemoteRouter",
     data: BytesLike
   ): Result;
@@ -76,6 +90,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "representationToCanonical",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
@@ -102,9 +120,11 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
+    "TokenDeployed(uint32,bytes32,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDeployed"): EventFragment;
 }
 
 export class BridgeRouter extends BaseContract {
@@ -151,6 +171,11 @@ export class BridgeRouter extends BaseContract {
   interface: BridgeRouterInterface;
 
   functions: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     enrollRemoteRouter(
       _domain: BigNumberish,
       _router: BytesLike,
@@ -169,6 +194,11 @@ export class BridgeRouter extends BaseContract {
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string] & { domain: number; id: string }>;
 
     send(
       _token: string,
@@ -202,6 +232,11 @@ export class BridgeRouter extends BaseContract {
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
+  canonicalToRepresentation(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   enrollRemoteRouter(
     _domain: BigNumberish,
     _router: BytesLike,
@@ -220,6 +255,11 @@ export class BridgeRouter extends BaseContract {
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  representationToCanonical(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<[number, string] & { domain: number; id: string }>;
 
   send(
     _token: string,
@@ -253,6 +293,11 @@ export class BridgeRouter extends BaseContract {
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     enrollRemoteRouter(
       _domain: BigNumberish,
       _router: BytesLike,
@@ -269,6 +314,11 @@ export class BridgeRouter extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string] & { domain: number; id: string }>;
 
     send(
       _token: string,
@@ -307,9 +357,23 @@ export class BridgeRouter extends BaseContract {
       [string, string],
       { previousOwner: string; newOwner: string }
     >;
+
+    TokenDeployed(
+      domain?: null,
+      id?: null,
+      representation?: null
+    ): TypedEventFilter<
+      [number, string, string],
+      { domain: number; id: string; representation: string }
+    >;
   };
 
   estimateGas: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     enrollRemoteRouter(
       _domain: BigNumberish,
       _router: BytesLike,
@@ -327,6 +391,11 @@ export class BridgeRouter extends BaseContract {
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     send(
@@ -362,6 +431,11 @@ export class BridgeRouter extends BaseContract {
   };
 
   populateTransaction: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     enrollRemoteRouter(
       _domain: BigNumberish,
       _router: BytesLike,
@@ -379,6 +453,11 @@ export class BridgeRouter extends BaseContract {
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     send(

@@ -8,7 +8,7 @@ import {
   HardhatEthersHelpers as HardhatEthersHelpersBase,
 } from "@nomiclabs/hardhat-ethers/types";
 
-import * as Contracts from "./index";
+import * as Contracts from ".";
 
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {

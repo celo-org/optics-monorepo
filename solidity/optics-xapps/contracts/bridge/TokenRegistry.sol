@@ -107,7 +107,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
         representationToCanonical[_token].domain = _tokenId.domain();
         representationToCanonical[_token].id = _tokenId.id();
         canonicalToRepresentation[_idHash] = _token;
-        // emit event
+        // emit event upon deploying new token
         emit TokenDeployed(_tokenId.domain(), _tokenId.id(), _token);
     }
 

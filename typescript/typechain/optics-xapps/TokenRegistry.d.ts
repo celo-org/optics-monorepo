@@ -21,18 +21,28 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface TokenRegistryInterface extends ethers.utils.Interface {
   functions: {
+    "canonicalToRepresentation(bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "representationToCanonical(address)": FunctionFragment;
     "setTemplate(address)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "canonicalToRepresentation",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "representationToCanonical",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "setTemplate", values: [string]): string;
   encodeFunctionData(
@@ -48,9 +58,17 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "canonicalToRepresentation",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "representationToCanonical",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -72,9 +90,11 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
+    "TokenDeployed(uint32,bytes32,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDeployed"): EventFragment;
 }
 
 export class TokenRegistry extends BaseContract {
@@ -121,11 +141,21 @@ export class TokenRegistry extends BaseContract {
   interface: TokenRegistryInterface;
 
   functions: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string] & { domain: number; id: string }>;
 
     setTemplate(
       _newTemplate: string,
@@ -145,11 +175,21 @@ export class TokenRegistry extends BaseContract {
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
+  canonicalToRepresentation(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  representationToCanonical(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<[number, string] & { domain: number; id: string }>;
 
   setTemplate(
     _newTemplate: string,
@@ -169,9 +209,19 @@ export class TokenRegistry extends BaseContract {
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string] & { domain: number; id: string }>;
 
     setTemplate(_newTemplate: string, overrides?: CallOverrides): Promise<void>;
 
@@ -196,13 +246,32 @@ export class TokenRegistry extends BaseContract {
       [string, string],
       { previousOwner: string; newOwner: string }
     >;
+
+    TokenDeployed(
+      domain?: null,
+      id?: null,
+      representation?: null
+    ): TypedEventFilter<
+      [number, string, string],
+      { domain: number; id: string; representation: string }
+    >;
   };
 
   estimateGas: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setTemplate(
@@ -224,10 +293,20 @@ export class TokenRegistry extends BaseContract {
   };
 
   populateTransaction: {
+    canonicalToRepresentation(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    representationToCanonical(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setTemplate(
