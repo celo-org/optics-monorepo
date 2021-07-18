@@ -28,6 +28,15 @@ contract BridgeRouter is Router, TokenRegistry {
         TokenRegistry(_xAppConnectionManager)
     {} // solhint-disable-line no-empty-blocks
 
+    // ======== External: GetRepresentationToken =========
+
+    function getRepresentationToken(uint32 domain, bytes32 id) external view returns (address _representation) {
+        // TODO: don't return 0x0 for canonical tokens
+        bytes29 _tokenId = BridgeMessage.formatTokenId(_tokId.domain, _tokId.id);
+        bytes32 _idHash = _tokenId.keccak();
+        _representation = canonicalToRepresentation[_idHash];
+    }
+
     // ======== External: Handle =========
 
     /**
