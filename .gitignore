@@ -5,4 +5,4 @@ rust/tmp_db
 rust/tmp.env
 tmp.env
 
-typescript/typechain
+typechain
