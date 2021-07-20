@@ -54,7 +54,7 @@ Integrations require a few key components:
   other chains.
 
 Solidity developers interested in implementing their own `Message` library and
-`Router` contract should check out the [optics-XApps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps)
+`Router` contract should check out the [optics-xapps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps)
 package. It contains several example XApps.
 
 You can find current testnet deploy configurations in the `rust/config/`
@@ -92,7 +92,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    ```bash
    cd solidity/optics-core
    npm i
-   cd ../optics-XApps
+   cd ../optics-xapps
    npm i
    ```
    
