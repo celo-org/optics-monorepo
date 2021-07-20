@@ -73,13 +73,15 @@ for more details.
 
 Commits (and tags) for this repo require [signature verification](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification/about-commit-signature-verification). If you'd like to contribute to Optics, make sure that your commits are signed locally.
 
-### Pre-commit hooks
+### Git hooks
 
-Set up your pre-commit hook:
+Set up your `git` hook:
 
 ```bash
 echo "./pre-commit.sh" > .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+echo "./typechain-gen.sh" > .git/hooks/post-checkout
+echo "./typechain-gen.sh" > .git/hooks/post-merge
+chmod +x .git/hooks/post-checkout .git/hooks/post-merge .git/hooks/pre-commit
 ```
 
 Note: In the event you need to bypass the pre-commit hooks, pass the
