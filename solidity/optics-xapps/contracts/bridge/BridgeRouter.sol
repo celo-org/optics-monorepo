@@ -213,11 +213,16 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         // no existing representation token contract, the TokenRegistry will
         // deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
+        address _recipient = _action.evmRecipient();
 
         // If an LP has prefilled this request, the LP gets paid instead of the
         // recipieint
-        address _lp = liquidityProvider[_preFillId(_tokenId, _action)];
-        address _recipient = _lp != address(0) ? _lp : _action.evmRecipient();
+        bytes32 _id = _preFillId(_tokenId, _action);
+        address _lp = liquidityProvider[_id];
+        if (_lp != address(0)) {
+            _recipient = _lp;
+            delete liquidityProvider[_id];
+        }
 
         // send the tokens into circulation on this chain
         if (_isLocalOrigin(_token)) {
