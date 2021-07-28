@@ -115,22 +115,46 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         emit TokenDeployed(_tokenId.domain(), _tokenId.id(), _token);
     }
 
+    /// @dev Gets the local address corresponding to the canonical ID, or
+    /// address(0)
+    function _getTokenAddress(bytes29 _tokenId)
+        internal
+        view
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (address)
+    {
+        // Token is of local origin
+        if (_tokenId.domain() == _localDomain()) {
+            return _tokenId.evmId();
+        }
+        // Token is a representation of a token of remote origin
+        address _local = canonicalToRepresentation[_tokenId.keccak()];
+        return _local;
+    }
+
     function _ensureToken(bytes29 _tokenId)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
-        // Token is of local origin
-        if (_tokenId.domain() == _localDomain()) {
-            return IERC20(_tokenId.evmId());
-        }
-        // Token is a representation of a token of remote origin
-        address _local = canonicalToRepresentation[_tokenId.keccak()];
+        address _local = _getTokenAddress(_tokenId);
         if (_local == address(0)) {
             // Representation does not exist yet;
             // deploy representation contract
             _local = _deployToken(_tokenId);
         }
+        return IERC20(_local);
+    }
+
+    /// @dev returns the token corresponding to the canonical ID, or errors.
+    function _mustHaveToken(bytes29 _tokenId)
+        internal
+        view
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (IERC20)
+    {
+        address _local = _getTokenAddress(_tokenId);
+        require(_local != address(0), "!token");
         return IERC20(_local);
     }
 

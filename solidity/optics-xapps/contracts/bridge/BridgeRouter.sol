@@ -23,13 +23,62 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
-    // ======== Initializer =========
+    /// @notice 5 bps hardcoded fee. Can be changed by contract upgrade
+    uint256 public constant PRE_FILL_FEE_NUMERATOR = 9995;
+    uint256 public constant PRE_FILL_FEE_DENOMINATOR = 10000;
 
-    function initialize(address _xAppConnectionManager)
-        public
-        initializer
-    {
+    /// @notice A mapping that stores the LP that pre-filled a token transfer
+    /// message
+    mapping(bytes32 => address) public liquidityProvider;
+
+    function _applyPreFillFee(uint256 _amnt) internal pure returns (uint256) {
+        return (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
+    }
+
+    // ======== Initializer =========
+    function initialize(address _xAppConnectionManager) public initializer {
         TokenRegistry._initialize(_xAppConnectionManager);
+    }
+
+    // ======== Fast Liquidity System =========
+
+    /// @dev used to identify a token/transfer pair in the prefill LP mapping.
+    /// This approach has a weakness: a user can send 2 identical messages, but
+    /// only 1 will be eligible for fast liquidity. The other may only be
+    /// filled at regular speed. This seems fine, tbqh.
+    function _preFillId(bytes29 _tokenId, bytes29 _action)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes29[] memory _views = new bytes29[](2);
+        _views[0] = _tokenId;
+        _views[1] = _action;
+        return TypedMemView.joinKeccak(_views);
+    }
+
+    /// @notice Allows a liquidity provider to pre-fill an incoming transfer
+    /// message. The liquidity provider provides the message in advance, and
+    /// the user receives the amount, less the LP's fee immediately.
+    function preFill(bytes calldata _message) external {
+        // parse tokenId and action from message
+        bytes29 _msg = _message.ref(0).mustBeMessage();
+        bytes29 _tokenId = _msg.tokenId();
+        bytes29 _action = _msg.action();
+
+        bytes32 _id = _preFillId(_tokenId, _action);
+
+        require(liquidityProvider[_id] == address(0), "!unfilled");
+
+        if (_action.isTransfer()) {
+            liquidityProvider[_id] = msg.sender;
+            IERC20 _token = _mustHaveToken(_tokenId);
+            _token.safeTransferFrom(
+                msg.sender,
+                _action.evmRecipient(),
+                _applyPreFillFee(_action.amnt())
+            );
+        }
     }
 
     // ======== External: Handle =========
@@ -79,10 +128,12 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         // remove tokens from circulation on this chain
         IERC20 _bridgeToken = IERC20(_token);
         if (_isLocalOrigin(_bridgeToken)) {
-            // if the token originates on this chain, hold the tokens in escrow in the Router
+            // if the token originates on this chain, hold the tokens in escrow
+            // in the Router
             _bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
         } else {
-            // if the token originates on a remote chain, burn the representation tokens on this chain
+            // if the token originates on a remote chain, burn the
+            // representation tokens on this chain
             _downcast(_bridgeToken).burn(msg.sender, _amnt);
         }
         // format Transfer Tokens action
@@ -159,17 +210,26 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
     {
         // get the token contract for the given tokenId on this chain;
         // (if the token is of remote origin and there is
-        // no existing representation token contract, the TokenRegistry will deploy a new one)
+        // no existing representation token contract, the TokenRegistry will
+        // deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
+
+        // If an LP has prefilled this request, the LP gets paid instead of the
+        // recipieint
+        address _lp = liquidityProvider[_preFillId(_tokenId, _action)];
+        address _recipient = _lp != address(0) ? _lp : _action.evmRecipient();
+
         // send the tokens into circulation on this chain
         if (_isLocalOrigin(_token)) {
-            // if the token is of local origin, the tokens have been held in escrow in this contract
+            // if the token is of local origin, the tokens have been held in
+            // escrow in this contract
             // while they have been circulating on remote chains;
             // transfer the tokens to the recipient
-            _token.safeTransfer(_action.evmRecipient(), _action.amnt());
+            _token.safeTransfer(_recipient, _action.amnt());
         } else {
-            // if the token is of remote origin, mint the tokens to the recipient on this chain
-            _downcast(_token).mint(_action.evmRecipient(), _action.amnt());
+            // if the token is of remote origin, mint the tokens to the
+            // recipient on this chain
+            _downcast(_token).mint(_recipient, _action.amnt());
         }
     }
 
