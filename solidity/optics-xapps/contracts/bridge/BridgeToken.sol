@@ -15,7 +15,8 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
         keccak256(
             "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
         );
-    bytes32 private immutable _EIP712_STRUCTURED_DATA_VERSION = keccak256(bytes("1"));
+    bytes32 private immutable _EIP712_STRUCTURED_DATA_VERSION =
+        keccak256(bytes("1"));
     uint16 private immutable _EIP712_PREFIX_AND_VERSION = uint16(0x1901);
 
     mapping(address => uint256) public nonces;
@@ -98,10 +99,21 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
         require(_owner != address(0), "ERC20Permit: owner zero address");
         uint256 _nonce = nonces[_owner];
         bytes32 _hashStruct = keccak256(
-            abi.encode(_PERMIT_TYPEHASH, _owner, _spender, _value, _nonce, _deadline)
+            abi.encode(
+                _PERMIT_TYPEHASH,
+                _owner,
+                _spender,
+                _value,
+                _nonce,
+                _deadline
+            )
         );
         bytes32 _digest = keccak256(
-            abi.encodePacked(_EIP712_PREFIX_AND_VERSION, domainSeparator(), _hashStruct)
+            abi.encodePacked(
+                _EIP712_PREFIX_AND_VERSION,
+                domainSeparator(),
+                _hashStruct
+            )
         );
         address _signer = ecrecover(_digest, _v, _r, _s);
         require(_signer == _owner, "ERC20Permit: invalid signature");

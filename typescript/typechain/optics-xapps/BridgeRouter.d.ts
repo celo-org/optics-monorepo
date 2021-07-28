@@ -21,11 +21,15 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface BridgeRouterInterface extends ethers.utils.Interface {
   functions: {
+    "PRE_FILL_FEE_DENOMINATOR()": FunctionFragment;
+    "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "initialize(address)": FunctionFragment;
+    "liquidityProvider(bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
+    "preFill(bytes)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
     "send(address,uint256,uint32,bytes32)": FunctionFragment;
@@ -36,6 +40,14 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "xAppConnectionManager()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "PRE_FILL_FEE_DENOMINATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PRE_FILL_FEE_NUMERATOR",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
@@ -49,7 +61,12 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "initialize", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "liquidityProvider",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "preFill", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -81,6 +98,14 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "PRE_FILL_FEE_DENOMINATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PRE_FILL_FEE_NUMERATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
   ): Result;
@@ -90,7 +115,12 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidityProvider",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "preFill", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -174,6 +204,10 @@ export class BridgeRouter extends BaseContract {
   interface: BridgeRouterInterface;
 
   functions: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -197,7 +231,17 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -240,6 +284,10 @@ export class BridgeRouter extends BaseContract {
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
+  PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+  PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
   canonicalToRepresentation(
     arg0: BytesLike,
     overrides?: CallOverrides
@@ -263,7 +311,17 @@ export class BridgeRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  liquidityProvider(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   owner(overrides?: CallOverrides): Promise<string>;
+
+  preFill(
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -306,6 +364,10 @@ export class BridgeRouter extends BaseContract {
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -329,7 +391,14 @@ export class BridgeRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     owner(overrides?: CallOverrides): Promise<string>;
+
+    preFill(_message: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -387,6 +456,10 @@ export class BridgeRouter extends BaseContract {
   };
 
   estimateGas: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -410,7 +483,17 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -454,6 +537,14 @@ export class BridgeRouter extends BaseContract {
   };
 
   populateTransaction: {
+    PRE_FILL_FEE_DENOMINATOR(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    PRE_FILL_FEE_NUMERATOR(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -477,7 +568,17 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
