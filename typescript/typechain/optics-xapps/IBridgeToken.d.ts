@@ -21,6 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IBridgeTokenInterface extends ethers.utils.Interface {
   functions: {
+    "balanceOf(address)": FunctionFragment;
     "burn(address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "initialize()": FunctionFragment;
@@ -30,6 +31,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
     "symbol()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "burn",
     values: [string, BigNumberish]
@@ -50,6 +52,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
@@ -105,15 +108,18 @@ export class IBridgeToken extends BaseContract {
   interface: IBridgeTokenInterface;
 
   functions: {
+    balanceOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     burn(
       _from: string,
       _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    decimals(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
     initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -136,10 +142,10 @@ export class IBridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    symbol(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   burn(
     _from: string,
@@ -147,9 +153,7 @@ export class IBridgeToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  decimals(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  decimals(overrides?: CallOverrides): Promise<number>;
 
   initialize(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -172,11 +176,11 @@ export class IBridgeToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  symbol(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  symbol(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     burn(
       _from: string,
       _amnt: BigNumberish,
@@ -208,15 +212,15 @@ export class IBridgeToken extends BaseContract {
   filters: {};
 
   estimateGas: {
+    balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     burn(
       _from: string,
       _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    decimals(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -239,21 +243,22 @@ export class IBridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    symbol(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    balanceOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     burn(
       _from: string,
       _amnt: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    decimals(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -276,8 +281,6 @@ export class IBridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    symbol(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

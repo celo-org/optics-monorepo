@@ -6,9 +6,11 @@ interface IBridgeToken {
 
     function name() external returns (string memory);
 
-    function symbol() external returns (string memory);
+    function balanceOf(address _account) external view returns (uint256);
 
-    function decimals() external returns (uint8);
+    function symbol() external view returns (string memory);
+
+    function decimals() external view returns (uint8);
 
     function burn(address _from, uint256 _amnt) external;
 

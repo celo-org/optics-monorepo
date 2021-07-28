@@ -11,6 +11,25 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "_account",
+        type: "address",
+      },
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_from",
         type: "address",
       },
@@ -35,7 +54,7 @@ const _abi = [
         type: "uint8",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -109,7 +128,7 @@ const _abi = [
         type: "string",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
 ];

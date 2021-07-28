@@ -281,4 +281,57 @@ contract BridgeRouter is Router, TokenRegistry {
         _views[1] = _action;
         return TypedMemView.joinKeccak(_views);
     }
+
+    // ====== CUSTOM REPRESENTATIONS ======
+
+    /**
+     * @notice Enroll a custom token. This allows projects to work with
+     * governance to specify a custom representation.
+     * @dev This is done by inserting the custom representation into the token
+     * lookup tables. It is permissioned to the owner (governance) and can
+     * potentially break token representations. It must be used with extreme
+     * caution.
+     * After the token is inserted, new mint instructions will be sent to the
+     * custom token. The default representation (and old custom representations)
+     * may still be burnt. Until all users have explicitly called migrate, both
+     * representations will continue to exist.
+     * The custom representation MUST be trusted, and MUST allow the router to
+     * both mint AND burn tokens at will.
+     * @param _id the canonical ID of the Token to enroll, as a byte vector
+     * @param _custom the address of the custom implementation to use.
+     */
+    function enrollCustom(bytes memory _id, address _custom)
+        external
+        onlyOwner
+    {
+        require(_id.length == 36, "!tokenId");
+        bytes29 _tokenId = _id.ref(0);
+        bytes32 _idHash = _tokenId.keccak();
+
+        representationToCanonical[_custom].domain = _tokenId.domain();
+        representationToCanonical[_custom].id = _tokenId.id();
+        canonicalToRepresentation[_idHash] = _custom;
+    }
+
+    /**
+     * @notice Migrate all tokens in a previous representation to the latest
+     * custom representation. This works by looking up local mappings and then
+     * burning old tokens and minting new tokens.
+     * @dev This is explicitly opt-in to allow dapps to decide when and how to
+     * upgrade to the new representation.
+     * @param _asset The address of the old asset to migrate.
+     */
+    function migrate(address _asset) external {
+        TokenId memory _id = representationToCanonical[_asset];
+        require(_id.domain != 0, "!repr");
+
+        IBridgeToken _original = IBridgeToken(_asset);
+        IBridgeToken _new = _downcast(_reprFor(_id));
+
+        require(_new != _original, "!different");
+
+        uint256 _bal = _original.balanceOf(msg.sender);
+        _original.burn(msg.sender, _bal);
+        _new.mint(msg.sender, _bal);
+    }
 }

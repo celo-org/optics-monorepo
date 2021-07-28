@@ -184,6 +184,7 @@ contract ERC20 is IERC20 {
     function balanceOf(address _account)
         public
         view
+        virtual
         override
         returns (uint256)
     {

@@ -275,6 +275,7 @@ abstract contract TokenRegistry is XAppConnectionClient {
         return _codeSize != 0;
     }
 
+    /// @dev Find the local representation of a canonical token. May return 0
     function _reprFor(bytes29 _tokenId)
         internal
         view
@@ -284,7 +285,19 @@ abstract contract TokenRegistry is XAppConnectionClient {
         return IERC20(canonicalToRepresentation[_tokenId.keccak()]);
     }
 
+    /// @dev Find the local representation of a canonical token. May return 0
+    function _reprFor(TokenId memory _tokenId) internal view returns (IERC20) {
+        return _reprFor(_serializeId(_tokenId));
+    }
+
+    /// @dev downcast an IERC20 to an IBridgeToken. Unsafe. Please know what
+    /// you're doing.
     function _downcast(IERC20 _token) internal pure returns (IBridgeToken) {
         return IBridgeToken(address(_token));
+    }
+
+    /// @dev serialize a TokenId struct and return the memory view
+    function _serializeId(TokenId memory _id) internal pure returns (bytes29) {
+        return BridgeMessage.formatTokenId(_id.domain, _id.id);
     }
 }

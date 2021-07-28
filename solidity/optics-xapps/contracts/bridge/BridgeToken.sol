@@ -26,6 +26,16 @@ contract BridgeToken is IBridgeToken, OwnableUpgradeable, ERC20 {
         __Ownable_init();
     }
 
+    /// @dev silence the compiler being dumb
+    function balanceOf(address _account)
+        public
+        view
+        override(IBridgeToken, ERC20)
+        returns (uint256)
+    {
+        return ERC20.balanceOf(_account);
+    }
+
     /**
      * @notice Destroys `_amnt` tokens from `_from`, reducing the
      * total supply.
