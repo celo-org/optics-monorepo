@@ -9,9 +9,9 @@ export function getNetworksFromDeploy(path: string): string[] {
   const targetFileSuffix = `_contracts.json`;
 
   const deployOutputFileNames = fs
-      .readdirSync(path, { withFileTypes: true })
-      .map((dirEntry: fs.Dirent) => dirEntry.name)
-      .filter((fileName: string) => fileName.includes(targetFileSuffix));
+    .readdirSync(path, { withFileTypes: true })
+    .map((dirEntry: fs.Dirent) => dirEntry.name)
+    .filter((fileName: string) => fileName.includes(targetFileSuffix));
 
   let chainNames: string[] = [];
   for (let deployOutputFileName of deployOutputFileNames) {
@@ -30,15 +30,18 @@ export function getNetworksFromDeploy(path: string): string[] {
  * @param ignoreFolders names of folders to exclude within configPath
  * @return path to folder
  * */
-function getPathToLatestConfig(configPath: string, ignoreFolders: string[] = []) {
+function getPathToLatestConfig(
+  configPath: string,
+  ignoreFolders: string[] = [],
+) {
   // get the names of all non-default config directories within the relative configPath
   let configFolders: string[] = fs
-      .readdirSync(configPath, {withFileTypes: true})
-      .filter(
-          (dirEntry: fs.Dirent) =>
-              dirEntry.isDirectory() && !ignoreFolders.includes(dirEntry.name),
-      )
-      .map((dirEntry: fs.Dirent) => dirEntry.name);
+    .readdirSync(configPath, { withFileTypes: true })
+    .filter(
+      (dirEntry: fs.Dirent) =>
+        dirEntry.isDirectory() && !ignoreFolders.includes(dirEntry.name),
+    )
+    .map((dirEntry: fs.Dirent) => dirEntry.name);
 
   // if no non-default config folders are found, return
   if (configFolders.length == 0) {
@@ -69,7 +72,7 @@ export function getPathToLatestBridgeDeploy(): string {
  * */
 export function getPathToLatestDeploy(): string {
   const configPath = '../../rust/config';
-  const ignoreFolders = ["default"];
+  const ignoreFolders = ['default'];
   return getPathToLatestConfig(configPath, ignoreFolders);
 }
 
@@ -83,25 +86,25 @@ export function getPathToLatestDeploy(): string {
  * @param fileSuffix target file suffix to parse ("config", "contracts", "verification")
  * */
 export function parseFileFromDeploy(
-    path: string,
-    network: string,
-    fileSuffix: string,
+  path: string,
+  network: string,
+  fileSuffix: string,
 ): any {
   const targetFileName = `${network}_${fileSuffix}.json`;
 
   const file = fs
-      .readdirSync(path, { withFileTypes: true })
-      .find((dirEntry: fs.Dirent) => dirEntry.name == targetFileName);
+    .readdirSync(path, { withFileTypes: true })
+    .find((dirEntry: fs.Dirent) => dirEntry.name == targetFileName);
 
   if (!file) {
     throw new Error(
-        `No ${fileSuffix} files found for ${network} at ${path}/${targetFileName}`,
+      `No ${fileSuffix} files found for ${network} at ${path}/${targetFileName}`,
     );
   }
 
   const fileString: string = fs
-      .readFileSync(`${path}/${targetFileName}`)
-      .toString();
+    .readFileSync(`${path}/${targetFileName}`)
+    .toString();
 
   return JSON.parse(fileString);
 }
