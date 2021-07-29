@@ -21,8 +21,11 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
   // deploy BridgeTokens & BridgeRouters
   await Promise.all(
     deploys.map(async (deploy) => {
+      // Must be done in order per-deploy.
+      // Do not rearrange or parallelize.
       await deployTokenUpgradeBeacon(deploy);
       await deployBridgeRouter(deploy);
+      await deployEthHelper(deploy);
     }),
   );
 
@@ -58,13 +61,14 @@ async function deployTokenUpgradeBeacon(deploy: BridgeDeploy) {
   console.log(`deploying ${deploy.chain.name} Token Upgrade Beacon`);
 
   // no initialize function called
-  const initData = "";
+  const initData = '';
 
-  deploy.contracts.bridgeToken = await proxyUtils.deployProxy<xAppContracts.BridgeToken>(
+  deploy.contracts.bridgeToken =
+    await proxyUtils.deployProxy<xAppContracts.BridgeToken>(
       deploy,
       new xAppContracts.BridgeToken__factory(deploy.chain.deployer),
       initData,
-  );
+    );
 
   console.log(`deployed ${deploy.chain.name} Token Upgrade Beacon`);
 }
@@ -95,6 +99,27 @@ async function deployBridgeRouter(deploy: BridgeDeploy) {
     );
 
   console.log(`deployed ${deploy.chain.name} BridgeRouter`);
+}
+
+/**
+ * Deploy the Eth Helper contract if configured.
+ *
+ * Chains with no WETH configuration will not have an eth helper contract.
+ *
+ * @param deploy - The deploy instance for the chain on which to deploy the contract
+ */
+export async function deployEthHelper(deploy: BridgeDeploy) {
+  if (!deploy.config.weth) {
+    return;
+  }
+
+  const factory = new xAppContracts.ETHHelper__factory(deploy.chain.deployer);
+
+  deploy.contracts.ethHelper = await factory.deploy(
+    deploy.config.weth!,
+    deploy.contracts.bridgeRouter?.proxy.address!,
+  );
+  await deploy.contracts.ethHelper.deployTransaction.wait(5);
 }
 
 /**

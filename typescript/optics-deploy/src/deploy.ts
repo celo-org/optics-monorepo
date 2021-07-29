@@ -23,7 +23,9 @@ export type CoreConfig = {
   watchers: string[];
 };
 
-export type BridgeConfig = {};
+export type BridgeConfig = {
+  weth?: string;
+};
 
 export abstract class Deploy<T extends Contracts> {
   readonly chain: Chain;
