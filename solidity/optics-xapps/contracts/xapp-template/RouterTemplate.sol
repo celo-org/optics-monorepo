@@ -33,9 +33,9 @@ contract RouterTemplate is Router, XAppConnectionClient {
 
     // ============ Constructor ============
 
-    constructor(address _xAppConnectionManager)
-        XAppConnectionClient(_xAppConnectionManager)
-    {}
+    constructor(address _xAppConnectionManager) {
+        XAppConnectionClient._initialize(_xAppConnectionManager);
+    }
 
     // ============ Handle message functions ============
 

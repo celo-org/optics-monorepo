@@ -11,6 +11,7 @@ import {XAppConnectionManager, TypeCasts} from "@celo-org/optics-sol/contracts/X
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
  * @title TokenRegistry
@@ -28,7 +29,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * perform a lookup in either direction
  * Note that locally originating tokens should NEVER be represented in these lookup tables.
  */
-abstract contract TokenRegistry is XAppConnectionClient {
+abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -58,12 +59,15 @@ abstract contract TokenRegistry is XAppConnectionClient {
     // If the token is of local origin, this MUST map to address(0).
     mapping(bytes32 => address) public canonicalToRepresentation;
 
-    // ======== Constructor =========
+    // ======== Initializer =========
 
-    constructor(address _xAppConnectionManager)
-        XAppConnectionClient(_xAppConnectionManager)
+    function _initialize(address _xAppConnectionManager)
+        internal
+        override
+        initializer
     {
         tokenTemplate = address(new BridgeToken());
+        XAppConnectionClient._initialize(_xAppConnectionManager);
     }
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {

@@ -12,21 +12,25 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
  * @title BridgeRouter
  */
-contract BridgeRouter is Router, TokenRegistry {
+contract BridgeRouter is Initializable, Router, TokenRegistry {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
-    // ======== Constructor =========
+    // ======== Initializer =========
 
-    constructor(address _xAppConnectionManager)
-        TokenRegistry(_xAppConnectionManager)
-    {} // solhint-disable-line no-empty-blocks
+    function initialize(address _xAppConnectionManager)
+        public
+        initializer
+    {
+        TokenRegistry._initialize(_xAppConnectionManager);
+    }
 
     // ======== External: Handle =========
 

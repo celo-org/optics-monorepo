@@ -5,8 +5,9 @@ pragma solidity >=0.6.11;
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {XAppConnectionManager} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
-abstract contract XAppConnectionClient is Ownable {
+abstract contract XAppConnectionClient is Initializable, Ownable {
     // ============ Mutable Storage ============
 
     XAppConnectionManager public xAppConnectionManager;
@@ -21,9 +22,13 @@ abstract contract XAppConnectionClient is Ownable {
         _;
     }
 
-    // ============ Constructor ============
+    // ======== Initializer =========
 
-    constructor(address _xAppConnectionManager) {
+    function _initialize(address _xAppConnectionManager)
+        internal
+        virtual
+        initializer
+    {
         xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
     }
 
