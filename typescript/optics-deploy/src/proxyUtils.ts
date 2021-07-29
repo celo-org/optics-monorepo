@@ -1,13 +1,27 @@
 import { BytesLike, ethers } from 'ethers';
 
-import { Deploy } from './chain';
 import * as contracts from '../../typechain/optics-core';
+import { BridgeDeploy, CoreDeploy, Deploy } from './deploy';
 
-export type BeaconProxy<T extends ethers.Contract> = {
+export class BeaconProxy<T extends ethers.Contract> {
   implementation: T;
   proxy: T;
   beacon: contracts.UpgradeBeacon;
-};
+
+  constructor(implementation: T, proxy: T, beacon: contracts.UpgradeBeacon) {
+    this.implementation = implementation;
+    this.proxy = proxy;
+    this.beacon = beacon;
+  }
+
+  toObject(): Object {
+    return {
+      implementation: this.implementation.address,
+      proxy: this.proxy.address,
+      beacon: this.beacon.address,
+    };
+  }
+}
 
 export type ProxyAddresses = {
   implementation: string;
@@ -21,7 +35,7 @@ export type ProxyAddresses = {
  * @param T - The contract
  */
 export async function deployProxy<T extends ethers.Contract>(
-  deploy: Deploy,
+  deploy: CoreDeploy | BridgeDeploy,
   factory: ethers.ContractFactory,
   initData: BytesLike,
   ...deployArgs: any[]
@@ -52,10 +66,7 @@ export async function deployProxy<T extends ethers.Contract>(
   deploy.verificationInput.push({
     name: `${name} UpgradeBeacon`,
     address: beacon!.address,
-    constructorArguments: [
-      implementation.address,
-      deploy.contracts.upgradeBeaconController!.address,
-    ],
+    constructorArguments: [implementation.address, deploy.ubcAddress()!],
   });
 
   // add Proxy to Etherscan verification
@@ -65,11 +76,11 @@ export async function deployProxy<T extends ethers.Contract>(
     constructorArguments: [beacon!.address, initData],
   });
 
-  return {
+  return new BeaconProxy(
     implementation,
-    proxy: factory.attach(proxy.address) as T,
+    factory.attach(proxy.address) as T,
     beacon,
-  };
+  );
 }
 
 /**
@@ -78,7 +89,7 @@ export async function deployProxy<T extends ethers.Contract>(
  * @param T - The contract
  */
 export async function duplicate<T extends ethers.Contract>(
-  deploy: Deploy,
+  deploy: CoreDeploy | BridgeDeploy,
   prev: BeaconProxy<T>,
   initData: BytesLike,
 ): Promise<BeaconProxy<T>> {
@@ -94,11 +105,11 @@ export async function duplicate<T extends ethers.Contract>(
     constructorArguments: [prev.beacon!.address, initData],
   });
 
-  return {
-    implementation: prev.implementation,
-    proxy: prev.proxy.attach(proxy.address) as T,
-    beacon: prev.beacon,
-  };
+  return new BeaconProxy(
+    prev.implementation,
+    prev.proxy.attach(proxy.address) as T,
+    prev.beacon,
+  );
 }
 
 /**
@@ -111,14 +122,14 @@ export async function duplicate<T extends ethers.Contract>(
  * @param implementation - The implementation
  */
 async function _deployBeacon(
-  deploy: Deploy,
+  deploy: CoreDeploy | BridgeDeploy,
   implementation: ethers.Contract,
 ): Promise<contracts.UpgradeBeacon> {
   let factory = new contracts.UpgradeBeacon__factory(deploy.chain.deployer);
 
   let beacon = factory.deploy(
     implementation.address,
-    deploy.contracts.upgradeBeaconController!.address,
+    deploy.ubcAddress()!,
     deploy.overrides,
   );
   return beacon;
@@ -135,7 +146,7 @@ async function _deployBeacon(
  * @param implementation - The implementation
  */
 async function _deployProxy<T>(
-  deploy: Deploy,
+  deploy: CoreDeploy | BridgeDeploy,
   beacon: contracts.UpgradeBeacon,
   initData: BytesLike,
 ): Promise<contracts.UpgradeBeaconProxy> {

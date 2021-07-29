@@ -4,10 +4,10 @@
 import * as ethers from 'ethers';
 import fs from 'fs';
 
-import * as proxyUtils from './proxyUtils';
-import { Deploy, toJson, buildConfig } from './chain';
-import { toBytes32 } from '../../optics-tests/lib/utils';
-import * as contracts from '../../typechain/optics-core';
+import * as proxyUtils from '../proxyUtils';
+import { Deploy, toJson, buildConfig } from '../chain';
+import { toBytes32 } from '../../../optics-tests/lib/utils';
+import * as contracts from '../../../typechain/optics-core';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
@@ -143,18 +143,18 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
 export async function deployHome(deploy: Deploy) {
   const isTestDeploy: boolean = deploy.test;
   if (isTestDeploy) warn('deploying test Home');
-  const home = isTestDeploy
+  const homeFactory = isTestDeploy
     ? contracts.TestHome__factory
     : contracts.Home__factory;
 
   let { updaterManager } = deploy.contracts;
-  let initData = home
+  let initData = homeFactory
     .createInterface()
     .encodeFunctionData('initialize', [updaterManager!.address]);
 
   deploy.contracts.home = await proxyUtils.deployProxy<contracts.Home>(
     deploy,
-    new home(deploy.deployer),
+    new homeFactory(deploy.deployer),
     initData,
     deploy.chain.domain,
   );

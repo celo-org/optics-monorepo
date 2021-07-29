@@ -1,0 +1,181 @@
+import {
+  Chain,
+  ChainConfig,
+  toChain,
+  CoreContractDeployOutput,
+} from '../chain';
+import * as proxyUtils from '../proxyUtils';
+
+import * as xAppContracts from '../../../typechain/optics-xapps';
+import * as contracts from '../../../typechain/optics-core';
+import { toBytes32 } from '../../../optics-tests/lib/utils';
+import fs from 'fs';
+import { BridgeDeploy } from '../deploy';
+
+export type BridgeDeployOutput = {
+  bridgeRouter?: string;
+};
+
+/**
+ * Deploy and configure a cross-chain token bridge system
+ * with one BridgeRouter on each of the provided chains
+ * with ownership delegated to Optics governance
+ *
+ * @param deploys - The list of deploy instances for each chain
+ */
+export async function deployBridges(deploys: BridgeDeploy[]) {
+  // deploy BridgeRouters
+  const deployPromises: Promise<void>[] = [];
+  for (let deploy of deploys) {
+    deployPromises.push(deployBridgeRouter(deploy));
+  }
+  await Promise.all(deployPromises);
+
+  // enroll peer BridgeRouters with each other
+  const enrollPromises: Promise<void>[] = [];
+  for (let deploy of deploys) {
+    enrollPromises.push(enrollAllBridgeRouters(deploy, deploys));
+  }
+  await Promise.all(enrollPromises);
+
+  // after finishing enrolling,
+  // transfer ownership of BridgeRouters to Governance
+  const transferPromises: Promise<void>[] = [];
+  for (let deploy of deploys) {
+    transferPromises.push(transferOwnershipToGovernance(deploy));
+  }
+  await Promise.all(transferPromises);
+
+  // output the Bridge deploy information to a subdirectory
+  // of the core system deploy config folder
+  writeBridgeDeployOutput(deploys);
+}
+
+/**
+ * Deploys the BridgeRouter on the chain of the given deploy and updates
+ * the deploy instance with the new contract.
+ *
+ * @param deploy - The deploy instance
+ */
+async function deployBridgeRouter(deploy: BridgeDeploy) {
+  console.log(`deploying ${deploy.chain.name} BridgeRouter`);
+
+  let initData =
+    xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
+      'initialize',
+      [deploy.coreContractAddresses.xappConnectionManager],
+    );
+
+  deploy.contracts.bridgeRouter =
+    await proxyUtils.deployProxy<xAppContracts.BridgeRouter>(
+      deploy,
+      new xAppContracts.BridgeRouter__factory(deploy.chain.deployer),
+      initData,
+    );
+
+  console.log(`deployed ${deploy.chain.name} BridgeRouter`);
+}
+
+/**
+ * Enroll all other chains' BridgeRouters as remote routers
+ * to a single chain's BridgeRouter
+ *
+ * @param deploy - The deploy instance for the chain on which to enroll routers
+ * @param allDeploys - Array of all deploy instances for the Bridge deploy
+ */
+export async function enrollAllBridgeRouters(
+  deploy: BridgeDeploy,
+  allDeploys: BridgeDeploy[],
+) {
+  for (let remoteDeploy of allDeploys) {
+    if (deploy.chain.name != remoteDeploy.chain.name) {
+      await enrollBridgeRouter(deploy, remoteDeploy);
+    }
+  }
+}
+
+/**
+ * Enroll a single chain's BridgeRouter as remote routers
+ * on a single chain's BridgeRouter
+ *
+ * @param local - The deploy instance for the chain on which to enroll the router
+ * @param remote - The deploy instance for the chain to enroll on the local router
+ */
+export async function enrollBridgeRouter(
+  local: BridgeDeploy,
+  remote: BridgeDeploy,
+) {
+  console.log(
+    `enrolling ${remote.chain.name} BridgeRouter on ${local.chain.name}`,
+  );
+
+  const remoteHome: contracts.Home = contracts.Home__factory.connect(
+    remote.coreContractAddresses.home.proxy,
+    remote.chain.deployer,
+  );
+  const remoteDomain = await remoteHome.localDomain();
+
+  let tx = await local.contracts.bridgeRouter!.proxy.enrollRemoteRouter(
+    remoteDomain,
+    toBytes32(remote.contracts.bridgeRouter!.proxy.address),
+    local.overrides,
+  );
+
+  await tx.wait(5);
+
+  console.log(
+    `enrolled ${remote.chain.name} BridgeRouter on ${local.chain.name}`,
+  );
+}
+
+/**
+ * Transfer Ownership of a chain's BridgeRouter
+ * to its GovernanceRouter
+ *
+ * @param deploy - The deploy instance for the chain
+ */
+export async function transferOwnershipToGovernance(deploy: BridgeDeploy) {
+  console.log(`transfer ownership of ${deploy.chain.name} BridgeRouter`);
+
+  let tx = await deploy.contracts.bridgeRouter!.proxy.transferOwnership(
+    deploy.coreContractAddresses.governance.proxy,
+    deploy.overrides,
+  );
+
+  await tx.wait(5);
+
+  console.log(`transferred ownership of ${deploy.chain.name} BridgeRouter`);
+}
+
+/**
+ * Outputs the values for bridges that have been deployed.
+ *
+ * @param deploys - The array of bridge deploys
+ */
+export function writeBridgeDeployOutput(deploys: BridgeDeploy[]) {
+  console.log(`Have ${deploys.length} bridge deploys`);
+  if (deploys.length == 0) {
+    return;
+  }
+
+  // ensure bridge directory exists within core deploy config folder
+  const root = `${deploys[0].coreDeployPath}/bridge`;
+  fs.mkdirSync(root, { recursive: true });
+
+  // create dir for this bridge deploy's outputs
+  const dir = `${root}/${Date.now()}`;
+  fs.mkdirSync(dir, { recursive: true });
+
+  // for each deploy, write contracts and verification inputs to file
+  for (const deploy of deploys) {
+    const name = deploy.chain.name;
+
+    const contracts = deploy.contracts.toJsonPretty();
+    fs.writeFileSync(`${dir}/${name}_contracts.json`, contracts);
+
+    fs.writeFileSync(
+      `${dir}/${name}_verification.json`,
+      JSON.stringify(deploy.verificationInput, null, 2),
+    );
+  }
+}
