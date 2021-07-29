@@ -66,7 +66,7 @@ export async function deployProxy<T extends ethers.Contract>(
   deploy.verificationInput.push({
     name: `${name} UpgradeBeacon`,
     address: beacon!.address,
-    constructorArguments: [implementation.address, deploy.ubcAddress()!],
+    constructorArguments: [implementation.address, deploy.ubcAddress!],
   });
 
   // add Proxy to Etherscan verification
@@ -129,7 +129,7 @@ async function _deployBeacon(
 
   let beacon = factory.deploy(
     implementation.address,
-    deploy.ubcAddress()!,
+    deploy.ubcAddress!,
     deploy.overrides,
   );
   return beacon;

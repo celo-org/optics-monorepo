@@ -2,9 +2,6 @@ import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
 import { NonceManager } from '@ethersproject/experimental';
 import { ProxyAddresses } from './proxyUtils';
-import { CoreConfig, CoreDeploy, Deploy } from './deploy';
-
-type Address = string;
 
 export type CoreContractDeployOutput = {
   upgradeBeaconController: string;
@@ -15,7 +12,7 @@ export type CoreContractDeployOutput = {
   replicas?: Record<string, ProxyAddresses>;
 };
 
-export interface ChainConfig {
+export interface ChainJson {
   name: string;
   rpc: string;
   deployerKey?: string;
@@ -24,35 +21,17 @@ export interface ChainConfig {
   domain: number;
 }
 
-// config for generating a Chain
-export interface OpticsChainConfig extends ChainConfig {
-  updater: Address;
-  recoveryManager: Address;
-  watchers?: Address[];
-  recoveryTimelock: number;
-  optimisticSeconds: number;
-}
-
 export type Chain = {
   name: string;
   provider: ethers.providers.Provider;
   deployer: ethers.Signer;
   gasPrice: ethers.BigNumber;
-  config: ChainConfig;
+  config: ChainJson;
   confirmations: number;
   domain: number;
 };
 
-// deserialized version of the ChainConfig
-export type OpticsConfig = {
-  updater: Address;
-  recoveryTimelock: number;
-  recoveryManager: Address;
-  optimisticSeconds: number;
-  watchers: Address[];
-};
-
-export function toChain(config: ChainConfig): Chain {
+export function toChain(config: ChainJson): Chain {
   const provider = new ethers.providers.JsonRpcProvider(config.rpc);
   const signer = new ethers.Wallet(config.deployerKey!, provider);
   const deployer = new NonceManager(signer);

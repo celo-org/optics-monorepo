@@ -1,9 +1,9 @@
 import { deployTwoChains } from '../src/core';
-import { opticsAlfajores } from '../config/alfajores';
-import { opticsKovan } from '../config/kovan';
+import * as alfajores from '../config/alfajores';
+import * as kovan from '../config/kovan';
 import { CoreDeploy } from '../src/deploy';
 
-const alfaDeploy = CoreDeploy.freshFromConfig(opticsAlfajores);
-const kovanDeploy = CoreDeploy.freshFromConfig(opticsKovan);
+const alfaDeploy = new CoreDeploy(alfajores.chain, alfajores.config);
+const kovanDeploy = new CoreDeploy(kovan.chain, kovan.config);
 
 deployTwoChains(alfaDeploy, kovanDeploy);

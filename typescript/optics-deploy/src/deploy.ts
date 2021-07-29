@@ -1,9 +1,8 @@
 import { ethers } from 'ethers';
 import {
   Chain,
-  ChainConfig,
+  ChainJson,
   CoreContractDeployOutput,
-  OpticsChainConfig,
   RustConfig,
   toChain,
 } from './chain';
@@ -32,7 +31,7 @@ export abstract class Deploy<T extends Contracts> {
   contracts: T;
   verificationInput: ContractVerificationInput[];
 
-  abstract ubcAddress(): string | undefined;
+  abstract get ubcAddress(): string | undefined;
 
   constructor(chain: Chain, contracts: T, test: boolean = false) {
     this.chain = chain;
@@ -72,11 +71,11 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     this.config = config;
   }
 
-  ubcAddress(): string | undefined {
+  get ubcAddress(): string | undefined {
     return this.contracts.upgradeBeaconController?.address;
   }
 
-  static parseCoreConfig(config: OpticsChainConfig): [Chain, CoreConfig] {
+  static parseCoreConfig(config: ChainJson & CoreConfig): [Chain, CoreConfig] {
     const chain = toChain(config);
     return [
       chain,
@@ -150,7 +149,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     return rustConfig;
   }
 
-  static freshFromConfig(chainConfig: OpticsChainConfig): CoreDeploy {
+  static freshFromConfig(chainConfig: ChainJson & CoreConfig): CoreDeploy {
     let [chain, config] = CoreDeploy.parseCoreConfig(chainConfig);
     return new CoreDeploy(chain, config);
   }
@@ -177,12 +176,12 @@ export class BridgeDeploy extends Deploy<BridgeContracts> {
     );
   }
 
-  ubcAddress(): string | undefined {
+  get ubcAddress(): string | undefined {
     return this.coreContractAddresses.upgradeBeaconController;
   }
 
   static freshFromConfig(
-    config: ChainConfig,
+    config: ChainJson,
     coreDeployPath: string,
   ): BridgeDeploy {
     return new BridgeDeploy(toChain(config), {}, coreDeployPath);

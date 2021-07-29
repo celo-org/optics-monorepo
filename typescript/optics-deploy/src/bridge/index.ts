@@ -1,9 +1,3 @@
-import {
-  Chain,
-  ChainConfig,
-  toChain,
-  CoreContractDeployOutput,
-} from '../chain';
 import * as proxyUtils from '../proxyUtils';
 
 import * as xAppContracts from '../../../typechain/optics-xapps';
