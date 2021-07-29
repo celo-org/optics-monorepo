@@ -17,7 +17,6 @@ export type ContractVerificationInput = {
 };
 
 export type CoreConfig = {
-  domain: number;
   updater: string;
   recoveryTimelock: number;
   recoveryManager: string;
@@ -82,7 +81,6 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     return [
       chain,
       {
-        domain: config.domain,
         updater: config.updater,
         watchers: config.watchers ?? [],
         recoveryManager: config.recoveryManager,

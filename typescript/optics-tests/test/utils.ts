@@ -2,11 +2,11 @@ import { expect } from 'chai';
 import ethers from 'ethers';
 
 import { Signer } from '../lib/types';
-import { Deploy } from '../../optics-deploy/src/chain';
+import { CoreDeploy as Deploy } from '../../optics-deploy/src/deploy';
 import {
   deployUpdaterManager,
   deployUpgradeBeaconController,
-} from '../../optics-deploy/src/deployOptics';
+} from '../../optics-deploy/src/core';
 import * as contracts from '../../typechain/optics-core';
 
 export const increaseTimestampBy = async (

@@ -11,11 +11,11 @@ import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Address, Signer } from '../../lib/types';
-import { Deploy } from '../../../optics-deploy/src/chain';
+import { CoreDeploy as Deploy } from '../../../optics-deploy/src/deploy';
 import {
   deployTwoChains,
   deployUnenrolledReplica,
-} from '../../../optics-deploy/src/deployOptics';
+} from '../../../optics-deploy/src/core';
 import * as contracts from '../../../typechain/optics-core';
 
 const helpers = require('../../../../vectors/proof.json');
@@ -143,7 +143,7 @@ describe('GovernanceRouter', async () => {
     expect(pending).to.equal(latestRoot);
 
     // Increase time enough for both updates to be confirmable
-    const optimisticSeconds = deploy.chain.optimisticSeconds;
+    const optimisticSeconds = deploy.config.optimisticSeconds;
     await increaseTimestampBy(
       deploy.chain.provider as providers.JsonRpcProvider,
       optimisticSeconds * 2,
@@ -447,7 +447,7 @@ describe('GovernanceRouter', async () => {
 
     // check current Updater address on Home
     let currentUpdaterAddr = await governorHome.updater();
-    expect(currentUpdaterAddr).to.equal(deploys[0].chain.updater);
+    expect(currentUpdaterAddr).to.equal(deploys[0].config.updater);
 
     // format optics call message
     const call = await formatCall(updaterManager, 'setUpdater', [

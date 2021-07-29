@@ -4,8 +4,8 @@ import { expect } from 'chai';
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib';
 import { Signer } from '../lib/types';
-import { Deploy } from '../../optics-deploy/src/chain';
-import * as deploys from '../../optics-deploy/src/deployOptics';
+import { CoreDeploy as Deploy } from '../../optics-deploy/src/deploy';
+import * as deploys from '../../optics-deploy/src/core';
 import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
 import * as contracts from '../../typechain/optics-core';
 

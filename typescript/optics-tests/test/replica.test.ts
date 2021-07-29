@@ -6,12 +6,12 @@ import { getTestDeploy } from './testChain';
 import { Updater, OpticsState, MessageStatus } from '../lib';
 import { Signer, BytesArray } from '../lib/types';
 import * as contracts from '../../typechain/optics-core';
-import { Deploy } from '../../optics-deploy/src/chain';
+import { CoreDeploy as Deploy } from '../../optics-deploy/src/deploy';
 import {
   deployUnenrolledReplica,
   deployUpgradeBeaconController,
   deployUpdaterManager,
-} from '../../optics-deploy/src/deployOptics';
+} from '../../optics-deploy/src/core';
 
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
 import merkleTestCases from '../../../vectors/merkle.json';
@@ -73,9 +73,9 @@ describe('Replica', async () => {
   it('Cannot be initialized twice', async () => {
     let initData = replica.interface.encodeFunctionData('initialize', [
       deploys[0].chain.domain,
-      deploys[0].chain.updater,
+      deploys[0].config.updater,
       ethers.constants.HashZero,
-      deploys[0].chain.optimisticSeconds,
+      deploys[0].config.optimisticSeconds,
       0,
     ]);
 

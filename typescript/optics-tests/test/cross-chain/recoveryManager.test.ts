@@ -7,8 +7,8 @@ import { increaseTimestampBy } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Signer } from '../../lib/types';
-import { Deploy } from '../../../optics-deploy/src/chain';
-import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
+import { CoreDeploy as Deploy } from '../../../optics-deploy/src/deploy';
+import { deployTwoChains } from '../../../optics-deploy/src/core';
 import * as contracts from '../../../typechain/optics-core';
 
 async function expectNotInRecovery(

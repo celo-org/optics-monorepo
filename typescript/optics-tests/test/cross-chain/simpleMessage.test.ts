@@ -6,8 +6,8 @@ import { getTestDeploy } from '../testChain';
 import { increaseTimestampBy } from '../utils';
 import { Updater, MessageStatus } from '../../lib';
 import { Update, Signer, BytesArray } from '../../lib/types';
-import { Deploy } from '../../../optics-deploy/src/chain';
-import { deployTwoChains } from '../../../optics-deploy/src/deployOptics';
+import { CoreDeploy as Deploy } from '../../../optics-deploy/src/deploy';
+import { deployTwoChains } from '../../../optics-deploy/src/core';
 import {
   TestRecipient__factory,
   TestReplica,
@@ -140,7 +140,7 @@ describe('SimpleCrossChainMessage', async () => {
     const replica = deploys[1].contracts.replicas[localDomain].proxy;
 
     // Increase time enough for both updates to be confirmable
-    const optimisticSeconds = deploys[0].chain.optimisticSeconds;
+    const { optimisticSeconds } = deploys[0].config;
     await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
 
     // Replica should be able to confirm updates
