@@ -11,7 +11,7 @@
   "description": "Optics deploy tools",
   "main": "src/index.ts",
   "scripts": {
-    "prettier": "prettier --write ./src",
+    "prettier": "prettier --write ./src ./config ./scripts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy-core": "npx ts-node ./scripts/alfajoresKovan.ts",
     "deploy-bridge": "npx ts-node ./scripts/bridgeAlfajoresKovan.ts"
