@@ -564,6 +564,34 @@ export async function deployNChains(chains: CoreDeploy[]) {
 }
 
 /**
+ * Deploys Optics on a new chain and enrolls it
+ * in a set of existing deploys.
+ *
+ * @dev The first chain in the sequence will be the governing chain
+ *
+ * @param chains - An array of chain deploys
+ * @param newChain - A fresh deploy for the new chain
+ */
+export async function deployAndEnrollNewChain(chains: Deploy[], newChain: Deploy) {
+  await deployOptics(newChain);
+
+  chains.forEach((chain, i) => {
+    await enrollRemote(chain, newChain);
+    await enrollRemote(newChain, chain);
+
+    if (i === 0) {
+      await transferGovernorship(chain, newChain);
+    }
+  
+    await relinquish(newChain);
+  })
+
+  if (!isTestDeploy) {
+    writeDeployOutput([...chains, newChain]);
+  }
+}
+
+/**
  * Copies the partial configs from the default directory to the specified directory.
  *
  * @param dir - relative path to folder where partial configs will be written
