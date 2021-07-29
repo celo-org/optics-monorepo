@@ -5,7 +5,7 @@ import * as ethers from 'ethers';
 import fs from 'fs';
 
 import * as proxyUtils from '../proxyUtils';
-import { Deploy, toJson, buildConfig } from '../chain';
+import { CoreDeploy as Deploy } from '../deploy';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import * as contracts from '../../../typechain/optics-core';
 
@@ -55,8 +55,9 @@ export async function deployUpgradeBeaconController(deploy: Deploy) {
  */
 export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.deployer);
+
   deploy.contracts.updaterManager = await factory.deploy(
-    deploy.chain.updater,
+    deploy.config.updater,
     deploy.overrides,
   );
   await deploy.contracts.updaterManager!.deployTransaction.wait(
@@ -67,7 +68,7 @@ export async function deployUpdaterManager(deploy: Deploy) {
   deploy.verificationInput.push({
     name: 'UpdaterManager',
     address: deploy.contracts.updaterManager!.address,
-    constructorArguments: [deploy.chain.updater],
+    constructorArguments: [deploy.config.updater],
   });
 }
 
@@ -103,7 +104,7 @@ export async function deployXAppConnectionManager(deploy: Deploy) {
 export async function deployUpdaterManager(deploy: Deploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.deployer);
   deploy.contracts.updaterManager = await factory.deploy(
-    deploy.chain.updater,
+    deploy.config.updater,
     deploy.overrides,
   );
   await deploy.contracts.updaterManager.deployTransaction.wait(
@@ -174,7 +175,7 @@ export async function deployGovernanceRouter(deploy: Deploy) {
     : contracts.GovernanceRouter__factory;
 
   let { xAppConnectionManager } = deploy.contracts;
-  const recoveryManager = deploy.chain.recoveryManager;
+  const recoveryManager = deploy.config.recoveryManager;
   const recoveryTimelock = 1;
 
   let initData = governanceRouter
@@ -216,9 +217,9 @@ export async function deployUnenrolledReplica(local: Deploy, remote: Deploy) {
 
   let initData = replica.createInterface().encodeFunctionData('initialize', [
     remote.chain.domain,
-    remote.chain.updater,
+    remote.config.updater,
     ethers.constants.HashZero, // TODO: allow configuration
-    remote.chain.optimisticSeconds,
+    remote.config.optimisticSeconds,
     0, // TODO: allow configuration
   ]);
 
@@ -388,7 +389,7 @@ export async function enrollWatchers(left: Deploy, right: Deploy) {
   log(isTestDeploy, `${left.chain.name}: starting watcher enrollment`);
 
   await Promise.all(
-    left.chain.watchers.map(async (watcher) => {
+    left.config.watchers.map(async (watcher) => {
       const tx =
         await left.contracts.xAppConnectionManager!.setWatcherPermission(
           watcher,
@@ -463,7 +464,6 @@ export async function transferGovernorship(gov: Deploy, non: Deploy) {
  */
 export async function deployTwoChains(gov: Deploy, non: Deploy) {
   const isTestDeploy: boolean = gov.test || non.test;
-
   await Promise.all([deployOptics(gov), deployOptics(non)]);
 
   log(isTestDeploy, 'initial deploys done');
