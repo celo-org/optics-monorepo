@@ -216,7 +216,7 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         address _recipient = _action.evmRecipient();
 
         // If an LP has prefilled this request, the LP gets paid instead of the
-        // recipieint
+        // recipient
         bytes32 _id = _preFillId(_tokenId, _action);
         address _lp = liquidityProvider[_id];
         if (_lp != address(0)) {
