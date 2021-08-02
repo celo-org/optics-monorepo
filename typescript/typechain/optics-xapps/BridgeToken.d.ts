@@ -36,7 +36,7 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     "owner()": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setDetails(bytes32,bytes32,uint8)": FunctionFragment;
+    "setDetails(string,string,uint8)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
@@ -99,7 +99,7 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setDetails",
-    values: [BytesLike, BytesLike, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
@@ -289,8 +289,8 @@ export class BridgeToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setDetails(
-      _newName: BytesLike,
-      _newSymbol: BytesLike,
+      _newName: string,
+      _newSymbol: string,
       _newDecimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -384,8 +384,8 @@ export class BridgeToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setDetails(
-    _newName: BytesLike,
-    _newSymbol: BytesLike,
+    _newName: string,
+    _newSymbol: string,
     _newDecimals: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -477,8 +477,8 @@ export class BridgeToken extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     setDetails(
-      _newName: BytesLike,
-      _newSymbol: BytesLike,
+      _newName: string,
+      _newSymbol: string,
       _newDecimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -601,8 +601,8 @@ export class BridgeToken extends BaseContract {
     ): Promise<BigNumber>;
 
     setDetails(
-      _newName: BytesLike,
-      _newSymbol: BytesLike,
+      _newName: string,
+      _newSymbol: string,
       _newDecimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -703,8 +703,8 @@ export class BridgeToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setDetails(
-      _newName: BytesLike,
-      _newSymbol: BytesLike,
+      _newName: string,
+      _newSymbol: string,
       _newDecimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

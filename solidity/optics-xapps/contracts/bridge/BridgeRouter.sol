@@ -31,10 +31,6 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
     /// message
     mapping(bytes32 => address) public liquidityProvider;
 
-    function initialize(address _xAppConnectionManager) public initializer {
-        TokenRegistry._initialize(_xAppConnectionManager);
-    }
-
     // ======== External: Handle =========
 
     /**

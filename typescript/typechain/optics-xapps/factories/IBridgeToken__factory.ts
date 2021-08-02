@@ -72,14 +72,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
+        internalType: "string",
         name: "_name",
-        type: "bytes32",
+        type: "string",
       },
       {
-        internalType: "bytes32",
+        internalType: "string",
         name: "_symbol",
-        type: "bytes32",
+        type: "string",
       },
       {
         internalType: "uint8",

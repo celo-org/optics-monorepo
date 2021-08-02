@@ -25,7 +25,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
-    "setDetails(bytes32,bytes32,uint8)": FunctionFragment;
+    "setDetails(string,string,uint8)": FunctionFragment;
     "symbol()": FunctionFragment;
   };
 
@@ -41,7 +41,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setDetails",
-    values: [BytesLike, BytesLike, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
 
@@ -120,8 +120,8 @@ export class IBridgeToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setDetails(
-      _name: BytesLike,
-      _symbol: BytesLike,
+      _name: string,
+      _symbol: string,
       _decimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -152,8 +152,8 @@ export class IBridgeToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setDetails(
-    _name: BytesLike,
-    _symbol: BytesLike,
+    _name: string,
+    _symbol: string,
     _decimals: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -180,8 +180,8 @@ export class IBridgeToken extends BaseContract {
     name(overrides?: CallOverrides): Promise<string>;
 
     setDetails(
-      _name: BytesLike,
-      _symbol: BytesLike,
+      _name: string,
+      _symbol: string,
       _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -213,8 +213,8 @@ export class IBridgeToken extends BaseContract {
     ): Promise<BigNumber>;
 
     setDetails(
-      _name: BytesLike,
-      _symbol: BytesLike,
+      _name: string,
+      _symbol: string,
       _decimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -246,8 +246,8 @@ export class IBridgeToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setDetails(
-      _name: BytesLike,
-      _symbol: BytesLike,
+      _name: string,
+      _symbol: string,
       _decimals: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
