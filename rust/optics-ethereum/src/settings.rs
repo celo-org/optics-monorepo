@@ -27,7 +27,7 @@ macro_rules! construct_box_contract {
 
             // First set the chain ID locally
             let provider_chain_id = provider.get_chainid().await?;
-            let signer = signer.set_chain_id(provider_chain_id.as_u64());
+            let signer = ethers::signers::Signer::with_chain_id(signer, provider_chain_id.as_u64());
 
             // Manage the nonce locally
             let address = ethers::prelude::Signer::address(&signer);

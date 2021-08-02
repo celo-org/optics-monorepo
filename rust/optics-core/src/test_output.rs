@@ -6,7 +6,7 @@ use crate::{
     utils::{destination_and_sequence, home_domain_hash},
     FailureNotification, OpticsMessage, Update,
 };
-use ethers::core::types::{H160, H256};
+use ethers::{signers::Signer, core::types::{H160, H256}};
 use hex::FromHex;
 
 use serde_json::{json, Value};

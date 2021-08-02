@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 ethers = { git = "https://github.com/gakonst/ethers-rs", branch = "master" }
+ethers-signers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", features=["aws"] }
 hex = "0.4.3"
 sha3 = "0.9.1"
 lazy_static = "*"
@@ -25,12 +26,6 @@ tokio = {version = "1.0.1", features = ["rt", "time"]}
 
 [features]
 output = []
-yubi = ["ethers/yubi"]
-ledger = ["ethers/ledger"]
-
-[[example]]
-name = "toy"
-path = "./bin/toy.rs"
 
 [[bin]]
 name = "proof_output"

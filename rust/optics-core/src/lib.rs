@@ -45,15 +45,10 @@ use ethers::{
         types::{Address, Signature, SignatureError, TransactionRequest, H256},
         utils::hash_message,
     },
-    signers::Signer,
+    prelude::AwsSigner,
+    signers::{AwsSignerError, LocalWallet, Signer},
     utils::keccak256,
 };
-
-use ethers::signers::LocalWallet;
-#[cfg(feature = "yubi")]
-use ethers::signers::YubiWallet;
-#[cfg(feature = "ledger")]
-use ethers::signers::{Ledger, LedgerError};
 
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
@@ -88,24 +83,14 @@ pub enum OpticsError {
 /// Error types for Signers
 #[derive(Debug, thiserror::Error)]
 pub enum SignersError {
-    /// Wallet<T> signers infallible
-    #[error(transparent)]
-    Infallible(Infallible),
-    /// Ledger error
-    #[cfg(feature = "ledger")]
-    Ledger(#[from] LedgerError),
+    /// AWS Signer Error
+    #[error("{0}")]
+    AwsSignerError(#[from] AwsSignerError),
 }
 
 impl From<Infallible> for SignersError {
-    fn from(error: Infallible) -> Self {
-        SignersError::Infallible(error)
-    }
-}
-
-#[cfg(feature = "ledger")]
-impl From<LedgerError> for SignersError {
-    fn from(error: LedgerError) -> Self {
-        SignersError::Infallible(error)
+    fn from(_error: Infallible) -> Self {
+        panic!("infallible")
     }
 }
 
@@ -114,44 +99,19 @@ impl From<LedgerError> for SignersError {
 pub enum Signers {
     /// A wallet instantiated with a locally stored private key
     Local(LocalWallet),
-    /// A wallet instantiated with a YubiHSM
-    #[cfg(feature = "yubi")]
-    Yubi(YubiWallet),
-    /// A wallet instantiated with a Ledger
-    #[cfg(feature = "ledger")]
-    Ledger(Ledger),
+    /// A signer using a key stored in aws kms
+    Aws(AwsSigner<'static>),
 }
 
 impl From<LocalWallet> for Signers {
-    fn from(local_wallet: LocalWallet) -> Self {
-        Signers::Local(local_wallet)
+    fn from(s: LocalWallet) -> Self {
+        Signers::Local(s)
     }
 }
 
-#[cfg(feature = "ledger")]
-impl From<Ledger> for Signers {
-    fn from(ledger_wallet: Ledger) -> Self {
-        Signers::Ledger(ledger_wallet)
-    }
-}
-
-#[cfg(feature = "yubi")]
-impl From<YubiWallet> for Signers {
-    fn from(yubi_wallet: YubiWallet) -> Self {
-        Signers::Yubi(yubi_wallet)
-    }
-}
-
-impl Signers {
-    /// Set chain_id of signer
-    pub fn set_chain_id<T: Into<u64>>(self, chain_id: T) -> Self {
-        match self {
-            Signers::Local(signer) => signer.set_chain_id(chain_id).into(),
-            #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => signer.set_chain_id(chain_id).into(),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.set_chain_id(chain_id).into(),
-        }
+impl From<AwsSigner<'static>> for Signers {
+    fn from(s: AwsSigner<'static>) -> Self {
+        Signers::Aws(s)
     }
 }
 
@@ -159,16 +119,20 @@ impl Signers {
 impl Signer for Signers {
     type Error = SignersError;
 
+    fn with_chain_id<T: Into<u64>>(self, chain_id: T) -> Self {
+        match self {
+            Signers::Local(signer) => signer.with_chain_id(chain_id).into(),
+            Signers::Aws(signer) => signer.with_chain_id(chain_id).into(),
+        }
+    }
+
     async fn sign_message<S: Send + Sync + AsRef<[u8]>>(
         &self,
         message: S,
     ) -> Result<Signature, Self::Error> {
         match self {
             Signers::Local(signer) => Ok(signer.sign_message(message).await?),
-            #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => Ok(signer.sign_message(message).await?),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => Ok(signer.sign_message(message).await?),
+            Signers::Aws(signer) => Ok(signer.sign_message(message).await?),
         }
     }
 
@@ -178,20 +142,22 @@ impl Signer for Signers {
     ) -> Result<Signature, Self::Error> {
         match self {
             Signers::Local(signer) => Ok(signer.sign_transaction(message).await?),
-            #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => Ok(signer.sign_transaction(message).await?),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => Ok(signer.sign_transaction(message).await?),
+
+            Signers::Aws(signer) => Ok(signer.sign_transaction(message).await?),
         }
     }
 
     fn address(&self) -> Address {
         match self {
             Signers::Local(signer) => signer.address(),
-            #[cfg(feature = "yubi")]
-            Signers::Yubi(signer) => signer.address(),
-            #[cfg(feature = "ledger")]
-            Signers::Ledger(signer) => signer.address(),
+            Signers::Aws(signer) => signer.address(),
+        }
+    }
+
+    fn chain_id(&self) -> u64 {
+        match self {
+            Signers::Local(signer) => signer.chain_id(),
+            Signers::Aws(signer) => signer.chain_id(),
         }
     }
 }

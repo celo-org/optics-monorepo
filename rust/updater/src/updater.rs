@@ -219,7 +219,7 @@ impl OpticsAgent for Updater {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.updater.try_into_signer()?,
+            settings.updater.try_into_signer().await?,
             settings.polling_interval.parse().expect("invalid uint"),
             settings.update_pause.parse().expect("invalid uint"),
             settings.as_ref().try_into_core().await?,

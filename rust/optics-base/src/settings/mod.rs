@@ -1,7 +1,10 @@
 use crate::{agent::AgentCore, db, home::Homes, replica::Replicas};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
+use ethers::prelude::AwsSigner;
 use optics_core::{utils::HexString, Signers};
+use rusoto_core::{credential::EnvironmentProvider, HttpClient};
+use rusoto_kms::KmsClient;
 use serde::Deserialize;
 use std::{collections::HashMap, env, sync::Arc};
 use tracing::instrument;
@@ -16,7 +19,10 @@ pub mod trace;
 
 use crate::settings::trace::TracingConfig;
 
-// TODO: figure out how to take inputs for Ledger and YubiWallet variants
+use once_cell::sync::OnceCell;
+
+static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
+
 /// Ethereum signer types
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -25,6 +31,14 @@ pub enum SignerConf {
     HexKey {
         /// Hex string of private key, without 0x prefix
         key: HexString<64>,
+    },
+    /// An AWS signer. Note that AWS credentials must be inserted into the env
+    /// separately.
+    Aws {
+        /// The UUID identifying the AWS KMS Key
+        key_id: String,
+        /// The AWS region
+        region: String,
     },
     #[serde(other)]
     /// Assume node will sign on RPC calls
@@ -40,9 +54,26 @@ impl Default for SignerConf {
 impl SignerConf {
     /// Try to convert the ethereum signer to a local wallet
     #[instrument(err)]
-    pub fn try_into_signer(&self) -> Result<Signers, Report> {
+    pub async fn try_into_signer(&self) -> Result<Signers, Report> {
         match self {
             SignerConf::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
+            SignerConf::Aws { key_id, region } => {
+                let client = rusoto_core::Client::new_with(
+                    EnvironmentProvider::default(),
+                    HttpClient::new().unwrap(),
+                );
+                if KMS_CLIENT
+                    .set(KmsClient::new_with_client(
+                        client,
+                        region.parse().expect("invalid region"),
+                    ))
+                    .is_err()
+                {
+                    panic!("couldn't set cell")
+                }
+                let signer = AwsSigner::new(KMS_CLIENT.get().unwrap(), key_id, 0).await?;
+                Ok(Signers::Aws(signer))
+            }
             SignerConf::Node => bail!("Node signer"),
         }
     }
@@ -89,8 +120,8 @@ pub struct Settings {
 
 impl Settings {
     /// Try to get a signer instance by name
-    pub fn get_signer(&self, name: &str) -> Option<Signers> {
-        self.signers.get(name)?.try_into_signer().ok()
+    pub async fn get_signer(&self, name: &str) -> Option<Signers> {
+        self.signers.get(name)?.try_into_signer().await.ok()
     }
 
     /// Try to get all replicas from this settings object
@@ -104,7 +135,7 @@ impl Settings {
                     v.name
                 );
             }
-            let signer = self.get_signer(&v.name);
+            let signer = self.get_signer(&v.name).await;
             result.insert(v.name.clone(), Arc::new(v.try_into_replica(signer).await?));
         }
         Ok(result)
@@ -112,7 +143,7 @@ impl Settings {
 
     /// Try to get a home object
     pub async fn try_home(&self) -> Result<Homes, Report> {
-        let signer = self.get_signer(&self.home.name);
+        let signer = self.get_signer(&self.home.name).await;
         self.home.try_into_home(signer).await
     }
 

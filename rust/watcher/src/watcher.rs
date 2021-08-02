@@ -325,19 +325,15 @@ impl OpticsAgent for Watcher {
     where
         Self: Sized,
     {
-        let connection_manager_futs: Vec<_> = settings
-            .connection_managers
-            .iter()
-            .map(|chain_setup| {
-                let signer = settings.base.get_signer(&chain_setup.name);
-                chain_setup.try_into_connection_manager(signer)
-            })
-            .collect();
+        let mut connection_managers = vec![];
+        for chain_setup in settings.connection_managers.iter() {
+            let signer = settings.base.get_signer(&chain_setup.name).await;
+            let manager = chain_setup.try_into_connection_manager(signer).await;
+            connection_managers.push(manager);
+        }
 
-        let (connection_managers, errors): (Vec<_>, Vec<_>) = join_all(connection_manager_futs)
-            .await
-            .into_iter()
-            .partition(Result::is_ok);
+        let (connection_managers, errors): (Vec<_>, Vec<_>) =
+            connection_managers.into_iter().partition(Result::is_ok);
 
         // Report any invalid ConnectionManager chain setups
         errors
@@ -352,7 +348,7 @@ impl OpticsAgent for Watcher {
         let core = settings.as_ref().try_into_core().await?;
 
         Ok(Self::new(
-            settings.watcher.try_into_signer()?,
+            settings.watcher.try_into_signer().await?,
             settings.polling_interval.parse().expect("invalid uint"),
             connection_managers,
             core,
@@ -437,7 +433,7 @@ mod test {
     use tokio::sync::mpsc;
 
     use ethers::core::types::H256;
-    use ethers::signers::LocalWallet;
+    use ethers::signers::{LocalWallet, Signer};
 
     use optics_base::{agent::AgentCore, replica::Replicas};
     use optics_core::{traits::DoubleUpdate, SignedFailureNotification, Update};
