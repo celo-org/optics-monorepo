@@ -218,12 +218,11 @@ impl OpticsAgent for Updater {
     where
         Self: Sized,
     {
-        Ok(Self::new(
-            settings.updater.try_into_signer().await?,
-            settings.polling_interval.parse().expect("invalid uint"),
-            settings.update_pause.parse().expect("invalid uint"),
-            settings.as_ref().try_into_core().await?,
-        ))
+        let signer = settings.updater.try_into_signer().await?;
+        let interval_seconds = settings.polling_interval.parse().expect("invalid uint");
+        let update_pause = settings.update_pause.parse().expect("invalid uint");
+        let core = settings.as_ref().try_into_core().await?;
+        Ok(Self::new(signer, interval_seconds, update_pause, core))
     }
 
     fn run(&self, _replica: &str) -> Instrumented<JoinHandle<Result<()>>> {
