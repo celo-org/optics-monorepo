@@ -56,7 +56,7 @@ fn format_message(
     buf.write_all(sender.as_ref()).unwrap();
     buf.write_all(&destination.to_be_bytes()).unwrap();
     buf.write_all(recipient.as_ref()).unwrap();
-    buf.write_all(&body).unwrap();
+    buf.write_all(body).unwrap();
     buf
 }
 

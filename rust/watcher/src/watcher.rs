@@ -284,7 +284,7 @@ impl Watcher {
             .core
             .replicas
             .values()
-            .map(|replica| replica.double_update(&double))
+            .map(|replica| replica.double_update(double))
             .collect();
         double_update_futs.push(self.core.home.double_update(double));
 

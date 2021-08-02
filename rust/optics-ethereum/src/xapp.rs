@@ -1,3 +1,5 @@
+#![allow(clippy::enum_variant_names)]
+
 use async_trait::async_trait;
 use ethers::contract::abigen;
 use ethers::core::types::Address;
