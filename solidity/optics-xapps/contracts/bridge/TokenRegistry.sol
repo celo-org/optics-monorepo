@@ -168,8 +168,8 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
             )
         );
 
+        // Allocate the memory for a new 32-byte string
         string memory _symbol = new string(32);
-
         assembly {
             mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
         }
