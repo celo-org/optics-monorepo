@@ -23,6 +23,27 @@ export function getNetworksFromDeploy(path: string): string[] {
 }
 
 /*
+ * Get path to *most recent* config folder
+ * of Bridge deploys for the
+ * most recent Optics core system deploy
+ * */
+export function getPathToLatestBridgeConfig() {
+  const configPath = getPathToLatestDeployConfig();
+  const bridgeConfigPath = `${configPath}/bridge`;
+  return getPathToLatestConfig(bridgeConfigPath);
+}
+
+/*
+* Get path to *most recent* config folder
+* of Optics core system deploys
+* */
+export function getPathToLatestDeployConfig() {
+  const configPath = '../../rust/config';
+  const ignoreFolders = ["default"];
+  return getPathToLatestConfig(configPath, ignoreFolders);
+}
+
+/*
  * @notice Return the path to the folder with the greatest name
  * within the folder at configPath,
  * (excluding any folders within ignoreFolders)
@@ -45,7 +66,7 @@ function getPathToLatestConfig(
 
   // if no non-default config folders are found, return
   if (configFolders.length == 0) {
-    throw new Error('No config folders found');
+    throw new Error(`No config folders found at ${configPath}`);
   }
 
   // get path to newest generated config folder
@@ -54,6 +75,20 @@ function getPathToLatestConfig(
     return a > b ? a : b;
   });
   return `${configPath}/${newestConfigFolder}`;
+}
+
+/*
+ * @notice
+ * Given a path to a contract deploy config,
+ * get the verification input file from that deploy
+ * for the given network
+ * Parse contents of file as JSON & return them
+ * Throw if the file is not found
+ * @param path relative path to deploy config folder ("../../rust/config/1625570709419")
+ * @param network target network to parse ("alfajores", "kovan")
+ * */
+export function getVerificationInputFromDeploy(path: any, network: any) {
+  return parseFileFromDeploy(path, network, "verification");
 }
 
 /*
