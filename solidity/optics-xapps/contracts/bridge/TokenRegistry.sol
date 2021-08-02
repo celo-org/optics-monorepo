@@ -3,6 +3,7 @@ pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
 import {BridgeMessage} from "./BridgeMessage.sol";
+import {Encoding} from "./Encoding.sol";
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {XAppConnectionClient} from "../XAppConnectionClient.sol";
 
@@ -149,6 +150,33 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         return address(new UpgradeBeaconProxy(tokenBeacon, ""));
     }
 
+    function _defaultDetails(bytes29 _tokenId)
+        internal
+        pure
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (string memory, string memory)
+    {
+        (uint256 _a, uint256 _b) = Encoding.encodeHex(uint256(_tokenId.id()));
+
+        string memory _name = string(
+            abi.encodePacked(
+                "optics.",
+                Encoding._encodeUint32(_tokenId.domain()),
+                ".0x",
+                _a,
+                _b
+            )
+        );
+
+        string memory _symbol = new string(32);
+
+        assembly {
+            mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
+        }
+
+        return (_name, _symbol);
+    }
+
     function _deployToken(bytes29 _tokenId)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
@@ -156,13 +184,16 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     {
         // Deploy the token contract by cloning tokenTemplate
         _token = _cloneTokenContract();
-        // Initial details are set to a hash of the ID
-        bytes32 _idHash = _tokenId.keccak();
-        IBridgeToken(_token).setDetails(_idHash, _idHash, 18);
+
+        string memory _name;
+        string memory _symbol;
+        (_name, _symbol) = _defaultDetails(_tokenId);
+
+        IBridgeToken(_token).setDetails(_name, _symbol, 18);
         // store token in mappings
         representationToCanonical[_token].domain = _tokenId.domain();
         representationToCanonical[_token].id = _tokenId.id();
-        canonicalToRepresentation[_idHash] = _token;
+        canonicalToRepresentation[_tokenId.keccak()] = _token;
         // emit event upon deploying new token
         emit TokenDeployed(_tokenId.domain(), _tokenId.id(), _token);
     }

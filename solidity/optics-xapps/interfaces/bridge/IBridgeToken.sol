@@ -13,8 +13,8 @@ interface IBridgeToken {
     function mint(address _to, uint256 _amnt) external;
 
     function setDetails(
-        bytes32 _name,
-        bytes32 _symbol,
+        string calldata _name,
+        string calldata _symbol,
         uint8 _decimals
     ) external;
 }

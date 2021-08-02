@@ -62,13 +62,13 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
      * @param _newDecimals The new decimals
      */
     function setDetails(
-        bytes32 _newName,
-        bytes32 _newSymbol,
+        string calldata _newName,
+        string calldata _newSymbol,
         uint8 _newDecimals
     ) external override onlyOwner {
         // careful with naming convention change here
-        token.name = TypeCasts.coerceString(_newName);
-        token.symbol = TypeCasts.coerceString(_newSymbol);
+        token.name = _newName;
+        token.symbol = _newSymbol;
         token.decimals = _newDecimals;
     }
 
