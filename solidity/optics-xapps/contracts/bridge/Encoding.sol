@@ -13,7 +13,6 @@ library Encoding {
         for (uint8 i = 0; i < 10; i += 1) {
             _encoded |= ((_num % 10) + ASCII_0) << (i * 8);
             _num = _num / 10;
-            i += 1;
         }
     }
 
@@ -22,7 +21,7 @@ library Encoding {
      * @param _b    The byte
      * @return      char - The encoded hex character
      */
-    function nibbleHex(uint8 _b) public pure returns (uint8 char) {
+    function nibbleHex(uint8 _b) internal pure returns (uint8 char) {
         // This can probably be done more efficiently, but it's only in error
         // paths, so we don't really care :)
         uint8 _nibble = _b | 0xf0; // set top 4, keep bottom 4
@@ -81,7 +80,7 @@ library Encoding {
      * @param _b    The byte
      * @return      encoded - The hex-encoded byte
      */
-    function byteHex(uint8 _b) public pure returns (uint16 encoded) {
+    function byteHex(uint8 _b) internal pure returns (uint16 encoded) {
         encoded |= nibbleHex(_b >> 4); // top 4 bits
         encoded <<= 8;
         encoded |= nibbleHex(_b); // lower 4 bits
@@ -96,7 +95,7 @@ library Encoding {
      * @return      second - The bottom 16 bytes
      */
     function encodeHex(uint256 _b)
-        public
+        internal
         pure
         returns (uint256 first, uint256 second)
     {
