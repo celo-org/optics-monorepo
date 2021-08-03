@@ -25,6 +25,7 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
+    "getCanonicalAddress(address)": FunctionFragment;
     "getLocalAddress(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
@@ -57,6 +58,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "enrollRemoteRouter",
     values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCanonicalAddress",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getLocalAddress",
@@ -124,6 +129,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "enrollRemoteRouter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCanonicalAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -237,9 +246,20 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string]>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string] & { _representation: string }>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<[string] & { _representation: string }>;
 
@@ -325,9 +345,20 @@ export class TestFastLiquidity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getLocalAddress(
+  getCanonicalAddress(
+    _local: string,
+    overrides?: CallOverrides
+  ): Promise<[number, string]>;
+
+  "getLocalAddress(uint32,bytes32)"(
     _domain: BigNumberish,
     _id: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getLocalAddress(uint32,address)"(
+    _domain: BigNumberish,
+    _id: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -413,9 +444,20 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string]>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -514,9 +556,20 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -607,9 +660,20 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

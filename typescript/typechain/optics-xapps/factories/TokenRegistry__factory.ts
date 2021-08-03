@@ -73,6 +73,30 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_local",
+        type: "address",
+      },
+    ],
+    name: "getCanonicalAddress",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint32",
         name: "_domain",
         type: "uint32",
@@ -81,6 +105,30 @@ const _abi = [
         internalType: "bytes32",
         name: "_id",
         type: "bytes32",
+      },
+    ],
+    name: "getLocalAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "_representation",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "_domain",
+        type: "uint32",
+      },
+      {
+        internalType: "address",
+        name: "_id",
+        type: "address",
       },
     ],
     name: "getLocalAddress",

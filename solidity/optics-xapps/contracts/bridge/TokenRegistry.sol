@@ -100,11 +100,42 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
      * @param _id the identifier of the canonical version in its domain.
      */
     function getLocalAddress(uint32 _domain, bytes32 _id)
-        external
+        public
         view
         returns (address _representation)
     {
         return _getTokenAddress(BridgeMessage.formatTokenId(_domain, _id));
+    }
+
+    /**
+     * @notice Looks up the local address corresponding to a domain/id pair.
+     * @dev If the token is local, it will return the local address.
+     *      If the token is non-local and no local representation exists, this
+     *      will return `address(0)`.
+     * @param _domain the domain of the canonical version.
+     * @param _id the identifier of the canonical version in its domain.
+     */
+    function getLocalAddress(uint32 _domain, address _id)
+        external
+        view
+        returns (address _representation)
+    {
+        return getLocalAddress(_domain, TypeCasts.addressToBytes32(_id));
+    }
+
+    /**
+     * @notice Looks up the canonical identifier for a local representation.
+     * @dev If no such canonical ID is known, this instead returns
+     *      (0, bytes32(0)).
+     * @param _local The local address of the representation
+     */
+    function getCanonicalAddress(address _local)
+        external
+        view
+        returns (uint32, bytes32)
+    {
+        TokenId memory _canonical = representationToCanonical[_local];
+        return (_canonical.domain, _canonical.id);
     }
 
     function _cloneTokenContract() internal returns (address result) {

@@ -22,6 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface TokenRegistryInterface extends ethers.utils.Interface {
   functions: {
     "canonicalToRepresentation(bytes32)": FunctionFragment;
+    "getCanonicalAddress(address)": FunctionFragment;
     "getLocalAddress(uint32,bytes32)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -36,6 +37,10 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCanonicalAddress",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getLocalAddress",
@@ -73,6 +78,10 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCanonicalAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -164,9 +173,20 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string]>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string] & { _representation: string }>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<[string] & { _representation: string }>;
 
@@ -207,9 +227,20 @@ export class TokenRegistry extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getLocalAddress(
+  getCanonicalAddress(
+    _local: string,
+    overrides?: CallOverrides
+  ): Promise<[number, string]>;
+
+  "getLocalAddress(uint32,bytes32)"(
     _domain: BigNumberish,
     _id: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getLocalAddress(uint32,address)"(
+    _domain: BigNumberish,
+    _id: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -250,9 +281,20 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<[number, string]>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -311,9 +353,20 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -355,9 +408,20 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getLocalAddress(
+    getCanonicalAddress(
+      _local: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getLocalAddress(uint32,address)"(
+      _domain: BigNumberish,
+      _id: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
