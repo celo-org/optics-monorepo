@@ -25,6 +25,7 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
+    "getLocalAddress(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
     "liquidityProvider(bytes32)": FunctionFragment;
@@ -55,6 +56,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "enrollRemoteRouter",
+    values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLocalAddress",
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
@@ -119,6 +124,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "enrollRemoteRouter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLocalAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
@@ -228,6 +237,12 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getLocalAddress(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string] & { _representation: string }>;
+
     handle(
       _origin: BigNumberish,
       _sender: BytesLike,
@@ -310,6 +325,12 @@ export class TestFastLiquidity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getLocalAddress(
+    _domain: BigNumberish,
+    _id: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   handle(
     _origin: BigNumberish,
     _sender: BytesLike,
@@ -391,6 +412,12 @@ export class TestFastLiquidity extends BaseContract {
       _router: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getLocalAddress(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     handle(
       _origin: BigNumberish,
@@ -487,6 +514,12 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getLocalAddress(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     handle(
       _origin: BigNumberish,
       _sender: BytesLike,
@@ -572,6 +605,12 @@ export class TestFastLiquidity extends BaseContract {
       _domain: BigNumberish,
       _router: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getLocalAddress(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     handle(

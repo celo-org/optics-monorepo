@@ -91,6 +91,22 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
 
     // ============ Internal Functions ============
 
+    /**
+     * @notice Looks up the local address corresponding to a domain/id pair.
+     * @dev If the token is local, it will return the local address.
+     *      If the token is non-local and no local representation exists, this
+     *      will return `address(0)`.
+     * @param _domain the domain of the canonical version.
+     * @param _id the identifier of the canonical version in its domain.
+     */
+    function getLocalAddress(uint32 _domain, bytes32 _id)
+        external
+        view
+        returns (address _representation)
+    {
+        return _getTokenAddress(BridgeMessage.formatTokenId(_domain, _id));
+    }
+
     function _cloneTokenContract() internal returns (address result) {
         return address(new UpgradeBeaconProxy(tokenBeacon, ""));
     }
