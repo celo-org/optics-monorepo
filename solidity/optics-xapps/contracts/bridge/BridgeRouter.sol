@@ -251,7 +251,8 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         typeAssert(_action, BridgeMessage.Types.Details)
     {
         // get the token contract deployed on this chain
-        IERC20 _token = _ensureToken(_tokenId);
+        // revert otherwise
+        IERC20 _token = _mustHaveToken(_tokenId);
         // require that the token is of remote origin
         // (otherwise, the BridgeRouter did not deploy the token contract,
         // and therefore cannot update its metadata)
