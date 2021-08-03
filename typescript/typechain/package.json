@@ -10,10 +10,5 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0"
-  },
-  "scripts": {
-    "clean": "hardhat clean",
-    "verify-core": "hardhat --network kovan verify-latest-deploy --type core",
-    "verify-bridge": "hardhat --network kovan verify-latest-deploy --type bridge --show-stack-traces"
   }
 }

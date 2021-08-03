@@ -30,7 +30,10 @@
     "coverage": "npm run compile && hardhat coverage",
     "test": "npm run compile",
     "lint": "solhint contracts/*.sol",
-    "lint:fix": "solhint --fix contracts/*.sol"
+    "lint:fix": "solhint --fix contracts/*.sol",
+    "clean": "hardhat clean",
+    "deploy-bridge": "npm run compile && cd ../../typescript/optics-deploy && npm run deploy-bridge",
+    "verify-bridge": "hardhat --network kovan verify-latest-deploy --show-stack-traces"
   },
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
