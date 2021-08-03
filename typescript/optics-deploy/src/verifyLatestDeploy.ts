@@ -3,7 +3,6 @@ const {
   getPathToLatestBridgeConfig,
   getVerificationInputFromDeploy,
 } = require('./readDeployOutput.ts');
-const hre = require('hardhat');
 
 const envError = (network: string) =>
     `pass --network tag to hardhat task (current network=${network})`;
@@ -25,9 +24,9 @@ function etherscanLink(network: string, address: string) {
   * for the network that hardhat is configured to
   * and attempt to verify those contracts' source code on Etherscan
   * */
-export async function verifyLatestBridgeDeploy() {
+export async function verifyLatestBridgeDeploy(hre: any) {
   const path = getPathToLatestBridgeConfig();
-  return verifyDeploy(path);
+  return verifyDeploy(path, hre);
 }
 
 /*
@@ -36,9 +35,9 @@ export async function verifyLatestBridgeDeploy() {
   * for the network that hardhat is configured to
   * and attempt to verify those contracts' source code on Etherscan
   * */
-export async function verifyLatestCoreDeploy() {
+export async function verifyLatestCoreDeploy(hre: any) {
   const path = getPathToLatestDeployConfig();
-  return verifyDeploy(path);
+  return verifyDeploy(path, hre);
 }
 
 /*
@@ -47,7 +46,7 @@ export async function verifyLatestCoreDeploy() {
   * for the network that hardhat is configured to
   * and attempt to verify those contracts' source code on Etherscan
   * */
-async function verifyDeploy(path: string) {
+async function verifyDeploy(path: string, hre: any) {
   const network = hre.network.name;
 
   // assert that network from .env is supported by Etherscan
@@ -64,7 +63,7 @@ async function verifyDeploy(path: string) {
   for (let verificationInput of verificationInputs) {
     // attempt to verify contract on etherscan
     // (await one-by-one so that Etherscan doesn't rate limit)
-    await verifyContract(network, verificationInput);
+    await verifyContract(network, verificationInput, hre);
   }
 }
 
@@ -72,7 +71,7 @@ async function verifyDeploy(path: string) {
   * Given one contract verification input,
   * attempt to verify the contracts' source code on Etherscan
   * */
-async function verifyContract(network: string, verificationInput: any) {
+async function verifyContract(network: string, verificationInput: any, hre: any) {
   const { name, address, constructorArguments } = verificationInput;
   try {
     console.log(

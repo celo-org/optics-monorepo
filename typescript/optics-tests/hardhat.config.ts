@@ -8,12 +8,12 @@ dotenv.config();
 
 task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
   .addParam("type", "The deploy type (`core` or `bridge`)")
-  .setAction(async (args: any) => {
+  .setAction(async (args: any, hre: any) => {
     const {type} = args;
     if(type == "core") {
-      await verifyLatestCoreDeploy();
+      await verifyLatestCoreDeploy(hre);
     } else if (type == "bridge") {
-      await verifyLatestBridgeDeploy();
+      await verifyLatestBridgeDeploy(hre);
     }
   });
 
@@ -22,7 +22,7 @@ task("verify-latest-deploy", "Verifies the source code of the latest contract de
  */
 module.exports = {
   solidity: {
-    version: "0.7.3",
+    version: "0.7.6",
     settings: {
       optimizer: {
         enabled: true,
