@@ -71,16 +71,15 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         bytes32 _id = _preFillId(_tokenId, _action);
 
         require(liquidityProvider[_id] == address(0), "!unfilled");
+        require(_action.isTransfer(), "!transfer");
 
-        if (_action.isTransfer()) {
-            liquidityProvider[_id] = msg.sender;
-            IERC20 _token = _mustHaveToken(_tokenId);
-            _token.safeTransferFrom(
-                msg.sender,
-                _action.evmRecipient(),
-                _applyPreFillFee(_action.amnt())
-            );
-        }
+        liquidityProvider[_id] = msg.sender;
+        IERC20 _token = _mustHaveToken(_tokenId);
+        _token.safeTransferFrom(
+            msg.sender,
+            _action.evmRecipient(),
+            _applyPreFillFee(_action.amnt())
+        );
     }
 
     // ======== External: Handle =========
