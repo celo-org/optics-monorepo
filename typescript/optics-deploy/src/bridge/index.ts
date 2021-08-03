@@ -57,7 +57,10 @@ async function deployBridgeRouter(deploy: BridgeDeploy) {
   let initData =
     xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
       'initialize',
-      [deploy.coreContractAddresses.xappConnectionManager],
+      [
+        deploy.coreContractAddresses.upgradeBeaconController,
+        deploy.coreContractAddresses.xappConnectionManager,
+      ],
     );
 
   deploy.contracts.bridgeRouter =

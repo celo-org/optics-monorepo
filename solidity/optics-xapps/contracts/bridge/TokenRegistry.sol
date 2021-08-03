@@ -6,8 +6,11 @@ import {BridgeMessage} from "./BridgeMessage.sol";
 import {BridgeToken} from "./BridgeToken.sol";
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {XAppConnectionClient} from "../XAppConnectionClient.sol";
+
 // ============ External Imports ============
 import {XAppConnectionManager, TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
+import {UpgradeBeacon} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeacon.sol";
+import {UpgradeBeaconProxy} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeaconProxy.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
@@ -52,6 +55,10 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     // new representation token contracts
     address internal tokenTemplate;
 
+    /// @dev The UpgradeBeacon that new tokens proxies will read implementation
+    /// from
+    address internal beacon;
+
     // local representation token address => token ID
     mapping(address => TokenId) public representationToCanonical;
 
@@ -61,12 +68,21 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
 
     // ======== Initializer =========
 
-    function _initialize(address _xAppConnectionManager)
-        internal
-        override
+    /**
+     * @notice Initialize the TokenRegistry with UpgradeBeaconController and
+     *          XappConnectionManager.
+     * @dev This method deploys two new contracts, and may be expensive to call.
+     * @param _ubc The address of the UpgradeBeaconController that will control
+     *             the token implementation.
+     * @param _xAppConnectionManager The address of the XappConnectionManager
+     *        that will manage Optics channel connectoins
+     */
+    function initialize(address _ubc, address _xAppConnectionManager)
+        public
         initializer
     {
         tokenTemplate = address(new BridgeToken());
+        beacon = address(new UpgradeBeacon(tokenTemplate, _ubc));
         XAppConnectionClient._initialize(_xAppConnectionManager);
     }
 
@@ -80,21 +96,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     }
 
     function _cloneTokenContract() internal returns (address result) {
-        bytes20 targetBytes = bytes20(tokenTemplate);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let _clone := mload(0x40)
-            mstore(
-                _clone,
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
-            mstore(add(_clone, 0x14), targetBytes)
-            mstore(
-                add(_clone, 0x28),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
-            result := create(0, _clone, 0x37)
-        }
+        return address(new UpgradeBeaconProxy(beacon, ""));
     }
 
     function _deployToken(bytes29 _tokenId)

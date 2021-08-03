@@ -35,11 +35,6 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         return (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
     }
 
-    // ======== Initializer =========
-    function initialize(address _xAppConnectionManager) public initializer {
-        TokenRegistry._initialize(_xAppConnectionManager);
-    }
-
     // ======== Fast Liquidity System =========
 
     /// @dev used to identify a token/transfer pair in the prefill LP mapping.
@@ -59,6 +54,24 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         return TypedMemView.joinKeccak(_views);
     }
 
+    function _prefill(bytes29 _tokenId, bytes29 _action)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        typeAssert(_action, BridgeMessage.Types.Transfer)
+    {
+        bytes32 _id = _preFillId(_tokenId, _action);
+
+        require(liquidityProvider[_id] == address(0), "!unfilled");
+
+        liquidityProvider[_id] = msg.sender;
+        IERC20 _token = _mustHaveToken(_tokenId);
+        _token.safeTransferFrom(
+            msg.sender,
+            _action.evmRecipient(),
+            _applyPreFillFee(_action.amnt())
+        );
+    }
+
     /// @notice Allows a liquidity provider to pre-fill an incoming transfer
     /// message. The liquidity provider provides the message in advance, and
     /// the user receives the amount, less the LP's fee immediately.
@@ -68,18 +81,7 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         bytes29 _tokenId = _msg.tokenId();
         bytes29 _action = _msg.action();
 
-        bytes32 _id = _preFillId(_tokenId, _action);
-
-        require(liquidityProvider[_id] == address(0), "!unfilled");
-        require(_action.isTransfer(), "!transfer");
-
-        liquidityProvider[_id] = msg.sender;
-        IERC20 _token = _mustHaveToken(_tokenId);
-        _token.safeTransferFrom(
-            msg.sender,
-            _action.evmRecipient(),
-            _applyPreFillFee(_action.amnt())
-        );
+        _prefill(_tokenId, _action);
     }
 
     // ======== External: Handle =========
