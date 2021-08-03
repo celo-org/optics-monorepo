@@ -21,16 +21,20 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface BridgeTokenInterface extends ethers.utils.Interface {
   functions: {
+    "_PERMIT_TYPEHASH()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
+    "domainSeparator()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
+    "nonces(address)": FunctionFragment;
     "owner()": FunctionFragment;
+    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setDetails(bytes32,bytes32,uint8)": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -40,6 +44,10 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_PERMIT_TYPEHASH",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [string, string]
@@ -59,6 +67,10 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "domainSeparator",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
   ): string;
@@ -67,7 +79,20 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "nonces", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "permit",
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
+    ]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -94,6 +119,10 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "_PERMIT_TYPEHASH",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -104,12 +133,18 @@ interface BridgeTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "domainSeparator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -185,6 +220,8 @@ export class BridgeToken extends BaseContract {
   interface: BridgeTokenInterface;
 
   functions: {
+    _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<[string]>;
+
     allowance(
       _owner: string,
       _spender: string,
@@ -216,6 +253,8 @@ export class BridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    domainSeparator(overrides?: CallOverrides): Promise<[string]>;
+
     increaseAllowance(
       _spender: string,
       _addedValue: BigNumberish,
@@ -230,7 +269,20 @@ export class BridgeToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
+    nonces(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    permit(
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -266,6 +318,8 @@ export class BridgeToken extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
+
   allowance(
     _owner: string,
     _spender: string,
@@ -294,6 +348,8 @@ export class BridgeToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  domainSeparator(overrides?: CallOverrides): Promise<string>;
+
   increaseAllowance(
     _spender: string,
     _addedValue: BigNumberish,
@@ -308,7 +364,20 @@ export class BridgeToken extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
+  nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   owner(overrides?: CallOverrides): Promise<string>;
+
+  permit(
+    owner: string,
+    spender: string,
+    value: BigNumberish,
+    deadline: BigNumberish,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -344,6 +413,8 @@ export class BridgeToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
+
     allowance(
       _owner: string,
       _spender: string,
@@ -372,6 +443,8 @@ export class BridgeToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    domainSeparator(overrides?: CallOverrides): Promise<string>;
+
     increaseAllowance(
       _spender: string,
       _addedValue: BigNumberish,
@@ -386,7 +459,20 @@ export class BridgeToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<string>;
 
+    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<string>;
+
+    permit(
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -449,6 +535,8 @@ export class BridgeToken extends BaseContract {
   };
 
   estimateGas: {
+    _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowance(
       _owner: string,
       _spender: string,
@@ -477,6 +565,8 @@ export class BridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    domainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
+
     increaseAllowance(
       _spender: string,
       _addedValue: BigNumberish,
@@ -491,7 +581,20 @@ export class BridgeToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    permit(
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -528,6 +631,8 @@ export class BridgeToken extends BaseContract {
   };
 
   populateTransaction: {
+    _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     allowance(
       _owner: string,
       _spender: string,
@@ -559,6 +664,8 @@ export class BridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    domainSeparator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     increaseAllowance(
       _spender: string,
       _addedValue: BigNumberish,
@@ -573,7 +680,23 @@ export class BridgeToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    nonces(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    permit(
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
