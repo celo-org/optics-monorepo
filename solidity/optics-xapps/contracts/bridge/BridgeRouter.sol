@@ -43,9 +43,11 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
     // ======== Fast Liquidity System =========
 
     /// @dev used to identify a token/transfer pair in the prefill LP mapping.
-    /// This approach has a weakness: a user can send 2 identical messages, but
-    /// only 1 will be eligible for fast liquidity. The other may only be
-    /// filled at regular speed. This seems fine, tbqh.
+    /// This approach has a weakness: a user can receive >1 batch of tokens of
+    /// the same size, but only 1 will be eligible for fast liquidity. The
+    /// other may only be filled at regular speed. This is because the messages
+    /// will have identical `tokenId` and `action` fields. This seems fine,
+    /// tbqh. A delay of a few hours on a corner case is acceptable in v1
     function _preFillId(bytes29 _tokenId, bytes29 _action)
         internal
         view
