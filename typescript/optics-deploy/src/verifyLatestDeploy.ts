@@ -2,7 +2,8 @@ const {
   getPathToLatestDeployConfig,
   getPathToLatestBridgeConfig,
   getVerificationInputFromDeploy,
-} = require('./readDeployOutput');
+} = require('./readDeployOutput.ts');
+const hre = require('hardhat');
 
 const envError = (network: string) =>
     `pass --network tag to hardhat task (current network=${network})`;

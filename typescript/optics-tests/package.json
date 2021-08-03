@@ -29,7 +29,7 @@
     "prettier": "prettier --write ./test ./lib",
     "test": "hardhat test",
     "verify-core": "hardhat --network kovan verify-latest-deploy --type core",
-    "verify-bridge": "hardhat --network kovan verify-latest-deploy --type bridge"
+    "verify-bridge": "hardhat --network kovan verify-latest-deploy --type bridge --show-stack-traces"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"

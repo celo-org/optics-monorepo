@@ -7,23 +7,44 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
-    .addParam("type", "The deploy type (`core` or `bridge`)")
-    .setAction(async (args: any) => {
-      const {type} = args;
-      if(type == "core") {
-        await verifyLatestCoreDeploy();
-      } else if (type == "bridge") {
-        await verifyLatestBridgeDeploy();
-      }
-    });
+  .addParam("type", "The deploy type (`core` or `bridge`)")
+  .setAction(async (args: any) => {
+    const {type} = args;
+    if(type == "core") {
+      await verifyLatestCoreDeploy();
+    } else if (type == "bridge") {
+      await verifyLatestBridgeDeploy();
+    }
+  });
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: '0.7.3',
+  solidity: {
+    version: "0.7.3",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 999999,
+      },
+    },
+  },
+
+  networks: {
+    localhost: {
+      url: "http://localhost:8545",
+    },
+    goerli: {
+      url: "https://goerli.infura.io/v3/5c456d7844fa40a683e934df60534c60",
+    },
+    kovan: {
+      url: "https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60",
+    },
+    // TODO: add Ropsten, Rinkeby, Mainnet
+  },
 
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
-  }
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
 };
