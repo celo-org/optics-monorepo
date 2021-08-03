@@ -37,11 +37,7 @@ export class CoreContracts extends Contracts {
   toObject(): Object {
     const replicas: Record<string, ProxyAddresses> = {};
     Object.entries(this.replicas).forEach(([k, v]) => {
-      replicas[k] = {
-        implementation: v.implementation.address,
-        proxy: v.proxy.address,
-        beacon: v.beacon.address,
-      };
+      replicas[k] = v.toObject();
     });
 
     return {

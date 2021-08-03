@@ -14,7 +14,7 @@ export class BeaconProxy<T extends ethers.Contract> {
     this.beacon = beacon;
   }
 
-  toObject(): Object {
+  toObject(): ProxyAddresses {
     return {
       implementation: this.implementation.address,
       proxy: this.proxy.address,
