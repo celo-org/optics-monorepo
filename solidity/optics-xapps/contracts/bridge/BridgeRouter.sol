@@ -54,7 +54,7 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         return TypedMemView.joinKeccak(_views);
     }
 
-    function _prefill(bytes29 _tokenId, bytes29 _action)
+    function _preFill(bytes29 _tokenId, bytes29 _action)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_action, BridgeMessage.Types.Transfer)
@@ -79,9 +79,9 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         // parse tokenId and action from message
         bytes29 _msg = _message.ref(0).mustBeMessage();
         bytes29 _tokenId = _msg.tokenId();
-        bytes29 _action = _msg.action();
+        bytes29 _action = _msg.action().mustBeTransfer();
 
-        _prefill(_tokenId, _action);
+        _preFill(_tokenId, _action);
     }
 
     // ======== External: Handle =========

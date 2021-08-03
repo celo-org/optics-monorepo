@@ -51,13 +51,9 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         address indexed representation
     );
 
-    // Contract bytecode that will be cloned to deploy
-    // new representation token contracts
-    address internal tokenTemplate;
-
     /// @dev The UpgradeBeacon that new tokens proxies will read implementation
     /// from
-    address internal beacon;
+    address public beacon;
 
     // local representation token address => token ID
     mapping(address => TokenId) public representationToCanonical;
@@ -72,27 +68,20 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
      * @notice Initialize the TokenRegistry with UpgradeBeaconController and
      *          XappConnectionManager.
      * @dev This method deploys two new contracts, and may be expensive to call.
-     * @param _ubc The address of the UpgradeBeaconController that will control
-     *             the token implementation.
      * @param _xAppConnectionManager The address of the XappConnectionManager
      *        that will manage Optics channel connectoins
      */
-    function initialize(address _ubc, address _xAppConnectionManager)
+    function initialize(address _beacon, address _xAppConnectionManager)
         public
         initializer
     {
-        tokenTemplate = address(new BridgeToken());
-        beacon = address(new UpgradeBeacon(tokenTemplate, _ubc));
+        beacon = _beacon;
         XAppConnectionClient._initialize(_xAppConnectionManager);
     }
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
-    }
-
-    function setTemplate(address _newTemplate) external onlyOwner {
-        tokenTemplate = _newTemplate;
     }
 
     function _cloneTokenContract() internal returns (address result) {

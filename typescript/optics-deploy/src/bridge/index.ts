@@ -10,6 +10,18 @@ export type BridgeDeployOutput = {
   bridgeRouter?: string;
 };
 
+export async function deployTokenProxys(deploys: BridgeDeploy[]) {
+  await Promise.all(
+    deploys.map(async (deploy) => {
+      deploy.contracts.bridgeToken = await proxyUtils.deployProxy(
+        deploy,
+        new xAppContracts.BridgeToken__factory(deploy.chain.deployer),
+        '',
+      );
+    }),
+  );
+}
+
 /**
  * Deploy and configure a cross-chain token bridge system
  * with one BridgeRouter on each of the provided chains
@@ -19,26 +31,26 @@ export type BridgeDeployOutput = {
  */
 export async function deployBridges(deploys: BridgeDeploy[]) {
   // deploy BridgeRouters
-  const deployPromises: Promise<void>[] = [];
-  for (let deploy of deploys) {
-    deployPromises.push(deployBridgeRouter(deploy));
-  }
-  await Promise.all(deployPromises);
+  await Promise.all(
+    deploys.map(async (deploy) => {
+      await deployBridgeRouter(deploy);
+    }),
+  );
 
   // enroll peer BridgeRouters with each other
-  const enrollPromises: Promise<void>[] = [];
-  for (let deploy of deploys) {
-    enrollPromises.push(enrollAllBridgeRouters(deploy, deploys));
-  }
-  await Promise.all(enrollPromises);
+  await Promise.all(
+    deploys.map(async (deploy) => {
+      await enrollAllBridgeRouters(deploy, deploys);
+    }),
+  );
 
   // after finishing enrolling,
   // transfer ownership of BridgeRouters to Governance
-  const transferPromises: Promise<void>[] = [];
-  for (let deploy of deploys) {
-    transferPromises.push(transferOwnershipToGovernance(deploy));
-  }
-  await Promise.all(transferPromises);
+  await Promise.all(
+    deploys.map(async (deploy) => {
+      await transferOwnershipToGovernance(deploy);
+    }),
+  );
 
   // output the Bridge deploy information to a subdirectory
   // of the core system deploy config folder
@@ -58,7 +70,7 @@ async function deployBridgeRouter(deploy: BridgeDeploy) {
     xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
       'initialize',
       [
-        deploy.coreContractAddresses.upgradeBeaconController,
+        deploy.contracts.bridgeToken!.beacon.address,
         deploy.coreContractAddresses.xappConnectionManager,
       ],
     );

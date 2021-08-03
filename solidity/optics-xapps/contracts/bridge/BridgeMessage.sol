@@ -274,18 +274,9 @@ library BridgeMessage {
     {
         if (_view.len() == TOKEN_ID_LEN + DETAILS_LEN) {
             return
-                _view.slice(
-                    TOKEN_ID_LEN,
-                    TOKEN_ID_LEN + DETAILS_LEN,
-                    uint40(Types.Details)
-                );
+                _view.slice(TOKEN_ID_LEN, DETAILS_LEN, uint40(Types.Details));
         }
-        return
-            _view.slice(
-                TOKEN_ID_LEN,
-                TOKEN_ID_LEN + TRANSFER_LEN,
-                uint40(Types.Transfer)
-            );
+        return _view.slice(TOKEN_ID_LEN, TRANSFER_LEN, uint40(Types.Transfer));
     }
 
     /**
