@@ -35,11 +35,6 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         return (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
     }
 
-    // ======== Initializer =========
-    function initialize(address _xAppConnectionManager) public initializer {
-        TokenRegistry._initialize(_xAppConnectionManager);
-    }
-
     // ======== Fast Liquidity System =========
 
     /// @dev used to identify a token/transfer pair in the prefill LP mapping.
@@ -59,19 +54,14 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
         return TypedMemView.joinKeccak(_views);
     }
 
-    /// @notice Allows a liquidity provider to pre-fill an incoming transfer
-    /// message. The liquidity provider provides the message in advance, and
-    /// the user receives the amount, less the LP's fee immediately.
-    function preFill(bytes calldata _message) external {
-        // parse tokenId and action from message
-        bytes29 _msg = _message.ref(0).mustBeMessage();
-        bytes29 _tokenId = _msg.tokenId();
-        bytes29 _action = _msg.action();
-
+    function _preFill(bytes29 _tokenId, bytes29 _action)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        typeAssert(_action, BridgeMessage.Types.Transfer)
+    {
         bytes32 _id = _preFillId(_tokenId, _action);
 
         require(liquidityProvider[_id] == address(0), "!unfilled");
-        require(_action.isTransfer(), "!transfer");
 
         liquidityProvider[_id] = msg.sender;
         IERC20 _token = _mustHaveToken(_tokenId);
@@ -80,6 +70,18 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
             _action.evmRecipient(),
             _applyPreFillFee(_action.amnt())
         );
+    }
+
+    /// @notice Allows a liquidity provider to pre-fill an incoming transfer
+    /// message. The liquidity provider provides the message in advance, and
+    /// the user receives the amount, less the LP's fee immediately.
+    function preFill(bytes calldata _message) external {
+        // parse tokenId and action from message
+        bytes29 _msg = _message.ref(0).mustBeMessage();
+        bytes29 _tokenId = _msg.tokenId();
+        bytes29 _action = _msg.action().mustBeTransfer();
+
+        _preFill(_tokenId, _action);
     }
 
     // ======== External: Handle =========

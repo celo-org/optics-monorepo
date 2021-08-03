@@ -52,6 +52,19 @@ const _abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "beacon",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "bytes32",
@@ -68,6 +81,24 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_beacon",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_xAppConnectionManager",
+        type: "address",
+      },
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -112,19 +143,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_newTemplate",
-        type: "address",
-      },
-    ],
-    name: "setTemplate",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {

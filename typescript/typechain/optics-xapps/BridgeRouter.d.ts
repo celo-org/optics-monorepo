@@ -23,17 +23,17 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   functions: {
     "PRE_FILL_FEE_DENOMINATOR()": FunctionFragment;
     "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
+    "beacon()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
-    "initialize(address)": FunctionFragment;
+    "initialize(address,address)": FunctionFragment;
     "liquidityProvider(bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
     "preFill(bytes)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
     "send(address,uint256,uint32,bytes32)": FunctionFragment;
-    "setTemplate(address)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "updateDetails(address,uint32)": FunctionFragment;
@@ -48,6 +48,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "beacon", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
@@ -60,7 +61,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "liquidityProvider",
     values: [BytesLike]
@@ -79,7 +83,6 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "send",
     values: [string, BigNumberish, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "setTemplate", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setXAppConnectionManager",
     values: [string]
@@ -105,6 +108,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "beacon", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
@@ -130,10 +134,6 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setTemplate",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "setXAppConnectionManager",
     data: BytesLike
@@ -208,6 +208,8 @@ export class BridgeRouter extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    beacon(overrides?: CallOverrides): Promise<[string]>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -227,6 +229,7 @@ export class BridgeRouter extends BaseContract {
     ): Promise<ContractTransaction>;
 
     initialize(
+      _beacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -260,11 +263,6 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setTemplate(
-      _newTemplate: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setXAppConnectionManager(
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -288,6 +286,8 @@ export class BridgeRouter extends BaseContract {
 
   PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
+  beacon(overrides?: CallOverrides): Promise<string>;
+
   canonicalToRepresentation(
     arg0: BytesLike,
     overrides?: CallOverrides
@@ -307,6 +307,7 @@ export class BridgeRouter extends BaseContract {
   ): Promise<ContractTransaction>;
 
   initialize(
+    _beacon: string,
     _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -340,11 +341,6 @@ export class BridgeRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setTemplate(
-    _newTemplate: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setXAppConnectionManager(
     _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -368,6 +364,8 @@ export class BridgeRouter extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
+    beacon(overrides?: CallOverrides): Promise<string>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -387,6 +385,7 @@ export class BridgeRouter extends BaseContract {
     ): Promise<void>;
 
     initialize(
+      _beacon: string,
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -414,8 +413,6 @@ export class BridgeRouter extends BaseContract {
       _recipient: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    setTemplate(_newTemplate: string, overrides?: CallOverrides): Promise<void>;
 
     setXAppConnectionManager(
       _xAppConnectionManager: string,
@@ -460,6 +457,8 @@ export class BridgeRouter extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
+    beacon(overrides?: CallOverrides): Promise<BigNumber>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -479,6 +478,7 @@ export class BridgeRouter extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
+      _beacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -512,11 +512,6 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setTemplate(
-      _newTemplate: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setXAppConnectionManager(
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -545,6 +540,8 @@ export class BridgeRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    beacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -564,6 +561,7 @@ export class BridgeRouter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
+      _beacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -594,11 +592,6 @@ export class BridgeRouter extends BaseContract {
       _amnt: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTemplate(
-      _newTemplate: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

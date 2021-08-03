@@ -19,29 +19,59 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface TokenRegistryInterface extends ethers.utils.Interface {
+interface TestFastLiquidityInterface extends ethers.utils.Interface {
   functions: {
+    "PRE_FILL_FEE_DENOMINATOR()": FunctionFragment;
+    "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
     "beacon()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
+    "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
+    "handle(uint32,bytes32,bytes)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
+    "liquidityProvider(bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
+    "preFill(bytes)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
+    "send(address,uint256,uint32,bytes32)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
+    "test()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "updateDetails(address,uint32)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "PRE_FILL_FEE_DENOMINATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PRE_FILL_FEE_NUMERATOR",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "beacon", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "enrollRemoteRouter",
+    values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "handle",
+    values: [BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initialize",
     values: [string, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "liquidityProvider",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "preFill", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -51,25 +81,52 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "send",
+    values: [string, BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setXAppConnectionManager",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "test", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateDetails",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "xAppConnectionManager",
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "PRE_FILL_FEE_DENOMINATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PRE_FILL_FEE_NUMERATOR",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "beacon", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "enrollRemoteRouter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidityProvider",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "preFill", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -78,12 +135,18 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     functionFragment: "representationToCanonical",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setXAppConnectionManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "test", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateDetails",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -100,7 +163,7 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenDeployed"): EventFragment;
 }
 
-export class TokenRegistry extends BaseContract {
+export class TestFastLiquidity extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -141,9 +204,13 @@ export class TokenRegistry extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: TokenRegistryInterface;
+  interface: TestFastLiquidityInterface;
 
   functions: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     beacon(overrides?: CallOverrides): Promise<[string]>;
 
     canonicalToRepresentation(
@@ -151,13 +218,36 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    enrollRemoteRouter(
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    handle(
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     initialize(
       _beacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -168,8 +258,20 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
 
+    send(
+      _token: string,
+      _amnt: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setXAppConnectionManager(
       _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -178,8 +280,18 @@ export class TokenRegistry extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    updateDetails(
+      _token: string,
+      _destination: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+  PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
   beacon(overrides?: CallOverrides): Promise<string>;
 
@@ -188,13 +300,36 @@ export class TokenRegistry extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  enrollRemoteRouter(
+    _domain: BigNumberish,
+    _router: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  handle(
+    _origin: BigNumberish,
+    _sender: BytesLike,
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   initialize(
     _beacon: string,
     _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  liquidityProvider(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   owner(overrides?: CallOverrides): Promise<string>;
+
+  preFill(
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -205,8 +340,20 @@ export class TokenRegistry extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[number, string] & { domain: number; id: string }>;
 
+  send(
+    _token: string,
+    _amnt: BigNumberish,
+    _destination: BigNumberish,
+    _recipient: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setXAppConnectionManager(
     _xAppConnectionManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -215,9 +362,19 @@ export class TokenRegistry extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  updateDetails(
+    _token: string,
+    _destination: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
     beacon(overrides?: CallOverrides): Promise<string>;
 
     canonicalToRepresentation(
@@ -225,13 +382,33 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    enrollRemoteRouter(
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    handle(
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     initialize(
       _beacon: string,
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     owner(overrides?: CallOverrides): Promise<string>;
+
+    preFill(_message: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -240,13 +417,29 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
 
+    send(
+      _token: string,
+      _amnt: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setXAppConnectionManager(
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    test(overrides?: CallOverrides): Promise<void>;
+
     transferOwnership(
       newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateDetails(
+      _token: string,
+      _destination: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -273,6 +466,10 @@ export class TokenRegistry extends BaseContract {
   };
 
   estimateGas: {
+    PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
     beacon(overrides?: CallOverrides): Promise<BigNumber>;
 
     canonicalToRepresentation(
@@ -280,13 +477,36 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    enrollRemoteRouter(
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    handle(
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     initialize(
       _beacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -297,13 +517,31 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    send(
+      _token: string,
+      _amnt: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setXAppConnectionManager(
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    test(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    updateDetails(
+      _token: string,
+      _destination: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -311,11 +549,32 @@ export class TokenRegistry extends BaseContract {
   };
 
   populateTransaction: {
+    PRE_FILL_FEE_DENOMINATOR(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    PRE_FILL_FEE_NUMERATOR(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     beacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    enrollRemoteRouter(
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    handle(
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initialize(
@@ -324,7 +583,17 @@ export class TokenRegistry extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    liquidityProvider(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    preFill(
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -335,13 +604,31 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    send(
+      _token: string,
+      _amnt: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setXAppConnectionManager(
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    test(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateDetails(
+      _token: string,
+      _destination: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
