@@ -9,6 +9,13 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
+    bytes32 public immutable _PERMIT_TYPEHASH =
+        keccak256(
+            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+        );
+
+    mapping(address => uint256) public nonces;
+
     /**
      * @notice Destroys `_amnt` tokens from `_from`, reducing the
      * total supply.
@@ -90,5 +97,57 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
      */
     function decimals() public view override returns (uint8) {
         return token.decimals;
+    }
+
+    // ======= PERMIT =======
+
+    /// @dev This is ALWAYS calculated at runtime because the token name may
+    /// change.
+    function domainSeparator() public view returns (bytes32) {
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        return
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                    ),
+                    keccak256(bytes(token.name)),
+                    keccak256(bytes("1")),
+                    chainId,
+                    address(this)
+                )
+            );
+    }
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
+        require(owner != address(0), "ERC20Permit: owner zero address");
+
+        uint256 nonce = nonces[owner];
+
+        bytes32 hashStruct = keccak256(
+            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, nonce, deadline)
+        );
+
+        bytes32 digest = keccak256(
+            abi.encodePacked(uint16(0x1901), domainSeparator(), hashStruct)
+        );
+
+        address signer = ecrecover(digest, v, r, s);
+        require(signer == owner, "ERC20Permit: invalid signature");
+
+        nonces[owner] = nonce + 1;
+        _approve(owner, spender, value);
     }
 }

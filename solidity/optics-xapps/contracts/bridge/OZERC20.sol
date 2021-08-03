@@ -3,9 +3,9 @@
 pragma solidity >=0.6.0 <0.8.0;
 
 // This is modified from "@openzeppelin/contracts/token/ERC20/IERC20.sol"
-// Modifications were made to make the tokenName, tokenSymbol, and tokenDecimals fields
-// internal instead of private. Getters for them were removed to silence
-// solidity inheritance issues
+// Modifications were made to make the tokenName, tokenSymbol, and
+// tokenDecimals fields internal instead of private. Getters for them were
+// removed to silence solidity inheritance issues
 
 import "@openzeppelin/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
