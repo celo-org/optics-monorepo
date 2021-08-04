@@ -2,26 +2,20 @@
 pragma solidity >=0.6.11;
 
 import {BridgeRouter} from "./BridgeRouter.sol";
-
+import {IWeth} from "../../interfaces/bridge/IWeth.sol";
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-
-interface WETH {
-    function deposit() external payable;
-
-    function approve(address _who, uint256 _wad) external;
-}
 
 contract ETHHelper {
     /// @dev wrapped Ether
-    WETH public immutable weth;
+    IWeth public immutable weth;
 
     /// @dev the bridge we will use
     BridgeRouter public immutable bridge;
 
     constructor(address _weth, address _bridge) {
-        weth = WETH(_weth);
+        weth = IWeth(_weth);
         bridge = BridgeRouter(_bridge);
-        WETH(_weth).approve(_bridge, uint256(-1));
+        IWeth(_weth).approve(_bridge, uint256(-1));
     }
 
     /**
