@@ -82,12 +82,12 @@ const _abi = [
     outputs: [
       {
         internalType: "uint32",
-        name: "",
+        name: "_domain",
         type: "uint32",
       },
       {
         internalType: "bytes32",
-        name: "",
+        name: "_id",
         type: "bytes32",
       },
     ],
@@ -111,7 +111,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "_representation",
+        name: "_token",
         type: "address",
       },
     ],
@@ -135,7 +135,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "_representation",
+        name: "_token",
         type: "address",
       },
     ],

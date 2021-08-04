@@ -176,19 +176,19 @@ export class TokenRegistry extends BaseContract {
     getCanonicalAddress(
       _local: string,
       overrides?: CallOverrides
-    ): Promise<[number, string]>;
+    ): Promise<[number, string] & { _domain: number; _id: string }>;
 
     "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
       _id: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[string] & { _representation: string }>;
+    ): Promise<[string] & { _token: string }>;
 
     "getLocalAddress(uint32,address)"(
       _domain: BigNumberish,
       _id: string,
       overrides?: CallOverrides
-    ): Promise<[string] & { _representation: string }>;
+    ): Promise<[string] & { _token: string }>;
 
     initialize(
       _tokenBeacon: string,
@@ -230,7 +230,7 @@ export class TokenRegistry extends BaseContract {
   getCanonicalAddress(
     _local: string,
     overrides?: CallOverrides
-  ): Promise<[number, string]>;
+  ): Promise<[number, string] & { _domain: number; _id: string }>;
 
   "getLocalAddress(uint32,bytes32)"(
     _domain: BigNumberish,
@@ -284,7 +284,7 @@ export class TokenRegistry extends BaseContract {
     getCanonicalAddress(
       _local: string,
       overrides?: CallOverrides
-    ): Promise<[number, string]>;
+    ): Promise<[number, string] & { _domain: number; _id: string }>;
 
     "getLocalAddress(uint32,bytes32)"(
       _domain: BigNumberish,
