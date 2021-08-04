@@ -274,13 +274,13 @@ export class BridgeToken extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     permit(
-      owner: string,
-      spender: string,
-      value: BigNumberish,
-      deadline: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
+      _owner: string,
+      _spender: string,
+      _value: BigNumberish,
+      _deadline: BigNumberish,
+      _v: BigNumberish,
+      _r: BytesLike,
+      _s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -369,13 +369,13 @@ export class BridgeToken extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   permit(
-    owner: string,
-    spender: string,
-    value: BigNumberish,
-    deadline: BigNumberish,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
+    _owner: string,
+    _spender: string,
+    _value: BigNumberish,
+    _deadline: BigNumberish,
+    _v: BigNumberish,
+    _r: BytesLike,
+    _s: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -464,13 +464,13 @@ export class BridgeToken extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     permit(
-      owner: string,
-      spender: string,
-      value: BigNumberish,
-      deadline: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
+      _owner: string,
+      _spender: string,
+      _value: BigNumberish,
+      _deadline: BigNumberish,
+      _v: BigNumberish,
+      _r: BytesLike,
+      _s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -586,13 +586,13 @@ export class BridgeToken extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
-      owner: string,
-      spender: string,
-      value: BigNumberish,
-      deadline: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
+      _owner: string,
+      _spender: string,
+      _value: BigNumberish,
+      _deadline: BigNumberish,
+      _v: BigNumberish,
+      _r: BytesLike,
+      _s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -688,13 +688,13 @@ export class BridgeToken extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     permit(
-      owner: string,
-      spender: string,
-      value: BigNumberish,
-      deadline: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
+      _owner: string,
+      _spender: string,
+      _value: BigNumberish,
+      _deadline: BigNumberish,
+      _v: BigNumberish,
+      _r: BytesLike,
+      _s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
