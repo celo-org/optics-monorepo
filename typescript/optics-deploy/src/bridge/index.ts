@@ -10,18 +10,6 @@ export type BridgeDeployOutput = {
   bridgeRouter?: string;
 };
 
-export async function deployTokenProxys(deploys: BridgeDeploy[]) {
-  await Promise.all(
-    deploys.map(async (deploy) => {
-      deploy.contracts.bridgeToken = await proxyUtils.deployProxy(
-        deploy,
-        new xAppContracts.BridgeToken__factory(deploy.chain.deployer),
-        '',
-      );
-    }),
-  );
-}
-
 /**
  * Deploy and configure a cross-chain token bridge system
  * with one BridgeRouter on each of the provided chains
@@ -30,6 +18,13 @@ export async function deployTokenProxys(deploys: BridgeDeploy[]) {
  * @param deploys - The list of deploy instances for each chain
  */
 export async function deployBridges(deploys: BridgeDeploy[]) {
+  // deploy Bridge Token Upgrade Beacons
+  await Promise.all(
+      deploys.map(async (deploy) => {
+        await deployTokenUpgradeBeacon(deploy);
+      }),
+  );
+
   // deploy BridgeRouters
   await Promise.all(
     deploys.map(async (deploy) => {
@@ -58,6 +53,28 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
 }
 
 /**
+ * Deploys the BridgeToken implementation + upgrade beacon
+ * on the chain of the given deploy
+ * and updates the deploy instance with the new contracts.
+ *
+ * @param deploy - The deploy instance
+ */
+async function deployTokenUpgradeBeacon(deploy: BridgeDeploy) {
+  console.log(`deploying ${deploy.chain.name} Token Upgrade Beacon`);
+
+  // no initialize function called
+  const initData = "";
+
+  deploy.contracts.bridgeToken = await proxyUtils.deployProxy<xAppContracts.BridgeToken>(
+      deploy,
+      new xAppContracts.BridgeToken__factory(deploy.chain.deployer),
+      initData,
+  );
+
+  console.log(`deployed ${deploy.chain.name} Token Upgrade Beacon`);
+}
+
+/**
  * Deploys the BridgeRouter on the chain of the given deploy and updates
  * the deploy instance with the new contract.
  *
@@ -66,7 +83,7 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
 async function deployBridgeRouter(deploy: BridgeDeploy) {
   console.log(`deploying ${deploy.chain.name} BridgeRouter`);
 
-  let initData =
+  const initData =
     xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
       'initialize',
       [
