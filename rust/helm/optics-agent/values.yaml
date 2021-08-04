@@ -10,6 +10,8 @@ volumeStorageClass: "standard"
 optics: 
   runEnv: "default"
   baseConfig: "base.json"
+  tracing: 
+    uri: ""
   homeChain: 
     name: "goerli"
     # -- The contract address for the home contract

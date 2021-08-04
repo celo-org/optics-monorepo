@@ -92,6 +92,13 @@ spec:
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
             value: {{ .key }}
           {{- end }}
+          # Jaeger Config
+          {{- if .Values.optics.tracing.uri }}
+          - name: OPT_BASE_TRACING_JAEGER_NAME
+            value: {{ include "optics-agent.fullname" . }}-relayer
+          - name: OPT_BASE_TRACING_JAEGER_COLLECTOR_URI
+            value: {{ $.Values.optics.tracing.uri }}
+          {{- end }}
           - name: RUST_BACKTRACE
             value: full
         resources:
