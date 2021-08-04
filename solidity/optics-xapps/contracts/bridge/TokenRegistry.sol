@@ -37,6 +37,8 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
 
+    // ============ Structs ============
+
     // We identify tokens by a TokenId:
     // domain - 4 byte chain ID of the chain from which the token originates
     // id - 32 byte identifier of the token address on the origin chain, in that chain's address format
@@ -45,15 +47,11 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         bytes32 id;
     }
 
-    event TokenDeployed(
-        uint32 indexed domain,
-        bytes32 indexed id,
-        address indexed representation
-    );
+    // ============ Public Storage ============
 
     /// @dev The UpgradeBeacon that new tokens proxies will read implementation
     /// from
-    address public beacon;
+    address public tokenBeacon;
 
     // local representation token address => token ID
     mapping(address => TokenId) public representationToCanonical;
@@ -61,6 +59,14 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     // hash of the tightly-packed TokenId => local representation token address
     // If the token is of local origin, this MUST map to address(0).
     mapping(bytes32 => address) public canonicalToRepresentation;
+
+    // ============ Events ============
+
+    event TokenDeployed(
+        uint32 indexed domain,
+        bytes32 indexed id,
+        address indexed representation
+    );
 
     // ======== Initializer =========
 
@@ -71,21 +77,25 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
      * @param _xAppConnectionManager The address of the XappConnectionManager
      *        that will manage Optics channel connectoins
      */
-    function initialize(address _beacon, address _xAppConnectionManager)
+    function initialize(address _tokenBeacon, address _xAppConnectionManager)
         public
         initializer
     {
-        beacon = _beacon;
+        tokenBeacon = _tokenBeacon;
         XAppConnectionClient._initialize(_xAppConnectionManager);
     }
+
+    // ============ Modifiers ============
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
     }
 
+    // ============ Internal Functions ============
+
     function _cloneTokenContract() internal returns (address result) {
-        return address(new UpgradeBeaconProxy(beacon, ""));
+        return address(new UpgradeBeaconProxy(tokenBeacon, ""));
     }
 
     function _deployToken(bytes29 _tokenId)
