@@ -9,7 +9,6 @@ import {XAppConnectionClient} from "../XAppConnectionClient.sol";
 
 // ============ External Imports ============
 import {XAppConnectionManager, TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {UpgradeBeacon} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeacon.sol";
 import {UpgradeBeaconProxy} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeaconProxy.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
