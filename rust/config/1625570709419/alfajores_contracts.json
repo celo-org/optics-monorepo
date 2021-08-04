@@ -1,6 +1,6 @@
 {
   "upgradeBeaconController": "0x8c97afEa73f5Ad438c74E1d3258bF074C5b505fA",
-  "xappConnectionManager": "0xf87d5Ae60b953F7bd8c9995B062dc2Db6684E4b9",
+  "xAppConnectionManager": "0xf87d5Ae60b953F7bd8c9995B062dc2Db6684E4b9",
   "updaterManager": "0xf38dD5AB6072BabB9B68BB7aeCcA066deb58b4C3",
   "governance": {
     "implementation": "0x418246b2AD31584223e0a83F45aeF979e5531E64",

@@ -5,7 +5,7 @@ import { ProxyAddresses } from './proxyUtils';
 
 export type CoreContractDeployOutput = {
   upgradeBeaconController: string;
-  xappConnectionManager: string;
+  xAppConnectionManager: string;
   updaterManager: string;
   governance: ProxyAddresses;
   home: ProxyAddresses;

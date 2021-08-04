@@ -90,7 +90,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
       'initialize',
       [
         deploy.contracts.bridgeToken!.beacon.address,
-        deploy.coreContractAddresses.xappConnectionManager,
+        deploy.coreContractAddresses.xAppConnectionManager,
       ],
     );
 
@@ -166,7 +166,6 @@ export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
     toBytes32(remote.contracts.bridgeRouter!.proxy.address),
     local.overrides,
   );
-  // let tx = await governor.setRouter(remoteDomain, toBytes32(remote.contracts.bridgeRouter!.proxy.address));
 
   await tx.wait(5);
 

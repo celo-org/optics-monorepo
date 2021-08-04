@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Contract Implementation",
+    "address": "0x11494903c9a21E522bC52062165c78E591E25BD9",
+    "constructorArguments": []
+  },
+  {
+    "name": "Contract UpgradeBeacon",
+    "address": "0x33a977668b223744AF77B0d3AbB6A24899E7DE5B",
+    "constructorArguments": [
+      "0x11494903c9a21E522bC52062165c78E591E25BD9",
+      "0xeA5EE132A66c2cE09AEB8baDdabb26EcF33603AE"
+    ]
+  },
+  {
+    "name": "Contract Proxy",
+    "address": "0x91c798958E77CCC1D5e95F88251FD3729961AC27",
+    "constructorArguments": [
+      "0x33a977668b223744AF77B0d3AbB6A24899E7DE5B",
+      "0xc4d66de8000000000000000000000000e02098b9d4b1a6548c90ee5661e5a640de258ed4"
+    ]
+  }
+]

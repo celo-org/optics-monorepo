@@ -80,17 +80,17 @@ export async function deployUpdaterManager(deploy: CoreDeploy) {
  */
 export async function deployXAppConnectionManager(deploy: CoreDeploy) {
   let factory = new contracts.XAppConnectionManager__factory(deploy.deployer);
-  deploy.contracts.xappConnectionManager = await factory.deploy(
+  deploy.contracts.xAppConnectionManager = await factory.deploy(
     deploy.overrides,
   );
-  await deploy.contracts.xappConnectionManager.deployTransaction.wait(
+  await deploy.contracts.xAppConnectionManager.deployTransaction.wait(
     deploy.chain.confirmations,
   );
 
   // add contract information to Etherscan verification array
   deploy.verificationInput.push({
     name: 'XAppConnectionManager',
-    address: deploy.contracts.xappConnectionManager!.address,
+    address: deploy.contracts.xAppConnectionManager!.address,
     constructorArguments: [],
   });
 }
