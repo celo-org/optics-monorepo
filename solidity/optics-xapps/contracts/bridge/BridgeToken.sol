@@ -3,12 +3,13 @@ pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
-import {ERC20} from "./OZERC20.sol";
+import {ERC20} from "./vendored/OZERC20.sol";
+
 // ============ External Imports ============
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract BridgeToken is IBridgeToken, Ownable, ERC20 {
+contract BridgeToken is IBridgeToken, OwnableUpgradeable, ERC20 {
     // Immutables used in EIP 712 structured data hashing & signing
     // https://eips.ethereum.org/EIPS/eip-712
     bytes32 public immutable _PERMIT_TYPEHASH =
@@ -20,6 +21,10 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     uint16 private immutable _EIP712_PREFIX_AND_VERSION = uint16(0x1901);
 
     mapping(address => uint256) public nonces;
+
+    function initialize() public override initializer {
+        __Ownable_init();
+    }
 
     /**
      * @notice Destroys `_amnt` tokens from `_from`, reducing the

@@ -23,6 +23,7 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
   functions: {
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
+    "initialize()": FunctionFragment;
     "initiatePingPongMatch(uint32)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -38,6 +39,10 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "initiatePingPongMatch",
@@ -66,6 +71,7 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "initiatePingPongMatch",
     data: BytesLike
@@ -156,6 +162,10 @@ export class PingPongRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initialize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     initiatePingPongMatch(
       _destinationDomain: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -190,6 +200,10 @@ export class PingPongRouter extends BaseContract {
     _origin: BigNumberish,
     _sender: BytesLike,
     _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initialize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -229,6 +243,8 @@ export class PingPongRouter extends BaseContract {
       _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    initialize(overrides?: CallOverrides): Promise<void>;
 
     initiatePingPongMatch(
       _destinationDomain: BigNumberish,
@@ -296,6 +312,10 @@ export class PingPongRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initialize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     initiatePingPongMatch(
       _destinationDomain: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -331,6 +351,10 @@ export class PingPongRouter extends BaseContract {
       _origin: BigNumberish,
       _sender: BytesLike,
       _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

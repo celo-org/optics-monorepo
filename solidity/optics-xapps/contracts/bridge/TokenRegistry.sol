@@ -12,7 +12,6 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {UpgradeBeaconProxy} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
  * @title TokenRegistry
@@ -30,7 +29,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
  * perform a lookup in either direction
  * Note that locally originating tokens should NEVER be represented in these lookup tables.
  */
-abstract contract TokenRegistry is Initializable, XAppConnectionClient {
+abstract contract TokenRegistry is XAppConnectionClient {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -171,6 +170,12 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         assembly {
             mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
         }
+    }
+
+    function _cloneTokenContract() internal returns (address result) {
+        address _newProxy = address(new UpgradeBeaconProxy(tokenBeacon, ""));
+        IBridgeToken(_newProxy).initialize();
+        return _newProxy;
     }
 
     function _deployToken(bytes29 _tokenId)

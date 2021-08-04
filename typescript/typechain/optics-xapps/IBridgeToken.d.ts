@@ -23,6 +23,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
   functions: {
     "burn(address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
+    "initialize()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "setDetails(string,string,uint8)": FunctionFragment;
@@ -34,6 +35,10 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "mint",
     values: [string, BigNumberish]
@@ -47,6 +52,7 @@ interface IBridgeTokenInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setDetails", data: BytesLike): Result;
@@ -109,6 +115,10 @@ export class IBridgeToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initialize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     mint(
       _to: string,
       _amnt: BigNumberish,
@@ -138,6 +148,10 @@ export class IBridgeToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   decimals(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initialize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -171,6 +185,8 @@ export class IBridgeToken extends BaseContract {
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
+    initialize(overrides?: CallOverrides): Promise<void>;
+
     mint(
       _to: string,
       _amnt: BigNumberish,
@@ -199,6 +215,10 @@ export class IBridgeToken extends BaseContract {
     ): Promise<BigNumber>;
 
     decimals(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -232,6 +252,10 @@ export class IBridgeToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     decimals(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

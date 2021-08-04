@@ -3,12 +3,16 @@ pragma solidity >=0.6.11;
 
 // ============ External Imports ============
 import {IMessageRecipient} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-abstract contract Router is Ownable, IMessageRecipient {
+abstract contract Router is OwnableUpgradeable, IMessageRecipient {
     // ============ Mutable Storage ============
 
     mapping(uint32 => bytes32) internal remotes;
+
+    function initialize() public initializer {
+        __Ownable_init();
+    }
 
     // ============ Modifiers ============
 

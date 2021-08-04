@@ -270,9 +270,13 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    initialize(
+    "initialize(address,address)"(
       _tokenBeacon: string,
       _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -369,9 +373,13 @@ export class TestFastLiquidity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  initialize(
+  "initialize(address,address)"(
     _tokenBeacon: string,
     _xAppConnectionManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize()"(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -468,11 +476,13 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    initialize(
+    "initialize(address,address)"(
       _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    "initialize()"(overrides?: CallOverrides): Promise<void>;
 
     liquidityProvider(
       arg0: BytesLike,
@@ -580,9 +590,13 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    initialize(
+    "initialize(address,address)"(
       _tokenBeacon: string,
       _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -684,9 +698,13 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    initialize(
+    "initialize(address,address)"(
       _tokenBeacon: string,
       _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

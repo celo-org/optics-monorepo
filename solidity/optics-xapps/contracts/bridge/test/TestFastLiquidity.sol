@@ -31,6 +31,8 @@ contract TestFastLiquidity is BridgeRouter {
 
     constructor() {
         t = new BridgeToken();
+        t.initialize();
+
         representationToCanonical[address(t)].domain = DOMAIN;
         representationToCanonical[address(t)].id = TypeCasts.addressToBytes32(
             address(t)

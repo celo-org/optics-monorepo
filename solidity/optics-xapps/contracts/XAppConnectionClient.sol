@@ -4,10 +4,10 @@ pragma solidity >=0.6.11;
 // ============ External Imports ============
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {XAppConnectionManager} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
-abstract contract XAppConnectionClient is Initializable, Ownable {
+abstract contract XAppConnectionClient is OwnableUpgradeable {
     // ============ Mutable Storage ============
 
     XAppConnectionManager public xAppConnectionManager;
@@ -24,12 +24,9 @@ abstract contract XAppConnectionClient is Initializable, Ownable {
 
     // ======== Initializer =========
 
-    function _initialize(address _xAppConnectionManager)
-        internal
-        virtual
-        initializer
-    {
+    function _initialize(address _xAppConnectionManager) internal initializer {
         xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
+        __Ownable_init();
     }
 
     // ============ External functions ============

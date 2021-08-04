@@ -81,10 +81,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ETHHelper__factory>;
     getContractFactory(
-      name: "ERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC20__factory>;
-    getContractFactory(
       name: "TestEncoding",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestEncoding__factory>;
@@ -100,6 +96,10 @@ declare module "hardhat/types/runtime" {
       name: "TokenRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenRegistry__factory>;
+    getContractFactory(
+      name: "ERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC20__factory>;
     getContractFactory(
       name: "PingPongRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions

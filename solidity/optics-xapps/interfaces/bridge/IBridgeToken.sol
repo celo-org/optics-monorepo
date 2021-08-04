@@ -2,6 +2,8 @@
 pragma solidity >=0.6.11;
 
 interface IBridgeToken {
+    function initialize() external;
+
     function name() external returns (string memory);
 
     function symbol() external returns (string memory);
