@@ -93,7 +93,7 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
             _remote,
             BridgeMessage.formatMessage(_formatTokenId(_token), _action)
         );
-    }
+    } 
 
     // ======== External: Update Token Details =========
 
