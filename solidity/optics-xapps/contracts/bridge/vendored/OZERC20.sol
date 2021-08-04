@@ -7,7 +7,6 @@ pragma solidity >=0.6.0 <0.8.0;
 // tokenDecimals fields internal instead of private. Getters for them were
 // removed to silence solidity inheritance issues
 
-import "@openzeppelin/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
