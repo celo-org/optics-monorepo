@@ -82,46 +82,14 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         XAppConnectionClient._initialize(_xAppConnectionManager);
     }
 
-    // ============ Modifiers ============
+    // ======== Modifiers =========
 
     modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
         _view.assertType(uint40(_t));
         _;
     }
 
-    // ============ Internal Functions ============
-
-    /**
-     * @notice Looks up the local address corresponding to a domain/id pair.
-     * @dev If the token is local, it will return the local address.
-     *      If the token is non-local and no local representation exists, this
-     *      will return `address(0)`.
-     * @param _domain the domain of the canonical version.
-     * @param _id the identifier of the canonical version in its domain.
-     */
-    function getLocalAddress(uint32 _domain, bytes32 _id)
-        public
-        view
-        returns (address _representation)
-    {
-        return _getTokenAddress(BridgeMessage.formatTokenId(_domain, _id));
-    }
-
-    /**
-     * @notice Looks up the local address corresponding to a domain/id pair.
-     * @dev If the token is local, it will return the local address.
-     *      If the token is non-local and no local representation exists, this
-     *      will return `address(0)`.
-     * @param _domain the domain of the canonical version.
-     * @param _id the identifier of the canonical version in its domain.
-     */
-    function getLocalAddress(uint32 _domain, address _id)
-        external
-        view
-        returns (address _representation)
-    {
-        return getLocalAddress(_domain, TypeCasts.addressToBytes32(_id));
-    }
+    // ======== External Functions =========
 
     /**
      * @notice Looks up the canonical identifier for a local representation.
@@ -132,11 +100,50 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
     function getCanonicalAddress(address _local)
         external
         view
-        returns (uint32, bytes32)
+        returns (uint32 _domain, bytes32 _id)
     {
         TokenId memory _canonical = representationToCanonical[_local];
-        return (_canonical.domain, _canonical.id);
+        _domain = _canonical.domain;
+        _id = _canonical.id;
     }
+
+    /**
+     * @notice Looks up the local address corresponding to a domain/id pair.
+     * @dev If the token is local, it will return the local address.
+     *      If the token is non-local and no local representation exists, this
+     *      will return `address(0)`.
+     * @param _domain the domain of the canonical version.
+     * @param _id the identifier of the canonical version in its domain.
+     * @return _token the local address of the token contract
+     */
+    function getLocalAddress(uint32 _domain, address _id)
+        external
+        view
+        returns (address _token)
+    {
+        _token = getLocalAddress(_domain, TypeCasts.addressToBytes32(_id));
+    }
+
+    // ======== Public Functions =========
+
+    /**
+     * @notice Looks up the local address corresponding to a domain/id pair.
+     * @dev If the token is local, it will return the local address.
+     *      If the token is non-local and no local representation exists, this
+     *      will return `address(0)`.
+     * @param _domain the domain of the canonical version.
+     * @param _id the identifier of the canonical version in its domain.
+     * @return _token the local address of the token contract
+     */
+    function getLocalAddress(uint32 _domain, bytes32 _id)
+        public
+        view
+        returns (address _token)
+    {
+        _token = _getTokenAddress(BridgeMessage.formatTokenId(_domain, _id));
+    }
+
+    // ======== Internal Functions =========
 
     function _cloneTokenContract() internal returns (address result) {
         return address(new UpgradeBeaconProxy(tokenBeacon, ""));
