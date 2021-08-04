@@ -63,6 +63,8 @@ export class BridgeContracts extends Contracts {
   toObject(): Object {
     return {
       bridgeRouter: this.bridgeRouter?.toObject(),
+      bridgeToken: this.bridgeToken?.toObject(),
+      ethHelper: this.ethHelper?.address,
     };
   }
 }
