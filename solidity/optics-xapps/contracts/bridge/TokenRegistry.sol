@@ -119,15 +119,15 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         internal
         view
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (address)
+        returns (address _local)
     {
-        // Token is of local origin
         if (_tokenId.domain() == _localDomain()) {
-            return _tokenId.evmId();
+            // Token is of local origin
+            _local = _tokenId.evmId();
+        } else {
+            // Token is a representation of a token of remote origin
+            _local = canonicalToRepresentation[_tokenId.keccak()];
         }
-        // Token is a representation of a token of remote origin
-        address _local = canonicalToRepresentation[_tokenId.keccak()];
-        return _local;
     }
 
     function _ensureToken(bytes29 _tokenId)
