@@ -23,66 +23,13 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
-    /// @notice 5 bps hardcoded fee. Can be changed by contract upgrade
+    /// @notice 5 bps (0.05%) hardcoded fee. Can be changed by contract upgrade
     uint256 public constant PRE_FILL_FEE_NUMERATOR = 9995;
     uint256 public constant PRE_FILL_FEE_DENOMINATOR = 10000;
 
     /// @notice A mapping that stores the LP that pre-filled a token transfer
     /// message
     mapping(bytes32 => address) public liquidityProvider;
-
-    function _applyPreFillFee(uint256 _amnt) internal pure returns (uint256) {
-        return (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
-    }
-
-    // ======== Fast Liquidity System =========
-
-    /// @dev used to identify a token/transfer pair in the prefill LP mapping.
-    /// This approach has a weakness: a user can receive >1 batch of tokens of
-    /// the same size, but only 1 will be eligible for fast liquidity. The
-    /// other may only be filled at regular speed. This is because the messages
-    /// will have identical `tokenId` and `action` fields. This seems fine,
-    /// tbqh. A delay of a few hours on a corner case is acceptable in v1
-    function _preFillId(bytes29 _tokenId, bytes29 _action)
-        internal
-        view
-        returns (bytes32)
-    {
-        bytes29[] memory _views = new bytes29[](2);
-        _views[0] = _tokenId;
-        _views[1] = _action;
-        return TypedMemView.joinKeccak(_views);
-    }
-
-    function _preFill(bytes29 _tokenId, bytes29 _action)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Transfer)
-    {
-        bytes32 _id = _preFillId(_tokenId, _action);
-
-        require(liquidityProvider[_id] == address(0), "!unfilled");
-
-        liquidityProvider[_id] = msg.sender;
-        IERC20 _token = _mustHaveToken(_tokenId);
-        _token.safeTransferFrom(
-            msg.sender,
-            _action.evmRecipient(),
-            _applyPreFillFee(_action.amnt())
-        );
-    }
-
-    /// @notice Allows a liquidity provider to pre-fill an incoming transfer
-    /// message. The liquidity provider provides the message in advance, and
-    /// the user receives the amount, less the LP's fee immediately.
-    function preFill(bytes calldata _message) external {
-        // parse tokenId and action from message
-        bytes29 _msg = _message.ref(0).mustBeMessage();
-        bytes29 _tokenId = _msg.tokenId();
-        bytes29 _action = _msg.action().mustBeTransfer();
-
-        _preFill(_tokenId, _action);
-    }
 
     // ======== External: Handle =========
 
@@ -146,6 +93,37 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
             _destination,
             _remote,
             BridgeMessage.formatMessage(_formatTokenId(_token), _action)
+        );
+    }
+
+    // ======== External: Fast Liquidity =========
+
+    /**
+     * @notice Allows a liquidity provider to give an
+     * end user fast liquidity by pre-filling an
+     * incoming transfer message.
+     * Transfers tokens from the liquidity provider to the end recipient, minus the LP fee;
+     * Records the liquidity provider, who receives
+     * the full token amount when the transfer message is handled.
+     * @param _message The incoming transfer message to pre-fill
+     */
+    function preFill(bytes calldata _message) external {
+        // parse tokenId and action from message
+        bytes29 _msg = _message.ref(0).mustBeMessage();
+        bytes29 _tokenId = _msg.tokenId().mustBeTokenId();
+        bytes29 _action = _msg.action().mustBeTransfer();
+        // calculate prefill ID
+        bytes32 _id = _preFillId(_tokenId, _action);
+        // require that transfer has not already been pre-filled
+        require(liquidityProvider[_id] == address(0), "!unfilled");
+        // record liquidity provider
+        liquidityProvider[_id] = msg.sender;
+        // transfer tokens from liquidity provider to token recipient
+        IERC20 _token = _mustHaveToken(_tokenId);
+        _token.safeTransferFrom(
+            msg.sender,
+            _action.evmRecipient(),
+            _applyPreFillFee(_action.amnt())
         );
     }
 
@@ -264,5 +242,40 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
             _action.symbol(),
             _action.decimals()
         );
+    }
+
+    // ============ Internal: Fast Liquidity ============
+
+    /**
+     * @notice Calculate the token amount after
+     * taking a 5 bps (0.05%) liquidity provider fee
+     * @param _amnt The token amount before the fee is taken
+     * @return _amtAfterFee The token amount after the fee is taken
+     */
+    function _applyPreFillFee(uint256 _amnt) internal pure returns (uint256 _amtAfterFee) {
+        _amtAfterFee = (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
+    }
+
+    /**
+     * @notice get the prefillId used to identify
+     * fast liquidity provision for incoming token send messages
+     * @dev used to identify a token/transfer pair in the prefill LP mapping.
+     * NOTE: This approach has a weakness: a user can receive >1 batch of tokens of
+     * the same size, but only 1 will be eligible for fast liquidity. The
+     * other may only be filled at regular speed. This is because the messages
+     * will have identical `tokenId` and `action` fields. This seems fine,
+     * tbqh. A delay of a few hours on a corner case is acceptable in v1.
+     * @param _tokenId The token ID
+     * @param _action The action
+     */
+    function _preFillId(bytes29 _tokenId, bytes29 _action)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes29[] memory _views = new bytes29[](2);
+        _views[0] = _tokenId;
+        _views[1] = _action;
+        return TypedMemView.joinKeccak(_views);
     }
 }
