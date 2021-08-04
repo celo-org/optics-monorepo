@@ -21,18 +21,17 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface TokenRegistryInterface extends ethers.utils.Interface {
   functions: {
-    "beacon()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
+    "tokenBeacon()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "beacon", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
@@ -55,6 +54,10 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "tokenBeacon",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
@@ -63,7 +66,6 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "beacon", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
@@ -80,6 +82,10 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setXAppConnectionManager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenBeacon",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -144,15 +150,13 @@ export class TokenRegistry extends BaseContract {
   interface: TokenRegistryInterface;
 
   functions: {
-    beacon(overrides?: CallOverrides): Promise<[string]>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -173,6 +177,8 @@ export class TokenRegistry extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    tokenBeacon(overrides?: CallOverrides): Promise<[string]>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -181,15 +187,13 @@ export class TokenRegistry extends BaseContract {
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  beacon(overrides?: CallOverrides): Promise<string>;
-
   canonicalToRepresentation(
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   initialize(
-    _beacon: string,
+    _tokenBeacon: string,
     _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -210,6 +214,8 @@ export class TokenRegistry extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  tokenBeacon(overrides?: CallOverrides): Promise<string>;
+
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -218,15 +224,13 @@ export class TokenRegistry extends BaseContract {
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    beacon(overrides?: CallOverrides): Promise<string>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -244,6 +248,8 @@ export class TokenRegistry extends BaseContract {
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    tokenBeacon(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -273,15 +279,13 @@ export class TokenRegistry extends BaseContract {
   };
 
   estimateGas: {
-    beacon(overrides?: CallOverrides): Promise<BigNumber>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -302,6 +306,8 @@ export class TokenRegistry extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    tokenBeacon(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -311,15 +317,13 @@ export class TokenRegistry extends BaseContract {
   };
 
   populateTransaction: {
-    beacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -339,6 +343,8 @@ export class TokenRegistry extends BaseContract {
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    tokenBeacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

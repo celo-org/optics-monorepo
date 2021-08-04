@@ -52,19 +52,6 @@ const _abi = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "beacon",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes32",
@@ -87,7 +74,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_beacon",
+        name: "_tokenBeacon",
         type: "address",
       },
       {
@@ -156,6 +143,19 @@ const _abi = [
     name: "setXAppConnectionManager",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenBeacon",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

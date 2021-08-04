@@ -23,7 +23,6 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   functions: {
     "PRE_FILL_FEE_DENOMINATOR()": FunctionFragment;
     "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
-    "beacon()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
@@ -36,6 +35,7 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     "send(address,uint256,uint32,bytes32)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "test()": FunctionFragment;
+    "tokenBeacon()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "updateDetails(address,uint32)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
@@ -49,7 +49,6 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "beacon", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
@@ -90,6 +89,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "test", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "tokenBeacon",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
@@ -110,7 +113,6 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "beacon", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
@@ -141,6 +143,10 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "test", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenBeacon",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -211,8 +217,6 @@ export class TestFastLiquidity extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    beacon(overrides?: CallOverrides): Promise<[string]>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -232,7 +236,7 @@ export class TestFastLiquidity extends BaseContract {
     ): Promise<ContractTransaction>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -275,6 +279,8 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    tokenBeacon(overrides?: CallOverrides): Promise<[string]>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -292,8 +298,6 @@ export class TestFastLiquidity extends BaseContract {
   PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
   PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-  beacon(overrides?: CallOverrides): Promise<string>;
 
   canonicalToRepresentation(
     arg0: BytesLike,
@@ -314,7 +318,7 @@ export class TestFastLiquidity extends BaseContract {
   ): Promise<ContractTransaction>;
 
   initialize(
-    _beacon: string,
+    _tokenBeacon: string,
     _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -357,6 +361,8 @@ export class TestFastLiquidity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  tokenBeacon(overrides?: CallOverrides): Promise<string>;
+
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -374,8 +380,6 @@ export class TestFastLiquidity extends BaseContract {
     PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-    beacon(overrides?: CallOverrides): Promise<string>;
 
     canonicalToRepresentation(
       arg0: BytesLike,
@@ -396,7 +400,7 @@ export class TestFastLiquidity extends BaseContract {
     ): Promise<void>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -431,6 +435,8 @@ export class TestFastLiquidity extends BaseContract {
     ): Promise<void>;
 
     test(overrides?: CallOverrides): Promise<void>;
+
+    tokenBeacon(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -470,8 +476,6 @@ export class TestFastLiquidity extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
-    beacon(overrides?: CallOverrides): Promise<BigNumber>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -491,7 +495,7 @@ export class TestFastLiquidity extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -534,6 +538,8 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    tokenBeacon(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -557,8 +563,6 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    beacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -578,7 +582,7 @@ export class TestFastLiquidity extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _beacon: string,
+      _tokenBeacon: string,
       _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -620,6 +624,8 @@ export class TestFastLiquidity extends BaseContract {
     test(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    tokenBeacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

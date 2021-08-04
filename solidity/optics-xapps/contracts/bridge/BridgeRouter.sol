@@ -250,8 +250,14 @@ contract BridgeRouter is Initializable, Router, TokenRegistry {
      * @param _amnt The token amount before the fee is taken
      * @return _amtAfterFee The token amount after the fee is taken
      */
-    function _applyPreFillFee(uint256 _amnt) internal pure returns (uint256 _amtAfterFee) {
-        _amtAfterFee = (_amnt * PRE_FILL_FEE_NUMERATOR) / PRE_FILL_FEE_DENOMINATOR;
+    function _applyPreFillFee(uint256 _amnt)
+        internal
+        pure
+        returns (uint256 _amtAfterFee)
+    {
+        _amtAfterFee =
+            (_amnt * PRE_FILL_FEE_NUMERATOR) /
+            PRE_FILL_FEE_DENOMINATOR;
     }
 
     /**
