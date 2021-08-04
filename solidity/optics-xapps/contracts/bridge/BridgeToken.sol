@@ -9,10 +9,14 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BridgeToken is IBridgeToken, Ownable, ERC20 {
+    // Immutables used in EIP 712 structured data hashing & signing
+    // https://eips.ethereum.org/EIPS/eip-712
     bytes32 public immutable _PERMIT_TYPEHASH =
         keccak256(
             "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
         );
+    bytes32 private immutable _EIP712_STRUCTURED_DATA_VERSION = keccak256(bytes("1"));
+    uint16 private immutable _EIP712_PREFIX_AND_VERSION = uint16(0x1901);
 
     mapping(address => uint256) public nonces;
 
@@ -68,6 +72,44 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     }
 
     /**
+     * @notice Sets approval from owner to spender to value
+     * as long as deadline has not passed
+     * by submitting a valid signature from owner
+     * Uses EIP 712 structured data hashing & signing
+     * https://eips.ethereum.org/EIPS/eip-712
+     * @param _owner The account setting approval & signing the message
+     * @param _spender The account receiving approval to spend owner's tokens
+     * @param _value The amount to set approval for
+     * @param _deadline The timestamp before which the signature must be submitted
+     * @param _v ECDSA signature v
+     * @param _r ECDSA signature r
+     * @param _s ECDSA signature s
+     */
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external {
+        require(block.timestamp <= _deadline, "ERC20Permit: expired deadline");
+        require(_owner != address(0), "ERC20Permit: owner zero address");
+        uint256 _nonce = nonces[_owner];
+        bytes32 _hashStruct = keccak256(
+            abi.encode(_PERMIT_TYPEHASH, _owner, _spender, _value, _nonce, _deadline)
+        );
+        bytes32 _digest = keccak256(
+            abi.encodePacked(_EIP712_PREFIX_AND_VERSION, domainSeparator(), _hashStruct)
+        );
+        address _signer = ecrecover(_digest, _v, _r, _s);
+        require(_signer == _owner, "ERC20Permit: invalid signature");
+        nonces[_owner] = _nonce + 1;
+        _approve(_owner, _spender, _value);
+    }
+
+    /**
      * @dev Returns the name of the token.
      */
     function name() public view override returns (string memory) {
@@ -104,9 +146,9 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
     /// @dev This is ALWAYS calculated at runtime because the token name may
     /// change.
     function domainSeparator() public view returns (bytes32) {
-        uint256 chainId;
+        uint256 _chainId;
         assembly {
-            chainId := chainid()
+            _chainId := chainid()
         }
         return
             keccak256(
@@ -115,39 +157,10 @@ contract BridgeToken is IBridgeToken, Ownable, ERC20 {
                         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
                     ),
                     keccak256(bytes(token.name)),
-                    keccak256(bytes("1")),
-                    chainId,
+                    _EIP712_STRUCTURED_DATA_VERSION,
+                    _chainId,
                     address(this)
                 )
             );
-    }
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
-        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
-        require(owner != address(0), "ERC20Permit: owner zero address");
-
-        uint256 nonce = nonces[owner];
-
-        bytes32 hashStruct = keccak256(
-            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, nonce, deadline)
-        );
-
-        bytes32 digest = keccak256(
-            abi.encodePacked(uint16(0x1901), domainSeparator(), hashStruct)
-        );
-
-        address signer = ecrecover(digest, v, r, s);
-        require(signer == owner, "ERC20Permit: invalid signature");
-
-        nonces[owner] = nonce + 1;
-        _approve(owner, spender, value);
     }
 }
