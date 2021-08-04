@@ -18,20 +18,15 @@ export type BridgeDeployOutput = {
  * @param deploys - The list of deploy instances for each chain
  */
 export async function deployBridges(deploys: BridgeDeploy[]) {
-  // deploy Bridge Token Upgrade Beacons
-  await Promise.all(
-      deploys.map(async (deploy) => {
-        await deployTokenUpgradeBeacon(deploy);
-      }),
-  );
-
-  // deploy BridgeRouters
+  // deploy BridgeTokens & BridgeRouters
   await Promise.all(
     deploys.map(async (deploy) => {
+      await deployTokenUpgradeBeacon(deploy);
       await deployBridgeRouter(deploy);
     }),
   );
 
+  // after all BridgeRouters have been deployed,
   // enroll peer BridgeRouters with each other
   await Promise.all(
     deploys.map(async (deploy) => {
@@ -39,7 +34,7 @@ export async function deployBridges(deploys: BridgeDeploy[]) {
     }),
   );
 
-  // after finishing enrolling,
+  // after all peer BridgeRouters have been co-enrolled,
   // transfer ownership of BridgeRouters to Governance
   await Promise.all(
     deploys.map(async (deploy) => {
