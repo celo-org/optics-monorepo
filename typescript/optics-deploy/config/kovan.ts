@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 
 import { Chain, ChainJson, toChain } from '../src/chain';
-import { CoreConfig } from '../src/deploy';
+import { BridgeConfig, CoreConfig } from '../src/deploy';
 import { BigNumber } from 'ethers';
 
 dotenv.config();
@@ -22,4 +22,8 @@ export const config: CoreConfig = {
   watchers: ['0x20aC2FD664bA5406A7262967C34107e708dCb18E'],
   recoveryTimelock: 180,
   recoveryManager: '0x24F6c874F56533d9a1422e85e5C7A806ED11c036',
+};
+
+export const bridgeConfig: BridgeConfig = {
+  weth: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
 };

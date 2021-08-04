@@ -1,6 +1,6 @@
 import { ChainJson, toChain } from '../src/chain';
 import * as dotenv from 'dotenv';
-import { CoreConfig } from '../src/deploy';
+import { BridgeConfig, CoreConfig } from '../src/deploy';
 dotenv.config();
 
 export const chainJson: ChainJson = {
@@ -19,3 +19,5 @@ export const config: CoreConfig = {
   optimisticSeconds: 10,
   recoveryTimelock: 180,
 };
+
+export const bridgeConfig: BridgeConfig = {};

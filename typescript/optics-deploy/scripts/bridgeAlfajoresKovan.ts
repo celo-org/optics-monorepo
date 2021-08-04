@@ -9,9 +9,9 @@ const path = getPathToLatestDeploy();
 
 const alfajoresDeploy = new BridgeDeploy(
   alfajores.chain,
-  alfajores.config,
+  alfajores.bridgeConfig,
   path,
 );
-const kovanDeploy = new BridgeDeploy(kovan.chain, kovan.config, path);
+const kovanDeploy = new BridgeDeploy(kovan.chain, kovan.bridgeConfig, path);
 
 deployBridges([alfajoresDeploy, kovanDeploy]);
