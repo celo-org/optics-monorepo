@@ -153,7 +153,9 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         returns (string memory _name, string memory _symbol)
     {
         // get the first and second half of the token ID
-        (uint256 _firstHalfId, uint256 _secondHalfId) = Encoding.encodeHex(uint256(_tokenId.id()));
+        (uint256 _firstHalfId, uint256 _secondHalfId) = Encoding.encodeHex(
+            uint256(_tokenId.id())
+        );
         // encode the default token name: "optics.[domain].[id]"
         _name = string(
             abi.encodePacked(

@@ -11,6 +11,7 @@ export type { UpgradeBeaconProxy } from "./UpgradeBeaconProxy";
 export type { XAppConnectionManager } from "./XAppConnectionManager";
 export type { IMessageRecipient } from "./IMessageRecipient";
 export type { IUpdaterManager } from "./IUpdaterManager";
+export type { OwnableUpgradeable } from "./OwnableUpgradeable";
 export type { Ownable } from "./Ownable";
 export type { IERC20 } from "./IERC20";
 export type { TypedMemView } from "./TypedMemView";
@@ -39,6 +40,7 @@ export { UpgradeBeaconProxy__factory } from "./factories/UpgradeBeaconProxy__fac
 export { XAppConnectionManager__factory } from "./factories/XAppConnectionManager__factory";
 export { IMessageRecipient__factory } from "./factories/IMessageRecipient__factory";
 export { IUpdaterManager__factory } from "./factories/IUpdaterManager__factory";
+export { OwnableUpgradeable__factory } from "./factories/OwnableUpgradeable__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { TypedMemView__factory } from "./factories/TypedMemView__factory";

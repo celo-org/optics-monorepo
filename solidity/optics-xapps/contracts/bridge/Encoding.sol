@@ -4,11 +4,14 @@ pragma solidity >=0.6.11;
 library Encoding {
     bytes private constant NIBBLE_LOOKUP = "0123456789abcdef";
 
-    function encodeUint32(uint32 _num)
-        internal
-        pure
-        returns (uint80 _encoded)
-    {
+    /**
+     * @notice      Encode a uint32 in its DECIMAL representation, with leading
+     *              zeroes.
+     * @param _num  The number to encode
+     * @return      _encoded - The encoded number, suitable for use in abi.
+     *              encodePacked
+     */
+    function encodeUint32(uint32 _num) internal pure returns (uint80 _encoded) {
         uint80 ASCII_0 = 0x30;
         // all over/underflows are impossible
         // this will ALWAYS produce 10 decimal characters
@@ -55,7 +58,7 @@ library Encoding {
      * @return      _char - The encoded hex character
      */
     function _nibbleHex(uint8 _b) private pure returns (uint8 _char) {
-        uint8 _nibble = _b & 0x0f; // set bottom 4, keep top 4
+        uint8 _nibble = _b & 0x0f; // keep bottom 4, 0 top 4
         _char = uint8(NIBBLE_LOOKUP[_nibble]);
     }
 
