@@ -146,10 +146,6 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
 
     // ======== Internal Functions =========
 
-    function _cloneTokenContract() internal returns (address result) {
-        return address(new UpgradeBeaconProxy(tokenBeacon, ""));
-    }
-
     function _defaultDetails(bytes29 _tokenId)
         internal
         pure
@@ -180,13 +176,12 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _token)
     {
-        // Deploy the token contract by cloning tokenTemplate
-        _token = _cloneTokenContract();
-
+        // deploy the token contract
+        _token = address(new UpgradeBeaconProxy(tokenBeacon, ""));
+        // set the default token name & symbol
         string memory _name;
         string memory _symbol;
         (_name, _symbol) = _defaultDetails(_tokenId);
-
         IBridgeToken(_token).setDetails(_name, _symbol, 18);
         // store token in mappings
         representationToCanonical[_token].domain = _tokenId.domain();
@@ -255,11 +250,11 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         return _isLocalOrigin(address(_token));
     }
 
-    function _isLocalOrigin(address _addr) internal view returns (bool) {
+    function _isLocalOrigin(address _token) internal view returns (bool) {
         // If the contract WAS deployed by the TokenRegistry,
         // it will be stored in this mapping.
         // If so, it IS NOT of local origin
-        if (representationToCanonical[_addr].domain != 0) {
+        if (representationToCanonical[_token].domain != 0) {
             return false;
         }
         // If the contract WAS NOT deployed by the TokenRegistry,
