@@ -154,10 +154,11 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
     }
 
     /**
-     * @notice Called by updater. Updates home's `current` root from `_oldRoot`
+     * @notice Called with updater's signature. Updates home's `current` root from `_oldRoot`
      * to `_newRoot` and emits `Update` event. If fraudulent update
      * detected in `improperUpdate`, updater is slashed and home is
-     * failed.
+     * failed. Invalid signed roots on a Replica can be submitted
+     * by anyone here on Home and will lead to slashing as well.
      * @param _oldRoot Old merkle root (should equal home's current root)
      * @param _newRoot New merkle root
      * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
