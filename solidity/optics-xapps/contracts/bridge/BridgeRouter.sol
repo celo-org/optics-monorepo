@@ -310,13 +310,18 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _id the canonical ID of the Token to enroll, as a byte vector
      * @param _custom the address of the custom implementation to use.
      */
-    function enrollCustom(bytes memory _id, address _custom)
-        external
-        onlyOwner
-    {
-        require(_id.length == 36, "!tokenId");
-        bytes29 _tokenId = _id.ref(0);
+    function enrollCustom(
+        uint32 _domain,
+        bytes32 _id,
+        address _custom
+    ) external onlyOwner {
+        bytes29 _tokenId = BridgeMessage.formatTokenId(_domain, _id);
         bytes32 _idHash = _tokenId.keccak();
+
+        // Sanity check. Ensures that human error doesn't cause an
+        // unpermissioned contract to be enrolled.
+        IBridgeToken(_custom).mint(address(this), 1);
+        IBridgeToken(_custom).burn(address(this), 1);
 
         representationToCanonical[_custom].domain = _tokenId.domain();
         representationToCanonical[_custom].id = _tokenId.id();
