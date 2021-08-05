@@ -155,7 +155,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         // get the first and second half of the token ID
         (uint256 _firstHalfId, uint256 _secondHalfId) = Encoding.encodeHex(uint256(_tokenId.id()));
         // encode the default token name: "optics.[domain].[id]"
-        string memory _name = string(
+        _name = string(
             abi.encodePacked(
                 "optics.",
                 Encoding.encodeUint32(_tokenId.domain()),
@@ -165,7 +165,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
             )
         );
         // allocate the memory for a new 32-byte string
-        string memory _symbol = new string(32);
+        _symbol = new string(32);
         assembly {
             mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
         }
@@ -263,7 +263,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         uint256 _codeSize;
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            _codeSize := extcodesize(_addr)
+            _codeSize := extcodesize(_token)
         }
         return _codeSize != 0;
     }
