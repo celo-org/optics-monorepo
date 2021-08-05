@@ -90,7 +90,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         _;
     }
 
-    // ======== External Functions =========
+    // ======== External: Token Lookup Convenience =========
 
     /**
      * @notice Looks up the canonical identifier for a local representation.
@@ -125,7 +125,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         _token = getLocalAddress(_domain, TypeCasts.addressToBytes32(_id));
     }
 
-    // ======== Public Functions =========
+    // ======== Public: Token Lookup Convenience =========
 
     /**
      * @notice Looks up the local address corresponding to a domain/id pair.
@@ -154,27 +154,25 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         internal
         pure
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (string memory, string memory)
+        returns (string memory _name, string memory _symbol)
     {
-        (uint256 _a, uint256 _b) = Encoding.encodeHex(uint256(_tokenId.id()));
-
+        // get the first and second half of the token ID
+        (uint256 _firstHalfId, uint256 _secondHalfId) = Encoding.encodeHex(uint256(_tokenId.id()));
+        // encode the default token name: "optics.[domain].[id]"
         string memory _name = string(
             abi.encodePacked(
                 "optics.",
                 Encoding.encodeUint32(_tokenId.domain()),
                 ".0x",
-                _a,
-                _b
+                _firstHalfId,
+                _secondHalfId
             )
         );
-
-        // Allocate the memory for a new 32-byte string
+        // allocate the memory for a new 32-byte string
         string memory _symbol = new string(32);
         assembly {
             mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
         }
-
-        return (_name, _symbol);
     }
 
     function _deployToken(bytes29 _tokenId)
