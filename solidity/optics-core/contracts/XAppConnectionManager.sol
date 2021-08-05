@@ -122,7 +122,7 @@ contract XAppConnectionManager is Ownable {
         bytes memory _signature
     ) internal view returns (address) {
         bytes32 _homeDomainHash = Replica(TypeCasts.bytes32ToAddress(_replica))
-        .homeDomainHash();
+            .homeDomainHash();
 
         bytes32 _digest = keccak256(
             abi.encodePacked(_homeDomainHash, _domain, _updater)

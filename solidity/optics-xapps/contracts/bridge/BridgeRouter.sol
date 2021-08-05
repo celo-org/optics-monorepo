@@ -37,11 +37,8 @@ contract BridgeRouter is Router, TokenRegistry {
     );
 
     /// @notice A mapping that stores the LP that pre-filled a token transfer
+    /// message
     mapping(bytes32 => address) public liquidityProvider;
-
-    function initialize(address _xAppConnectionManager) public initializer {
-        TokenRegistry._initialize(_xAppConnectionManager);
-    }
 
     // ======== External: Handle =========
 
