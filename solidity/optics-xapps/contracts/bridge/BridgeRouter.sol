@@ -25,6 +25,16 @@ contract BridgeRouter is Router, TokenRegistry {
     /// @notice 5 bps (0.05%) hardcoded fee. Can be changed by contract upgrade
     uint256 public constant PRE_FILL_FEE_NUMERATOR = 9995;
     uint256 public constant PRE_FILL_FEE_DENOMINATOR = 10000;
+    // ======== Events =========
+
+    event Migrate(
+        uint32 indexed domain,
+        bytes32 indexed id,
+        address indexed tokenHolder,
+        uint256 balance,
+        address oldToken,
+        address newToken
+    );
 
     /// @notice A mapping that stores the LP that pre-filled a token transfer
     /// message
@@ -319,19 +329,28 @@ contract BridgeRouter is Router, TokenRegistry {
      * burning old tokens and minting new tokens.
      * @dev This is explicitly opt-in to allow dapps to decide when and how to
      * upgrade to the new representation.
-     * @param _asset The address of the old asset to migrate.
+     * @param _oldRepr The address of the old token to migrate
      */
-    function migrate(address _asset) external {
-        TokenId memory _id = representationToCanonical[_asset];
+    function migrate(address _oldRepr) external {
+        // get the token ID for the old token contract
+        TokenId memory _id = representationToCanonical[_oldRepr];
         require(_id.domain != 0, "!repr");
 
-        IBridgeToken _original = IBridgeToken(_asset);
-        IBridgeToken _new = _downcast(_reprFor(_id));
+        IBridgeToken _old = IBridgeToken(_oldRepr);
+        IBridgeToken _new = _reprFor(_id);
+        require(_new != _old, "!different");
 
-        require(_new != _original, "!different");
-
-        uint256 _bal = _original.balanceOf(msg.sender);
-        _original.burn(msg.sender, _bal);
+        // burn the old tokens & mint the new ones
+        uint256 _bal = _old.balanceOf(msg.sender);
+        _old.burn(msg.sender, _bal);
         _new.mint(msg.sender, _bal);
+        emit Migrate(
+            _id.domain,
+            _id.id,
+            msg.sender,
+            _bal,
+            address(_old),
+            address(_new)
+        );
     }
 }

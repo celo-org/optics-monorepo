@@ -276,17 +276,16 @@ abstract contract TokenRegistry is XAppConnectionClient {
     }
 
     /// @dev Find the local representation of a canonical token. May return 0
-    function _reprFor(bytes29 _tokenId)
-        internal
-        view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (IERC20)
-    {
-        return IERC20(canonicalToRepresentation[_tokenId.keccak()]);
+    function _reprFor(bytes29 _tokenId) internal view returns (IBridgeToken) {
+        return IBridgeToken(canonicalToRepresentation[_tokenId.keccak()]);
     }
 
     /// @dev Find the local representation of a canonical token. May return 0
-    function _reprFor(TokenId memory _tokenId) internal view returns (IERC20) {
+    function _reprFor(TokenId memory _tokenId)
+        internal
+        view
+        returns (IBridgeToken)
+    {
         return _reprFor(_serializeId(_tokenId));
     }
 
