@@ -161,7 +161,7 @@ abstract contract TokenRegistry is Initializable, XAppConnectionClient {
         string memory _name = string(
             abi.encodePacked(
                 "optics.",
-                Encoding._encodeUint32(_tokenId.domain()),
+                Encoding.encodeUint32(_tokenId.domain()),
                 ".0x",
                 _a,
                 _b
