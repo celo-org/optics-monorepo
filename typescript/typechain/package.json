@@ -10,5 +10,8 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0"
+  },
+  "devDependencies": {
+    "ethers": "^5.3.1"
   }
 }
