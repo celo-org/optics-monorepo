@@ -11,13 +11,15 @@ library BridgeMessage {
     uint256 private constant TOKEN_ID_LEN = 36;
     uint256 private constant TRANSFER_LEN = 64;
     uint256 private constant DETAILS_LEN = 65;
+    uint256 private constant REQUEST_DETAILS_LEN = 0;
 
     enum Types {
         Invalid, // 0
         Transfer, // 1
         Details, // 2
-        TokenId, // 3
-        Message // 4
+        RequestDetails, // 3
+        TokenId, // 4
+        Message // 5
     }
 
     /**
@@ -42,7 +44,7 @@ library BridgeMessage {
         typeAssert(_tokenId, Types.TokenId)
         returns (bytes memory)
     {
-        require(isDetails(_action) || isTransfer(_action), "!action");
+        require(isDetails(_action) || isRequestDetails(_action) || isTransfer(_action), "!action");
         bytes29[] memory _views = new bytes29[](2);
         _views[0] = _tokenId;
         _views[1] = _action;
@@ -77,6 +79,15 @@ library BridgeMessage {
     }
 
     /**
+     * @notice Checks that the message is of type Details
+     * @param _view The message
+     * @return True if the message is of type Details
+     */
+    function isRequestDetails(bytes29 _view) internal pure returns (bool) {
+        return messageType(_view) == Types.RequestDetails;
+    }
+
+    /**
      * @notice Formats Transfer
      * @param _to The recipient address as bytes32
      * @param _amnt The transfer amount
@@ -104,6 +115,14 @@ library BridgeMessage {
     ) internal pure returns (bytes29) {
         return
             mustBeDetails(abi.encodePacked(_name, _symbol, _decimals).ref(0));
+    }
+
+    /**
+     * @notice Formats Request Details
+     * @return The Request Details message
+     */
+    function formatRequestDetails() internal pure returns (bytes29) {
+        return mustBeRequestDetails(abi.encodePacked("").ref(0));
     }
 
     /**
@@ -304,12 +323,25 @@ library BridgeMessage {
     }
 
     /**
+     * @notice Converts to a Details
+     * @param _view The message
+     * @return The newly typed message
+     */
+    function tryAsRequestDetails(bytes29 _view) internal pure returns (bytes29) {
+        if (_view.len() == REQUEST_DETAILS_LEN) {
+            return _view.castTo(uint40(Types.RequestDetails));
+        }
+        return TypedMemView.nullView();
+    }
+
+
+    /**
      * @notice Converts to a TokenID
      * @param _view The message
      * @return The newly typed message
      */
     function tryAsTokenId(bytes29 _view) internal pure returns (bytes29) {
-        if (_view.len() == 36) {
+        if (_view.len() == TOKEN_ID_LEN) {
             return _view.castTo(uint40(Types.TokenId));
         }
         return TypedMemView.nullView();
@@ -324,7 +356,8 @@ library BridgeMessage {
         uint256 _len = _view.len();
         if (
             _len == TOKEN_ID_LEN + TRANSFER_LEN ||
-            _len == TOKEN_ID_LEN + DETAILS_LEN
+            _len == TOKEN_ID_LEN + DETAILS_LEN ||
+            _len == TOKEN_ID_LEN
         ) {
             return _view.castTo(uint40(Types.Message));
         }
@@ -347,6 +380,15 @@ library BridgeMessage {
      */
     function mustBeDetails(bytes29 _view) internal pure returns (bytes29) {
         return tryAsDetails(_view).assertValid();
+    }
+
+     /**
+     * @notice Asserts that the message is of type Details
+     * @param _view The message
+     * @return The message
+     */
+    function mustBeRequestDetails(bytes29 _view) internal pure returns (bytes29) {
+        return tryAsRequestDetails(_view).assertValid();
     }
 
     /**

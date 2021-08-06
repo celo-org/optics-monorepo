@@ -52,6 +52,8 @@ contract BridgeRouter is Router, TokenRegistry {
             _handleTransfer(_tokenId, _action);
         } else if (_action.isDetails()) {
             _handleDetails(_tokenId, _action);
+        } else if (_action.isRequestDetails()) {
+            _handleRequestDetails(_tokenId, _action);
         } else {
             require(false, "!valid action");
         }
@@ -126,17 +128,14 @@ contract BridgeRouter is Router, TokenRegistry {
         );
     }
 
-    // ======== External: Update Token Details =========
+    // ======== Public: Update Token Details =========
 
     /**
      * @notice Update the token metadata on another chain
      * @param _token The token address
      * @param _destination The destination domain
      */
-    // TODO: people can call this for nonsense non-ERC-20 tokens
-    // name, symbol, decimals could be nonsense
-    // remote chains will deploy a token contract based on this message
-    function updateDetails(address _token, uint32 _destination) external {
+    function updateDetails(address _token, uint32 _destination) public {
         require(_isLocalOrigin(_token), "!local origin");
         // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
@@ -238,6 +237,62 @@ contract BridgeRouter is Router, TokenRegistry {
             TypeCasts.coerceString(_action.name()),
             TypeCasts.coerceString(_action.symbol()),
             _action.decimals()
+        );
+    }
+
+    /**
+     * @notice Handles an incoming Request Details message.
+     * @param _tokenId The token ID
+     * @param _action The action
+     */
+    function _handleRequestDetails(bytes29 _tokenId, bytes29 _action)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        typeAssert(_action, BridgeMessage.Types.Details)
+    {
+        // send update details message
+        updateDetails(_tokenId.evmId(), _tokenId.domain());
+    }
+
+    // ============ Internal: Transfer ============
+
+    function _ensureToken(bytes29 _tokenId)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+        returns (IERC20)
+    {
+        address _local = _getTokenAddress(_tokenId);
+        if (_local == address(0)) {
+            // Representation does not exist yet;
+            // deploy representation contract
+            _local = _deployToken(_tokenId);
+            // message the origin domain
+            // to request the token details
+            _requestDetails(_tokenId);
+        }
+        return IERC20(_local);
+    }
+
+    // ============ Internal: Request Details ============
+
+    /**
+     * @notice Handles an incoming Details message.
+     * @param _tokenId The token ID
+     */
+    function _requestDetails(bytes29 _tokenId)
+        internal
+        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+    {
+        uint32 _destination = _tokenId.domain();
+        // get remote BridgeRouter address; revert if not found
+        bytes32 _remote = _mustHaveRemote(_destination);
+        // format Request Details message
+        bytes29 _action = BridgeMessage.formatRequestDetails();
+        // send message to remote chain via Optics
+        Home(xAppConnectionManager.home()).enqueue(
+            _destination,
+            _remote,
+            BridgeMessage.formatMessage(_tokenId, _action)
         );
     }
 
