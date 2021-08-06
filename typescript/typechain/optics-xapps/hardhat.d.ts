@@ -33,6 +33,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Replica__factory>;
     getContractFactory(
+      name: "UpgradeBeacon",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UpgradeBeacon__factory>;
+    getContractFactory(
       name: "UpgradeBeaconProxy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UpgradeBeaconProxy__factory>;

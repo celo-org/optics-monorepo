@@ -89,7 +89,7 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         emit NewUpdater(_updater);
     }
 
-    modifier onlyUpdaterManager {
+    modifier onlyUpdaterManager() {
         require(msg.sender == address(updaterManager), "!updaterManager");
         _;
     }

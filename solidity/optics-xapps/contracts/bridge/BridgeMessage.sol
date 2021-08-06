@@ -44,7 +44,12 @@ library BridgeMessage {
         typeAssert(_tokenId, Types.TokenId)
         returns (bytes memory)
     {
-        require(isDetails(_action) || isRequestDetails(_action) || isTransfer(_action), "!action");
+        require(
+            isDetails(_action) ||
+                isRequestDetails(_action) ||
+                isTransfer(_action),
+            "!action"
+        );
         bytes29[] memory _views = new bytes29[](2);
         _views[0] = _tokenId;
         _views[1] = _action;
@@ -327,13 +332,16 @@ library BridgeMessage {
      * @param _view The message
      * @return The newly typed message
      */
-    function tryAsRequestDetails(bytes29 _view) internal pure returns (bytes29) {
+    function tryAsRequestDetails(bytes29 _view)
+        internal
+        pure
+        returns (bytes29)
+    {
         if (_view.len() == REQUEST_DETAILS_LEN) {
             return _view.castTo(uint40(Types.RequestDetails));
         }
         return TypedMemView.nullView();
     }
-
 
     /**
      * @notice Converts to a TokenID
@@ -382,12 +390,16 @@ library BridgeMessage {
         return tryAsDetails(_view).assertValid();
     }
 
-     /**
+    /**
      * @notice Asserts that the message is of type Details
      * @param _view The message
      * @return The message
      */
-    function mustBeRequestDetails(bytes29 _view) internal pure returns (bytes29) {
+    function mustBeRequestDetails(bytes29 _view)
+        internal
+        pure
+        returns (bytes29)
+    {
         return tryAsRequestDetails(_view).assertValid();
     }
 
