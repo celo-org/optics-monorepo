@@ -12,20 +12,14 @@ function toBytes32(address: string): string {
   return '0x' + '00'.repeat(12) + address.slice(2);
 }
 
+// A BridgeRouter deployed with a mock Core suite.
+//
+// Intended usage: instatiate in hardhat tests with `deploy`. Interact with
+// the Bridge contracts as normal. Dispatch messages to the bridge using
+// router's `handle` function. The test signer is pre-authorized. Messages the
+// router dispatches will be logged in the `Enqueue` event on the `MockCore`
+// contract.
 export default class TestBridgeDeploy {
-  get chain() {
-    return { name: 'test', confirmations: 0, deployer: this.signer };
-  }
-  get coreDeployPath() {
-    return '';
-  }
-  get overrides() {
-    return {};
-  }
-  get config() {
-    return { weth: '' };
-  }
-
   signer: Signer;
   ubc: UpgradeBeaconController;
   mockCore: MockCore;
@@ -82,5 +76,18 @@ export default class TestBridgeDeploy {
       home: { proxy: this.mockCore.address },
       governance: { proxy: this.mockCore.address },
     };
+  }
+
+  get chain() {
+    return { name: 'test', confirmations: 0, deployer: this.signer };
+  }
+  get coreDeployPath() {
+    return '';
+  }
+  get overrides() {
+    return {};
+  }
+  get config() {
+    return { weth: '' };
   }
 }
