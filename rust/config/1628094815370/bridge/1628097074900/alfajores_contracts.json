@@ -1,7 +1,0 @@
-{
-  "bridgeRouter": {
-    "implementation": "0xF0B752f1C9770Ce1De9829980A4B143036F20611",
-    "proxy": "0xAE1605CFee6f9F2D5dAbb9AAF6D5d22c8D5C489C",
-    "beacon": "0x0062DA8919443a7261285dDEbc74679C30631541"
-  }
-}
