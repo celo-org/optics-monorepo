@@ -1,7 +1,11 @@
 import { BytesLike, ethers } from 'ethers';
 
 import * as contracts from '../../typechain/optics-core';
-import { BridgeDeploy, CoreDeploy, Deploy } from './deploy';
+import { CoreDeploy } from './core/CoreDeploy';
+import { BridgeDeploy } from './bridge/BridgeDeploy';
+import TestBridgeDeploy from './bridge/TestBridgeDeploy';
+
+type Deploy = CoreDeploy | BridgeDeploy | TestBridgeDeploy;
 
 export class BeaconProxy<T extends ethers.Contract> {
   implementation: T;
@@ -35,7 +39,7 @@ export type ProxyAddresses = {
  * @param T - The contract
  */
 export async function deployProxy<T extends ethers.Contract>(
-  deploy: CoreDeploy | BridgeDeploy,
+  deploy: Deploy,
   factory: ethers.ContractFactory,
   initData: BytesLike,
   ...deployArgs: any[]
@@ -89,7 +93,7 @@ export async function deployProxy<T extends ethers.Contract>(
  * @param T - The contract
  */
 export async function duplicate<T extends ethers.Contract>(
-  deploy: CoreDeploy | BridgeDeploy,
+  deploy: Deploy,
   prev: BeaconProxy<T>,
   initData: BytesLike,
 ): Promise<BeaconProxy<T>> {
@@ -122,7 +126,7 @@ export async function duplicate<T extends ethers.Contract>(
  * @param implementation - The implementation
  */
 async function _deployBeacon(
-  deploy: CoreDeploy | BridgeDeploy,
+  deploy: Deploy,
   implementation: ethers.Contract,
 ): Promise<contracts.UpgradeBeacon> {
   let factory = new contracts.UpgradeBeacon__factory(deploy.chain.deployer);
@@ -146,7 +150,7 @@ async function _deployBeacon(
  * @param implementation - The implementation
  */
 async function _deployProxy<T>(
-  deploy: CoreDeploy | BridgeDeploy,
+  deploy: Deploy,
   beacon: contracts.UpgradeBeacon,
   initData: BytesLike,
 ): Promise<contracts.UpgradeBeaconProxy> {

@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -18,25 +19,41 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface TestXappConnectionManagerInterface extends ethers.utils.Interface {
+interface MockCoreInterface extends ethers.utils.Interface {
   functions: {
+    "enqueue(uint32,bytes32,bytes)": FunctionFragment;
+    "home()": FunctionFragment;
+    "isReplica(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "enqueue",
+    values: [BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "home", values?: undefined): string;
+  encodeFunctionData(functionFragment: "isReplica", values: [string]): string;
   encodeFunctionData(
     functionFragment: "localDomain",
     values?: undefined
   ): string;
 
+  decodeFunctionResult(functionFragment: "enqueue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "home", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isReplica", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "Enqueue(uint32,bytes32,bytes)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Enqueue"): EventFragment;
 }
 
-export class TestXappConnectionManager extends BaseContract {
+export class MockCore extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -77,25 +94,92 @@ export class TestXappConnectionManager extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: TestXappConnectionManagerInterface;
+  interface: MockCoreInterface;
 
   functions: {
+    enqueue(
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      _body: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    home(overrides?: CallOverrides): Promise<[string]>;
+
+    isReplica(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
     localDomain(overrides?: CallOverrides): Promise<[number]>;
   };
+
+  enqueue(
+    _destination: BigNumberish,
+    _recipient: BytesLike,
+    _body: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  home(overrides?: CallOverrides): Promise<string>;
+
+  isReplica(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
+    enqueue(
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      _body: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    home(overrides?: CallOverrides): Promise<string>;
+
+    isReplica(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
     localDomain(overrides?: CallOverrides): Promise<number>;
   };
 
-  filters: {};
+  filters: {
+    Enqueue(
+      _destination?: BigNumberish | null,
+      _recipient?: BytesLike | null,
+      _body?: null
+    ): TypedEventFilter<
+      [number, string, string],
+      { _destination: number; _recipient: string; _body: string }
+    >;
+  };
 
   estimateGas: {
+    enqueue(
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      _body: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    home(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isReplica(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    enqueue(
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      _body: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    home(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isReplica(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

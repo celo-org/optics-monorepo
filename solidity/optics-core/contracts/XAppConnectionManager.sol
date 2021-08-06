@@ -48,7 +48,7 @@ contract XAppConnectionManager is Ownable {
             "!current updater"
         );
 
-        address _watcher = recoverWatcherFromSig(
+        address _watcher = _recoverWatcherFromSig(
             _domain,
             TypeCasts.addressToBytes32(_replica),
             _updater,
@@ -56,7 +56,7 @@ contract XAppConnectionManager is Ownable {
         );
         require(watcherPermissions[_watcher][_domain], "!valid watcher");
 
-        unenrollReplica(_replica);
+        _unenrollReplica(_replica);
     }
 
     function setHome(address _home) public onlyOwner {
@@ -67,7 +67,7 @@ contract XAppConnectionManager is Ownable {
         public
         onlyOwner
     {
-        unenrollReplica(_replica);
+        _unenrollReplica(_replica);
         replicaToDomain[_replica] = _domain;
         domainToReplica[_domain] = _replica;
 
@@ -75,7 +75,7 @@ contract XAppConnectionManager is Ownable {
     }
 
     function ownerUnenrollReplica(address _replica) public onlyOwner {
-        unenrollReplica(_replica);
+        _unenrollReplica(_replica);
     }
 
     function setWatcherPermission(
@@ -107,7 +107,7 @@ contract XAppConnectionManager is Ownable {
         return watcherPermissions[_watcher][_domain];
     }
 
-    function unenrollReplica(address _replica) internal {
+    function _unenrollReplica(address _replica) internal {
         uint32 _currentDomain = replicaToDomain[_replica];
         domainToReplica[_currentDomain] = address(0);
         replicaToDomain[_replica] = 0;
@@ -115,7 +115,7 @@ contract XAppConnectionManager is Ownable {
         emit ReplicaUnenrolled(_currentDomain, _replica);
     }
 
-    function recoverWatcherFromSig(
+    function _recoverWatcherFromSig(
         uint32 _domain,
         bytes32 _replica,
         bytes32 _updater,

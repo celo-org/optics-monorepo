@@ -11,7 +11,7 @@ import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Address, Signer } from '../../lib/types';
-import { CoreDeploy as Deploy } from '../../../optics-deploy/src/deploy';
+import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
 import {
   deployTwoChains,
   deployUnenrolledReplica,

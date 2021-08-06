@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import ethers from 'ethers';
 
 import { Signer } from '../lib/types';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/deploy';
+import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
 import {
   deployUpdaterManager,
   deployUpgradeBeaconController,

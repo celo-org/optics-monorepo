@@ -7,7 +7,7 @@ import { increaseTimestampBy } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib';
 import { Signer } from '../../lib/types';
-import { CoreDeploy as Deploy } from '../../../optics-deploy/src/deploy';
+import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
 import { deployTwoChains } from '../../../optics-deploy/src/core';
 import * as contracts from '../../../typechain/optics-core';
 

@@ -2,18 +2,13 @@
 pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
+import {MockCore} from "./MockCore.sol";
 import {BridgeRouter} from "../BridgeRouter.sol";
 import {BridgeMessage} from "../BridgeMessage.sol";
 import {BridgeToken} from "../BridgeToken.sol";
 // ============ External Imports ============
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-
-contract TestXappConnectionManager {
-    function localDomain() external pure returns (uint32) {
-        return 5;
-    }
-}
 
 contract TestFastLiquidity is BridgeRouter {
     using TypedMemView for bytes29;
@@ -44,7 +39,7 @@ contract TestFastLiquidity is BridgeRouter {
         );
         canonicalToRepresentation[_tokenId.keccak()] = address(t);
         // required to intercept `_localDomain` calls
-        _initialize(address(new TestXappConnectionManager()));
+        _initialize(address(new MockCore()));
     }
 
     function getMessage()

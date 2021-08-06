@@ -6,7 +6,7 @@ import { getTestDeploy } from './testChain';
 import { Updater, OpticsState, MessageStatus } from '../lib';
 import { Signer, BytesArray } from '../lib/types';
 import * as contracts from '../../typechain/optics-core';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/deploy';
+import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
 import {
   deployUnenrolledReplica,
   deployUpgradeBeaconController,

@@ -14,7 +14,7 @@ contract TestXAppConnectionManager is XAppConnectionManager {
         bytes memory _signature
     ) external view returns (address) {
         return
-            recoverWatcherFromSig(
+            _recoverWatcherFromSig(
                 _domain,
                 TypeCasts.addressToBytes32(_replica),
                 TypeCasts.addressToBytes32(_updater),

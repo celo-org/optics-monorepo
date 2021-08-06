@@ -4,8 +4,8 @@ const { BigNumber } = ethers;
 
 import {
   CoreConfig,
-  CoreDeploy as Deploy,
-} from '../../optics-deploy/src/deploy';
+  CoreDeploy,
+} from '../../optics-deploy/src/core/CoreDeploy';
 
 export async function getTestChain(
   domain: number,
@@ -43,12 +43,12 @@ export async function getTestDeploy(
   updater: string,
   watchers: string[],
   recoveryManager?: string,
-): Promise<Deploy> {
+): Promise<CoreDeploy> {
   const [chain, config] = await getTestChain(
     domain,
     updater,
     watchers,
     recoveryManager,
   );
-  return new Deploy(chain, config, true);
+  return new CoreDeploy(chain, config, true);
 }
