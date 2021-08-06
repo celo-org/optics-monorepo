@@ -61,7 +61,7 @@ async function deployTokenUpgradeBeacon(deploy: BridgeDeploy) {
   console.log(`deploying ${deploy.chain.name} Token Upgrade Beacon`);
 
   // no initialize function called
-  const initData = '';
+  const initData = '0x';
 
   deploy.contracts.bridgeToken =
     await proxyUtils.deployProxy<xAppContracts.BridgeToken>(
