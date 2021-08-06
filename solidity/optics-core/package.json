@@ -9,7 +9,7 @@
     "chai": "^4.3.0",
     "eslint": "^7.20.0",
     "ethereum-waffle": "^3.2.2",
-    "ethers": "^5.0.29",
+    "ethers": "^5.4.4",
     "hardhat": "^2.0.8",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.2.1",

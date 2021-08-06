@@ -33,10 +33,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Replica__factory>;
     getContractFactory(
-      name: "UpgradeBeacon",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.UpgradeBeacon__factory>;
-    getContractFactory(
       name: "UpgradeBeaconProxy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UpgradeBeaconProxy__factory>;
@@ -52,10 +48,6 @@ declare module "hardhat/types/runtime" {
       name: "IUpdaterManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUpdaterManager__factory>;
-    getContractFactory(
-      name: "OwnableUpgradeable",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.OwnableUpgradeable__factory>;
     getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
