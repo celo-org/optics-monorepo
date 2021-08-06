@@ -218,20 +218,6 @@ abstract contract TokenRegistry is Initializable {
         }
     }
 
-    function _ensureToken(bytes29 _tokenId)
-        internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (IERC20)
-    {
-        address _local = _getTokenAddress(_tokenId);
-        if (_local == address(0)) {
-            // Representation does not exist yet;
-            // deploy representation contract
-            _local = _deployToken(_tokenId);
-        }
-        return IERC20(_local);
-    }
-
     /// @dev returns the token corresponding to the canonical ID, or errors.
     function _mustHaveToken(bytes29 _tokenId)
         internal
