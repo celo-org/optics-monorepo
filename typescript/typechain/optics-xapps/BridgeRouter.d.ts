@@ -40,7 +40,6 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "setXAppConnectionManager(address)": FunctionFragment;
     "tokenBeacon()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "updateDetails(address,uint32)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
@@ -112,10 +111,6 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateDetails",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "xAppConnectionManager",
     values?: undefined
   ): string;
@@ -176,10 +171,6 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateDetails",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -340,12 +331,6 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    updateDetails(
-      _token: string,
-      _destination: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -447,12 +432,6 @@ export class BridgeRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  updateDetails(
-    _token: string,
-    _destination: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
@@ -543,12 +522,6 @@ export class BridgeRouter extends BaseContract {
 
     transferOwnership(
       newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateDetails(
-      _token: string,
-      _destination: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -692,12 +665,6 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    updateDetails(
-      _token: string,
-      _destination: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -801,12 +768,6 @@ export class BridgeRouter extends BaseContract {
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateDetails(
-      _token: string,
-      _destination: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
