@@ -1,6 +1,6 @@
 import { Chain, ChainJson, CoreContractDeployOutput, toChain } from '../chain';
 import { BridgeContracts } from './BridgeContracts';
-import { parseFileFromDeploy } from '../readDeployOutput';
+import { parseFileFromDeploy } from '../verification/readDeployOutput';
 import { Deploy } from '../deploy';
 
 export type BridgeConfig = {

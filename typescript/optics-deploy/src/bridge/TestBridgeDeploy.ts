@@ -72,7 +72,7 @@ export default class TestBridgeDeploy {
 
   get coreContractAddresses() {
     return {
-      xappConnectionManager: this.mockCore.address,
+      xAppConnectionManager: this.mockCore.address,
       home: { proxy: this.mockCore.address },
       governance: { proxy: this.mockCore.address },
     };

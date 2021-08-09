@@ -5,7 +5,7 @@ import * as ethers from 'ethers';
 import fs from 'fs';
 
 import * as proxyUtils from '../proxyUtils';
-import { CoreDeploy } from '../deploy';
+import { CoreDeploy } from './CoreDeploy';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import * as contracts from '../../../typechain/optics-core';
 
