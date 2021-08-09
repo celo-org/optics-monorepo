@@ -42,6 +42,18 @@ library BridgeMessage {
     }
 
     /**
+     * @notice Checks that view is a valid message
+     * @param _view The bytes string
+     * @return TRUE if message is valid
+     */
+    function isValidMessage(bytes29 _view) internal {
+        uint256 _len = _view.len();
+        return _len == TOKEN_ID_LEN + TRANSFER_LEN ||
+        _len == TOKEN_ID_LEN + DETAILS_LEN ||
+        _len == TOKEN_ID_LEN;
+    }
+
+    /**
      * @notice Formats an action message
      * @param _tokenId The token ID
      * @param _action The action
@@ -365,12 +377,7 @@ library BridgeMessage {
      * @return The newly typed message
      */
     function tryAsMessage(bytes29 _view) internal pure returns (bytes29) {
-        uint256 _len = _view.len();
-        if (
-            _len == TOKEN_ID_LEN + TRANSFER_LEN ||
-            _len == TOKEN_ID_LEN + DETAILS_LEN ||
-            _len == TOKEN_ID_LEN
-        ) {
+        if (isValidMessage(_view)) {
             return _view.castTo(uint40(Types.Message));
         }
         return TypedMemView.nullView();
