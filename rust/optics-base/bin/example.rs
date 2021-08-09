@@ -20,7 +20,7 @@ fn setup() -> Result<Settings> {
     color_eyre::install()?;
 
     let settings = Settings::new()?;
-    settings.tracing.try_init_tracing()?;
+    settings.tracing.start_tracing()?;
 
     Ok(settings)
 }

@@ -1,5 +1,3 @@
-use std::convert::{TryFrom, TryInto};
-
 use opentelemetry::{
     sdk::trace::{IdGenerator, Tracer},
     trace::TraceError,
@@ -31,16 +29,16 @@ pub struct JaegerConfig {
     name: String,
 }
 
-impl From<&JaegerConfig> for PipelineBuilder {
-    fn from(conf: &JaegerConfig) -> Self {
+impl JaegerConfig {
+    fn builder(self: &JaegerConfig) -> PipelineBuilder {
         let builder = PipelineBuilder::default()
-            .with_service_name(&conf.name)
-            .with_collector_endpoint(&conf.collector.uri)
+            .with_service_name(&self.name)
+            .with_collector_endpoint(&self.collector.uri)
             .with_trace_config(
                 opentelemetry::sdk::trace::config().with_id_generator(IdGenerator::default()),
             );
 
-        if let Some(ref auth) = conf.collector.auth {
+        if let Some(ref auth) = self.collector.auth {
             builder
                 .with_collector_username(&auth.username)
                 .with_collector_password(&auth.password)
@@ -48,24 +46,14 @@ impl From<&JaegerConfig> for PipelineBuilder {
             builder
         }
     }
-}
 
-impl TryFrom<&JaegerConfig> for Tracer {
-    type Error = TraceError;
-
-    fn try_from(value: &JaegerConfig) -> Result<Self, Self::Error> {
-        let p: PipelineBuilder = value.into();
-        p.install_batch(opentelemetry::runtime::Tokio)
+    fn try_into_tracer(self: &JaegerConfig) -> Result<Tracer, TraceError> {
+        self.builder().install_batch(opentelemetry::runtime::Tokio)
     }
-}
 
-impl<S> TryFrom<&JaegerConfig> for OpenTelemetryLayer<S, Tracer>
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-{
-    type Error = TraceError;
-
-    fn try_from(value: &JaegerConfig) -> Result<Self, Self::Error> {
-        Ok(tracing_opentelemetry::layer().with_tracer(value.try_into()?))
+    pub(crate) fn try_into_layer<S: Subscriber + for<'a> LookupSpan<'a>>(
+        self: &JaegerConfig,
+    ) -> Result<OpenTelemetryLayer<S, Tracer>, TraceError> {
+        Ok(tracing_opentelemetry::layer().with_tracer(self.try_into_tracer()?))
     }
 }

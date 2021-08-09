@@ -19,7 +19,7 @@ use crate::{settings::UpdaterSettings as Settings, updater::Updater};
 async fn _main() -> Result<()> {
     color_eyre::install()?;
     let settings = Settings::new()?;
-    settings.base.tracing.try_init_tracing()?;
+    settings.base.tracing.start_tracing()?;
 
     let agent = Updater::from_settings(settings).await?;
     agent.run_all().await?;

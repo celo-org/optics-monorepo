@@ -21,7 +21,7 @@ use crate::{settings::WatcherSettings as Settings, watcher::Watcher};
 async fn _main() -> Result<()> {
     color_eyre::install()?;
     let settings = Settings::new()?;
-    settings.base.tracing.try_init_tracing()?;
+    settings.base.tracing.start_tracing()?;
 
     let agent = Watcher::from_settings(settings).await?;
     agent.run_all().await?;

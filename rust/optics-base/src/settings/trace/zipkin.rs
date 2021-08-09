@@ -1,5 +1,3 @@
-use std::convert::{TryFrom, TryInto};
-
 use opentelemetry::{sdk::trace::Tracer, trace::TraceError};
 use opentelemetry_zipkin::ZipkinPipelineBuilder;
 use tracing::Subscriber;
@@ -18,31 +16,20 @@ pub struct ZipkinConfig {
     collector: ZipkinCollector,
     name: String,
 }
-
-impl From<&ZipkinConfig> for ZipkinPipelineBuilder {
-    fn from(conf: &ZipkinConfig) -> Self {
+impl ZipkinConfig {
+    fn builder(self: &ZipkinConfig) -> ZipkinPipelineBuilder {
         ZipkinPipelineBuilder::default()
-            .with_service_name(&conf.name)
-            .with_collector_endpoint(&conf.collector.uri)
+            .with_service_name(&self.name)
+            .with_collector_endpoint(&self.collector.uri)
     }
-}
 
-impl TryFrom<&ZipkinConfig> for Tracer {
-    type Error = TraceError;
-
-    fn try_from(value: &ZipkinConfig) -> Result<Self, Self::Error> {
-        let p: ZipkinPipelineBuilder = value.into();
-        p.install_batch(opentelemetry::runtime::Tokio)
+    fn try_into_tracer(self: &ZipkinConfig) -> Result<Tracer, TraceError> {
+        self.builder().install_batch(opentelemetry::runtime::Tokio)
     }
-}
 
-impl<S> TryFrom<&ZipkinConfig> for OpenTelemetryLayer<S, Tracer>
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-{
-    type Error = TraceError;
-
-    fn try_from(value: &ZipkinConfig) -> Result<Self, Self::Error> {
-        Ok(tracing_opentelemetry::layer().with_tracer(value.try_into()?))
+    pub(crate) fn try_into_layer<S: Subscriber + for<'a> LookupSpan<'a>>(
+        self: &ZipkinConfig,
+    ) -> Result<OpenTelemetryLayer<S, Tracer>, TraceError> {
+        Ok(tracing_opentelemetry::layer().with_tracer(self.try_into_tracer()?))
     }
 }

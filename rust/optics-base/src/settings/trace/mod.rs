@@ -1,5 +1,4 @@
 use color_eyre::Result;
-use std::convert::TryInto;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, prelude::*};
 
@@ -72,8 +71,8 @@ pub struct TracingConfig {
 }
 
 impl TracingConfig {
-    /// Attempt to instantiate a register a tracing subscriber setup from settings.
-    pub fn try_init_tracing(&self) -> Result<()> {
+    /// Attempt to instantiate and register a tracing subscriber setup from settings.
+    pub fn start_tracing(&self) -> Result<()> {
         let fmt_layer: LogOutputLayer<_> = self.fmt.into();
         let err_layer = tracing_error::ErrorLayer::default();
 
@@ -86,12 +85,12 @@ impl TracingConfig {
             None => match self.zipkin {
                 None => subscriber.try_init()?,
                 Some(ref zipkin) => {
-                    let layer: OpenTelemetryLayer<_, _> = zipkin.try_into()?;
+                    let layer: OpenTelemetryLayer<_, _> = zipkin.try_into_layer()?;
                     subscriber.with(layer).try_init()?
                 }
             },
             Some(ref jaeger) => {
-                let layer: OpenTelemetryLayer<_, _> = jaeger.try_into()?;
+                let layer: OpenTelemetryLayer<_, _> = jaeger.try_into_layer()?;
                 subscriber.with(layer).try_init()?
             }
         }
