@@ -13,6 +13,9 @@ library BridgeMessage {
     uint256 private constant DETAILS_LEN = 65;
     uint256 private constant REQUEST_DETAILS_LEN = 0;
 
+    // WARNING: do NOT re-write the numbers / order
+    // of message types in an upgrade;
+    // will cause in-flight messages to be mis-interpreted
     enum Types {
         Invalid, // 0
         Transfer, // 1
