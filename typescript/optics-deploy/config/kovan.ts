@@ -1,7 +1,8 @@
 import * as dotenv from 'dotenv';
 
-import { Chain, ChainJson, toChain } from '../src/chain';
-import { BridgeConfig, CoreConfig } from '../src/deploy';
+import { ChainJson, toChain } from '../src/chain';
+import { CoreConfig } from '../src/core/CoreDeploy';
+import { BridgeConfig } from '../src/bridge/BridgeDeploy';
 import { BigNumber } from 'ethers';
 
 dotenv.config();
