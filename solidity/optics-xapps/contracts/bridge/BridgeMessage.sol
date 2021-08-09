@@ -33,6 +33,15 @@ library BridgeMessage {
     }
 
     /**
+     * @notice Checks that Action is valid type
+     * @param _action The action
+     * @return TRUE if action is valid
+     */
+    function isValidAction(bytes29 _action) internal {
+        return isDetails(_action) || isRequestDetails(_action) || isTransfer(_action);
+    }
+
+    /**
      * @notice Formats an action message
      * @param _tokenId The token ID
      * @param _action The action
@@ -44,12 +53,7 @@ library BridgeMessage {
         typeAssert(_tokenId, Types.TokenId)
         returns (bytes memory)
     {
-        require(
-            isDetails(_action) ||
-                isRequestDetails(_action) ||
-                isTransfer(_action),
-            "!action"
-        );
+        require(isValidAction(_action), "!action");
         bytes29[] memory _views = new bytes29[](2);
         _views[0] = _tokenId;
         _views[1] = _action;
