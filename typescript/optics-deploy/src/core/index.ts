@@ -575,7 +575,7 @@ export async function deployNChains(chains: CoreDeploy[]) {
 export async function deployAndEnrollNewChain(chains: Deploy[], newChain: Deploy) {
   await deployOptics(newChain);
 
-  chains.forEach(async (chain, i) => {
+  await Promise.all(chains.map(async (chain, i) => {
     await enrollRemote(chain, newChain);
     await enrollRemote(newChain, chain);
 
@@ -584,7 +584,7 @@ export async function deployAndEnrollNewChain(chains: Deploy[], newChain: Deploy
     }
   
     await relinquish(newChain);
-  })
+  }))
 
   if (!isTestDeploy) {
     writeDeployOutput([...chains, newChain]);
