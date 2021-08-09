@@ -23,7 +23,6 @@ interface RouterInterface extends ethers.utils.Interface {
   functions: {
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
-    "initialize()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -36,10 +35,6 @@ interface RouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -56,7 +51,6 @@ interface RouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
@@ -131,10 +125,6 @@ export class Router extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    initialize(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
@@ -157,10 +147,6 @@ export class Router extends BaseContract {
     _origin: BigNumberish,
     _sender: BytesLike,
     _message: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  initialize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -188,8 +174,6 @@ export class Router extends BaseContract {
       _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    initialize(overrides?: CallOverrides): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -225,10 +209,6 @@ export class Router extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    initialize(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
@@ -252,10 +232,6 @@ export class Router extends BaseContract {
       _origin: BigNumberish,
       _sender: BytesLike,
       _message: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    initialize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

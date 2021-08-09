@@ -10,9 +10,9 @@ abstract contract Router is OwnableUpgradeable, IMessageRecipient {
 
     mapping(uint32 => bytes32) internal remotes;
 
-    function initialize() public initializer {
-        __Ownable_init();
-    }
+    // function initialize() public initializer {
+    //     __Ownable_init();
+    // }
 
     // ============ Modifiers ============
 
