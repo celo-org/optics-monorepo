@@ -3,14 +3,16 @@ import "solidity-coverage";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-etherscan";
 import { task } from "hardhat/config";
-const {verifyLatestCoreDeploy} = require("./ts/verifyLatestDeploy");
+const { verifyLatestCoreDeploy } = require("../../typescript/optics-deploy/src/verification/verifyLatestDeploy");
 import * as dotenv from "dotenv";
 dotenv.config();
 
 task(
   "verify-latest-deploy",
   "Verifies the source code of the latest contract deploy"
-).setAction(verifyLatestCoreDeploy);
+).setAction(async(args: any, hre: any) => {
+  await verifyLatestCoreDeploy(hre);
+});
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

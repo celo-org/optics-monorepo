@@ -47,6 +47,7 @@ export async function verifyLatestCoreDeploy(hre: any) {
   * and attempt to verify those contracts' source code on Etherscan
   * */
 async function verifyDeploy(path: string, hre: any) {
+  console.log(hre)
   const network = hre.network.name;
 
   // assert that network from .env is supported by Etherscan
