@@ -34,9 +34,9 @@ fn init_kms(region: String) {
 #[clap(version = "0.1", author = "James Prestwich")]
 pub struct Opts {
     // TX
-    /// The TX value
+    /// The TX value (in wei)
     #[clap(short, long)]
-    value: Option<U256>,
+    value: Option<String>,
     /// The TX nonce (pulled from RPC if omitted)
     #[clap(long)]
     nonce: Option<U256>,
@@ -46,7 +46,7 @@ pub struct Opts {
     /// The TX gas limit (estimated from RPC if omitted)
     #[clap(long)]
     gas: Option<U256>,
-    /// The tx data body (omit for simple sends)
+    /// The TX data body (omit for simple sends)
     #[clap(short, long)]
     data: Option<String>,
     /// The recipient/contract address
@@ -76,26 +76,40 @@ pub struct Opts {
 }
 
 macro_rules! apply_if {
-    ($tx_req:ident, $opts:ident, $prop:ident) => {{
-        if let Some(prop) = $opts.$prop {
-            $tx_req.$prop(prop)
+    ($tx_req:ident, $method:ident, $prop:expr) => {{
+        if let Some(prop) = $prop {
+            $tx_req.$method(prop)
         } else {
             $tx_req
         }
+    }};
+
+    ($tx_req:ident, $opts:ident.$prop:ident) => {{
+        let prop = $opts.$prop;
+        apply_if!($tx_req, $prop, prop)
     }};
 }
 
 fn prep_tx_request(opts: &Opts) -> TransactionRequest {
     let tx_req = TransactionRequest::default().to(opts.to);
-    let tx_req = apply_if!(tx_req, opts, value);
-    let tx_req = apply_if!(tx_req, opts, nonce);
-    let tx_req = apply_if!(tx_req, opts, gas);
-    let tx_req = apply_if!(tx_req, opts, gas_price);
 
-    match opts.data.clone().and_then(|data| hex::decode(&data).ok()) {
-        Some(data) => tx_req.data(data),
-        None => tx_req,
-    }
+    // These swallow parse errors
+    let tx_req = apply_if!(
+        tx_req,
+        data,
+        opts.data.clone().and_then(|data| hex::decode(&data).ok())
+    );
+    let tx_req = apply_if!(
+        tx_req,
+        value,
+        opts.value
+            .clone()
+            .and_then(|value| U256::from_dec_str(&value).ok())
+    );
+
+    let tx_req = apply_if!(tx_req, opts.nonce);
+    let tx_req = apply_if!(tx_req, opts.gas);
+    apply_if!(tx_req, opts.gas_price)
 }
 
 async fn _main() -> Result<()> {
@@ -118,7 +132,8 @@ async fn _main() -> Result<()> {
             .sign_transaction(&tx_req.clone().into())
             .await?;
         dbg!(sig);
-        dbg!(tx_req);
+        dbg!(&tx_req);
+        dbg!(hex::encode(tx_req.rlp_signed(&sig)));
     } else {
         let res = client.send_transaction(tx_req, None).await?;
         dbg!(*res);
