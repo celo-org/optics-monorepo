@@ -174,7 +174,8 @@ abstract contract TokenRegistry is Initializable {
         }
     }
 
-    function _cloneTokenContract() internal returns (address result) {
+    /// @dev Deploy and init a new token contract
+    function _cloneTokenContract() internal returns (address) {
         address _newProxy = address(new UpgradeBeaconProxy(tokenBeacon, ""));
         IBridgeToken(_newProxy).initialize();
         return _newProxy;
@@ -186,7 +187,7 @@ abstract contract TokenRegistry is Initializable {
         returns (address _token)
     {
         // deploy the token contract
-        _token = address(new UpgradeBeaconProxy(tokenBeacon, ""));
+        _token = _cloneTokenContract();
         // set the default token name & symbol
         string memory _name;
         string memory _symbol;
