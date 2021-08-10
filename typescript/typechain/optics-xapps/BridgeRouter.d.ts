@@ -289,8 +289,8 @@ export class BridgeRouter extends BaseContract {
     ): Promise<ContractTransaction>;
 
     initialize(
-      _xAppConnectionManager: string,
       _tokenBeacon: string,
+      _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -396,8 +396,8 @@ export class BridgeRouter extends BaseContract {
   ): Promise<ContractTransaction>;
 
   initialize(
-    _xAppConnectionManager: string,
     _tokenBeacon: string,
+    _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -503,8 +503,8 @@ export class BridgeRouter extends BaseContract {
     ): Promise<void>;
 
     initialize(
-      _xAppConnectionManager: string,
       _tokenBeacon: string,
+      _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -641,8 +641,8 @@ export class BridgeRouter extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
-      _xAppConnectionManager: string,
       _tokenBeacon: string,
+      _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -753,8 +753,8 @@ export class BridgeRouter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _xAppConnectionManager: string,
       _tokenBeacon: string,
+      _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

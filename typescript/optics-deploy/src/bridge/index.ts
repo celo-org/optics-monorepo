@@ -6,6 +6,7 @@ import { toBytes32 } from '../../../optics-tests/lib/utils';
 import fs from 'fs';
 import { BridgeDeploy } from './BridgeDeploy';
 import TestBridgeDeploy from './TestBridgeDeploy';
+import assert from 'assert';
 
 type Deploy = BridgeDeploy | TestBridgeDeploy;
 
@@ -100,6 +101,15 @@ export async function deployBridgeRouter(deploy: Deploy) {
       new xAppContracts.BridgeRouter__factory(deploy.chain.deployer),
       initData,
     );
+
+  assert(
+    (await deploy.contracts.bridgeRouter!.proxy.xAppConnectionManager()) ===
+      deploy.coreContractAddresses.xappConnectionManager,
+  );
+  assert(
+    (await deploy.contracts.bridgeRouter!.proxy.tokenBeacon()) ===
+      deploy.contracts.bridgeToken!.beacon.address,
+  );
 
   console.log(`deployed ${deploy.chain.name} BridgeRouter`);
 }

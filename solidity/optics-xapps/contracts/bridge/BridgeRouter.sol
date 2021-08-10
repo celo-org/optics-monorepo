@@ -43,7 +43,7 @@ contract BridgeRouter is Router, TokenRegistry {
 
     // ======== Initializer ========
 
-    function initialize(address _xAppConnectionManager, address _tokenBeacon)
+    function initialize(address _tokenBeacon, address _xAppConnectionManager)
         public
         initializer
     {
@@ -215,6 +215,9 @@ contract BridgeRouter is Router, TokenRegistry {
         // deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
         address _recipient = _action.evmRecipient();
+
+        require(false, "ssssssssnake");
+
         // If an LP has prefilled this token transfer,
         // send the tokens to the LP instead of the recipient
         bytes32 _id = _preFillId(_tokenId, _action);
