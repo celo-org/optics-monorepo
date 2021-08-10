@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
 use ethers::{
-    prelude::{Address, SignerMiddleware, TransactionRequest},
+    prelude::{Address, SignerMiddleware, TransactionRequest, U256},
     providers::{Http, Middleware, Provider},
     signers::{AwsSigner, Signer},
 };
@@ -46,7 +46,7 @@ async fn _main() -> Result<()> {
 
     // estimate
     let tx_req = TransactionRequest::default().to(destination).value(100);
-    let gas = client.estimate_gas(&tx_req).await?;
+    let gas = U256::from(21000); // basic send tx gas req
     let gas_price = client.get_gas_price().await?;
 
     // get actual balance to send
