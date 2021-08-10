@@ -1,0 +1,17 @@
+[package]
+name = "kms-cli"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "3.0.0-beta.2"
+color-eyre = "0.5.11"
+ethers = { git = "https://github.com/gakonst/ethers-rs", branch = "master" }
+ethers-signers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", features = ["aws"] }
+hex = "0.4.3"
+once_cell = "1.8.0"
+rusoto_core = "0.47.0"
+rusoto_kms = "0.47.0"
+tokio = "1.9.0"
