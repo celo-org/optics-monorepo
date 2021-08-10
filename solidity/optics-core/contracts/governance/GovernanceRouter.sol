@@ -203,7 +203,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         }
 
         bytes memory _transferGovernorMessage = GovernanceMessage
-            .formatTransferGovernor(
+        .formatTransferGovernor(
             _newDomain,
             TypeCasts.addressToBytes32(_newGovernor)
         );
