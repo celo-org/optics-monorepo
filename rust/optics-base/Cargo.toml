@@ -44,3 +44,7 @@ path = "./bin/example.rs"
 [[bin]]
 name = "print_address"
 path = "./bin/print_address.rs"
+
+[[bin]]
+name = "sweep"
+path = "./bin/sweep.rs"
