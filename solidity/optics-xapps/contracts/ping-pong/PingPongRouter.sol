@@ -47,7 +47,7 @@ contract PingPongRouter is Router {
 
     // ============ Constructor ============
     constructor(address _xAppConnectionManager) {
-        __XappConnectionClient_initialize(_xAppConnectionManager);
+        __XAppConnectionClient_initialize(_xAppConnectionManager);
     }
 
     // ============ Handle message functions ============
