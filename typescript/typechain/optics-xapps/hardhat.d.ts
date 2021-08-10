@@ -89,10 +89,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestEncoding__factory>;
     getContractFactory(
-      name: "TestFastLiquidity",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.TestFastLiquidity__factory>;
-    getContractFactory(
       name: "TokenRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenRegistry__factory>;

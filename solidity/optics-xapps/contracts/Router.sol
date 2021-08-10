@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+// ============ Internal Imports ============
+import {XAppConnectionClient} from "./XAppConnectionClient.sol";
 // ============ External Imports ============
 import {IMessageRecipient} from "@celo-org/optics-sol/interfaces/IMessageRecipient.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-abstract contract Router is OwnableUpgradeable, IMessageRecipient {
+abstract contract Router is XAppConnectionClient, IMessageRecipient {
     // ============ Mutable Storage ============
 
     mapping(uint32 => bytes32) internal remotes;
-
-    function initialize() public initializer {
-        __Ownable_init();
-    }
 
     // ============ Modifiers ============
 

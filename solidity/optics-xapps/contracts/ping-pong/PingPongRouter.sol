@@ -20,7 +20,7 @@ When a Router receives a Pong volley, it returns a Ping.
 The Routers keep track of the number of volleys in a given match,
 and emit events for each Sent and Received volley so that spectators can watch.
 */
-contract PingPongRouter is Router, XAppConnectionClient {
+contract PingPongRouter is Router {
     // ============ Libraries ============
 
     using TypedMemView for bytes;
@@ -47,7 +47,7 @@ contract PingPongRouter is Router, XAppConnectionClient {
 
     // ============ Constructor ============
     constructor(address _xAppConnectionManager) {
-        XAppConnectionClient._initialize(_xAppConnectionManager);
+        __XappConnectionClient_initialize(_xAppConnectionManager);
     }
 
     // ============ Handle message functions ============

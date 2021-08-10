@@ -12,6 +12,7 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {UpgradeBeaconProxy} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 /**
  * @title TokenRegistry
@@ -29,7 +30,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * perform a lookup in either direction
  * Note that locally originating tokens should NEVER be represented in these lookup tables.
  */
-abstract contract TokenRegistry is XAppConnectionClient {
+abstract contract TokenRegistry is Initializable {
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -69,17 +70,16 @@ abstract contract TokenRegistry is XAppConnectionClient {
 
     /**
      * @notice Initialize the TokenRegistry with UpgradeBeaconController and
-     *          XappConnectionManager.
+     *         XappConnectionManager.
      * @dev This method deploys two new contracts, and may be expensive to call.
-     * @param _xAppConnectionManager The address of the XappConnectionManager
-     *        that will manage Optics channel connectoins
+     * @param _tokenBeacon The address of the upgrade beacon for bridge token
+     *        proxies
      */
-    function initialize(address _tokenBeacon, address _xAppConnectionManager)
-        public
+    function __TokenRegistry_initialize(address _tokenBeacon)
+        internal
         initializer
     {
         tokenBeacon = _tokenBeacon;
-        XAppConnectionClient._initialize(_xAppConnectionManager);
     }
 
     // ======== Modifiers =========
@@ -88,6 +88,8 @@ abstract contract TokenRegistry is XAppConnectionClient {
         _view.assertType(uint40(_t));
         _;
     }
+
+    function _localDomain() internal view virtual returns (uint32);
 
     // ======== External: Token Lookup Convenience =========
 

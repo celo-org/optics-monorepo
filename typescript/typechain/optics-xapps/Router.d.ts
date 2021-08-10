@@ -23,10 +23,11 @@ interface RouterInterface extends ethers.utils.Interface {
   functions: {
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
-    "initialize()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "setXAppConnectionManager(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "xAppConnectionManager()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -37,18 +38,22 @@ interface RouterInterface extends ethers.utils.Interface {
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "setXAppConnectionManager",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "xAppConnectionManager",
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
@@ -56,14 +61,21 @@ interface RouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setXAppConnectionManager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "xAppConnectionManager",
     data: BytesLike
   ): Result;
 
@@ -131,13 +143,14 @@ export class Router extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    initialize(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setXAppConnectionManager(
+      _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -145,6 +158,8 @@ export class Router extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   enrollRemoteRouter(
@@ -160,13 +175,14 @@ export class Router extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  initialize(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setXAppConnectionManager(
+    _xAppConnectionManager: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -174,6 +190,8 @@ export class Router extends BaseContract {
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     enrollRemoteRouter(
@@ -189,16 +207,21 @@ export class Router extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    initialize(overrides?: CallOverrides): Promise<void>;
-
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setXAppConnectionManager(
+      _xAppConnectionManager: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     transferOwnership(
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -225,13 +248,14 @@ export class Router extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    initialize(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setXAppConnectionManager(
+      _xAppConnectionManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -239,6 +263,8 @@ export class Router extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -255,19 +281,24 @@ export class Router extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    initialize(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setXAppConnectionManager(
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    xAppConnectionManager(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

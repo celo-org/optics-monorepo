@@ -20,7 +20,7 @@ For each type of action,
     - implement functions to *format* the message to send to the other chain (encodes all necessary information for the action)
     - implement functions to *parse* the message once it is received on the other chain (decode all necessary information for the action)
 */
-contract RouterTemplate is Router, XAppConnectionClient {
+contract RouterTemplate is Router {
     // ============ Libraries ============
 
     using TypedMemView for bytes;
@@ -34,7 +34,7 @@ contract RouterTemplate is Router, XAppConnectionClient {
     // ============ Constructor ============
 
     constructor(address _xAppConnectionManager) {
-        XAppConnectionClient._initialize(_xAppConnectionManager);
+        __XappConnectionClient_initialize(_xAppConnectionManager);
     }
 
     // ============ Handle message functions ============

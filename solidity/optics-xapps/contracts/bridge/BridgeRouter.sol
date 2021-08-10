@@ -4,6 +4,7 @@ pragma solidity >=0.6.11;
 // ============ Internal Imports ============
 import {TokenRegistry} from "./TokenRegistry.sol";
 import {Router} from "../Router.sol";
+import {XAppConnectionClient} from "../XAppConnectionClient.sol";
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {BridgeMessage} from "./BridgeMessage.sol";
 // ============ External Imports ============
@@ -39,6 +40,16 @@ contract BridgeRouter is Router, TokenRegistry {
     /// @notice A mapping that stores the LP that pre-filled a token transfer
     /// message
     mapping(bytes32 => address) public liquidityProvider;
+
+    // ======== Initializer ========
+
+    function initialize(address _xAppConnectionManager, address _tokenBeacon)
+        public
+        initializer
+    {
+        __TokenRegistry_initialize(_tokenBeacon);
+        __XappConnectionClient_initialize(_xAppConnectionManager);
+    }
 
     // ======== External: Handle =========
 
@@ -357,5 +368,15 @@ contract BridgeRouter is Router, TokenRegistry {
             address(_old),
             address(_new)
         );
+    }
+
+    // explicit override for compiler inheritance
+    function _localDomain()
+        internal
+        view
+        override(TokenRegistry, XAppConnectionClient)
+        returns (uint32)
+    {
+        return XAppConnectionClient._localDomain();
     }
 }

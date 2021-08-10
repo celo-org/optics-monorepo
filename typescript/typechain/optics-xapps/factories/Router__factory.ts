@@ -69,13 +69,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "initialize",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "owner",
     outputs: [
       {
@@ -98,6 +91,19 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "_xAppConnectionManager",
+        type: "address",
+      },
+    ],
+    name: "setXAppConnectionManager",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "newOwner",
         type: "address",
       },
@@ -105,6 +111,19 @@ const _abi = [
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "xAppConnectionManager",
+    outputs: [
+      {
+        internalType: "contract XAppConnectionManager",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
 ];

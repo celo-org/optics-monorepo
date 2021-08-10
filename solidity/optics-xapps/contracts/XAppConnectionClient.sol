@@ -24,7 +24,10 @@ abstract contract XAppConnectionClient is OwnableUpgradeable {
 
     // ======== Initializer =========
 
-    function _initialize(address _xAppConnectionManager) internal initializer {
+    function __XappConnectionClient_initialize(address _xAppConnectionManager)
+        internal
+        initializer
+    {
         xAppConnectionManager = XAppConnectionManager(_xAppConnectionManager);
         __Ownable_init();
     }
@@ -68,7 +71,7 @@ abstract contract XAppConnectionClient is OwnableUpgradeable {
      * @notice Get the local domain from the xAppConnectionManager
      * @return The local domain
      */
-    function _localDomain() internal view returns (uint32) {
+    function _localDomain() internal view virtual returns (uint32) {
         return xAppConnectionManager.localDomain();
     }
 }

@@ -11,7 +11,6 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
-  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -24,14 +23,8 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "getCanonicalAddress(address)": FunctionFragment;
     "getLocalAddress(uint32,bytes32)": FunctionFragment;
-    "initialize(address,address)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
-    "setXAppConnectionManager(address)": FunctionFragment;
     "tokenBeacon()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "xAppConnectionManager()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -47,32 +40,11 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "representationToCanonical",
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setXAppConnectionManager",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "tokenBeacon",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "xAppConnectionManager",
     values?: undefined
   ): string;
 
@@ -88,39 +60,19 @@ interface TokenRegistryInterface extends ethers.utils.Interface {
     functionFragment: "getLocalAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "representationToCanonical",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setXAppConnectionManager",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokenBeacon",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "xAppConnectionManager",
-    data: BytesLike
-  ): Result;
 
   events: {
-    "OwnershipTransferred(address,address)": EventFragment;
     "TokenDeployed(uint32,bytes32,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenDeployed"): EventFragment;
 }
 
@@ -190,36 +142,12 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { _token: string }>;
 
-    initialize(
-      _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     representationToCanonical(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
 
-    setXAppConnectionManager(
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     tokenBeacon(overrides?: CallOverrides): Promise<[string]>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   canonicalToRepresentation(
@@ -244,36 +172,12 @@ export class TokenRegistry extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  initialize(
-    _tokenBeacon: string,
-    _xAppConnectionManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   representationToCanonical(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<[number, string] & { domain: number; id: string }>;
 
-  setXAppConnectionManager(
-    _xAppConnectionManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   tokenBeacon(overrides?: CallOverrides): Promise<string>;
-
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     canonicalToRepresentation(
@@ -298,45 +202,15 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    initialize(
-      _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     representationToCanonical(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
 
-    setXAppConnectionManager(
-      _xAppConnectionManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     tokenBeacon(overrides?: CallOverrides): Promise<string>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
     TokenDeployed(
       domain?: BigNumberish | null,
       id?: BytesLike | null,
@@ -370,36 +244,12 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    initialize(
-      _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     representationToCanonical(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setXAppConnectionManager(
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     tokenBeacon(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -425,37 +275,11 @@ export class TokenRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    initialize(
-      _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     representationToCanonical(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setXAppConnectionManager(
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     tokenBeacon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    xAppConnectionManager(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
   };
 }

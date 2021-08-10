@@ -29,7 +29,7 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     "getCanonicalAddress(address)": FunctionFragment;
     "getLocalAddress(uint32,bytes32)": FunctionFragment;
     "handle(uint32,bytes32,bytes)": FunctionFragment;
-    "initialize(address,address)": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "liquidityProvider(bytes32)": FunctionFragment;
     "migrate(address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -77,10 +77,7 @@ interface TestFastLiquidityInterface extends ethers.utils.Interface {
     functionFragment: "handle",
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string]
-  ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "liquidityProvider",
     values: [BytesLike]
@@ -291,13 +288,8 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "initialize(address,address)"(
+    initialize(
       _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -406,13 +398,8 @@ export class TestFastLiquidity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "initialize(address,address)"(
+  initialize(
     _tokenBeacon: string,
-    _xAppConnectionManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "initialize()"(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -521,13 +508,7 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "initialize(address,address)"(
-      _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "initialize()"(overrides?: CallOverrides): Promise<void>;
+    initialize(_tokenBeacon: string, overrides?: CallOverrides): Promise<void>;
 
     liquidityProvider(
       arg0: BytesLike,
@@ -663,13 +644,8 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "initialize(address,address)"(
+    initialize(
       _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -783,13 +759,8 @@ export class TestFastLiquidity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "initialize(address,address)"(
+    initialize(
       _tokenBeacon: string,
-      _xAppConnectionManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "initialize()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
