@@ -1587,6 +1587,7 @@ dependencies = [
  "once_cell",
  "rusoto_core",
  "rusoto_kms",
+ "serde_json",
  "tokio",
 ]
 

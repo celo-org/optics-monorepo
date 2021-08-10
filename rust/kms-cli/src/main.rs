@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use color_eyre::Result;
 
 use ethers::{
-    prelude::{Address, SignerMiddleware, TransactionRequest, U256},
+    prelude::{transaction::eip2718::TypedTransaction, Address, TransactionRequest, U256},
     providers::{Http, Middleware, Provider},
     signers::{AwsSigner, Signer},
 };
@@ -109,40 +109,66 @@ fn prep_tx_request(opts: &Opts) -> TransactionRequest {
 
     let tx_req = apply_if!(tx_req, opts.nonce);
     let tx_req = apply_if!(tx_req, opts.gas);
+
+    let data = opts
+        .data
+        .clone()
+        .and_then(|s| hex::decode(s).ok())
+        .unwrap_or_default();
+
+    let tx_req = tx_req.data(data);
+
     apply_if!(tx_req, opts.gas_price)
 }
 
 async fn _main() -> Result<()> {
     let opts: Opts = Opts::parse();
+    let chain_id = opts.chain_id.unwrap_or(1);
 
     init_kms(opts.region.to_owned());
 
     let signer = AwsSigner::new(KMS_CLIENT.get().unwrap(), opts.key_id.clone(), 0)
         .await?
-        .with_chain_id(opts.chain_id.unwrap_or(1));
+        .with_chain_id(chain_id);
 
     let provider = Provider::<Http>::try_from(opts.rpc.as_ref())?;
-    let client = SignerMiddleware::new(provider, signer);
 
     let tx_req = prep_tx_request(&opts);
 
-    if opts.print_only {
-        let sig = client
-            .signer()
-            .sign_transaction(&tx_req.clone().into())
-            .await?;
-        dbg!(sig);
-        dbg!(&tx_req);
-        dbg!(hex::encode(tx_req.rlp_signed(&sig)));
-    } else {
-        let res = client.send_transaction(tx_req, None).await?;
-        dbg!(*res);
+    let mut typed_tx: TypedTransaction = tx_req.clone().into();
+    typed_tx.set_from(signer.address());
+    typed_tx.set_nonce(
+        provider
+            .get_transaction_count(signer.address(), None)
+            .await?,
+    );
+
+    // TODO: remove this these ethers is fixed
+    typed_tx.set_gas(21000);
+    typed_tx.set_gas_price(20_000_000_000u64); // 20 gwei
+
+    let sig = signer.sign_transaction(&typed_tx).await?;
+
+    let rlp = typed_tx.rlp_signed(chain_id, &sig);
+    println!(
+        "Tx request details:\n{}",
+        serde_json::to_string_pretty(&typed_tx)?
+    );
+
+    println!("\nSigned Tx:\n 0x{}", hex::encode(&rlp));
+    if !opts.print_only {
+        let res = provider.send_raw_transaction(rlp).await?;
+        println!("Broadcast tx with hash {:?}", *res);
+        println!("Awaiting confirmation. Ctrl+c to exit");
+        dbg!(res.await?);
     }
 
     Ok(())
 }
 
 fn main() -> Result<()> {
+    color_eyre::install()?;
+
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
