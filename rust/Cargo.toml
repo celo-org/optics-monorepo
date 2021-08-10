@@ -9,5 +9,6 @@ members = [
     "updater",
     "relayer",
     "watcher",
-    "processor"
+    "processor",
+    "kms-cli"
 ]

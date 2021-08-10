@@ -2,10 +2,10 @@
 #[macro_export]
 macro_rules! report_tx {
     ($tx:expr) => {{
-        tracing::info!("Dispatching call to {:?}", $tx.tx.to);
-        tracing::trace!("Call data {:?}", $tx.tx.data);
-        tracing::trace!("Call from {:?}", $tx.tx.from);
-        tracing::trace!("Call nonce {:?}", $tx.tx.nonce);
+        tracing::info!("Dispatching call to {:?}", $tx.tx.to());
+        tracing::trace!("Call data {:?}", $tx.tx.data());
+        tracing::trace!("Call from {:?}", $tx.tx.from());
+        tracing::trace!("Call nonce {:?}", $tx.tx.nonce());
         let dispatch_fut = $tx.send();
         let dispatched = dispatch_fut.await?;
 

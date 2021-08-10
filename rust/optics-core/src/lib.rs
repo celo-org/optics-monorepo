@@ -42,10 +42,10 @@ pub use identifiers::OpticsIdentifier;
 use async_trait::async_trait;
 use ethers::{
     core::{
-        types::{Address, Signature, SignatureError, TransactionRequest, H256},
+        types::{Address, Signature, SignatureError, H256},
         utils::hash_message,
     },
-    prelude::AwsSigner,
+    prelude::{transaction::eip2718::TypedTransaction, AwsSigner},
     signers::{AwsSignerError, LocalWallet, Signer},
     utils::keccak256,
 };
@@ -136,10 +136,7 @@ impl Signer for Signers {
         }
     }
 
-    async fn sign_transaction(
-        &self,
-        message: &TransactionRequest,
-    ) -> Result<Signature, Self::Error> {
+    async fn sign_transaction(&self, message: &TypedTransaction) -> Result<Signature, Self::Error> {
         match self {
             Signers::Local(signer) => Ok(signer.sign_transaction(message).await?),
 
