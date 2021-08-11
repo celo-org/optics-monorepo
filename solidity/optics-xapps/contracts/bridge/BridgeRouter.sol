@@ -373,16 +373,15 @@ contract BridgeRouter is Router, TokenRegistry {
         bytes32 _id,
         address _custom
     ) external onlyOwner {
-        bytes29 _tokenId = BridgeMessage.formatTokenId(_domain, _id);
-        bytes32 _idHash = _tokenId.keccak();
-
         // Sanity check. Ensures that human error doesn't cause an
         // unpermissioned contract to be enrolled.
         IBridgeToken(_custom).mint(address(this), 1);
         IBridgeToken(_custom).burn(address(this), 1);
-
+        // update mappings with custom token
+        bytes29 _tokenId = BridgeMessage.formatTokenId(_domain, _id);
         representationToCanonical[_custom].domain = _tokenId.domain();
         representationToCanonical[_custom].id = _tokenId.id();
+        bytes32 _idHash = _tokenId.keccak();
         canonicalToRepresentation[_idHash] = _custom;
     }
 
@@ -398,15 +397,15 @@ contract BridgeRouter is Router, TokenRegistry {
         // get the token ID for the old token contract
         TokenId memory _id = representationToCanonical[_oldRepr];
         require(_id.domain != 0, "!repr");
-
+        // ensure that new token & old token are different
         IBridgeToken _old = IBridgeToken(_oldRepr);
         IBridgeToken _new = _reprFor(_id);
         require(_new != _old, "!different");
-
         // burn the old tokens & mint the new ones
         uint256 _bal = _old.balanceOf(msg.sender);
         _old.burn(msg.sender, _bal);
         _new.mint(msg.sender, _bal);
+        // emit event
         emit Migrate(
             _id.domain,
             _id.id,
