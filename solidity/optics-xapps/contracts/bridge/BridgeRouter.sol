@@ -215,9 +215,6 @@ contract BridgeRouter is Router, TokenRegistry {
         // deploy a new one)
         IERC20 _token = _ensureToken(_tokenId);
         address _recipient = _action.evmRecipient();
-
-        require(false, "ssssssssnake");
-
         // If an LP has prefilled this token transfer,
         // send the tokens to the LP instead of the recipient
         bytes32 _id = _preFillId(_tokenId, _action);
