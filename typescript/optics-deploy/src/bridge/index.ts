@@ -122,6 +122,8 @@ export async function deployBridgeRouter(deploy: Deploy) {
  * @param deploy - The deploy instance for the chain on which to deploy the contract
  */
 export async function deployEthHelper(deploy: Deploy) {
+  console.log(`deploying ${deploy.chain.name} EthHelper`);
+
   if (!deploy.config.weth) {
     return;
   }
@@ -131,14 +133,19 @@ export async function deployEthHelper(deploy: Deploy) {
   deploy.contracts.ethHelper = await factory.deploy(
     deploy.config.weth!,
     deploy.contracts.bridgeRouter?.proxy.address!,
+    deploy.overrides,
   );
+
   await deploy.contracts.ethHelper.deployTransaction.wait(5);
   deploy.verificationInput.push({
     name: `ETH Helper`,
     address: deploy.contracts.ethHelper.address,
-    constructorArguments: [deploy.config.weth!,
-      deploy.contracts.bridgeRouter?.proxy.address!],
+    constructorArguments: [
+      deploy.config.weth!,
+      deploy.contracts.bridgeRouter?.proxy.address!,
+    ],
   });
+  console.log(`deployed ${deploy.chain.name} EthHelper`);
 }
 
 /**

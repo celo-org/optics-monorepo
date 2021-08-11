@@ -41,7 +41,7 @@ export abstract class Deploy<T extends Contracts> {
     return {
       type: this.supports1559 ? 2 : 0,
       gasPrice: this.chain.gasPrice,
-      gasLimit: this.supports1559 ? undefined : 5_000_000,
+      gasLimit: this.supports1559 ? undefined : 6_000_000,
     };
   }
 }
