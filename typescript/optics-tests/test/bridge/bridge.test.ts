@@ -29,6 +29,7 @@ describe('Bridge', async () => {
   let deploy: TestBridgeDeploy;
   let transferAction: BytesLike;
   let transferMessage: BytesLike;
+  let bridgeRouter: BridgeRouter;
 
   const DOMAIN = 1;
 
@@ -54,6 +55,7 @@ describe('Bridge', async () => {
     deployerId = toBytes32(await deployer.getAddress());
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
+    bridgeRouter =deploy.contracts.bridgeRouter!.proxy
     // generate transfer action
     transferAction = ethers.utils.concat([TRANSFER_BYTES, deployerId, TOKEN_VALUE]);
     transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
@@ -61,13 +63,13 @@ describe('Bridge', async () => {
 
   it('handles a transfer message', async () => {
     // first handle message for a new canonical token should deploy a representation token contract
-    expect(await deploy.contracts.bridgeRouter!.proxy.handle(
+    expect(await bridgeRouter.handle(
         DOMAIN,
         deployerId,
-        transferMessage,
-    )).to.emit(deploy.contracts.bridgeRouter!.proxy, "TokenDeployed");
+        transferMessage
+    )).to.emit(bridgeRouter, "TokenDeployed");
 
-    const repr: IERC20 = await getRepresentationTokenContract(deployer, deploy.contracts.bridgeRouter!.proxy, DOMAIN, CANONICAL_TOKEN_ADDRESS);
+    const repr: IERC20 = await getRepresentationTokenContract(deployer, bridgeRouter, DOMAIN, CANONICAL_TOKEN_ADDRESS);
 
     expect(await repr.balanceOf(deployer.address)).to.equal(BigNumber.from(TOKEN_VALUE));
     expect(await repr.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
