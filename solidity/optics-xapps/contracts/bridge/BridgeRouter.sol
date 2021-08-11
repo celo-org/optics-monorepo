@@ -322,6 +322,8 @@ contract BridgeRouter is Router, TokenRegistry {
         pure
         returns (uint256 _amtAfterFee)
     {
+        // overflow only possible if (2**256 / 9995) tokens sent once
+        // in which case, probably not a real token
         _amtAfterFee =
             (_amnt * PRE_FILL_FEE_NUMERATOR) /
             PRE_FILL_FEE_DENOMINATOR;
