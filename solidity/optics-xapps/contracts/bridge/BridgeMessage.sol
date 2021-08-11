@@ -19,11 +19,11 @@ library BridgeMessage {
     // will cause in-flight messages to be mis-interpreted
     enum Types {
         Invalid, // 0
-        Transfer, // 1
-        Details, // 2
-        RequestDetails, // 3
-        TokenId, // 4
-        Message // 5
+        TokenId, // 1
+        Message, // 2
+        Transfer, // 3
+        Details, // 4
+        RequestDetails // 5
     }
 
     /**
