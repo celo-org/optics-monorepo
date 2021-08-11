@@ -54,6 +54,9 @@ export default class TestBridgeDeploy {
     await process.deployBridgeRouter(deploy);
     await process.deployEthHelper(deploy);
 
+    // enroll the signer as a remote BridgeRouter
+    // so the test BridgeRouter will accept messages
+    // directly from the signer
     await contracts.bridgeRouter?.proxy.enrollRemoteRouter(
       1,
       toBytes32(await signer.getAddress()),
