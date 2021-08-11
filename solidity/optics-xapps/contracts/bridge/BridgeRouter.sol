@@ -239,12 +239,12 @@ contract BridgeRouter is Router, TokenRegistry {
      * @notice Handles an incoming RequestDetails message
      * by sending an UpdateDetails message to the remote chain
      * @param _tokenId The token ID
-     * @param _action The action
+     * @param _requestDetailsAction The request details action from the message
      */
-    function _handleRequestDetails(bytes29 _tokenId, bytes29 _action)
+    function _handleRequestDetails(bytes29 _tokenId, bytes29 _requestDetailsAction)
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Details)
+        typeAssert(_requestDetailsAction, BridgeMessage.Types.RequestDetails)
     {
         // get token
         address _token = _tokenId.evmId();
@@ -254,7 +254,7 @@ contract BridgeRouter is Router, TokenRegistry {
         uint32 _destination = _tokenId.domain();
         bytes32 _remote = _mustHaveRemote(_destination);
         // format Update Details message
-        bytes29 _action = BridgeMessage.formatDetails(
+        bytes29 _updateDetailsAction = BridgeMessage.formatDetails(
             TypeCasts.coerceBytes32(_bridgeToken.name()),
             TypeCasts.coerceBytes32(_bridgeToken.symbol()),
             _bridgeToken.decimals()
@@ -263,7 +263,7 @@ contract BridgeRouter is Router, TokenRegistry {
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
-            BridgeMessage.formatMessage(_formatTokenId(_token), _action)
+            BridgeMessage.formatMessage(_formatTokenId(_token), _updateDetailsAction)
         );
     }
 
