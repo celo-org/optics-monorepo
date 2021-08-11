@@ -104,7 +104,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
 
   assert(
     (await deploy.contracts.bridgeRouter!.proxy.xAppConnectionManager()) ===
-      deploy.coreContractAddresses.xappConnectionManager,
+      deploy.coreContractAddresses.xAppConnectionManager,
   );
   assert(
     (await deploy.contracts.bridgeRouter!.proxy.tokenBeacon()) ===
