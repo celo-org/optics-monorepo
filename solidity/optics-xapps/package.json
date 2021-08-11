@@ -42,6 +42,7 @@
     "@celo-org/optics-sol": "file:../optics-core",
     "@openzeppelin/contracts": "~3.4.0",
     "@openzeppelin/contracts-upgradeable": "~3.4.0",
-    "@summa-tx/memview-sol": "^2.0.0"
+    "@summa-tx/memview-sol": "^2.0.0",
+    "dotenv": "^10.0.0"
   }
 }

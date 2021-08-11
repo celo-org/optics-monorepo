@@ -203,10 +203,10 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         }
 
         bytes memory _transferGovernorMessage = GovernanceMessage
-        .formatTransferGovernor(
-            _newDomain,
-            TypeCasts.addressToBytes32(_newGovernor)
-        );
+            .formatTransferGovernor(
+                _newDomain,
+                TypeCasts.addressToBytes32(_newGovernor)
+            );
 
         _sendToAllRemoteRouters(_transferGovernorMessage);
     }

@@ -56,8 +56,8 @@ library GovernanceMessage {
         for (uint256 i = 0; i < _numCalls; i++) {
             Call memory _call = _calls[i];
             bytes29 _callMsg = abi
-            .encodePacked(_call.to, _call.data.length, _call.data)
-            .ref(0);
+                .encodePacked(_call.to, _call.data.length, _call.data)
+                .ref(0);
 
             _encodedCalls[i + MSG_PREFIX_NUM_ITEMS] = _callMsg;
         }
@@ -73,8 +73,8 @@ library GovernanceMessage {
         _msg = TypedMemView.clone(
             mustBeTransferGovernor(
                 abi
-                .encodePacked(Types.TransferGovernor, _domain, _governor)
-                .ref(0)
+                    .encodePacked(Types.TransferGovernor, _domain, _governor)
+                    .ref(0)
             )
         );
     }

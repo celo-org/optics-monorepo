@@ -4,12 +4,18 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 const { task } = require("hardhat/config");
-const { verifyLatestBridgeDeploy } = require("../../typescript/optics-deploy/src/verification/verifyLatestDeploy");
+const {
+  verifyLatestBridgeDeploy,
+} = require("../../typescript/optics-deploy/src/verification/verifyLatestDeploy");
+import * as dotenv from "dotenv";
+dotenv.config();
 
-task("verify-latest-deploy", "Verifies the source code of the latest contract deploy")
-  .setAction(async(args: any, hre: any) => {
-    await verifyLatestBridgeDeploy(hre);
-  });
+task(
+  "verify-latest-deploy",
+  "Verifies the source code of the latest contract deploy"
+).setAction(async (args: any, hre: any) => {
+  await verifyLatestBridgeDeploy(hre);
+});
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
