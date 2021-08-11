@@ -80,6 +80,20 @@ contract BridgeRouter is Router, TokenRegistry {
         }
     }
 
+    // ======== External: Request Token Details =========
+
+    /**
+     * @notice Request updated token metadata from another chain
+     * @dev This is only owner to prevent abuse and spam. Requesting details
+     *  should be done automatically on token instantiation
+     * @param _domain The domain where that token is native
+     * @param _id The token id on that domain
+     */
+    function requestDetails(uint32 _domain, bytes32 _id) external onlyOwner {
+        bytes29 _tokenId = BridgeMessage.formatTokenId(_domain, _id);
+        _requestDetails(_tokenId);
+    }
+
     // ======== External: Send Token =========
 
     /**
@@ -241,7 +255,10 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _tokenId The token ID
      * @param _requestDetailsAction The request details action from the message
      */
-    function _handleRequestDetails(bytes29 _tokenId, bytes29 _requestDetailsAction)
+    function _handleRequestDetails(
+        bytes29 _tokenId,
+        bytes29 _requestDetailsAction
+    )
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         typeAssert(_requestDetailsAction, BridgeMessage.Types.RequestDetails)
@@ -263,7 +280,10 @@ contract BridgeRouter is Router, TokenRegistry {
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
             _remote,
-            BridgeMessage.formatMessage(_formatTokenId(_token), _updateDetailsAction)
+            BridgeMessage.formatMessage(
+                _formatTokenId(_token),
+                _updateDetailsAction
+            )
         );
     }
 
@@ -298,7 +318,10 @@ contract BridgeRouter is Router, TokenRegistry {
     {
         uint32 _destination = _tokenId.domain();
         // get remote BridgeRouter address; revert if not found
-        bytes32 _remote = _mustHaveRemote(_destination);
+        bytes32 _remote = remotes[_destination];
+        if (_remote == bytes32(0)) {
+            return;
+        }
         // format Request Details message
         bytes29 _action = BridgeMessage.formatRequestDetails();
         // send message to remote chain via Optics

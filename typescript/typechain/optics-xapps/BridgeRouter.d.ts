@@ -36,6 +36,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "preFill(bytes)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
+    "requestDetails(uint32,bytes32)": FunctionFragment;
     "send(address,uint256,uint32,bytes32)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "tokenBeacon()": FunctionFragment;
@@ -93,6 +94,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "representationToCanonical",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "requestDetails",
+    values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "send",
@@ -158,6 +163,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "representationToCanonical",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestDetails",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
@@ -311,6 +320,12 @@ export class BridgeRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
 
+    requestDetails(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     send(
       _token: string,
       _amnt: BigNumberish,
@@ -412,6 +427,12 @@ export class BridgeRouter extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[number, string] & { domain: number; id: string }>;
 
+  requestDetails(
+    _domain: BigNumberish,
+    _id: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   send(
     _token: string,
     _amnt: BigNumberish,
@@ -504,6 +525,12 @@ export class BridgeRouter extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[number, string] & { domain: number; id: string }>;
+
+    requestDetails(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     send(
       _token: string,
@@ -645,6 +672,12 @@ export class BridgeRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    requestDetails(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     send(
       _token: string,
       _amnt: BigNumberish,
@@ -749,6 +782,12 @@ export class BridgeRouter extends BaseContract {
     representationToCanonical(
       arg0: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    requestDetails(
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     send(

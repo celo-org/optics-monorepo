@@ -43,9 +43,9 @@ library BridgeMessage {
      */
     function isValidAction(bytes29 _action) internal pure returns (bool) {
         return
-        isDetails(_action) ||
-        isRequestDetails(_action) ||
-        isTransfer(_action);
+            isDetails(_action) ||
+            isRequestDetails(_action) ||
+            isTransfer(_action);
     }
 
     /**
@@ -56,9 +56,9 @@ library BridgeMessage {
     function isValidMessageLength(bytes29 _view) internal pure returns (bool) {
         uint256 _len = _view.len();
         return
-        _len == TOKEN_ID_LEN + TRANSFER_LEN ||
-        _len == TOKEN_ID_LEN + DETAILS_LEN ||
-        _len == TOKEN_ID_LEN + REQUEST_DETAILS_LEN;
+            _len == TOKEN_ID_LEN + TRANSFER_LEN ||
+            _len == TOKEN_ID_LEN + DETAILS_LEN ||
+            _len == TOKEN_ID_LEN + REQUEST_DETAILS_LEN;
     }
 
     /**
@@ -96,8 +96,8 @@ library BridgeMessage {
      */
     function isTransfer(bytes29 _action) internal pure returns (bool) {
         return
-        actionType(_action) == uint8(Types.Transfer) &&
-        messageType(_action) == Types.Transfer;
+            actionType(_action) == uint8(Types.Transfer) &&
+            messageType(_action) == Types.Transfer;
     }
 
     /**
@@ -107,8 +107,8 @@ library BridgeMessage {
      */
     function isDetails(bytes29 _action) internal pure returns (bool) {
         return
-        actionType(_action) == uint8(Types.Details) &&
-        messageType(_action) == Types.Details;
+            actionType(_action) == uint8(Types.Details) &&
+            messageType(_action) == Types.Details;
     }
 
     /**
@@ -118,8 +118,8 @@ library BridgeMessage {
      */
     function isRequestDetails(bytes29 _action) internal pure returns (bool) {
         return
-        actionType(_action) == uint8(Types.RequestDetails) &&
-        messageType(_action) == Types.RequestDetails;
+            actionType(_action) == uint8(Types.RequestDetails) &&
+            messageType(_action) == Types.RequestDetails;
     }
 
     /**
@@ -134,7 +134,7 @@ library BridgeMessage {
         returns (bytes29)
     {
         return
-        mustBeTransfer(abi.encodePacked(Types.Transfer, _to, _amnt).ref(0));
+            mustBeTransfer(abi.encodePacked(Types.Transfer, _to, _amnt).ref(0));
     }
 
     /**
@@ -150,11 +150,11 @@ library BridgeMessage {
         uint8 _decimals
     ) internal pure returns (bytes29) {
         return
-        mustBeDetails(
-            abi.encodePacked(Types.Details, _name, _symbol, _decimals).ref(
-                0
-            )
-        );
+            mustBeDetails(
+                abi.encodePacked(Types.Details, _name, _symbol, _decimals).ref(
+                    0
+                )
+            );
     }
 
     /**
@@ -162,7 +162,8 @@ library BridgeMessage {
      * @return The Request Details message
      */
     function formatRequestDetails() internal pure returns (bytes29) {
-        return mustBeRequestDetails(abi.encodePacked(Types.RequestDetails).ref(0));
+        return
+            mustBeRequestDetails(abi.encodePacked(Types.RequestDetails).ref(0));
     }
 
     /**
