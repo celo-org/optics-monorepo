@@ -55,7 +55,7 @@ describe('Bridge', async () => {
     deployerId = toBytes32(await deployer.getAddress());
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
-    bridgeRouter =deploy.contracts.bridgeRouter!.proxy
+    bridgeRouter = deploy.contracts.bridgeRouter!.proxy;
     // generate transfer action
     transferAction = ethers.utils.concat([TRANSFER_BYTES, deployerId, TOKEN_VALUE]);
     transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
