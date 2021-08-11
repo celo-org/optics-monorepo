@@ -11,6 +11,17 @@ async function getRepresentationTokenContract(deployer: Signer, bridgeRouter: Br
   return IERC20__factory.connect(reprAddr, deployer);
 }
 
+const BRIDGE_MESSAGE_TYPES = {
+  INVALID: 0,
+  TOKEN_ID: 1,
+  MESSAGE: 2,
+  TRANSFER: 3,
+  DETAILS: 4,
+  REQUEST_DETAILS: 5,
+};
+
+const typeToBytes = (type: number) => `0x0${type}`;
+
 describe('Bridge', async () => {
   let deployer: Signer;
   let deployerAddress: String;
@@ -23,6 +34,9 @@ describe('Bridge', async () => {
 
   // 4-byte domain ID
   const DOMAIN_BYTES = `0x0000000${DOMAIN}`;
+
+  // 1-byte Action Type
+  const TRANSFER_BYTES = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
 
   // 32-byte token address
   const CANONICAL_TOKEN_ADDRESS = `0x${'11'.repeat(32)}`;
@@ -41,7 +55,7 @@ describe('Bridge', async () => {
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
     // generate transfer action
-    transferAction = ethers.utils.concat([deployerId, TOKEN_VALUE]);
+    transferAction = ethers.utils.concat([TRANSFER_BYTES, deployerId, TOKEN_VALUE]);
     transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
   });
 
