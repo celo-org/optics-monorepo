@@ -31,8 +31,7 @@ fn init_kms(region: String) {
 }
 
 #[derive(Clap)]
-#[clap(version = "0.1", author = "James Prestwich")]
-pub struct Opts {
+pub struct Tx {
     // TX
     /// The TX value (in wei)
     #[clap(short, long)]
@@ -56,6 +55,30 @@ pub struct Opts {
     #[clap(short, long)]
     chain_id: Option<u64>,
 
+    // RPC
+    /// RPC connection details
+    #[clap(long)]
+    rpc: String,
+}
+
+#[derive(Clap)]
+pub struct Info {}
+
+#[derive(Clap)]
+/// Subcommands
+pub enum SubCommands {
+    /// Send a tx signed by the KMS key
+    Tx(Tx),
+    /// Print the key info (region, id, address)
+    Info(Info),
+}
+
+#[derive(Clap)]
+#[clap(version = "0.1", author = "James Prestwich")]
+pub struct Opts {
+    #[clap(subcommand)]
+    sub: SubCommands,
+
     // AWS
     /// AWS Key ID
     #[clap(short, long)]
@@ -63,11 +86,6 @@ pub struct Opts {
     /// AWS Region string
     #[clap(long)]
     region: String,
-
-    // RPC
-    /// RPC connection details
-    #[clap(long)]
-    rpc: String,
 
     // Behavior
     /// Print the tx req and signature instead of broadcasting
@@ -90,7 +108,7 @@ macro_rules! apply_if {
     }};
 }
 
-fn prep_tx_request(opts: &Opts) -> TransactionRequest {
+fn prep_tx_request(opts: &Tx) -> TransactionRequest {
     let tx_req = TransactionRequest::default().to(opts.to);
 
     // These swallow parse errors
@@ -121,19 +139,15 @@ fn prep_tx_request(opts: &Opts) -> TransactionRequest {
     apply_if!(tx_req, opts.gas_price)
 }
 
-async fn _main() -> Result<()> {
-    let opts: Opts = Opts::parse();
-    let chain_id = opts.chain_id.unwrap_or(1);
+async fn _send_tx(signer: &AwsSigner<'_>, opts: &Opts) -> Result<()> {
+    let tx: &Tx = match opts.sub {
+        SubCommands::Tx(ref tx) => tx,
+        SubCommands::Info(_) => unreachable!(),
+    };
 
-    init_kms(opts.region.to_owned());
+    let provider = Provider::<Http>::try_from(tx.rpc.as_ref())?;
 
-    let signer = AwsSigner::new(KMS_CLIENT.get().unwrap(), opts.key_id.clone(), 0)
-        .await?
-        .with_chain_id(chain_id);
-
-    let provider = Provider::<Http>::try_from(opts.rpc.as_ref())?;
-
-    let tx_req = prep_tx_request(&opts);
+    let tx_req = prep_tx_request(tx);
 
     let mut typed_tx: TypedTransaction = tx_req.clone().into();
     typed_tx.set_from(signer.address());
@@ -149,7 +163,7 @@ async fn _main() -> Result<()> {
 
     let sig = signer.sign_transaction(&typed_tx).await?;
 
-    let rlp = typed_tx.rlp_signed(chain_id, &sig);
+    let rlp = typed_tx.rlp_signed(signer.chain_id(), &sig);
     println!(
         "Tx request details:\n{}",
         serde_json::to_string_pretty(&typed_tx)?
@@ -164,6 +178,32 @@ async fn _main() -> Result<()> {
     }
 
     Ok(())
+}
+
+async fn _print_info(signer: &AwsSigner<'_>, opts: &Opts) -> Result<()> {
+    println!("Key ID: {}", opts.key_id);
+    println!("Region: {}", opts.region);
+    println!("Address: {}", signer.address());
+
+    Ok(())
+}
+
+async fn _main() -> Result<()> {
+    let opts: Opts = Opts::parse();
+    init_kms(opts.region.to_owned());
+    let chain_id = match opts.sub {
+        SubCommands::Tx(ref tx) => tx.chain_id.unwrap_or(1),
+        SubCommands::Info(_) => 1,
+    };
+
+    let signer = AwsSigner::new(KMS_CLIENT.get().unwrap(), opts.key_id.clone(), 0)
+        .await?
+        .with_chain_id(chain_id);
+
+    match opts.sub {
+        SubCommands::Tx(_) => _send_tx(&signer, &opts).await,
+        SubCommands::Info(_) => _print_info(&signer, &opts).await,
+    }
 }
 
 fn main() -> Result<()> {
