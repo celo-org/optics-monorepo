@@ -1,4 +1,4 @@
-import { BytesLike, Signer } from 'ethers';
+import { BytesLike, ethers, Signer } from 'ethers';
 import {
   UpgradeBeaconController,
   UpgradeBeaconController__factory,
@@ -13,7 +13,6 @@ import {
 import { ContractVerificationInput } from '../deploy';
 import { BridgeContracts } from './BridgeContracts';
 import * as process from '.';
-import { BeaconProxy } from '../proxyUtils';
 
 function toBytes32(address: string): string {
   return '0x' + '00'.repeat(12) + address.slice(2);
@@ -32,12 +31,14 @@ export default class TestBridgeDeploy {
   mockCore: MockCore;
   contracts: BridgeContracts;
   verificationInput: ContractVerificationInput[];
+  domain: number;
 
   constructor(
     signer: Signer,
     mockCore: MockCore,
     ubc: UpgradeBeaconController,
     contracts: BridgeContracts,
+    domain: number,
     callerKnowsWhatTheyAreDoing: boolean = false,
   ) {
     if (!callerKnowsWhatTheyAreDoing) {
@@ -48,14 +49,23 @@ export default class TestBridgeDeploy {
     this.mockCore = mockCore;
     this.contracts = contracts;
     this.signer = signer;
+    this.domain = domain;
   }
 
   static async deploy(signer: Signer): Promise<TestBridgeDeploy> {
     const mockCore = await new MockCore__factory(signer).deploy();
     const ubc = await new UpgradeBeaconController__factory(signer).deploy();
     const contracts = new BridgeContracts();
+    const domain = await mockCore.localDomain();
 
-    let deploy = new TestBridgeDeploy(signer, mockCore, ubc, contracts, true);
+    let deploy = new TestBridgeDeploy(
+      signer,
+      mockCore,
+      ubc,
+      contracts,
+      domain,
+      true,
+    );
 
     await process.deployTokenUpgradeBeacon(deploy);
     await process.deployBridgeRouter(deploy);
@@ -103,6 +113,26 @@ export default class TestBridgeDeploy {
 
   get bridgeRouter(): BridgeRouter | undefined {
     return this.contracts.bridgeRouter?.proxy;
+  }
+
+  get remoteDomain(): number {
+    return 1;
+  }
+
+  get remoteDomainBytes(): string {
+    return `0x0000000${this.remoteDomain}`;
+  }
+
+  get testToken(): string {
+    return `0x${'11'.repeat(32)}`;
+  }
+
+  get testTokenId(): string {
+    return ethers.utils.hexConcat([this.remoteDomainBytes, this.testToken]);
+  }
+
+  async getTestRepresentation(): Promise<IERC20 | undefined> {
+    return await this.getRepresentation(this.remoteDomain, this.testToken);
   }
 
   async getRepresentation(

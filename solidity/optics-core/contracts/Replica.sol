@@ -23,7 +23,7 @@ contract Replica is Initializable, Common, QueueManager {
     using Message for bytes29;
 
     /// @notice Minimum gas for message processing
-    uint256 public constant PROCESS_GAS = 500000;
+    uint256 public constant PROCESS_GAS = 650000;
     /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
     uint256 public constant RESERVE_GAS = 10000;
 

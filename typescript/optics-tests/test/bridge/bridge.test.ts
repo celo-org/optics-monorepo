@@ -29,78 +29,103 @@ describe.only('Bridge', async () => {
   let transferAction: BytesLike;
   let transferMessage: BytesLike;
 
-  const DOMAIN = 1;
-
-  // 4-byte domain ID
-  const DOMAIN_BYTES = `0x0000000${DOMAIN}`;
+  const PROTOCOL_PROCESS_GAS = 650_000;
 
   // 1-byte Action Type
   const TRANSFER_BYTES = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
 
-  // 32-byte token address
-  const CANONICAL_TOKEN_ADDRESS = `0x${'11'.repeat(32)}`;
-
-  // 36 byte token id
-  const TOKEN_ID = ethers.utils.concat([DOMAIN_BYTES, CANONICAL_TOKEN_ADDRESS]);
-
+  // Numerical token value
+  const TOKEN_VALUE = 0xffff;
   // 32-byte token value
-  const TOKEN_VALUE = `0x${'00'.repeat(30)}ffff`;
+  const TOKEN_VALUE_BYTES = `0x${'00'.repeat(30)}ffff`;
 
   before(async () => {
     // populate deployer signer
     [deployer] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();
-    deployerId = toBytes32(await deployer.getAddress());
+    deployerId = toBytes32(await deployer.getAddress()).toLowerCase();
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
 
     // generate transfer action
-    transferAction = ethers.utils.concat([
+    transferAction = ethers.utils.hexConcat([
       TRANSFER_BYTES,
       deployerId,
-      TOKEN_VALUE,
+      TOKEN_VALUE_BYTES,
     ]);
-    transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
+    transferMessage = ethers.utils.hexConcat([
+      deploy.testTokenId,
+      transferAction,
+    ]);
   });
 
   describe('transfer message', async () => {
-    it('inbound message, remotely-originating asset', async () => {
-      // first handle message for a new canonical token should deploy a representation token contract
+    it('remotely-originating asset roundtrip', async () => {
+      // INBOUND
 
-      let tx = await deploy.bridgeRouter!.handle(
-        DOMAIN,
+      let handleTx = await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
         deployerId,
         transferMessage,
+        { gasLimit: PROTOCOL_PROCESS_GAS },
       );
 
-      expect(tx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+      expect(handleTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
 
-      const repr = await deploy.getRepresentation(
-        DOMAIN,
-        CANONICAL_TOKEN_ADDRESS,
-      );
+      const repr = await deploy.getTestRepresentation();
 
       expect(repr).to.not.be.undefined;
-
       expect(await repr!.balanceOf(deployer.address)).to.equal(
         BigNumber.from(TOKEN_VALUE),
       );
       expect(await repr!.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
+
+      // OUTBOUND, TOO MANY TOKENS
+      const stealTx = deploy.bridgeRouter!.send(
+        repr!.address,
+        TOKEN_VALUE * 10,
+        deploy.remoteDomain,
+        deployerId,
+      );
+
+      await expect(stealTx).to.be.revertedWith(
+        'ERC20: burn amount exceeds balance',
+      );
+
+      // OUTBOUND
+      const sendTx = await deploy.bridgeRouter!.send(
+        repr!.address,
+        TOKEN_VALUE,
+        deploy.remoteDomain,
+        deployerId,
+      );
+
+      expect(await sendTx)
+        .to.emit(deploy.mockCore, 'Enqueue')
+        .withArgs(deploy.remoteDomain, deployerId, transferMessage);
+
+      expect(await repr!.totalSupply()).to.equal(BigNumber.from(0));
+
+      // OUTBOUND, NO Tokens
+      const badTx = deploy.bridgeRouter!.send(
+        repr!.address,
+        TOKEN_VALUE,
+        deploy.remoteDomain,
+        deployerId,
+      );
+      await expect(badTx).to.be.revertedWith(
+        'ERC20: burn amount exceeds balance',
+      );
     });
 
-    it.skip('inbound message, locally-originating asset', async () => {
-      // Additional setup: deploy a new ERC20 and give tokens to the sender
-      // Test that it properly transfers held tokens
-    });
-
-    it.skip('outbound message, remotely-originating asset', async () => {
-      // Test that it properly burns reprs
-      // Test that it sends a message to the fake home (check logs)
-    });
-
-    it.skip('outbound message, locally-originating asset', async () => {
+    it.skip('locally-originating asset roundtrip', async () => {
+      // Additional setup:
+      // deploy a new ERC20 and give tokens to the deployer
+      // Call send
       // Test that it properly holds local tokens
       // Test that it sends a message to the fake home (check logs)
+      // Call handle with a transfer of the same asset
+      // Test that it properly transfers held tokens
     });
   });
 });
