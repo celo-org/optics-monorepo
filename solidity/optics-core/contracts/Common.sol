@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
+import "./Queue.sol";
 import "../libs/Message.sol";
 
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
  **/
-abstract contract Common is Initializable {
+abstract contract Common is Initializable, QueueManager {
     enum States {
         UNINITIALIZED,
         ACTIVE,

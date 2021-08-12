@@ -3,7 +3,6 @@ pragma solidity >=0.6.11;
 
 import "./Common.sol";
 import "./Merkle.sol";
-import "./Queue.sol";
 import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
 
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
@@ -15,7 +14,7 @@ import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * @notice Contract responsible for tracking root updates on home,
  * and dispatching messages on Replica to end recipients.
  */
-contract Replica is Initializable, Common, QueueManager {
+contract Replica is Initializable, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;

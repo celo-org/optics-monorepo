@@ -3,7 +3,6 @@ pragma solidity >=0.6.11;
 
 import "./Common.sol";
 import "./Merkle.sol";
-import "./Queue.sol";
 import "../interfaces/IUpdaterManager.sol";
 
 import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
@@ -15,7 +14,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
  */
-contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
+contract Home is Initializable, MerkleTreeManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 

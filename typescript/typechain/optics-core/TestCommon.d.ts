@@ -25,6 +25,9 @@ interface TestCommonInterface extends ethers.utils.Interface {
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "queueContains(bytes32)": FunctionFragment;
+    "queueEnd()": FunctionFragment;
+    "queueLength()": FunctionFragment;
     "setUpdater(address)": FunctionFragment;
     "state()": FunctionFragment;
     "testIsUpdaterSignature(bytes32,bytes32,bytes)": FunctionFragment;
@@ -42,6 +45,15 @@ interface TestCommonInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "localDomain",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "queueContains",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "queueEnd", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "queueLength",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "setUpdater", values: [string]): string;
@@ -63,6 +75,15 @@ interface TestCommonInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "localDomain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "queueContains",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "queueEnd", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "queueLength",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setUpdater", data: BytesLike): Result;
@@ -140,6 +161,15 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    queueEnd(overrides?: CallOverrides): Promise<[string]>;
+
+    queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     setUpdater(
       _updater: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -171,6 +201,12 @@ export class TestCommon extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
+  queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+  queueEnd(overrides?: CallOverrides): Promise<string>;
+
+  queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
   setUpdater(
     _updater: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -201,6 +237,15 @@ export class TestCommon extends BaseContract {
     homeDomainHash(overrides?: CallOverrides): Promise<string>;
 
     localDomain(overrides?: CallOverrides): Promise<number>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    queueEnd(overrides?: CallOverrides): Promise<string>;
+
+    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     setUpdater(_updater: string, overrides?: CallOverrides): Promise<void>;
 
@@ -263,6 +308,15 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
+
+    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
     setUpdater(
       _updater: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -294,6 +348,15 @@ export class TestCommon extends BaseContract {
     homeDomainHash(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setUpdater(
       _updater: string,
