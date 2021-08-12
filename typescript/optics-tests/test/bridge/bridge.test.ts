@@ -4,12 +4,11 @@ import { BigNumber, BytesLike } from 'ethers';
 import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
 import { toBytes32 } from '../../lib/utils';
 import { expect } from 'chai';
-import {IERC20__factory, BridgeRouter, IERC20} from '../../../typechain/optics-xapps';
-
-async function getRepresentationTokenContract(deployer: Signer, bridgeRouter: BridgeRouter, domain: number, canonicalTokenAddress: BytesLike): Promise<IERC20> {
-  const reprAddr = await bridgeRouter['getLocalAddress(uint32,bytes32)'](domain, canonicalTokenAddress);
-  return IERC20__factory.connect(reprAddr, deployer);
-}
+import {
+  IERC20__factory,
+  BridgeRouter,
+  IERC20,
+} from '../../../typechain/optics-xapps';
 
 const BRIDGE_MESSAGE_TYPES = {
   INVALID: 0,
@@ -29,7 +28,6 @@ describe('Bridge', async () => {
   let deploy: TestBridgeDeploy;
   let transferAction: BytesLike;
   let transferMessage: BytesLike;
-  let bridgeRouter: BridgeRouter;
 
   const DOMAIN = 1;
 
@@ -55,23 +53,32 @@ describe('Bridge', async () => {
     deployerId = toBytes32(await deployer.getAddress());
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
-    bridgeRouter = deploy.contracts.bridgeRouter!.proxy;
+
     // generate transfer action
-    transferAction = ethers.utils.concat([TRANSFER_BYTES, deployerId, TOKEN_VALUE]);
+    transferAction = ethers.utils.concat([
+      TRANSFER_BYTES,
+      deployerId,
+      TOKEN_VALUE,
+    ]);
     transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
   });
 
   it('handles a transfer message', async () => {
     // first handle message for a new canonical token should deploy a representation token contract
-    expect(await bridgeRouter.handle(
-        DOMAIN,
-        deployerId,
-        transferMessage
-    )).to.emit(bridgeRouter, "TokenDeployed");
+    expect(
+      await deploy.bridgeRouter!.handle(DOMAIN, deployerId, transferMessage),
+    ).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
 
-    const repr: IERC20 = await getRepresentationTokenContract(deployer, bridgeRouter, DOMAIN, CANONICAL_TOKEN_ADDRESS);
+    const repr = await deploy.getRepresentation(
+      DOMAIN,
+      CANONICAL_TOKEN_ADDRESS,
+    );
 
-    expect(await repr.balanceOf(deployer.address)).to.equal(BigNumber.from(TOKEN_VALUE));
-    expect(await repr.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
+    expect(repr).to.not.be.undefined;
+
+    expect(await repr!.balanceOf(deployer.address)).to.equal(
+      BigNumber.from(TOKEN_VALUE),
+    );
+    expect(await repr!.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
   });
 });

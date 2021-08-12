@@ -1,12 +1,19 @@
-import { Signer } from 'ethers';
+import { BytesLike, Signer } from 'ethers';
 import {
   UpgradeBeaconController,
   UpgradeBeaconController__factory,
 } from '../../../typechain/optics-core';
-import { MockCore, MockCore__factory } from '../../../typechain/optics-xapps';
+import {
+  BridgeRouter,
+  IERC20,
+  IERC20__factory,
+  MockCore,
+  MockCore__factory,
+} from '../../../typechain/optics-xapps';
 import { ContractVerificationInput } from '../deploy';
 import { BridgeContracts } from './BridgeContracts';
 import * as process from '.';
+import { BeaconProxy } from '../proxyUtils';
 
 function toBytes32(address: string): string {
   return '0x' + '00'.repeat(12) + address.slice(2);
@@ -92,5 +99,24 @@ export default class TestBridgeDeploy {
   }
   get config() {
     return { weth: '' };
+  }
+
+  get bridgeRouter(): BridgeRouter | undefined {
+    return this.contracts.bridgeRouter?.proxy;
+  }
+
+  async getRepresentation(
+    domain: number,
+    canonicalTokenAddress: BytesLike,
+  ): Promise<IERC20 | undefined> {
+    const reprAddr = await this.bridgeRouter![
+      'getLocalAddress(uint32,bytes32)'
+    ](domain, canonicalTokenAddress);
+
+    if (domain === 0) {
+      return undefined;
+    }
+
+    return IERC20__factory.connect(reprAddr, this.signer);
   }
 }
