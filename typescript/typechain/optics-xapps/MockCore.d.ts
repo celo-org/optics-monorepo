@@ -21,12 +21,25 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface MockCoreInterface extends ethers.utils.Interface {
   functions: {
+    "MAX_MESSAGE_BODY_BYTES()": FunctionFragment;
+    "count()": FunctionFragment;
     "enqueue(uint32,bytes32,bytes)": FunctionFragment;
     "home()": FunctionFragment;
     "isReplica(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "queueContains(bytes32)": FunctionFragment;
+    "queueEnd()": FunctionFragment;
+    "queueLength()": FunctionFragment;
+    "root()": FunctionFragment;
+    "sequences(uint32)": FunctionFragment;
+    "tree()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "MAX_MESSAGE_BODY_BYTES",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "count", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "enqueue",
     values: [BigNumberish, BytesLike, BytesLike]
@@ -37,7 +50,27 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "queueContains",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "queueEnd", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "queueLength",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "root", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "sequences",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "tree", values?: undefined): string;
 
+  decodeFunctionResult(
+    functionFragment: "MAX_MESSAGE_BODY_BYTES",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "count", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "enqueue", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "home", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isReplica", data: BytesLike): Result;
@@ -45,11 +78,25 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "queueContains",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "queueEnd", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "queueLength",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sequences", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tree", data: BytesLike): Result;
 
   events: {
+    "Dispatch(uint256,uint64,bytes32,bytes)": EventFragment;
     "Enqueue(uint32,bytes32,bytes)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Dispatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Enqueue"): EventFragment;
 }
 
@@ -97,6 +144,10 @@ export class MockCore extends BaseContract {
   interface: MockCoreInterface;
 
   functions: {
+    MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    count(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     enqueue(
       _destination: BigNumberish,
       _recipient: BytesLike,
@@ -109,7 +160,28 @@ export class MockCore extends BaseContract {
     isReplica(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    queueEnd(overrides?: CallOverrides): Promise<[string]>;
+
+    queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    root(overrides?: CallOverrides): Promise<[string]>;
+
+    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
+
+    tree(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { count: BigNumber }>;
   };
+
+  MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
+
+  count(overrides?: CallOverrides): Promise<BigNumber>;
 
   enqueue(
     _destination: BigNumberish,
@@ -124,7 +196,23 @@ export class MockCore extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
+  queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+  queueEnd(overrides?: CallOverrides): Promise<string>;
+
+  queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+  root(overrides?: CallOverrides): Promise<string>;
+
+  sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+  tree(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
+    MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
+
+    count(overrides?: CallOverrides): Promise<BigNumber>;
+
     enqueue(
       _destination: BigNumberish,
       _recipient: BytesLike,
@@ -137,9 +225,39 @@ export class MockCore extends BaseContract {
     isReplica(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     localDomain(overrides?: CallOverrides): Promise<number>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    queueEnd(overrides?: CallOverrides): Promise<string>;
+
+    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    root(overrides?: CallOverrides): Promise<string>;
+
+    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+    tree(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
+    Dispatch(
+      leafIndex?: BigNumberish | null,
+      destinationAndSequence?: BigNumberish | null,
+      leaf?: BytesLike | null,
+      message?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, string, string],
+      {
+        leafIndex: BigNumber;
+        destinationAndSequence: BigNumber;
+        leaf: string;
+        message: string;
+      }
+    >;
+
     Enqueue(
       _destination?: BigNumberish | null,
       _recipient?: BytesLike | null,
@@ -151,6 +269,10 @@ export class MockCore extends BaseContract {
   };
 
   estimateGas: {
+    MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
+
+    count(overrides?: CallOverrides): Promise<BigNumber>;
+
     enqueue(
       _destination: BigNumberish,
       _recipient: BytesLike,
@@ -163,9 +285,33 @@ export class MockCore extends BaseContract {
     isReplica(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
+
+    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    root(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sequences(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    tree(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    MAX_MESSAGE_BODY_BYTES(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    count(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     enqueue(
       _destination: BigNumberish,
       _recipient: BytesLike,
@@ -181,5 +327,23 @@ export class MockCore extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    queueContains(
+      _item: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sequences(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tree(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

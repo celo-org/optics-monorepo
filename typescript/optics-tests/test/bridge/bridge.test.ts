@@ -17,13 +17,13 @@ const BRIDGE_MESSAGE_TYPES = {
 
 const typeToBytes = (type: number) => `0x0${type}`;
 
-describe('Bridge', async () => {
+describe.only('Bridge', async () => {
   let deployer: Signer;
   let deployerAddress: string;
   let deployerId: BytesLike;
   let deploy: TestBridgeDeploy;
 
-  const PROTOCOL_PROCESS_GAS = 650_000;
+  const PROTOCOL_PROCESS_GAS = 850_000;
 
   // 1-byte Action Type
   const TRANSER_TAG = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
@@ -78,7 +78,7 @@ describe('Bridge', async () => {
         { gasLimit: PROTOCOL_PROCESS_GAS },
       );
 
-      expect(handleTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+      await expect(handleTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
 
       const repr = await deploy.getTestRepresentation();
 
@@ -108,7 +108,7 @@ describe('Bridge', async () => {
         deployerId,
       );
 
-      expect(await sendTx)
+      await expect(sendTx)
         .to.emit(deploy.mockCore, 'Enqueue')
         .withArgs(deploy.remoteDomain, deployerId, transferMessage);
 
@@ -198,7 +198,7 @@ describe('Bridge', async () => {
         deployerId,
       );
 
-      expect(await sendTx)
+      await expect(sendTx)
         .to.emit(deploy.mockCore, 'Enqueue')
         .withArgs(deploy.remoteDomain, deployerId, transferMessage);
 
@@ -263,7 +263,7 @@ describe('Bridge', async () => {
         { gasLimit: PROTOCOL_PROCESS_GAS },
       );
 
-      expect(setupTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+      await expect(setupTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
       const repr = await deploy.getTestRepresentation();
       expect(await repr!.balanceOf(deployerAddress)).to.equal(
         BigNumber.from(TOKEN_VALUE),
@@ -290,7 +290,7 @@ describe('Bridge', async () => {
 
       // DISPATCH PREFILL TX
       const prefillTx = await deploy.bridgeRouter!.preFill(transferMessage);
-      expect(prefillTx)
+      await expect(prefillTx)
         .to.emit(repr, 'Transfer')
         .withArgs(
           deployerAddress,
@@ -305,12 +305,12 @@ describe('Bridge', async () => {
         transferMessage,
         { gasLimit: PROTOCOL_PROCESS_GAS },
       );
-      expect(deliver)
+      await expect(deliver)
         .to.emit(repr, 'Transfer')
         .withArgs(ethers.constants.AddressZero, deployerAddress, TOKEN_VALUE);
     });
 
-    it.only('locally-originating asset', async () => {
+    it('locally-originating asset', async () => {
       // SETUP
 
       const localToken = await new BridgeToken__factory(deployer).deploy();
@@ -348,7 +348,7 @@ describe('Bridge', async () => {
 
       // DISPATCH PREFILL TX
       const prefillTx = await deploy.bridgeRouter!.preFill(transferMessage);
-      expect(prefillTx)
+      await expect(prefillTx)
         .to.emit(localToken, 'Transfer')
         .withArgs(
           deployerAddress,
@@ -363,9 +363,9 @@ describe('Bridge', async () => {
         transferMessage,
         { gasLimit: PROTOCOL_PROCESS_GAS },
       );
-      expect(deliver)
+      await expect(deliver)
         .to.emit(localToken, 'Transfer')
-        .withArgs(ethers.constants.AddressZero, deployerAddress, TOKEN_VALUE);
+        .withArgs(deploy.bridgeRouter!.address, deployerAddress, TOKEN_VALUE);
     });
   });
 });
