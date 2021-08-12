@@ -17,13 +17,13 @@ const BRIDGE_MESSAGE_TYPES = {
 
 const typeToBytes = (type: number) => `0x0${type}`;
 
-describe.only('Bridge', async () => {
+describe('Bridge', async () => {
   let deployer: Signer;
   let deployerAddress: string;
   let deployerId: BytesLike;
   let deploy: TestBridgeDeploy;
 
-  const PROTOCOL_PROCESS_GAS = 850_000;
+  const PROTOCOL_PROCESS_GAS = 800_000;
 
   // 1-byte Action Type
   const TRANSER_TAG = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
