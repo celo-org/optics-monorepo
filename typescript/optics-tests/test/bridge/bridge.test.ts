@@ -21,7 +21,7 @@ const BRIDGE_MESSAGE_TYPES = {
 
 const typeToBytes = (type: number) => `0x0${type}`;
 
-describe('Bridge', async () => {
+describe.only('Bridge', async () => {
   let deployer: Signer;
   let deployerAddress: String;
   let deployerId: BytesLike;
@@ -63,22 +63,44 @@ describe('Bridge', async () => {
     transferMessage = ethers.utils.concat([TOKEN_ID, transferAction]);
   });
 
-  it('handles a transfer message', async () => {
-    // first handle message for a new canonical token should deploy a representation token contract
-    expect(
-      await deploy.bridgeRouter!.handle(DOMAIN, deployerId, transferMessage),
-    ).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+  describe('transfer message', async () => {
+    it('inbound message, remotely-originating asset', async () => {
+      // first handle message for a new canonical token should deploy a representation token contract
 
-    const repr = await deploy.getRepresentation(
-      DOMAIN,
-      CANONICAL_TOKEN_ADDRESS,
-    );
+      let tx = await deploy.bridgeRouter!.handle(
+        DOMAIN,
+        deployerId,
+        transferMessage,
+      );
 
-    expect(repr).to.not.be.undefined;
+      expect(tx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
 
-    expect(await repr!.balanceOf(deployer.address)).to.equal(
-      BigNumber.from(TOKEN_VALUE),
-    );
-    expect(await repr!.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
+      const repr = await deploy.getRepresentation(
+        DOMAIN,
+        CANONICAL_TOKEN_ADDRESS,
+      );
+
+      expect(repr).to.not.be.undefined;
+
+      expect(await repr!.balanceOf(deployer.address)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+      expect(await repr!.totalSupply()).to.equal(BigNumber.from(TOKEN_VALUE));
+    });
+
+    it.skip('inbound message, locally-originating asset', async () => {
+      // Additional setup: deploy a new ERC20 and give tokens to the sender
+      // Test that it properly transfers held tokens
+    });
+
+    it.skip('outbound message, remotely-originating asset', async () => {
+      // Test that it properly burns reprs
+      // Test that it sends a message to the fake home (check logs)
+    });
+
+    it.skip('outbound message, locally-originating asset', async () => {
+      // Test that it properly holds local tokens
+      // Test that it sends a message to the fake home (check logs)
+    });
   });
 });
