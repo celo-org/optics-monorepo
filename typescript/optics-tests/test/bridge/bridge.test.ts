@@ -50,6 +50,17 @@ describe.only('Bridge', async () => {
   });
 
   describe('transfer message', async () => {
+    it('errors when missing a remote router', async () => {
+      expect(
+        deploy.bridgeRouter!.send(
+          ethers.constants.AddressZero,
+          0,
+          12378,
+          `0x${'00'.repeat(32)}`,
+        ),
+      ).to.be.revertedWith('!remote');
+    });
+
     it('remotely-originating asset roundtrip', async () => {
       // generate transfer action
       const transferAction = ethers.utils.hexConcat([
@@ -125,10 +136,6 @@ describe.only('Bridge', async () => {
       const localToken = await new BridgeToken__factory(deployer).deploy();
       await localToken.initialize();
       await localToken.mint(deployerAddress, TOKEN_VALUE);
-      await localToken.approve(
-        deploy.bridgeRouter!.address,
-        ethers.constants.MaxUint256,
-      );
 
       // generate protocol messages
       const localTokenId = ethers.utils.hexConcat([
@@ -152,6 +159,41 @@ describe.only('Bridge', async () => {
         BigNumber.from(0),
       );
 
+      // TOKEN NOT APPROVED
+      const unapproved = deploy.bridgeRouter!.send(
+        localToken.address,
+        1,
+        deploy.remoteDomain,
+        deployerId,
+      );
+
+      expect(unapproved).to.be.revertedWith(
+        'ERC20: transfer amount exceeds allowance',
+      );
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(0),
+      );
+
+      // INSUFFICIENT BALANCE
+      await localToken.approve(
+        deploy.bridgeRouter!.address,
+        ethers.constants.MaxUint256,
+      );
+
+      const badTx = deploy.bridgeRouter!.send(
+        localToken.address,
+        TOKEN_VALUE * 5,
+        deploy.remoteDomain,
+        deployerId,
+      );
+
+      expect(badTx).to.be.revertedWith(
+        'ERC20: transfer amount exceeds balance',
+      );
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(0),
+      );
+
       // OUTBOUND
       const sendTx = await deploy.bridgeRouter!.send(
         localToken.address,
@@ -169,7 +211,6 @@ describe.only('Bridge', async () => {
       );
 
       // INBOUND
-
       let handleTx = await deploy.bridgeRouter!.handle(
         deploy.remoteDomain,
         deployerId,
