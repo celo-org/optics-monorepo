@@ -252,7 +252,7 @@ describe.only('Bridge', async () => {
       );
     });
 
-    it.only('remotely-originating asset', async () => {
+    it('remotely-originating asset', async () => {
       // SETUP REPRESENTATION
       const setupAction = ethers.utils.hexConcat([
         TRANSER_TAG,
@@ -317,6 +317,63 @@ describe.only('Bridge', async () => {
         .to.emit(repr, 'Transfer')
         .withArgs(ethers.constants.AddressZero, deployerAddress, TOKEN_VALUE);
     });
-    it('locally-originating asset', async () => {});
+
+    it.only('locally-originating asset', async () => {
+      // SETUP
+
+      const localToken = await new BridgeToken__factory(deployer).deploy();
+      await localToken.initialize();
+      await localToken.mint(deployerAddress, TOKEN_VALUE);
+      await localToken.mint(deploy.bridgeRouter!.address, TOKEN_VALUE);
+      await localToken.approve(
+        deploy.bridgeRouter!.address,
+        ethers.constants.MaxUint256,
+      );
+
+      expect(await localToken.balanceOf(deployerAddress)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+
+      // generate transfer action
+      const recipient = `0x${'00'.repeat(19)}ff`;
+      const recipientId = toBytes32(recipient);
+      const localTokenId = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        toBytes32(localToken.address),
+      ]);
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        recipientId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const transferMessage = ethers.utils.hexConcat([
+        localTokenId,
+        transferAction,
+      ]);
+
+      // DISPATCH PREFILL TX
+      const prefillTx = await deploy.bridgeRouter!.preFill(transferMessage);
+      expect(prefillTx)
+        .to.emit(localToken, 'Transfer')
+        .withArgs(
+          deployerAddress,
+          recipient,
+          BigNumber.from(TOKEN_VALUE).mul(9995).div(10000),
+        );
+
+      // DELIVER PREFILLED MESSAGE
+      let deliver = deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        transferMessage,
+        { gasLimit: PROTOCOL_PROCESS_GAS },
+      );
+      expect(deliver)
+        .to.emit(localToken, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, deployerAddress, TOKEN_VALUE);
+    });
   });
 });
