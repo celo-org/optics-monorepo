@@ -1,0 +1,39 @@
+{
+  "signers": {
+    "alfajores": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "kovan": {
+      "key": "",
+      "type": "hexKey"
+    }
+  },
+  "replicas": {
+    "kovan": {
+      "address": "0xeACafFb9fBCe3d4c4C5D07AF5DFa51CcF5a348b7",
+      "domain": "3000",
+      "name": "kovan",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": "https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60"
+      }
+    }
+  },
+  "home": {
+    "address": "0x8D09cAB9628a154d15b814113f11f19Fa8cE37A3",
+    "domain": "1000",
+    "name": "alfajores",
+    "rpcStyle": "ethereum",
+    "connection": {
+      "type": "http",
+      "url": "https://alfajores-forno.celo-testnet.org"
+    }
+  },
+  "tracing": {
+    "level": "debug",
+    "style": "json"
+  },
+  "db": "db_path"
+}
