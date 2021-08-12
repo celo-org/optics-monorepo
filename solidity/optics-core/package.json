@@ -41,6 +41,7 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.0",
+    "@openzeppelin/contracts-upgradeable": "~3.4.0",
     "@summa-tx/memview-sol": "^2.0.0",
     "dotenv": "^10.0.0",
     "ts-generator": "^0.1.1"

@@ -2,7 +2,7 @@
 pragma solidity >=0.6.11;
 pragma experimental ABIEncoderV2;
 
-import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -11,7 +11,7 @@ import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is Initializable, IMessageRecipient {
+contract GovernanceRouter is OwnableUpgradeable, IMessageRecipient {
     using SafeMath for uint256;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
@@ -30,6 +30,7 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
 
     mapping(uint32 => bytes32) public routers; // registry of domain -> remote GovernanceRouter contract address
     uint32[] public domains; // array of all domains registered
+    uint256[43] private __GAP; // gap for upgrade safety
 
     event SetRouter(
         uint32 indexed domain,
@@ -61,6 +62,8 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
         address _xAppConnectionManager,
         address _recoveryManager
     ) public initializer {
+        __Ownable_init();
+
         // initialize governor
         address _governorAddr = msg.sender;
         bool _isLocalGovernor = true;
