@@ -8,6 +8,9 @@ import {
   IERC20__factory,
   BridgeRouter,
   IERC20,
+  ERC20__factory,
+  BridgeToken,
+  BridgeToken__factory,
 } from '../../../typechain/optics-xapps';
 
 const BRIDGE_MESSAGE_TYPES = {
@@ -23,16 +26,14 @@ const typeToBytes = (type: number) => `0x0${type}`;
 
 describe.only('Bridge', async () => {
   let deployer: Signer;
-  let deployerAddress: String;
+  let deployerAddress: string;
   let deployerId: BytesLike;
   let deploy: TestBridgeDeploy;
-  let transferAction: BytesLike;
-  let transferMessage: BytesLike;
 
   const PROTOCOL_PROCESS_GAS = 650_000;
 
   // 1-byte Action Type
-  const TRANSFER_BYTES = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
+  const TRANSER_TAG = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
 
   // Numerical token value
   const TOKEN_VALUE = 0xffff;
@@ -46,21 +47,21 @@ describe.only('Bridge', async () => {
     deployerId = toBytes32(await deployer.getAddress()).toLowerCase();
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
-
-    // generate transfer action
-    transferAction = ethers.utils.hexConcat([
-      TRANSFER_BYTES,
-      deployerId,
-      TOKEN_VALUE_BYTES,
-    ]);
-    transferMessage = ethers.utils.hexConcat([
-      deploy.testTokenId,
-      transferAction,
-    ]);
   });
 
   describe('transfer message', async () => {
     it('remotely-originating asset roundtrip', async () => {
+      // generate transfer action
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        deployerId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const transferMessage = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        transferAction,
+      ]);
+
       // INBOUND
 
       let handleTx = await deploy.bridgeRouter!.handle(
@@ -118,14 +119,73 @@ describe.only('Bridge', async () => {
       );
     });
 
-    it.skip('locally-originating asset roundtrip', async () => {
-      // Additional setup:
-      // deploy a new ERC20 and give tokens to the deployer
-      // Call send
-      // Test that it properly holds local tokens
-      // Test that it sends a message to the fake home (check logs)
-      // Call handle with a transfer of the same asset
-      // Test that it properly transfers held tokens
+    it('locally-originating asset roundtrip', async () => {
+      // SETUP
+
+      const localToken = await new BridgeToken__factory(deployer).deploy();
+      await localToken.initialize();
+      await localToken.mint(deployerAddress, TOKEN_VALUE);
+      await localToken.approve(
+        deploy.bridgeRouter!.address,
+        ethers.constants.MaxUint256,
+      );
+
+      // generate protocol messages
+      const localTokenId = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        toBytes32(localToken.address),
+      ]);
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        deployerId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const transferMessage = ethers.utils.hexConcat([
+        localTokenId,
+        transferAction,
+      ]);
+
+      expect(await localToken.balanceOf(deployerAddress)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(0),
+      );
+
+      // OUTBOUND
+      const sendTx = await deploy.bridgeRouter!.send(
+        localToken.address,
+        TOKEN_VALUE,
+        deploy.remoteDomain,
+        deployerId,
+      );
+
+      expect(await sendTx)
+        .to.emit(deploy.mockCore, 'Enqueue')
+        .withArgs(deploy.remoteDomain, deployerId, transferMessage);
+
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+
+      // INBOUND
+
+      let handleTx = await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        transferMessage,
+        { gasLimit: PROTOCOL_PROCESS_GAS },
+      );
+
+      expect(handleTx).to.not.emit(deploy.bridgeRouter!, 'TokenDeployed');
+
+      expect(await localToken.balanceOf(deploy.bridgeRouter!.address)).to.equal(
+        BigNumber.from(0),
+      );
+
+      expect(await localToken.balanceOf(deployerAddress)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
     });
   });
 });

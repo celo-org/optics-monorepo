@@ -31,7 +31,7 @@ export default class TestBridgeDeploy {
   mockCore: MockCore;
   contracts: BridgeContracts;
   verificationInput: ContractVerificationInput[];
-  domain: number;
+  localDomain: number;
 
   constructor(
     signer: Signer,
@@ -49,7 +49,7 @@ export default class TestBridgeDeploy {
     this.mockCore = mockCore;
     this.contracts = contracts;
     this.signer = signer;
-    this.domain = domain;
+    this.localDomain = domain;
   }
 
   static async deploy(signer: Signer): Promise<TestBridgeDeploy> {
@@ -121,6 +121,10 @@ export default class TestBridgeDeploy {
 
   get remoteDomainBytes(): string {
     return `0x0000000${this.remoteDomain}`;
+  }
+
+  get localDomainBytes(): string {
+    return `0x0000000${this.localDomain}`;
   }
 
   get testToken(): string {
