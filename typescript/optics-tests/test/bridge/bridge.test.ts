@@ -12,6 +12,7 @@ import {
   BridgeToken,
   BridgeToken__factory,
 } from '../../../typechain/optics-xapps';
+import { constants } from 'buffer';
 
 const BRIDGE_MESSAGE_TYPES = {
   INVALID: 0,
@@ -45,6 +46,9 @@ describe.only('Bridge', async () => {
     [deployer] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();
     deployerId = toBytes32(await deployer.getAddress()).toLowerCase();
+  });
+
+  beforeEach(async () => {
     // run test deploy of bridge contracts
     deploy = await TestBridgeDeploy.deploy(deployer);
   });
@@ -228,5 +232,91 @@ describe.only('Bridge', async () => {
         BigNumber.from(TOKEN_VALUE),
       );
     });
+  });
+
+  describe('Prefill', async () => {
+    it('errors for non-existing assets', async () => {
+      // generate transfer action
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        deployerId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const transferMessage = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        transferAction,
+      ]);
+
+      expect(deploy.bridgeRouter!.preFill(transferMessage)).to.be.revertedWith(
+        '!token',
+      );
+    });
+
+    it.only('remotely-originating asset', async () => {
+      // SETUP REPRESENTATION
+      const setupAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        deployerId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const setupMessage = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        setupAction,
+      ]);
+
+      const setupTx = await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        setupMessage,
+        { gasLimit: PROTOCOL_PROCESS_GAS },
+      );
+
+      expect(setupTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+      const repr = await deploy.getTestRepresentation();
+      expect(await repr!.balanceOf(deployerAddress)).to.equal(
+        BigNumber.from(TOKEN_VALUE),
+      );
+
+      // APPROVE
+      await repr?.approve(
+        deploy.bridgeRouter!.address,
+        ethers.constants.MaxUint256,
+      );
+
+      // generate transfer action
+      const recipient = `0x${'00'.repeat(19)}ff`;
+      const recipientId = toBytes32(recipient);
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        recipientId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      const transferMessage = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        transferAction,
+      ]);
+
+      // DISPATCH PREFILL TX
+      const prefillTx = await deploy.bridgeRouter!.preFill(transferMessage);
+      expect(prefillTx)
+        .to.emit(repr, 'Transfer')
+        .withArgs(
+          deployerAddress,
+          recipient,
+          BigNumber.from(TOKEN_VALUE).mul(9995).div(10000),
+        );
+
+      // DELIVER PREFILLED MESSAGE
+      let deliver = deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        transferMessage,
+        { gasLimit: PROTOCOL_PROCESS_GAS },
+      );
+      expect(deliver)
+        .to.emit(repr, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, deployerAddress, TOKEN_VALUE);
+    });
+    it('locally-originating asset', async () => {});
   });
 });
