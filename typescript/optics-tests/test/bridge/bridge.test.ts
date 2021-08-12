@@ -4,15 +4,7 @@ import { BigNumber, BytesLike } from 'ethers';
 import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
 import { toBytes32 } from '../../lib/utils';
 import { expect } from 'chai';
-import {
-  IERC20__factory,
-  BridgeRouter,
-  IERC20,
-  ERC20__factory,
-  BridgeToken,
-  BridgeToken__factory,
-} from '../../../typechain/optics-xapps';
-import { constants } from 'buffer';
+import { BridgeToken__factory } from '../../../typechain/optics-xapps';
 
 const BRIDGE_MESSAGE_TYPES = {
   INVALID: 0,
@@ -25,7 +17,7 @@ const BRIDGE_MESSAGE_TYPES = {
 
 const typeToBytes = (type: number) => `0x0${type}`;
 
-describe.only('Bridge', async () => {
+describe('Bridge', async () => {
   let deployer: Signer;
   let deployerAddress: string;
   let deployerId: BytesLike;
