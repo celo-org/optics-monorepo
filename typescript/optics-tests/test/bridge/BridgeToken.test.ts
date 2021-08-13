@@ -7,7 +7,7 @@ import {
 } from '../../../typechain/optics-xapps';
 import { Signer } from '../../lib/types';
 import { permitDigest } from '../../lib/permit';
-import { BigNumber, Wallet } from 'ethers';
+import { Wallet } from 'ethers';
 
 const VALUE = 100;
 

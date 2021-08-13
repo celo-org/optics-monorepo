@@ -1,5 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BytesLike } from 'ethers';
+import { BridgeMessageTypes } from './bridge';
 
 export interface HardhatOpticsHelpers {
   formatMessage: Function;
@@ -15,9 +16,15 @@ export interface HardhatOpticsHelpers {
   signedFailureNotification: Function;
 }
 
+export interface HardhatBridgeHelpers {
+  BridgeMessageTypes: typeof BridgeMessageTypes;
+  typeToBytes: Function;
+}
+
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
     optics: HardhatOpticsHelpers;
+    bridge: HardhatBridgeHelpers;
   }
 }
 

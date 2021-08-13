@@ -1,7 +1,6 @@
 import '@nomiclabs/hardhat-waffle';
 import { extendEnvironment } from 'hardhat/config';
 
-// import * as coreUtils from './core';
 import {
   formatMessage,
   formatTransferGovernor,
@@ -13,6 +12,10 @@ import {
   domainHash,
   signedFailureNotification
 } from './core';
+import {
+  BridgeMessageTypes,
+  typeToBytes
+} from './bridge';
 
 // HardhatRuntimeEnvironment
 extendEnvironment((hre) => {
@@ -29,4 +32,8 @@ extendEnvironment((hre) => {
     domainHash,
     signedFailureNotification,
   };
+  hre.bridge = {
+    BridgeMessageTypes,
+    typeToBytes
+  }
 });
