@@ -1,8 +1,15 @@
-import { Chain, ChainJson, RustConfig, toChain } from '../chain';
+import {
+  Chain,
+  ChainJson,
+  DeployEnvironment,
+  RustConfig,
+  toChain,
+} from '../chain';
 import { CoreContracts } from './CoreContracts';
 import { Deploy } from '../deploy';
 
 export type CoreConfig = {
+  environment: DeployEnvironment;
   updater: string;
   recoveryTimelock: number;
   recoveryManager: string;
@@ -27,6 +34,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     return [
       chain,
       {
+        environment: config.environment,
         updater: config.updater,
         watchers: config.watchers ?? [],
         recoveryManager: config.recoveryManager,

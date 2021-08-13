@@ -2,8 +2,16 @@ import { deployTwoChains } from '../src/core';
 import * as alfajores from '../config/alfajores';
 import * as kovan from '../config/kovan';
 import { CoreDeploy } from '../src/core/CoreDeploy';
+import { deployEnvironment } from '../src/chain';
 
-const alfaDeploy = new CoreDeploy(alfajores.chain, alfajores.config);
-const kovanDeploy = new CoreDeploy(kovan.chain, kovan.config);
+let environment = deployEnvironment();
+
+let alfaConfig =
+  environment === 'staging' ? alfajores.stagingConfig : alfajores.devConfig;
+let kovanConfig =
+  environment === 'staging' ? kovan.stagingConfig : kovan.devConfig;
+
+const alfaDeploy = new CoreDeploy(alfajores.chain, alfaConfig);
+const kovanDeploy = new CoreDeploy(kovan.chain, kovanConfig);
 
 deployTwoChains(alfaDeploy, kovanDeploy);
