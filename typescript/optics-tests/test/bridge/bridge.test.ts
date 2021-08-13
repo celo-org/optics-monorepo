@@ -93,6 +93,16 @@ describe.only('BridgeRouter', async () => {
         repr = representation!;
 
         await expect(handleTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
+        await expect(handleTx)
+          .to.emit(deploy.mockCore, 'Enqueue')
+          .withArgs(
+            deploy.remoteDomain,
+            deployerId,
+            ethers.utils.hexConcat([
+              deploy.testTokenId,
+              typeToBytes(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+            ]),
+          );
         expect(await repr!.balanceOf(deployer.address)).to.equal(
           BigNumber.from(TOKEN_VALUE),
         );
@@ -252,7 +262,7 @@ describe.only('BridgeRouter', async () => {
     });
   });
 
-  describe('Prefill', async () => {
+  describe('prefill', async () => {
     before(async () => {
       deploy = await TestBridgeDeploy.deploy(deployer);
     });
