@@ -50,6 +50,15 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["./updater"]
         env: 
+          # Set AWS Keys if present in config 
+          {{- if .Values.optics.awsAccessKey }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ .Values.optics.awsAccessKey }}
+          {{- end }}
+          {{- if .Values.optics.awsSecretKey }}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ .Values.optics.awsSecretKey }}
+          {{- end }}
           # Set the DB location to be the volume 
           - name: OPT_BASE_DBPATH
             value: /usr/share/optics

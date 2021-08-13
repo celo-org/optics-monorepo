@@ -23,6 +23,8 @@ optics:
     connectionType: # "http"
     # -- Connection string pointing to an RPC endpoint for the home chain 
     connectionUrl: # "https://goerli.infura.io/v3/<KEY>"
+  awsAccessKey: ""
+  awsSecretKey: ""
     
   # -- Replica chain overrides, a sequence
   replicaChains:
@@ -58,8 +60,8 @@ optics:
     attestationSigner: 
       hexKey: ""
       aws:
-          keyId: ""
-          region: ""
+        keyId: ""
+        region: ""
     # -- How long to wait between checking for updates
     pollingInterval: # 5
     updatePause: # 15
