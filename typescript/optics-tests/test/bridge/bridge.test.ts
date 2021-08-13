@@ -12,14 +12,14 @@ import {
 import { assert } from 'console';
 import { domain } from 'process';
 
-const BRIDGE_MESSAGE_TYPES = {
-  INVALID: 0,
-  TOKEN_ID: 1,
-  MESSAGE: 2,
-  TRANSFER: 3,
-  DETAILS: 4,
-  REQUEST_DETAILS: 5,
-};
+export enum BridgeMessageTypes {
+  INVALID = 0,
+  TOKEN_ID,
+  MESSAGE,
+  TRANSFER,
+  DETAILS,
+  REQUEST_DETAILS,
+}
 
 const typeToByte = (type: number): string => `0x0${type}`;
 const stringToBytes32 = (s: string): string => {
@@ -39,7 +39,7 @@ describe('BridgeRouter', async () => {
   const PROTOCOL_PROCESS_GAS = 800_000;
 
   // 1-byte Action Type
-  const TRANSER_TAG = typeToByte(BRIDGE_MESSAGE_TYPES.TRANSFER);
+  const TRANSER_TAG = typeToByte(BridgeMessageTypes.TRANSFER);
 
   // Numerical token value
   const TOKEN_VALUE = 0xffff;

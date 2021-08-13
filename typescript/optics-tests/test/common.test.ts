@@ -2,7 +2,7 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
 import { TestCommon__factory, TestCommon } from '../../typechain/optics-core';
-import { OpticsState, Updater } from '../lib';
+import { OpticsState, Updater } from '../lib/core';
 import { Signer } from '../lib/types';
 import signedUpdateTestCases from '../../../vectors/signedUpdate.json';
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers, optics } from 'hardhat';
 import * as types from 'ethers';
 
-import { Updater } from '../../lib';
+import { Updater } from '../../lib/core';
 import { Update, CallData, Address } from '../../lib/types';
 import {
   Replica,

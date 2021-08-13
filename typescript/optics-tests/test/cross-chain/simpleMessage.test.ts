@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import * as utils from './utils';
 import { getTestDeploy } from '../testChain';
 import { increaseTimestampBy } from '../utils';
-import { Updater, MessageStatus } from '../../lib';
+import { Updater, MessageStatus } from '../../lib/core';
 import { Update, Signer, BytesArray } from '../../lib/types';
 import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
 import { deployTwoChains } from '../../../optics-deploy/src/core';

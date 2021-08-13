@@ -9,7 +9,7 @@ import {
 } from './utils';
 import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
-import { Updater } from '../../lib';
+import { Updater } from '../../lib/core';
 import { Address, Signer } from '../../lib/types';
 import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
 import {

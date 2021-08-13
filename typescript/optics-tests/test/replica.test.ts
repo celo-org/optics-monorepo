@@ -3,7 +3,7 @@ import { expect } from 'chai';
 
 import { increaseTimestampBy } from './utils';
 import { getTestDeploy } from './testChain';
-import { Updater, OpticsState, MessageStatus } from '../lib';
+import { Updater, OpticsState, MessageStatus } from '../lib/core';
 import { Signer, BytesArray } from '../lib/types';
 import * as contracts from '../../typechain/optics-core';
 import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';

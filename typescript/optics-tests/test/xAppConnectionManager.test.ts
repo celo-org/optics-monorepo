@@ -2,7 +2,7 @@ import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
 
 import { getTestDeploy } from './testChain';
-import { Updater } from '../lib';
+import { Updater } from '../lib/core';
 import { Signer } from '../lib/types';
 import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
 import * as deploys from '../../optics-deploy/src/core';
