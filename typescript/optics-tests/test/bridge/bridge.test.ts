@@ -434,4 +434,19 @@ describe.only('BridgeRouter', async () => {
       });
     });
   });
+
+  describe.skip('details message', async () => {
+    before(async () => {});
+    it('should dispatch a message on incoming requestDetails message');
+    it('should allow admins to dispatch requestDetails');
+    it('should set details on message handling', async () => {});
+  });
+  describe.skip('custom token representations', async () => {
+    before(async () => {});
+    it('should error if no mint/burn privilieges', async () => {});
+    it('should register the custom token', async () => {});
+    it('should allow outbound transfers of both assets', async () => {});
+    it('should allow users to migrate', async () => {});
+    it('should mint incoming tokens in the custom repr', async () => {});
+  });
 });
