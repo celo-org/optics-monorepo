@@ -26,6 +26,8 @@ contract Home is OwnableUpgradeable, MerkleTreeManager, Common {
 
     IUpdaterManager public updaterManager;
 
+    uint256[48] private __GAP; // gap for upgrade safety
+
     /**
      * @notice Event emitted when new message is enqueued
      * @param leafIndex Index of message's leaf in merkle tree

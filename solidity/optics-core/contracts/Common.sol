@@ -27,6 +27,8 @@ abstract contract Common is OwnableUpgradeable, QueueManager {
     States public state;
     /// @notice Current root
     bytes32 public current;
+    // gap for upgrade safety
+    uint256[47] private __GAP;
 
     /**
      * @notice Event emitted when update is made on Home or unconfirmed update

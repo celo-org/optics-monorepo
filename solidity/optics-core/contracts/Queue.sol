@@ -15,6 +15,9 @@ contract QueueManager is OwnableUpgradeable {
     using QueueLib for QueueLib.Queue;
     QueueLib.Queue internal queue;
 
+    // gap for upgrade safety
+    uint256[49] private __GAP;
+
     /// @notice Returns number of elements in queue
     function queueLength() external view returns (uint256) {
         return queue.length();

@@ -60,6 +60,8 @@ contract Replica is OwnableUpgradeable, Common {
         bytes returnData
     );
 
+    uint256[44] private __GAP; // gap for upgrade safety
+
     constructor(uint32 _localDomain) Common(_localDomain) {} // solhint-disable-line no-empty-blocks
 
     function acceptableRoot(bytes32 _root) public view returns (bool) {
