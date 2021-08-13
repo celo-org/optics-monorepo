@@ -443,12 +443,13 @@ describe.only('BridgeRouter', async () => {
     });
   });
 
-  describe.only('details message', async () => {
+  describe('details message', async () => {
     let localToken: BridgeToken;
     let requestMessage: string;
     let outgoingDetails: string;
     let incomingDetails: string;
     let transferMessage: string;
+    let repr: BridgeToken;
 
     const TEST_NAME = 'TEST TOKEN';
     const TEST_SYMBOL = 'TEST';
@@ -492,6 +493,17 @@ describe.only('BridgeRouter', async () => {
         stringToBytes32(TEST_SYMBOL),
         [TEST_DECIMALS],
       ]);
+
+      // first send in a transfer to create the repr
+      await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        transferMessage,
+      );
+
+      const representation = await deploy.getTestRepresentation();
+      expect(representation).to.not.be.undefined;
+      repr = representation!;
     });
 
     it('should allow admins to dispatch requestDetails', async () => {
@@ -524,21 +536,40 @@ describe.only('BridgeRouter', async () => {
         .withArgs(deploy.remoteDomain, deployerId, outgoingDetails);
     });
 
-    it.skip('errors if token is a repr', async () => {});
-    it.skip('errors if no registered router for response', async () => {});
+    it('errors if token is a repr', async () => {
+      const badRequest = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        toBytes32(repr.address),
+        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+      ]);
 
-    it('sets details during details message handling', async () => {
-      // first send in a transfer to create the repr
-      await deploy.bridgeRouter!.handle(
+      let badRequestTx = deploy.bridgeRouter?.handle(
         deploy.remoteDomain,
         deployerId,
-        transferMessage,
+        badRequest,
       );
 
-      const representation = await deploy.getTestRepresentation();
-      expect(representation).to.not.be.undefined;
-      const repr = representation!;
+      await expect(badRequestTx).to.be.revertedWith('!local origin');
+    });
 
+    it('errors if no registered router for response', async () => {
+      const badRequest = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        localToken.address,
+        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+      ]);
+
+      let badRequestTx = deploy.bridgeRouter?.handle(
+        3812,
+        deployerId,
+        badRequest,
+      );
+
+      await expect(badRequestTx).to.be.revertedWith('!remote router');
+    });
+
+    it('sets details during details message handling', async () => {
+      // repr should not be configured
       expect((await repr.name()).length).to.be.greaterThan(32);
       expect((await repr.symbol()).length).to.equal(32);
       expect(await repr.decimals()).to.equal(18);
