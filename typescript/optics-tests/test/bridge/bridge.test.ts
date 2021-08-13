@@ -9,6 +9,7 @@ import {
   BridgeToken__factory,
   IERC20,
 } from '../../../typechain/optics-xapps';
+import { assert } from 'console';
 
 const BRIDGE_MESSAGE_TYPES = {
   INVALID: 0,
@@ -19,7 +20,14 @@ const BRIDGE_MESSAGE_TYPES = {
   REQUEST_DETAILS: 5,
 };
 
-const typeToBytes = (type: number) => `0x0${type}`;
+const typeToByte = (type: number): string => `0x0${type}`;
+const stringToBytes32 = (s: string): string => {
+  const str = Buffer.from(s.slice(0, 32), 'utf-8');
+  const result = Buffer.alloc(32);
+  str.copy(result);
+
+  return '0x' + result.toString('hex');
+};
 
 describe.only('BridgeRouter', async () => {
   let deployer: Signer;
@@ -30,7 +38,7 @@ describe.only('BridgeRouter', async () => {
   const PROTOCOL_PROCESS_GAS = 800_000;
 
   // 1-byte Action Type
-  const TRANSER_TAG = typeToBytes(BRIDGE_MESSAGE_TYPES.TRANSFER);
+  const TRANSER_TAG = typeToByte(BRIDGE_MESSAGE_TYPES.TRANSFER);
 
   // Numerical token value
   const TOKEN_VALUE = 0xffff;
@@ -100,7 +108,7 @@ describe.only('BridgeRouter', async () => {
             deployerId,
             ethers.utils.hexConcat([
               deploy.testTokenId,
-              typeToBytes(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+              typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
             ]),
           );
         expect(await repr!.balanceOf(deployer.address)).to.equal(
@@ -435,12 +443,118 @@ describe.only('BridgeRouter', async () => {
     });
   });
 
-  describe.skip('details message', async () => {
-    before(async () => {});
-    it('should dispatch a message on incoming requestDetails message');
-    it('should allow admins to dispatch requestDetails');
-    it('should set details on message handling', async () => {});
+  describe.only('details message', async () => {
+    let localToken: BridgeToken;
+    let requestMessage: string;
+    let outgoingDetails: string;
+    let incomingDetails: string;
+    let transferMessage: string;
+
+    const TEST_NAME = 'TEST TOKEN';
+    const TEST_SYMBOL = 'TEST';
+    const TEST_DECIMALS = 8;
+
+    before(async () => {
+      deploy = await TestBridgeDeploy.deploy(deployer);
+      localToken = await new BridgeToken__factory(deployer).deploy();
+      await localToken.initialize();
+      await localToken.setDetails(TEST_NAME, TEST_SYMBOL, TEST_DECIMALS);
+
+      requestMessage = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        toBytes32(localToken.address),
+        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+      ]);
+      outgoingDetails = ethers.utils.hexConcat([
+        deploy.localDomainBytes,
+        toBytes32(localToken.address),
+        typeToByte(BRIDGE_MESSAGE_TYPES.DETAILS),
+        stringToBytes32(TEST_NAME),
+        stringToBytes32(TEST_SYMBOL),
+        [TEST_DECIMALS],
+      ]);
+
+      // generate transfer action
+      const transferAction = ethers.utils.hexConcat([
+        TRANSER_TAG,
+        deployerId,
+        TOKEN_VALUE_BYTES,
+      ]);
+      transferMessage = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        transferAction,
+      ]);
+
+      incomingDetails = ethers.utils.hexConcat([
+        deploy.testTokenId,
+        typeToByte(BRIDGE_MESSAGE_TYPES.DETAILS),
+        stringToBytes32(TEST_NAME),
+        stringToBytes32(TEST_SYMBOL),
+        [TEST_DECIMALS],
+      ]);
+    });
+
+    it('should allow admins to dispatch requestDetails', async () => {
+      const requestTx = await deploy.bridgeRouter!.requestDetails(
+        deploy.remoteDomain,
+        deploy.testToken,
+      );
+
+      await expect(requestTx)
+        .to.emit(deploy.mockCore, 'Enqueue')
+        .withArgs(
+          deploy.remoteDomain,
+          deployerId,
+          ethers.utils.hexConcat([
+            deploy.testTokenId,
+            typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+          ]),
+        );
+    });
+
+    it('handles incoming requestDetails by dispatching a details message', async () => {
+      const handleTx = deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        requestMessage,
+      );
+
+      await expect(handleTx)
+        .to.emit(deploy.mockCore, 'Enqueue')
+        .withArgs(deploy.remoteDomain, deployerId, outgoingDetails);
+    });
+
+    it.skip('errors if token is a repr', async () => {});
+    it.skip('errors if no registered router for response', async () => {});
+
+    it('sets details during details message handling', async () => {
+      // first send in a transfer to create the repr
+      await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        transferMessage,
+      );
+
+      const representation = await deploy.getTestRepresentation();
+      expect(representation).to.not.be.undefined;
+      const repr = representation!;
+
+      expect((await repr.name()).length).to.be.greaterThan(32);
+      expect((await repr.symbol()).length).to.equal(32);
+      expect(await repr.decimals()).to.equal(18);
+
+      await deploy.bridgeRouter!.handle(
+        deploy.remoteDomain,
+        deployerId,
+        incomingDetails,
+      );
+
+      expect(await repr.name()).to.equal(TEST_NAME);
+      expect(await repr.symbol()).to.equal(TEST_SYMBOL);
+      expect(await repr.decimals()).to.equal(TEST_DECIMALS);
+    });
   });
+
   describe.skip('custom token representations', async () => {
     before(async () => {});
     it('should error if no mint/burn privilieges', async () => {});

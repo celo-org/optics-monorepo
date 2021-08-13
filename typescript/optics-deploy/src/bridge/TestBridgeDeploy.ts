@@ -5,8 +5,8 @@ import {
 } from '../../../typechain/optics-core';
 import {
   BridgeRouter,
-  IERC20,
-  IERC20__factory,
+  BridgeToken,
+  BridgeToken__factory,
   MockCore,
   MockCore__factory,
 } from '../../../typechain/optics-xapps';
@@ -135,14 +135,14 @@ export default class TestBridgeDeploy {
     return ethers.utils.hexConcat([this.remoteDomainBytes, this.testToken]);
   }
 
-  async getTestRepresentation(): Promise<IERC20 | undefined> {
+  async getTestRepresentation(): Promise<BridgeToken | undefined> {
     return await this.getRepresentation(this.remoteDomain, this.testToken);
   }
 
   async getRepresentation(
     domain: number,
     canonicalTokenAddress: BytesLike,
-  ): Promise<IERC20 | undefined> {
+  ): Promise<BridgeToken | undefined> {
     const reprAddr = await this.bridgeRouter![
       'getLocalAddress(uint32,bytes32)'
     ](domain, canonicalTokenAddress);
@@ -151,6 +151,6 @@ export default class TestBridgeDeploy {
       return undefined;
     }
 
-    return IERC20__factory.connect(reprAddr, this.signer);
+    return BridgeToken__factory.connect(reprAddr, this.signer);
   }
 }
