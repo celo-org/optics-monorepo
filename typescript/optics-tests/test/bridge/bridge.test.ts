@@ -507,7 +507,7 @@ describe('BridgeRouter', async () => {
       repr = representation!;
     });
 
-    it('should allow admins to dispatch requestDetails', async () => {
+    it('allows admins to dispatch requestDetails', async () => {
       const requestTx = await deploy.bridgeRouter!.requestDetails(
         deploy.remoteDomain,
         deploy.testToken,
@@ -628,7 +628,7 @@ describe('BridgeRouter', async () => {
       );
     });
 
-    it('should error if no mint/burn privilieges', async () => {
+    it('errors if no mint/burn privilieges', async () => {
       const enrollTx = deploy.bridgeRouter!.enrollCustom(
         deploy.remoteDomain,
         deploy.testToken,
@@ -640,7 +640,7 @@ describe('BridgeRouter', async () => {
       );
     });
 
-    it('should register the custom token', async () => {
+    it('registers the custom token', async () => {
       await customRepr.transferOwnership(deploy.bridgeRouter!.address);
 
       const enrollTx = deploy.bridgeRouter!.enrollCustom(
@@ -670,7 +670,7 @@ describe('BridgeRouter', async () => {
       expect(token).to.equal(deploy.testToken);
     });
 
-    it('should mint incoming tokens in the custom repr', async () => {
+    it('mints incoming tokens in the custom repr', async () => {
       const defaultBalance = await defaultRepr.balanceOf(deployerAddress);
 
       // first send in a transfer to create the repr
@@ -689,7 +689,7 @@ describe('BridgeRouter', async () => {
       );
     });
 
-    it('should allow outbound transfers of both assets', async () => {
+    it('allows outbound transfers of both assets', async () => {
       const smallTransferAction = ethers.utils.hexConcat([
         TRANSER_TAG,
         deployerId,
@@ -721,7 +721,7 @@ describe('BridgeRouter', async () => {
         .withArgs(deploy.remoteDomain, deployerId, smallTransferMessage);
     });
 
-    it('should allow users to migrate', async () => {
+    it('allows users to migrate', async () => {
       const defaultBalance = await defaultRepr.balanceOf(deployerAddress);
       const customBalance = await customRepr.balanceOf(deployerAddress);
 
