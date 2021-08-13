@@ -27,11 +27,14 @@ interface MockCoreInterface extends ethers.utils.Interface {
     "home()": FunctionFragment;
     "isReplica(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
     "root()": FunctionFragment;
     "sequences(uint32)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
     "tree()": FunctionFragment;
   };
 
@@ -50,6 +53,7 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
     values: [BytesLike]
@@ -59,10 +63,18 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "root", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "sequences",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "tree", values?: undefined): string;
 
@@ -78,6 +90,7 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
     data: BytesLike
@@ -87,17 +100,27 @@ interface MockCoreInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sequences", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "tree", data: BytesLike): Result;
 
   events: {
     "Dispatch(uint256,uint64,bytes32,bytes)": EventFragment;
     "Enqueue(uint32,bytes32,bytes)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Dispatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Enqueue"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export class MockCore extends BaseContract {
@@ -161,6 +184,8 @@ export class MockCore extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -170,9 +195,18 @@ export class MockCore extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     root(overrides?: CallOverrides): Promise<[string]>;
 
     sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     tree(
       overrides?: CallOverrides
@@ -196,15 +230,26 @@ export class MockCore extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
+  owner(overrides?: CallOverrides): Promise<string>;
+
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   queueEnd(overrides?: CallOverrides): Promise<string>;
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   root(overrides?: CallOverrides): Promise<string>;
 
   sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   tree(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -226,6 +271,8 @@ export class MockCore extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
+    owner(overrides?: CallOverrides): Promise<string>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -235,9 +282,16 @@ export class MockCore extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
     root(overrides?: CallOverrides): Promise<string>;
 
     sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     tree(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -266,6 +320,14 @@ export class MockCore extends BaseContract {
       [number, string, string],
       { _destination: number; _recipient: string; _body: string }
     >;
+
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
   };
 
   estimateGas: {
@@ -286,6 +348,8 @@ export class MockCore extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -295,11 +359,20 @@ export class MockCore extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     root(overrides?: CallOverrides): Promise<BigNumber>;
 
     sequences(
       arg0: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tree(overrides?: CallOverrides): Promise<BigNumber>;
@@ -328,6 +401,8 @@ export class MockCore extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -337,11 +412,20 @@ export class MockCore extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     sequences(
       arg0: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tree(overrides?: CallOverrides): Promise<PopulatedTransaction>;

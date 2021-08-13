@@ -5,7 +5,7 @@ import "./Common.sol";
 import "./Merkle.sol";
 import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
 
-import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 /**
@@ -14,7 +14,7 @@ import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * @notice Contract responsible for tracking root updates on home,
  * and dispatching messages on Replica to end recipients.
  */
-contract Replica is Initializable, Common {
+contract Replica is OwnableUpgradeable, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;
@@ -77,6 +77,7 @@ contract Replica is Initializable, Common {
         uint256 _optimisticSeconds,
         uint32 _nextToProcess
     ) public initializer {
+        __Ownable_init();
         Common.initialize(_updater);
         queue.initialize();
 

@@ -3,13 +3,15 @@ pragma solidity >=0.6.11;
 
 import "../libs/Queue.sol";
 
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
 /**
  * @title QueueManager
  * @author Celo Labs Inc.
  * @notice Contract containing a queue instance and view operations on the
  * queue.
  **/
-contract QueueManager {
+contract QueueManager is OwnableUpgradeable {
     using QueueLib for QueueLib.Queue;
     QueueLib.Queue internal queue;
 

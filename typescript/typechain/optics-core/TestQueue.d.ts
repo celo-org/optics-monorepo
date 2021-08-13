@@ -30,10 +30,13 @@ interface TestQueueInterface extends ethers.utils.Interface {
     "initializeAgain()": FunctionFragment;
     "lastItem()": FunctionFragment;
     "length()": FunctionFragment;
+    "owner()": FunctionFragment;
     "peek()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "contains", values: [BytesLike]): string;
@@ -54,6 +57,7 @@ interface TestQueueInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "lastItem", values?: undefined): string;
   encodeFunctionData(functionFragment: "length", values?: undefined): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "peek", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
@@ -63,6 +67,14 @@ interface TestQueueInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "queueLength",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
   ): string;
 
   decodeFunctionResult(functionFragment: "contains", data: BytesLike): Result;
@@ -83,6 +95,7 @@ interface TestQueueInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "lastItem", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "length", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "peek", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
@@ -93,8 +106,20 @@ interface TestQueueInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
 
-  events: {};
+  events: {
+    "OwnershipTransferred(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export class TestQueue extends BaseContract {
@@ -174,6 +199,8 @@ export class TestQueue extends BaseContract {
 
     length(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
     peek(overrides?: CallOverrides): Promise<[string] & { _item: string }>;
 
     queueContains(
@@ -184,6 +211,15 @@ export class TestQueue extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<[string]>;
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   contains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -219,6 +255,8 @@ export class TestQueue extends BaseContract {
 
   length(overrides?: CallOverrides): Promise<BigNumber>;
 
+  owner(overrides?: CallOverrides): Promise<string>;
+
   peek(overrides?: CallOverrides): Promise<string>;
 
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -226,6 +264,15 @@ export class TestQueue extends BaseContract {
   queueEnd(overrides?: CallOverrides): Promise<string>;
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     contains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -252,6 +299,8 @@ export class TestQueue extends BaseContract {
 
     length(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<string>;
+
     peek(overrides?: CallOverrides): Promise<string>;
 
     queueContains(
@@ -262,9 +311,24 @@ export class TestQueue extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<string>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
+  };
 
   estimateGas: {
     contains(_item: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
@@ -300,6 +364,8 @@ export class TestQueue extends BaseContract {
 
     length(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
     peek(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueContains(
@@ -310,6 +376,15 @@ export class TestQueue extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -349,6 +424,8 @@ export class TestQueue extends BaseContract {
 
     length(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     peek(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueContains(
@@ -359,5 +436,14 @@ export class TestQueue extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

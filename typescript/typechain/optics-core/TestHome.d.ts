@@ -35,6 +35,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
     "root()": FunctionFragment;
     "sequences(uint32)": FunctionFragment;
     "setFailed()": FunctionFragment;
@@ -90,6 +91,10 @@ interface TestHomeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "queueEnd", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueLength",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "root", values?: undefined): string;
@@ -167,6 +172,10 @@ interface TestHomeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "queueEnd", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueLength",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
@@ -317,6 +326,10 @@ export class TestHome extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     root(overrides?: CallOverrides): Promise<[string]>;
 
     sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
@@ -350,7 +363,7 @@ export class TestHome extends BaseContract {
     testHomeDomainHash(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
-      _newOwner: string,
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -417,6 +430,10 @@ export class TestHome extends BaseContract {
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   root(overrides?: CallOverrides): Promise<string>;
 
   sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
@@ -450,7 +467,7 @@ export class TestHome extends BaseContract {
   testHomeDomainHash(overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
-    _newOwner: string,
+    newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -518,6 +535,8 @@ export class TestHome extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
     root(overrides?: CallOverrides): Promise<string>;
 
     sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
@@ -546,7 +565,7 @@ export class TestHome extends BaseContract {
     testHomeDomainHash(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
-      _newOwner: string,
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -688,6 +707,10 @@ export class TestHome extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     root(overrides?: CallOverrides): Promise<BigNumber>;
 
     sequences(
@@ -722,7 +745,7 @@ export class TestHome extends BaseContract {
     testHomeDomainHash(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
-      _newOwner: string,
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -793,6 +816,10 @@ export class TestHome extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     sequences(
@@ -829,7 +856,7 @@ export class TestHome extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      _newOwner: string,
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

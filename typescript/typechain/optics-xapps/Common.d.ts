@@ -25,10 +25,13 @@ interface CommonInterface extends ethers.utils.Interface {
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
     "state()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
     "updater()": FunctionFragment;
   };
 
@@ -45,6 +48,7 @@ interface CommonInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
     values: [BytesLike]
@@ -54,7 +58,15 @@ interface CommonInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
@@ -70,6 +82,7 @@ interface CommonInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
     data: BytesLike
@@ -79,15 +92,25 @@ interface CommonInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
 }
 
@@ -149,6 +172,8 @@ export class Common extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -158,7 +183,16 @@ export class Common extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     state(overrides?: CallOverrides): Promise<[number]>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
   };
@@ -177,13 +211,24 @@ export class Common extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
+  owner(overrides?: CallOverrides): Promise<string>;
+
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   queueEnd(overrides?: CallOverrides): Promise<string>;
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   state(overrides?: CallOverrides): Promise<number>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   updater(overrides?: CallOverrides): Promise<string>;
 
@@ -202,6 +247,8 @@ export class Common extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
+    owner(overrides?: CallOverrides): Promise<string>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -211,7 +258,14 @@ export class Common extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
     state(overrides?: CallOverrides): Promise<number>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     updater(overrides?: CallOverrides): Promise<string>;
   };
@@ -230,6 +284,14 @@ export class Common extends BaseContract {
         signature: string;
         signature2: string;
       }
+    >;
+
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
     >;
 
     Update(
@@ -263,6 +325,8 @@ export class Common extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -272,7 +336,16 @@ export class Common extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     state(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -292,6 +365,8 @@ export class Common extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -301,7 +376,16 @@ export class Common extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     state(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
