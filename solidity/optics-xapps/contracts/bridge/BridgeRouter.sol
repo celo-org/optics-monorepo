@@ -74,7 +74,7 @@ contract BridgeRouter is Router, TokenRegistry {
         } else if (_action.isDetails()) {
             _handleDetails(_tokenId, _action);
         } else if (_action.isRequestDetails()) {
-            _handleRequestDetails(_tokenId, _action);
+            _handleRequestDetails(_origin, _sender, _tokenId, _action);
         } else {
             require(false, "!valid action");
         }
@@ -250,12 +250,18 @@ contract BridgeRouter is Router, TokenRegistry {
     }
 
     /**
-     * @notice Handles an incoming RequestDetails message
-     * by sending an UpdateDetails message to the remote chain
+     * @notice Handles an incoming RequestDetails message by sending an
+     *         UpdateDetails message to the remote chain
+     * @dev The origin and remote are pre-checked by the handle function
+     *      `onlyRemoteRouter` modifier and can be used without additional check
+     * @param _origin The domain from which the message arrived
+     * @param _remote The remote router that sent the message
      * @param _tokenId The token ID
      * @param _requestDetailsAction The request details action from the message
      */
     function _handleRequestDetails(
+        uint32 _origin,
+        bytes32 _remote,
         bytes29 _tokenId,
         bytes29 _requestDetailsAction
     )
@@ -267,9 +273,6 @@ contract BridgeRouter is Router, TokenRegistry {
         address _token = _tokenId.evmId();
         require(_isLocalOrigin(_token), "!local origin");
         IBridgeToken _bridgeToken = IBridgeToken(_token);
-        // get remote BridgeRouter address; revert if not found
-        uint32 _destination = _tokenId.domain();
-        bytes32 _remote = _mustHaveRemote(_destination);
         // format Update Details message
         bytes29 _updateDetailsAction = BridgeMessage.formatDetails(
             TypeCasts.coerceBytes32(_bridgeToken.name()),
@@ -278,7 +281,7 @@ contract BridgeRouter is Router, TokenRegistry {
         );
         // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
-            _destination,
+            _origin,
             _remote,
             BridgeMessage.formatMessage(
                 _formatTokenId(_token),
