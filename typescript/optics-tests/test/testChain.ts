@@ -29,6 +29,7 @@ export async function getTestChain(
       },
     },
     {
+      environment: 'dev',
       recoveryTimelock: 1,
       recoveryManager: recoveryManager || ethers.constants.AddressZero,
       updater,

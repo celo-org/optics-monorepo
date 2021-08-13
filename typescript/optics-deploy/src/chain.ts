@@ -35,14 +35,14 @@ export type Chain = {
 
 export function deployEnvironment(): DeployEnvironment {
   const e = process.env.OPTICS_DEPLOY_ENVIRONMENT;
-  if (e === 'dev') {
-    return 'dev';
-  } else if (e === 'staging') {
+
+  if (e === 'staging') {
     return 'staging';
   } else if (e === 'prod') {
     return 'prod';
   }
-  throw new Error(`invalid env: ${e}, expected prod, staging, or dev`);
+
+  return 'dev';
 }
 
 export function toChain(config: ChainJson): Chain {
