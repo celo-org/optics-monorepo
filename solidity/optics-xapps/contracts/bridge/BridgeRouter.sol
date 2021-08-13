@@ -40,6 +40,8 @@ contract BridgeRouter is Router, TokenRegistry {
     /// @notice A mapping that stores the LP that pre-filled a token transfer
     /// message
     mapping(bytes32 => address) public liquidityProvider;
+    // gap for upgrade safety
+    uint256[49] private __GAP;
 
     // ======== Initializer ========
 

@@ -4,7 +4,6 @@ pragma solidity >=0.6.11;
 import "./Queue.sol";
 import "../libs/Message.sol";
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
@@ -12,7 +11,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
  **/
-abstract contract Common is OwnableUpgradeable, QueueManager {
+abstract contract Common is QueueManager {
     enum States {
         UNINITIALIZED,
         ACTIVE,

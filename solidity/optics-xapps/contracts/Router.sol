@@ -10,6 +10,7 @@ abstract contract Router is XAppConnectionClient, IMessageRecipient {
     // ============ Mutable Storage ============
 
     mapping(uint32 => bytes32) internal remotes;
+    uint256[49] private __GAP; // gap for upgrade safety
 
     // ============ Modifiers ============
 

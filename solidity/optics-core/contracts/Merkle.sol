@@ -11,8 +11,8 @@ import "../libs/Merkle.sol";
  **/
 contract MerkleTreeManager {
     using MerkleLib for MerkleLib.Tree;
-
     MerkleLib.Tree public tree;
+    uint256[49] private __GAP; // gap for upgrade safety
 
     /// @notice Calculates and returns`tree`'s current root
     function root() public view returns (bytes32) {

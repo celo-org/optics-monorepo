@@ -21,6 +21,7 @@ contract BridgeToken is IBridgeToken, OwnableUpgradeable, ERC20 {
     uint16 private immutable _EIP712_PREFIX_AND_VERSION = uint16(0x1901);
 
     mapping(address => uint256) public nonces;
+    uint256[49] private __GAP; // gap for upgrade safety
 
     function initialize() public override initializer {
         __Ownable_init();

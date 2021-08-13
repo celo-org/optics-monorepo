@@ -5,12 +5,12 @@ pragma solidity >=0.6.11;
 import {Home} from "@celo-org/optics-sol/contracts/Home.sol";
 import {XAppConnectionManager} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 
 abstract contract XAppConnectionClient is OwnableUpgradeable {
     // ============ Mutable Storage ============
 
     XAppConnectionManager public xAppConnectionManager;
+    uint256[49] private __GAP; // gap for upgrade safety
 
     // ============ Modifiers ============
 

@@ -5,7 +5,6 @@ import "./Common.sol";
 import "./Merkle.sol";
 import "../interfaces/IUpdaterManager.sol";
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
@@ -14,7 +13,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
  */
-contract Home is OwnableUpgradeable, MerkleTreeManager, Common {
+contract Home is MerkleTreeManager, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 
