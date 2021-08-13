@@ -89,8 +89,16 @@ spec:
           {{- end }}
           # Transaction Signer Keys
           {{- range .Values.optics.kathy.transactionSigners }}
+          {{- if .hexKey }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
-            value: {{ .key }}
+            value: {{ .hexKey }}
+          {{- else }}
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_TYPE
+            value: "aws"
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_ID
+            value: {{ .aws.keyId }}
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
+            value: {{ .aws.region }}
           {{- end }}
           # Jaeger Config
           {{- if .Values.optics.tracing.uri }}

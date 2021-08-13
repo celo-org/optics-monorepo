@@ -89,12 +89,29 @@ spec:
           {{- end }}
           # Transaction Signer Keys
           {{- range .Values.optics.updater.transactionSigners }}
-          - name: OPT_UPDATER_SIGNERS_{{ .name | upper }}_KEY
-            value: {{ .key }}
+          {{- if .hexKey }}
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
+            value: {{ .hexKey }}
+          {{- else }}
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_TYPE
+            value: "aws"
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_ID
+            value: {{ .aws.keyId }}
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
+            value: {{ .aws.region }}
+          {{- end }}
           {{- end }}
           # Attestation Signer Key
-          - name: OPT_UPDATER_UPDATER_KEY
-            value: {{ .Values.optics.updater.attestationSigner }}
+          {{- if .Values.optics.updater.attestationSigner.hexKey }}
+          - name: OPT_BASE_UPDATER_KEY
+            value: {{ .Values.optics.updater.attestationSigner.hexKey }}
+          {{- else }}
+          - name: OPT_BASE_UPDATER_TYPE
+            value: "aws"
+          - name: OPT_BASE_UPDATER_AWS_ID
+            value: {{ .aws.keyId }}
+          - name: OPT_BASE_UPDATER_AWS_REGION
+            value: {{ .aws.region }}
           {{- if .Values.optics.tracing.uri }}
           - name: OPT_BASE_TRACING_JAEGER_NAME
             value: {{ include "optics-agent.fullname" . }}-updater

@@ -40,41 +40,74 @@ optics:
   updater: 
     # -- Enables or disables the updater
     enabled: false
-    # -- Trnsaction Signing keys for home and replica(s)
+    # -- Transaction Signing keys for home and replica(s)
+    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
     transactionSigners: 
       - name: "goerli"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
       - name: "alfajores"
-        key: ""
-    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.keys
-    attestationSigner: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
+    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.transactionSigners
+    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
+    attestationSigner: 
+      hexKey: ""
+      aws:
+          keyId: ""
+          region: ""
     # -- How long to wait between checking for updates
     pollingInterval: # 5
     updatePause: # 15
   relayer: 
     # -- Enables or disables the relayer
     enabled: false
+    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
     transactionSigners: 
       - name: "goerli"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
       - name: "alfajores"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
     pollingInterval: # 10
   processor: 
     enabled: false
+    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
     transactionSigners: 
       - name: "goerli"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
       - name: "alfajores"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
     pollingInterval: # 10
   kathy: 
     enabled: false
+    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
     transactionSigners: 
       - name: "goerli"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
       - name: "alfajores"
-        key: ""
+        hexKey: ""
+        aws:
+          keyId: ""
+          region: ""
     messageInterval: # 100
     # -- Configuration for Kathy's message generation code
     chatGenConfig:
