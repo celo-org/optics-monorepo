@@ -51,19 +51,19 @@ spec:
         command: ["./updater"]
         env: 
           # Set AWS Keys if present in config 
-          {{- if .Values.optics.awsAccessKey }}
+          {{- if .Values.optics.awsAccessKeyId }}
           - name: AWS_ACCESS_KEY_ID
-            value: {{ .Values.optics.awsAccessKey }}
+            value: {{ .Values.optics.awsAccessKeyId }}
           {{- end }}
-          {{- if .Values.optics.awsSecretKey }}
+          {{- if .Values.optics.awsSecretAccessKey }}
           - name: AWS_SECRET_ACCESS_KEY
-            value: {{ .Values.optics.awsSecretKey }}
+            value: {{ .Values.optics.awsSecretAccessKey }}
           {{- end }}
           # Set the DB location to be the volume 
           - name: OPT_BASE_DBPATH
             value: /usr/share/optics
           # Set the log formatting 
-          - name: OPT_BASE_TRACING_STYLE
+          - name: OPT_BASE_TRACING_FMT
             value: "json"
           # Sets the config folder to use
           - name: RUN_ENV
@@ -104,9 +104,9 @@ spec:
           {{- else }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_TYPE
             value: "aws"
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_ID
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_ID
             value: {{ .aws.keyId }}
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_REGION
             value: {{ .aws.region }}
           {{- end }}
           {{- end }}
@@ -117,10 +117,11 @@ spec:
           {{- else }}
           - name: OPT_BASE_UPDATER_TYPE
             value: "aws"
-          - name: OPT_BASE_UPDATER_AWS_ID
-            value: {{ .aws.keyId }}
-          - name: OPT_BASE_UPDATER_AWS_REGION
-            value: {{ .aws.region }}
+          - name: OPT_BASE_UPDATER_ID
+            value: {{ .Values.optics.updater.attestationSigner.aws.keyId  }}
+          - name: OPT_BASE_UPDATER_REGION
+            value: {{ .Values.optics.updater.attestationSigner.aws.region }}
+          {{- end }}
           {{- if .Values.optics.tracing.uri }}
           - name: OPT_BASE_TRACING_JAEGER_NAME
             value: {{ include "optics-agent.fullname" . }}-updater

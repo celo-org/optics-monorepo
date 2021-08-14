@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 
-FROM rust:1.52 as builder
+FROM rust:1.54 as builder
 WORKDIR /usr/src
 
 # 1a: Prepare for static linking
@@ -14,6 +14,7 @@ COPY optics-core ./optics-core
 COPY optics-ethereum ./optics-ethereum
 COPY optics-base ./optics-base 
 COPY optics-test ./optics-test
+COPY kms-cli ./kms-cli
 COPY processor ./processor
 COPY relayer ./relayer
 COPY watcher ./watcher

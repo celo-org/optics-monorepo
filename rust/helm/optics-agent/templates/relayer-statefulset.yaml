@@ -53,17 +53,17 @@ spec:
           # Set AWS Keys if present in config 
           {{- if .Values.optics.awsAccessKey }}
           - name: AWS_ACCESS_KEY_ID
-            value: {{ .Values.optics.awsAccessKey }}
+            value: {{ .Values.optics.awsAccessKeyId }}
           {{- end }}
           {{- if .Values.optics.awsSecretKey }}
           - name: AWS_SECRET_ACCESS_KEY
-            value: {{ .Values.optics.awsSecretKey }}
+            value: {{ .Values.optics.awsSecretAccessKey }}
           {{- end }}
           # Set the DB location to be the volume 
           - name: OPT_BASE_DBPATH
             value: /usr/share/optics
           # Set the log formatting 
-          - name: OPT_BASE_TRACING_STYLE
+          - name: OPT_BASE_TRACING_FMT
             value: "json"
           # Sets the config folder to use
           - name: RUN_ENV
@@ -108,6 +108,7 @@ spec:
             value: {{ .aws.keyId }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
             value: {{ .aws.region }}
+          {{- end}}
           {{- end }}
           # Jaeger Config
           {{- if .Values.optics.tracing.uri }}

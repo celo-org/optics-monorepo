@@ -23,8 +23,8 @@ optics:
     connectionType: # "http"
     # -- Connection string pointing to an RPC endpoint for the home chain 
     connectionUrl: # "https://goerli.infura.io/v3/<KEY>"
-  awsAccessKey: ""
-  awsSecretKey: ""
+  awsAccessKeyId: ""
+  awsSecretAccessKey: ""
     
   # -- Replica chain overrides, a sequence
   replicaChains:
