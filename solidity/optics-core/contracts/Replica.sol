@@ -52,7 +52,10 @@ contract Replica is Initializable, Common, QueueManager {
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
+    event ProcessSuccess(bytes32 indexed messageHash);
+
     event ProcessError(
+        bytes32 indexed messageHash,
         uint32 indexed sequence,
         address indexed recipient,
         bytes returnData
@@ -211,19 +214,17 @@ contract Replica is Initializable, Common, QueueManager {
      **/
     function process(bytes memory _message) public returns (bool _success) {
         bytes29 _m = _message.ref(0);
+        bytes32 _messageHash = _m.keccak();
 
         uint32 _sequence = _m.sequence();
         require(_m.destination() == localDomain, "!destination");
-        require(
-            messages[keccak256(_message)] == MessageStatus.Pending,
-            "!pending"
-        );
+        require(messages[_messageHash] == MessageStatus.Pending, "!pending");
 
         require(entered == 1, "!reentrant");
         entered = 0;
 
         // update the status and next to process
-        messages[_m.keccak()] = MessageStatus.Processed;
+        messages[_messageHash] = MessageStatus.Processed;
         nextToProcess = _sequence + 1;
 
         // NB:
@@ -249,8 +250,10 @@ contract Replica is Initializable, Common, QueueManager {
             )
         );
 
-        if (!_success) {
-            emit ProcessError(_sequence, _recipient, _returnData);
+        if (_success) {
+            emit ProcessSuccess(_messageHash);
+        } else {
+            emit ProcessError(_messageHash, _sequence, _recipient, _returnData);
         }
 
         entered = 1;

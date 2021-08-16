@@ -46,6 +46,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "messageHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
         "internalType": "uint32",
         "name": "sequence",
         "type": "uint32"
@@ -64,6 +70,19 @@
       }
     ],
     "name": "ProcessError",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "messageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ProcessSuccess",
     "type": "event"
   },
   {

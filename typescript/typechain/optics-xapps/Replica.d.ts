@@ -269,12 +269,14 @@ interface ReplicaInterface extends ethers.utils.Interface {
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "ProcessError(uint32,address,bytes)": EventFragment;
+    "ProcessError(bytes32,uint32,address,bytes)": EventFragment;
+    "ProcessSuccess(bytes32)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProcessError"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProcessSuccess"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
 }
 
@@ -806,13 +808,23 @@ export class Replica extends BaseContract {
     >;
 
     ProcessError(
+      messageHash?: BytesLike | null,
       sequence?: BigNumberish | null,
       recipient?: string | null,
       returnData?: null
     ): TypedEventFilter<
-      [number, string, string],
-      { sequence: number; recipient: string; returnData: string }
+      [string, number, string, string],
+      {
+        messageHash: string;
+        sequence: number;
+        recipient: string;
+        returnData: string;
+      }
     >;
+
+    ProcessSuccess(
+      messageHash?: BytesLike | null
+    ): TypedEventFilter<[string], { messageHash: string }>;
 
     Update(
       homeDomain?: BigNumberish | null,

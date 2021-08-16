@@ -175,10 +175,7 @@ abstract contract TokenRegistry is Initializable {
         return _newProxy;
     }
 
-    function _deployToken(bytes29 _tokenId)
-        internal
-        returns (address _token)
-    {
+    function _deployToken(bytes29 _tokenId) internal returns (address _token) {
         // deploy the token contract
         _token = _cloneTokenContract();
         // set the default token name & symbol
@@ -211,11 +208,7 @@ abstract contract TokenRegistry is Initializable {
     }
 
     /// @dev returns the token corresponding to the canonical ID, or errors.
-    function _mustHaveToken(bytes29 _tokenId)
-        internal
-        view
-        returns (IERC20)
-    {
+    function _mustHaveToken(bytes29 _tokenId) internal view returns (IERC20) {
         address _local = _getTokenAddress(_tokenId);
         require(_local != address(0), "!token");
         return IERC20(_local);
@@ -256,11 +249,7 @@ abstract contract TokenRegistry is Initializable {
     }
 
     /// @dev Find the local representation of a canonical token. May return 0
-    function _reprFor(bytes29 _tokenId)
-        internal
-        view
-        returns (IBridgeToken)
-    {
+    function _reprFor(bytes29 _tokenId) internal view returns (IBridgeToken) {
         return IBridgeToken(canonicalToRepresentation[_tokenId.keccak()]);
     }
 

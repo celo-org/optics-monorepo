@@ -173,7 +173,7 @@ interface HomeInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "Dispatch(uint256,uint64,bytes32,bytes)": EventFragment;
+    "Dispatch(uint256,uint64,bytes32,bytes32,bytes)": EventFragment;
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
     "ImproperUpdate()": EventFragment;
     "NewUpdater(address)": EventFragment;
@@ -499,13 +499,15 @@ export class Home extends BaseContract {
       leafIndex?: BigNumberish | null,
       destinationAndSequence?: BigNumberish | null,
       leaf?: BytesLike | null,
+      current?: null,
       message?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, string, string],
+      [BigNumber, BigNumber, string, string, string],
       {
         leafIndex: BigNumber;
         destinationAndSequence: BigNumber;
         leaf: string;
+        current: string;
         message: string;
       }
     >;

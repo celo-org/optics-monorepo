@@ -192,9 +192,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _tokenId The token ID
      * @param _action The action
      */
-    function _handleTransfer(bytes29 _tokenId, bytes29 _action)
-        internal
-    {
+    function _handleTransfer(bytes29 _tokenId, bytes29 _action) internal {
         // get the token contract for the given tokenId on this chain;
         // (if the token is of remote origin and there is
         // no existing representation token contract, the TokenRegistry will
@@ -228,9 +226,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @param _tokenId The token ID
      * @param _action The action
      */
-    function _handleDetails(bytes29 _tokenId, bytes29 _action)
-        internal
-    {
+    function _handleDetails(bytes29 _tokenId, bytes29 _action) internal {
         // get the token contract deployed on this chain
         // revert if no token contract exists
         IERC20 _token = _mustHaveToken(_tokenId);
@@ -259,9 +255,7 @@ contract BridgeRouter is Router, TokenRegistry {
         uint32 _messageOrigin,
         bytes32 _messageRemoteRouter,
         bytes29 _tokenId
-    )
-        internal
-    {
+    ) internal {
         // get token & ensure is of local origin
         address _token = _tokenId.evmId();
         require(_isLocalOrigin(_token), "!local origin");
@@ -276,19 +270,13 @@ contract BridgeRouter is Router, TokenRegistry {
         Home(xAppConnectionManager.home()).enqueue(
             _messageOrigin,
             _messageRemoteRouter,
-            BridgeMessage.formatMessage(
-                _tokenId,
-                _updateDetailsAction
-            )
+            BridgeMessage.formatMessage(_tokenId, _updateDetailsAction)
         );
     }
 
     // ============ Internal: Transfer ============
 
-    function _ensureToken(bytes29 _tokenId)
-        internal
-        returns (IERC20)
-    {
+    function _ensureToken(bytes29 _tokenId) internal returns (IERC20) {
         address _local = _getTokenAddress(_tokenId);
         if (_local == address(0)) {
             // Representation does not exist yet;
@@ -307,9 +295,7 @@ contract BridgeRouter is Router, TokenRegistry {
      * @notice Handles an incoming Details message.
      * @param _tokenId The token ID
      */
-    function _requestDetails(bytes29 _tokenId)
-        internal
-    {
+    function _requestDetails(bytes29 _tokenId) internal {
         uint32 _destination = _tokenId.domain();
         // get remote BridgeRouter address; revert if not found
         bytes32 _remote = remotes[_destination];
