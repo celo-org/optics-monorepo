@@ -639,7 +639,7 @@ describe('BridgeRouter', async () => {
       );
     });
 
-    it('errors if no mint/burn privilieges', async () => {
+    it('errors if no mint/burn privileges', async () => {
       const enrollTx = deploy.bridgeRouter!.enrollCustom(
         deploy.remoteDomain,
         deploy.testToken,
