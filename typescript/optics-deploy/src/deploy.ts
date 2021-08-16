@@ -6,6 +6,7 @@ export type ContractVerificationInput = {
   name: string;
   address: string;
   constructorArguments: any[];
+  isProxy?: boolean;
 };
 
 export abstract class Deploy<T extends Contracts> {

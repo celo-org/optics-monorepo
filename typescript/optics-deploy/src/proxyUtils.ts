@@ -79,6 +79,7 @@ export async function deployProxy<T extends ethers.Contract>(
     name: `${name} Proxy`,
     address: proxy!.address,
     constructorArguments: [beacon!.address, initData],
+    isProxy: true,
   });
 
   return new BeaconProxy(
@@ -108,6 +109,7 @@ export async function duplicate<T extends ethers.Contract>(
     name: `${name} Proxy`,
     address: proxy!.address,
     constructorArguments: [prev.beacon!.address, initData],
+    isProxy: true,
   });
 
   return new BeaconProxy(

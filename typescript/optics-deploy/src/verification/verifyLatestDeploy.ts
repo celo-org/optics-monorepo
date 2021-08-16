@@ -1,3 +1,5 @@
+import {verifyProxy} from "./verifyProxy";
+
 const {
   getPathToLatestDeployConfig,
   getPathToLatestBridgeConfig,
@@ -72,7 +74,7 @@ async function verifyDeploy(path: string, hre: any) {
   * attempt to verify the contracts' source code on Etherscan
   * */
 async function verifyContract(network: string, verificationInput: any, hre: any) {
-  const { name, address, constructorArguments } = verificationInput;
+  const { name, address, constructorArguments, isProxy } = verificationInput;
   try {
     console.log(
         `   Attempt to verify ${name}   -  ${etherscanLink(network, address)}`,
@@ -83,6 +85,14 @@ async function verifyContract(network: string, verificationInput: any, hre: any)
       constructorArguments,
     });
     console.log(`   SUCCESS verifying ${name}`);
+
+    if (isProxy) {
+      console.log(
+          `   Attempt to verify as proxy`,
+      );
+      await verifyProxy(network, address);
+      console.log(`   SUCCESS submitting proxy verification`);
+    }
   } catch (e) {
     console.log(`   ERROR verifying ${name}`);
     console.error(e);
