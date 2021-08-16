@@ -84,11 +84,6 @@ abstract contract TokenRegistry is Initializable {
 
     // ======== Modifiers =========
 
-    modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
-        _view.assertType(uint40(_t));
-        _;
-    }
-
     function _localDomain() internal view virtual returns (uint32);
 
     // ======== External: Token Lookup Convenience =========
@@ -150,7 +145,6 @@ abstract contract TokenRegistry is Initializable {
     function _defaultDetails(bytes29 _tokenId)
         internal
         pure
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (string memory _name, string memory _symbol)
     {
         // get the first and second half of the token ID
@@ -183,7 +177,6 @@ abstract contract TokenRegistry is Initializable {
 
     function _deployToken(bytes29 _tokenId)
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _token)
     {
         // deploy the token contract
@@ -206,7 +199,6 @@ abstract contract TokenRegistry is Initializable {
     function _getTokenAddress(bytes29 _tokenId)
         internal
         view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (address _local)
     {
         if (_tokenId.domain() == _localDomain()) {
@@ -222,7 +214,6 @@ abstract contract TokenRegistry is Initializable {
     function _mustHaveToken(bytes29 _tokenId)
         internal
         view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
         address _local = _getTokenAddress(_tokenId);
@@ -268,7 +259,6 @@ abstract contract TokenRegistry is Initializable {
     function _reprFor(bytes29 _tokenId)
         internal
         view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IBridgeToken)
     {
         return IBridgeToken(canonicalToRepresentation[_tokenId.keccak()]);

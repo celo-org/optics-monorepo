@@ -131,6 +131,19 @@ describe('BridgeRouter', async () => {
         );
       });
 
+      it('errors on send if ERC20 amount is zero', async () => {
+        const zeroTx = deploy.bridgeRouter!.send(
+            repr!.address,
+            0,
+            deploy.remoteDomain,
+            deployerId,
+        );
+
+        await expect(zeroTx).to.be.revertedWith(
+            'cannot send 0',
+        );
+      });
+
       it('burns tokens on outbound message', async () => {
         // OUTBOUND
         const sendTx = await deploy.bridgeRouter!.send(

@@ -328,7 +328,7 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
-      _amnt: BigNumberish,
+      _amount: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -435,7 +435,7 @@ export class BridgeRouter extends BaseContract {
 
   send(
     _token: string,
-    _amnt: BigNumberish,
+    _amount: BigNumberish,
     _destination: BigNumberish,
     _recipient: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -534,7 +534,7 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
-      _amnt: BigNumberish,
+      _amount: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
       overrides?: CallOverrides
@@ -680,7 +680,7 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
-      _amnt: BigNumberish,
+      _amount: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -792,7 +792,7 @@ export class BridgeRouter extends BaseContract {
 
     send(
       _token: string,
-      _amnt: BigNumberish,
+      _amount: BigNumberish,
       _destination: BigNumberish,
       _recipient: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }

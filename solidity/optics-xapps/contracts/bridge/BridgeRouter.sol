@@ -99,16 +99,17 @@ contract BridgeRouter is Router, TokenRegistry {
     /**
      * @notice Send tokens to a recipient on a remote chain
      * @param _token The token address
-     * @param _amnt The amount
+     * @param _amount The token amount
      * @param _destination The destination domain
      * @param _recipient The recipient address
      */
     function send(
         address _token,
-        uint256 _amnt,
+        uint256 _amount,
         uint32 _destination,
         bytes32 _recipient
     ) external {
+        require(_amount > 0, "cannot send 0");
         // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
         // remove tokens from circulation on this chain
@@ -116,14 +117,14 @@ contract BridgeRouter is Router, TokenRegistry {
         if (_isLocalOrigin(_bridgeToken)) {
             // if the token originates on this chain, hold the tokens in escrow
             // in the Router
-            _bridgeToken.safeTransferFrom(msg.sender, address(this), _amnt);
+            _bridgeToken.safeTransferFrom(msg.sender, address(this), _amount);
         } else {
             // if the token originates on a remote chain, burn the
             // representation tokens on this chain
-            _downcast(_bridgeToken).burn(msg.sender, _amnt);
+            _downcast(_bridgeToken).burn(msg.sender, _amount);
         }
         // format Transfer Tokens action
-        bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amnt);
+        bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amount);
         // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
             _destination,
@@ -193,8 +194,6 @@ contract BridgeRouter is Router, TokenRegistry {
      */
     function _handleTransfer(bytes29 _tokenId, bytes29 _action)
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Transfer)
     {
         // get the token contract for the given tokenId on this chain;
         // (if the token is of remote origin and there is
@@ -231,8 +230,6 @@ contract BridgeRouter is Router, TokenRegistry {
      */
     function _handleDetails(bytes29 _tokenId, bytes29 _action)
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_action, BridgeMessage.Types.Details)
     {
         // get the token contract deployed on this chain
         // revert if no token contract exists
@@ -264,7 +261,6 @@ contract BridgeRouter is Router, TokenRegistry {
         bytes29 _tokenId
     )
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
     {
         // get token & ensure is of local origin
         address _token = _tokenId.evmId();
@@ -291,7 +287,6 @@ contract BridgeRouter is Router, TokenRegistry {
 
     function _ensureToken(bytes29 _tokenId)
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
         returns (IERC20)
     {
         address _local = _getTokenAddress(_tokenId);
@@ -314,7 +309,6 @@ contract BridgeRouter is Router, TokenRegistry {
      */
     function _requestDetails(bytes29 _tokenId)
         internal
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
     {
         uint32 _destination = _tokenId.domain();
         // get remote BridgeRouter address; revert if not found
