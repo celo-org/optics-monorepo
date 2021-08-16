@@ -1,17 +1,8 @@
 import '@nomiclabs/hardhat-waffle';
 import { extendEnvironment } from 'hardhat/config';
 
-import {
-  formatMessage,
-  formatTransferGovernor,
-  formatSetRouter,
-  formatCalls,
-  messageToLeaf,
-  ethersAddressToBytes32,
-  destinationAndSequence,
-  domainHash,
-  signedFailureNotification
-} from './core';
+import { optics } from './core';
+
 import {
   BridgeMessageTypes,
   typeToBytes
@@ -19,19 +10,7 @@ import {
 
 // HardhatRuntimeEnvironment
 extendEnvironment((hre) => {
-  hre.optics = {
-    formatMessage,
-    governance: {
-      formatTransferGovernor,
-      formatSetRouter,
-      formatCalls,
-    },
-    messageToLeaf,
-    ethersAddressToBytes32,
-    destinationAndSequence,
-    domainHash,
-    signedFailureNotification,
-  };
+  hre.optics = optics;
   hre.bridge = {
     BridgeMessageTypes,
     typeToBytes

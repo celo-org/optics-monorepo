@@ -9,8 +9,6 @@ import {
   BridgeToken__factory,
   IERC20,
 } from '../../../typechain/optics-xapps';
-import { assert } from 'console';
-import { domain } from 'process';
 
 export enum BridgeMessageTypes {
   INVALID = 0,

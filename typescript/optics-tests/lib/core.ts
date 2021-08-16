@@ -1,8 +1,8 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert } from 'chai';
 import * as ethers from 'ethers';
-import * as types from './types';
 
+import * as types from './types';
 import { getHexStringByteLength } from './utils';
 
 export class Updater {
@@ -52,7 +52,7 @@ export class Updater {
   }
 }
 
-export const formatMessage = (
+const formatMessage = (
   localDomain: types.Domain,
   senderAddr: types.Address,
   sequence: number,
@@ -87,7 +87,7 @@ export enum MessageStatus {
   PROCESSED,
 }
 
-export function formatTransferGovernor(
+function formatTransferGovernor(
   newDomain: types.Domain,
   newAddress: types.Address,
 ): string {
@@ -97,24 +97,24 @@ export function formatTransferGovernor(
   );
 }
 
-export function formatSetRouter(domain: types.Domain, address: types.Address): string {
+function formatSetRouter(domain: types.Domain, address: types.Address): string {
   return ethers.utils.solidityPack(
     ['bytes1', 'uint32', 'bytes32'],
     [GovernanceMessage.SETROUTER, domain, address],
   );
 }
 
-export function messageToLeaf(message: types.HexString): string {
+function messageToLeaf(message: types.HexString): string {
   return ethers.utils.solidityKeccak256(['bytes'], [message]);
 }
 
-export function ethersAddressToBytes32(address: types.Address): string {
+function ethersAddressToBytes32(address: types.Address): string {
   return ethers.utils
     .hexZeroPad(ethers.utils.hexStripZeros(address), 32)
     .toLowerCase();
 }
 
-export function destinationAndSequence(
+function destinationAndSequence(
   destination: types.Domain,
   sequence: number,
 ): ethers.BigNumber {
@@ -126,14 +126,14 @@ export function destinationAndSequence(
     .add(ethers.BigNumber.from(sequence));
 }
 
-export function domainHash(domain: Number): string {
+function domainHash(domain: Number): string {
   return ethers.utils.solidityKeccak256(
     ['uint32', 'string'],
     [domain, 'OPTICS'],
   );
 }
 
-export async function signedFailureNotification(
+async function signedFailureNotification(
   signer: ethers.Signer,
   domain: types.Domain,
   updaterAddress: types.Address,
@@ -159,7 +159,7 @@ export async function signedFailureNotification(
   };
 }
 
-export function formatCalls(callsData: types.CallData[]): string {
+function formatCalls(callsData: types.CallData[]): string {
   let callBody = '0x';
   const numCalls = callsData.length;
 
@@ -185,3 +185,17 @@ export function formatCalls(callsData: types.CallData[]): string {
     [GovernanceMessage.CALL, numCalls, callBody],
   );
 }
+
+export const optics: types.HardhatOpticsHelpers = {
+  formatMessage,
+  governance: {
+    formatTransferGovernor,
+    formatSetRouter,
+    formatCalls,
+  },
+  messageToLeaf,
+  ethersAddressToBytes32,
+  destinationAndSequence,
+  domainHash,
+  signedFailureNotification,
+};
