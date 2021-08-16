@@ -2,7 +2,7 @@
 pragma solidity >=0.6.11;
 pragma experimental ABIEncoderV2;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/Initializable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
@@ -11,7 +11,7 @@ import {XAppConnectionManager, TypeCasts} from "../XAppConnectionManager.sol";
 import {IMessageRecipient} from "../../interfaces/IMessageRecipient.sol";
 import {GovernanceMessage} from "./GovernanceMessage.sol";
 
-contract GovernanceRouter is OwnableUpgradeable, IMessageRecipient {
+contract GovernanceRouter is Initializable, IMessageRecipient {
     using SafeMath for uint256;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
@@ -62,8 +62,6 @@ contract GovernanceRouter is OwnableUpgradeable, IMessageRecipient {
         address _xAppConnectionManager,
         address _recoveryManager
     ) public initializer {
-        __Ownable_init();
-
         // initialize governor
         address _governorAddr = msg.sender;
         bool _isLocalGovernor = true;

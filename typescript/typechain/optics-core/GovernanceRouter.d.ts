@@ -32,17 +32,14 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     "initialize(address,address)": FunctionFragment;
     "initiateRecoveryTimelock()": FunctionFragment;
     "localDomain()": FunctionFragment;
-    "owner()": FunctionFragment;
     "recoveryActiveAt()": FunctionFragment;
     "recoveryManager()": FunctionFragment;
     "recoveryTimelock()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "routers(uint32)": FunctionFragment;
     "setRouter(uint32,bytes32)": FunctionFragment;
     "setRouterLocal(uint32,bytes32)": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "transferGovernor(uint32,address)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "transferRecoveryManager(address)": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
@@ -88,7 +85,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "recoveryActiveAt",
     values?: undefined
@@ -99,10 +95,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "recoveryTimelock",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -124,10 +116,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "transferGovernor",
     values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "transferRecoveryManager",
@@ -161,7 +149,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "recoveryActiveAt",
     data: BytesLike
@@ -172,10 +159,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "recoveryTimelock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "routers", data: BytesLike): Result;
@@ -193,10 +176,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "transferRecoveryManager",
     data: BytesLike
   ): Result;
@@ -208,7 +187,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
   events: {
     "ExitRecovery(address)": EventFragment;
     "InitiateRecovery(address,uint256)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
     "SetRouter(uint32,bytes32,bytes32)": EventFragment;
     "TransferGovernor(uint32,uint32,address,address)": EventFragment;
     "TransferRecoveryManager(address,address)": EventFragment;
@@ -216,7 +194,6 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "ExitRecovery"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "InitiateRecovery"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetRouter"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferGovernor"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferRecoveryManager"): EventFragment;
@@ -308,17 +285,11 @@ export class GovernanceRouter extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     recoveryActiveAt(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     recoveryManager(overrides?: CallOverrides): Promise<[string]>;
 
     recoveryTimelock(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
@@ -342,11 +313,6 @@ export class GovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -400,17 +366,11 @@ export class GovernanceRouter extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
   recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
 
   recoveryManager(overrides?: CallOverrides): Promise<string>;
 
   recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -434,11 +394,6 @@ export class GovernanceRouter extends BaseContract {
   transferGovernor(
     _newDomain: BigNumberish,
     _newGovernor: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -488,15 +443,11 @@ export class GovernanceRouter extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
     recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     recoveryManager(overrides?: CallOverrides): Promise<string>;
 
     recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -523,11 +474,6 @@ export class GovernanceRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     transferRecoveryManager(
       _newRecoveryManager: string,
       overrides?: CallOverrides
@@ -547,14 +493,6 @@ export class GovernanceRouter extends BaseContract {
     ): TypedEventFilter<
       [string, BigNumber],
       { recoveryManager: string; endBlock: BigNumber }
-    >;
-
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
     >;
 
     SetRouter(
@@ -633,17 +571,11 @@ export class GovernanceRouter extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
     recoveryActiveAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     recoveryManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     recoveryTimelock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     routers(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -667,11 +599,6 @@ export class GovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -729,17 +656,11 @@ export class GovernanceRouter extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     recoveryActiveAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     recoveryManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     recoveryTimelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     routers(
       arg0: BigNumberish,
@@ -766,11 +687,6 @@ export class GovernanceRouter extends BaseContract {
     transferGovernor(
       _newDomain: BigNumberish,
       _newGovernor: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
