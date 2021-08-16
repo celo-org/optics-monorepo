@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
 
+import { HardhatBridgeHelpers } from './types';
+
 export enum BridgeMessageTypes {
   INVALID = 0,
   TOKEN_ID,
@@ -9,29 +11,14 @@ export enum BridgeMessageTypes {
   REQUEST_DETAILS,
 }
 
-export const typeToBytes = (type: number) => `0x0${type}`;
+const typeToByte = (type: number) => `0x0${type}`;
 
-const TOKEN_ID_LEN = 36; // 4 bytes domain + 32 bytes id
-const IDENTIFIER_LEN = 1;
-const TRANSFER_LEN = 65; // 1 byte identifier + 32 bytes recipient + 32 bytes amount
-const DETAILS_LEN = 66; // 1 byte identifier + 32 bytes name + 32 bytes symbol + 1 byte decimals
-const REQUEST_DETAILS_LEN = 1; // 1 byte identifier
-
-type TransferMessage = {
-  type: BridgeMessageTypes.TRANSFER;
-  recipient: number;
-  amount: number;
-}
-
-type DetailsMessage = {
-  type: BridgeMessageTypes.DETAILS;
-  name: string;
-  symbol: string;
-  decimal: number;
-}
-
-type RequestDetailsMessage = {
-  type: BridgeMessageTypes.REQUEST_DETAILS;
+const MESSAGE_LEN = {
+  identifier: 1,
+  tokenId: 36,
+  transfer: 65,
+  details: 66,
+  requestDetails: 1
 }
 
 // Formats Transfer Message
@@ -58,4 +45,14 @@ function formatRequestDetails() {
 // Formats the Token ID
 function formatTokenId(domain: number, id: string) {
   return ethers.utils.solidityPack(['uint32', 'bytes32'], [domain, id]);
+}
+
+export const bridge: HardhatBridgeHelpers = {
+  BridgeMessageTypes,
+  typeToByte,
+  MESSAGE_LEN,
+  formatTransfer,
+  formatDetails,
+  formatRequestDetails,
+  formatTokenId
 }

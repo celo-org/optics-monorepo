@@ -1,4 +1,5 @@
-import { ethers } from 'hardhat';
+import { ethers, bridge } from 'hardhat';
+const { BridgeMessageTypes, typeToByte } = bridge;
 import { Signer } from '../../lib/types';
 import { BigNumber, BytesLike } from 'ethers';
 import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
@@ -10,16 +11,6 @@ import {
   IERC20,
 } from '../../../typechain/optics-xapps';
 
-export enum BridgeMessageTypes {
-  INVALID = 0,
-  TOKEN_ID,
-  MESSAGE,
-  TRANSFER,
-  DETAILS,
-  REQUEST_DETAILS,
-}
-
-const typeToByte = (type: number): string => `0x0${type}`;
 const stringToBytes32 = (s: string): string => {
   const str = Buffer.from(s.slice(0, 32), 'utf-8');
   const result = Buffer.alloc(32);

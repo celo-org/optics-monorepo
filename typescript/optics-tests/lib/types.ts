@@ -2,6 +2,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BytesLike } from 'ethers';
 import { BridgeMessageTypes } from './bridge';
 
+/********* HRE *********/
+
 export interface HardhatOpticsHelpers {
   formatMessage: Function;
   governance: {
@@ -18,7 +20,12 @@ export interface HardhatOpticsHelpers {
 
 export interface HardhatBridgeHelpers {
   BridgeMessageTypes: typeof BridgeMessageTypes;
-  typeToBytes: Function;
+  typeToByte: Function;
+  MESSAGE_LEN: MessageLen;
+  formatTransfer: Function;
+  formatDetails: Function;
+  formatRequestDetails: Function;
+  formatTokenId: Function;
 }
 
 declare module 'hardhat/types/runtime' {
@@ -28,6 +35,7 @@ declare module 'hardhat/types/runtime' {
   }
 }
 
+/********* BASIC TYPES *********/
 export type Domain = number;
 export type Address = string;
 export type AddressBytes32 = string;
@@ -68,6 +76,7 @@ export type BytesArray = [
   BytesLike,
 ];
 
+/********* OPTICS CORE *********/
 export type Update = {
   oldRoot: string;
   newRoot: string;
@@ -89,3 +98,30 @@ export type SignedFailureNotification = {
   failureNotification: FailureNotification;
   signature: string;
 };
+
+/********* TOKEN BRIDGE *********/
+
+export type MessageLen = {
+  identifier: number;
+  tokenId: number;
+  transfer: number;
+  details: number;
+  requestDetails: number;
+}
+
+export type TransferMessage = {
+  type: BridgeMessageTypes.TRANSFER;
+  recipient: number;
+  amount: number;
+}
+
+export type DetailsMessage = {
+  type: BridgeMessageTypes.DETAILS;
+  name: string;
+  symbol: string;
+  decimal: number;
+}
+
+export type RequestDetailsMessage = {
+  type: BridgeMessageTypes.REQUEST_DETAILS;
+}
