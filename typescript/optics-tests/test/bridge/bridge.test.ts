@@ -125,7 +125,7 @@ describe('BridgeRouter', async () => {
             deployerId,
             ethers.utils.hexConcat([
               deploy.testTokenId,
-              typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+              typeToByte(BridgeMessageTypes.REQUEST_DETAILS),
             ]),
           );
         expect(await repr!.balanceOf(deployer.address)).to.equal(
@@ -503,12 +503,12 @@ describe('BridgeRouter', async () => {
       requestMessage = ethers.utils.hexConcat([
         deploy.localDomainBytes,
         toBytes32(localToken.address),
-        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+        typeToByte(BridgeMessageTypes.REQUEST_DETAILS),
       ]);
       outgoingDetails = ethers.utils.hexConcat([
         deploy.localDomainBytes,
         toBytes32(localToken.address),
-        typeToByte(BRIDGE_MESSAGE_TYPES.DETAILS),
+        typeToByte(BridgeMessageTypes.DETAILS),
         stringToBytes32(TEST_NAME),
         stringToBytes32(TEST_SYMBOL),
         [TEST_DECIMALS],
@@ -527,7 +527,7 @@ describe('BridgeRouter', async () => {
 
       incomingDetails = ethers.utils.hexConcat([
         deploy.testTokenId,
-        typeToByte(BRIDGE_MESSAGE_TYPES.DETAILS),
+        typeToByte(BridgeMessageTypes.DETAILS),
         stringToBytes32(TEST_NAME),
         stringToBytes32(TEST_SYMBOL),
         [TEST_DECIMALS],
@@ -558,7 +558,7 @@ describe('BridgeRouter', async () => {
           deployerId,
           ethers.utils.hexConcat([
             deploy.testTokenId,
-            typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+            typeToByte(BridgeMessageTypes.REQUEST_DETAILS),
           ]),
         );
     });
@@ -579,7 +579,7 @@ describe('BridgeRouter', async () => {
       const badRequest = ethers.utils.hexConcat([
         deploy.localDomainBytes,
         toBytes32(repr.address),
-        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+        typeToByte(BridgeMessageTypes.REQUEST_DETAILS),
       ]);
 
       let badRequestTx = deploy.bridgeRouter?.handle(
@@ -595,7 +595,7 @@ describe('BridgeRouter', async () => {
       const badRequest = ethers.utils.hexConcat([
         deploy.localDomainBytes,
         localToken.address,
-        typeToByte(BRIDGE_MESSAGE_TYPES.REQUEST_DETAILS),
+        typeToByte(BridgeMessageTypes.REQUEST_DETAILS),
       ]);
 
       let badRequestTx = deploy.bridgeRouter?.handle(
