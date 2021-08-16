@@ -74,7 +74,7 @@ contract BridgeRouter is Router, TokenRegistry {
         } else if (_action.isDetails()) {
             _handleDetails(_tokenId, _action);
         } else if (_action.isRequestDetails()) {
-            _handleRequestDetails(_origin, _sender, _tokenId, _action);
+            _handleRequestDetails(_origin, _sender, _tokenId);
         } else {
             require(false, "!valid action");
         }
@@ -254,22 +254,19 @@ contract BridgeRouter is Router, TokenRegistry {
      *         UpdateDetails message to the remote chain
      * @dev The origin and remote are pre-checked by the handle function
      *      `onlyRemoteRouter` modifier and can be used without additional check
-     * @param _origin The domain from which the message arrived
-     * @param _remote The remote router that sent the message
+     * @param _messageOrigin The domain from which the message arrived
+     * @param _messageRemoteRouter The remote router that sent the message
      * @param _tokenId The token ID
-     * @param _requestDetailsAction The request details action from the message
      */
     function _handleRequestDetails(
-        uint32 _origin,
-        bytes32 _remote,
-        bytes29 _tokenId,
-        bytes29 _requestDetailsAction
+        uint32 _messageOrigin,
+        bytes32 _messageRemoteRouter,
+        bytes29 _tokenId
     )
         internal
         typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        typeAssert(_requestDetailsAction, BridgeMessage.Types.RequestDetails)
     {
-        // get token
+        // get token & ensure is of local origin
         address _token = _tokenId.evmId();
         require(_isLocalOrigin(_token), "!local origin");
         IBridgeToken _bridgeToken = IBridgeToken(_token);
@@ -281,10 +278,10 @@ contract BridgeRouter is Router, TokenRegistry {
         );
         // send message to remote chain via Optics
         Home(xAppConnectionManager.home()).enqueue(
-            _origin,
-            _remote,
+            _messageOrigin,
+            _messageRemoteRouter,
             BridgeMessage.formatMessage(
-                _formatTokenId(_token),
+                _tokenId,
                 _updateDetailsAction
             )
         );
