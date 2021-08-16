@@ -2,12 +2,12 @@
 
 ## Core Contracts
 
-- Home
+- Home (initializes Common)
   - MerkleTreeManager
-  - Common
+  - Common (initializes QueueManager)
     - QueueManager
-- Replica
-  -Common
+- Replica (initializes Common)
+  -Common (initializes QueueManager)
     -QueueManager
 - UpdaterManager
 - XAppConnectionManager
@@ -27,9 +27,9 @@
 
 ### Token Bridge
 
-- BridgeRouter
+- BridgeRouter (initializes TokenRegistry and Router)
   - TokenRegistry
-  - Router
+  - Router (initializes XAppConnectionClient)
     - XAppConnectionClient
 - BridgeToken
   - ERC20
