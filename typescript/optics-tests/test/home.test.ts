@@ -143,6 +143,7 @@ describe('Home', async () => {
     );
     const leaf = optics.messageToLeaf(opticsMessage);
     const leafIndex = await home.nextLeafIndex();
+    const current = await home.current();
 
     // Send message with signer address as msg.sender
     await expect(
@@ -155,7 +156,13 @@ describe('Home', async () => {
         ),
     )
       .to.emit(home, 'Dispatch')
-      .withArgs(leafIndex, destinationAndSequence, leaf, opticsMessage);
+      .withArgs(
+        leafIndex,
+        destinationAndSequence,
+        leaf,
+        current,
+        opticsMessage,
+      );
   });
 
   it('Suggests current root and latest root on suggestUpdate', async () => {

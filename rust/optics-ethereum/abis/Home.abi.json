@@ -33,6 +33,12 @@
       },
       {
         "indexed": false,
+        "internalType": "bytes32",
+        "name": "current",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
         "internalType": "bytes",
         "name": "message",
         "type": "bytes"

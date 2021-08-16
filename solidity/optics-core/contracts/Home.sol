@@ -40,6 +40,7 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
         uint256 indexed leafIndex,
         uint64 indexed destinationAndSequence,
         bytes32 indexed leaf,
+        bytes32 current,
         bytes message
     );
 
@@ -147,6 +148,7 @@ contract Home is Initializable, MerkleTreeManager, QueueManager, Common {
             count() - 1,
             _destinationAndSequence(_destination, _sequence),
             _leaf,
+            current,
             _message
         );
 
