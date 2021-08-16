@@ -63,7 +63,8 @@ abstract contract Common is QueueManager {
         localDomain = _localDomain;
     }
 
-    function initialize(address _updater) internal initializer {
+    function __Common_initialize(address _updater) internal initializer {
+        __QueueManager_intialize();
         updater = _updater;
         state = States.ACTIVE;
     }

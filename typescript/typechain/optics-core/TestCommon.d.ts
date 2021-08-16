@@ -25,15 +25,12 @@ interface TestCommonInterface extends ethers.utils.Interface {
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "localDomain()": FunctionFragment;
-    "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "setUpdater(address)": FunctionFragment;
     "state()": FunctionFragment;
     "testIsUpdaterSignature(bytes32,bytes32,bytes)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "updater()": FunctionFragment;
   };
 
@@ -50,7 +47,6 @@ interface TestCommonInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
     values: [BytesLike]
@@ -60,19 +56,11 @@ interface TestCommonInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "setUpdater", values: [string]): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "testIsUpdaterSignature",
     values: [BytesLike, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
@@ -89,7 +77,6 @@ interface TestCommonInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
     data: BytesLike
@@ -99,30 +86,20 @@ interface TestCommonInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "setUpdater", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "testIsUpdaterSignature",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
 }
 
@@ -184,8 +161,6 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -194,10 +169,6 @@ export class TestCommon extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<[string]>;
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     setUpdater(
       _updater: string,
@@ -212,11 +183,6 @@ export class TestCommon extends BaseContract {
       _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
   };
@@ -235,17 +201,11 @@ export class TestCommon extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   queueEnd(overrides?: CallOverrides): Promise<string>;
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   setUpdater(
     _updater: string,
@@ -260,11 +220,6 @@ export class TestCommon extends BaseContract {
     _signature: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   updater(overrides?: CallOverrides): Promise<string>;
 
@@ -283,8 +238,6 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -293,8 +246,6 @@ export class TestCommon extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<string>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     setUpdater(_updater: string, overrides?: CallOverrides): Promise<void>;
 
@@ -306,11 +257,6 @@ export class TestCommon extends BaseContract {
       _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     updater(overrides?: CallOverrides): Promise<string>;
   };
@@ -329,14 +275,6 @@ export class TestCommon extends BaseContract {
         signature: string;
         signature2: string;
       }
-    >;
-
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
     >;
 
     Update(
@@ -370,8 +308,6 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -380,10 +316,6 @@ export class TestCommon extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     setUpdater(
       _updater: string,
@@ -397,11 +329,6 @@ export class TestCommon extends BaseContract {
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
@@ -422,8 +349,6 @@ export class TestCommon extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -432,10 +357,6 @@ export class TestCommon extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     setUpdater(
       _updater: string,
@@ -449,11 +370,6 @@ export class TestCommon extends BaseContract {
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;

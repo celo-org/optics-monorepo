@@ -11,7 +11,6 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
-  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -21,15 +20,11 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface QueueManagerInterface extends ethers.utils.Interface {
   functions: {
-    "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
     values: [BytesLike]
@@ -39,16 +34,7 @@ interface QueueManagerInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
 
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
     data: BytesLike
@@ -58,20 +44,8 @@ interface QueueManagerInterface extends ethers.utils.Interface {
     functionFragment: "queueLength",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
 
-  events: {
-    "OwnershipTransferred(address,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  events: {};
 }
 
 export class QueueManager extends BaseContract {
@@ -118,8 +92,6 @@ export class QueueManager extends BaseContract {
   interface: QueueManagerInterface;
 
   functions: {
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -128,18 +100,7 @@ export class QueueManager extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<[string]>;
 
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
-
-  owner(overrides?: CallOverrides): Promise<string>;
 
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -147,18 +108,7 @@ export class QueueManager extends BaseContract {
 
   queueLength(overrides?: CallOverrides): Promise<BigNumber>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
-    owner(overrides?: CallOverrides): Promise<string>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -167,28 +117,11 @@ export class QueueManager extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<string>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
-  filters: {
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-  };
+  filters: {};
 
   estimateGas: {
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -197,20 +130,9 @@ export class QueueManager extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     queueContains(
       _item: BytesLike,
       overrides?: CallOverrides
@@ -219,14 +141,5 @@ export class QueueManager extends BaseContract {
     queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
   };
 }

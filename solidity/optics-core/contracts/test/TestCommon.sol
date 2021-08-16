@@ -5,7 +5,7 @@ import "../Common.sol";
 
 contract TestCommon is Common {
     constructor(uint32 _localDomain, address _updater) Common(_localDomain) {
-        initialize(_updater);
+        __Common_initialize(_updater);
     }
 
     function setUpdater(address _updater) external {

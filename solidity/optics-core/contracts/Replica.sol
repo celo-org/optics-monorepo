@@ -20,8 +20,22 @@ contract Replica is Common {
     using TypedMemView for bytes29;
     using Message for bytes29;
 
+    /// @notice Status of message
+    enum MessageStatus {
+        None,
+        Pending,
+        Processed
+    }
+
+    event ProcessError(
+        uint32 indexed sequence,
+        address indexed recipient,
+        bytes returnData
+    );
+
     /// @notice Minimum gas for message processing
     uint256 public constant PROCESS_GAS = 850000;
+
     /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
     uint256 public constant RESERVE_GAS = 15000;
 
@@ -39,13 +53,6 @@ contract Replica is Common {
 
     /// @dev re-entrancy guard
     uint8 private entered;
-
-    /// @notice Status of message
-    enum MessageStatus {
-        None,
-        Pending,
-        Processed
-    }
 
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
@@ -78,9 +85,7 @@ contract Replica is Common {
         uint256 _optimisticSeconds,
         uint32 _nextToProcess
     ) public initializer {
-        __Ownable_init();
-        Common.initialize(_updater);
-        queue.initialize();
+        __Common_initialize(_updater);
 
         entered = 1;
         remoteDomain = _remoteDomain;

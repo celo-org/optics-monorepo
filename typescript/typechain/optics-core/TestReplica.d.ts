@@ -36,7 +36,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     "nextPending()": FunctionFragment;
     "nextToProcess()": FunctionFragment;
     "optimisticSeconds()": FunctionFragment;
-    "owner()": FunctionFragment;
     "process(bytes)": FunctionFragment;
     "prove(bytes32,bytes32[32],uint256)": FunctionFragment;
     "proveAndProcess(bytes,bytes32[32],uint256)": FunctionFragment;
@@ -44,7 +43,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
     "remoteDomain()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "setCurrentRoot(bytes32)": FunctionFragment;
     "setFailed()": FunctionFragment;
     "setMessagePending(bytes)": FunctionFragment;
@@ -55,7 +53,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     "testHomeDomainHash()": FunctionFragment;
     "testProcess(bytes)": FunctionFragment;
     "timestamp()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "update(bytes32,bytes32,bytes)": FunctionFragment;
     "updater()": FunctionFragment;
   };
@@ -111,7 +108,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "process", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "prove",
@@ -209,10 +205,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "setCurrentRoot",
     values: [BytesLike]
   ): string;
@@ -278,10 +270,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "timestamp", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "update",
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
@@ -329,7 +317,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     functionFragment: "optimisticSeconds",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "process", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "prove", data: BytesLike): Result;
   decodeFunctionResult(
@@ -347,10 +334,6 @@ interface TestReplicaInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "remoteDomain",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -381,23 +364,17 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "timestamp", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "update", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-    "ProcessError(bytes32,uint32,address,bytes)": EventFragment;
+    "ProcessError(uint32,address,bytes)": EventFragment;
     "ProcessSuccess(bytes32)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProcessError"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProcessSuccess"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
@@ -499,8 +476,6 @@ export class TestReplica extends BaseContract {
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     process(
       _message: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -597,10 +572,6 @@ export class TestReplica extends BaseContract {
 
     remoteDomain(overrides?: CallOverrides): Promise<[number]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setCurrentRoot(
       _newRoot: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -676,11 +647,6 @@ export class TestReplica extends BaseContract {
 
     timestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     update(
       _oldRoot: BytesLike,
       _newRoot: BytesLike,
@@ -737,8 +703,6 @@ export class TestReplica extends BaseContract {
   nextToProcess(overrides?: CallOverrides): Promise<number>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-  owner(overrides?: CallOverrides): Promise<string>;
 
   process(
     _message: BytesLike,
@@ -833,10 +797,6 @@ export class TestReplica extends BaseContract {
 
   remoteDomain(overrides?: CallOverrides): Promise<number>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setCurrentRoot(
     _newRoot: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -912,11 +872,6 @@ export class TestReplica extends BaseContract {
 
   timestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   update(
     _oldRoot: BytesLike,
     _newRoot: BytesLike,
@@ -976,8 +931,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
 
     process(_message: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -1072,8 +1025,6 @@ export class TestReplica extends BaseContract {
 
     remoteDomain(overrides?: CallOverrides): Promise<number>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     setCurrentRoot(
       _newRoot: BytesLike,
       overrides?: CallOverrides
@@ -1144,11 +1095,6 @@ export class TestReplica extends BaseContract {
 
     timestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     update(
       _oldRoot: BytesLike,
       _newRoot: BytesLike,
@@ -1175,27 +1121,13 @@ export class TestReplica extends BaseContract {
       }
     >;
 
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
     ProcessError(
-      messageHash?: BytesLike | null,
       sequence?: BigNumberish | null,
       recipient?: string | null,
       returnData?: null
     ): TypedEventFilter<
-      [string, number, string, string],
-      {
-        messageHash: string;
-        sequence: number;
-        recipient: string;
-        returnData: string;
-      }
+      [number, string, string],
+      { sequence: number; recipient: string; returnData: string }
     >;
 
     ProcessSuccess(
@@ -1266,8 +1198,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     process(
       _message: BytesLike,
@@ -1365,10 +1295,6 @@ export class TestReplica extends BaseContract {
 
     remoteDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setCurrentRoot(
       _newRoot: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1444,11 +1370,6 @@ export class TestReplica extends BaseContract {
 
     timestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     update(
       _oldRoot: BytesLike,
       _newRoot: BytesLike,
@@ -1513,8 +1434,6 @@ export class TestReplica extends BaseContract {
     nextToProcess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     process(
       _message: BytesLike,
@@ -1612,10 +1531,6 @@ export class TestReplica extends BaseContract {
 
     remoteDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     setCurrentRoot(
       _newRoot: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1692,11 +1607,6 @@ export class TestReplica extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     timestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     update(
       _oldRoot: BytesLike,
