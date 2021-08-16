@@ -22,7 +22,7 @@ const MESSAGE_LEN = {
 }
 
 // Formats Transfer Message
-function formatTransfer(to: string, amnt: number) {
+export function formatTransfer(to: string, amnt: number) {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'uint256'],
     [BridgeMessageTypes.TRANSFER, to, amnt]
@@ -30,7 +30,7 @@ function formatTransfer(to: string, amnt: number) {
 }
 
 // Formats Details Message
-function formatDetails(name: string, symbol: string, decimals: number) {
+export function formatDetails(name: string, symbol: string, decimals: number) {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'bytes32', 'uint8'],
     [BridgeMessageTypes.DETAILS, name, symbol, decimals]
@@ -38,12 +38,12 @@ function formatDetails(name: string, symbol: string, decimals: number) {
 }
 
 // Formats Request Details message
-function formatRequestDetails() {
+export function formatRequestDetails() {
   return ethers.utils.solidityPack(['bytes1'], [BridgeMessageTypes.REQUEST_DETAILS]);
 }
 
 // Formats the Token ID
-function formatTokenId(domain: number, id: string) {
+export function formatTokenId(domain: number, id: string) {
   return ethers.utils.solidityPack(['uint32', 'bytes32'], [domain, id]);
 }
 
