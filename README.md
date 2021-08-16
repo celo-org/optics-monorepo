@@ -102,6 +102,8 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    touch .env && cat .env.example > .env
    cd ../../solidity/optics-core
    touch .env && cat .env.example > .env
+   cd ../optics-xapps
+   touch .env && cat .env.example > .env
    ```
    Then, add values to the keys in the newly created `.env` files.
 
