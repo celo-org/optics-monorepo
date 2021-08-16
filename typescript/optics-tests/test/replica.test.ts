@@ -328,10 +328,13 @@ describe('Replica', async () => {
     await replica.setMessagePending(opticsMessage);
 
     // Ensure proper static call return value
-    let success = await replica.callStatic.process(opticsMessage);
+    const success = await replica.callStatic.process(opticsMessage);
     expect(success).to.be.true;
 
-    await replica.process(opticsMessage);
+    const processTx = replica.process(opticsMessage);
+    await expect(processTx)
+      .to.emit(replica, 'ProcessSuccess')
+      .withArgs(optics.messageToLeaf(opticsMessage));
     expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 
