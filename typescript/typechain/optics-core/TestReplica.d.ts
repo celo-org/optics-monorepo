@@ -369,7 +369,7 @@ interface TestReplicaInterface extends ethers.utils.Interface {
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "ProcessError(uint32,address,bytes)": EventFragment;
+    "ProcessError(bytes32,uint32,address,bytes)": EventFragment;
     "ProcessSuccess(bytes32)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
@@ -1122,12 +1122,18 @@ export class TestReplica extends BaseContract {
     >;
 
     ProcessError(
+      messageHash?: BytesLike | null,
       sequence?: BigNumberish | null,
       recipient?: string | null,
       returnData?: null
     ): TypedEventFilter<
-      [number, string, string],
-      { sequence: number; recipient: string; returnData: string }
+      [string, number, string, string],
+      {
+        messageHash: string;
+        sequence: number;
+        recipient: string;
+        returnData: string;
+      }
     >;
 
     ProcessSuccess(

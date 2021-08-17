@@ -50,7 +50,7 @@ contract BridgeRouter is Router, TokenRegistry {
         initializer
     {
         __TokenRegistry_initialize(_tokenBeacon);
-        __Router_initialize(_xAppConnectionManager);
+        __XAppConnectionClient_initialize(_xAppConnectionManager);
     }
 
     // ======== External: Handle =========

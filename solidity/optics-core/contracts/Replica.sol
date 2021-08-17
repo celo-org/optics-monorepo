@@ -27,7 +27,10 @@ contract Replica is Common {
         Processed
     }
 
+    event ProcessSuccess(bytes32 indexed messageHash);
+
     event ProcessError(
+        bytes32 indexed messageHash,
         uint32 indexed sequence,
         address indexed recipient,
         bytes returnData
@@ -56,15 +59,6 @@ contract Replica is Common {
 
     /// @notice Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
-
-    event ProcessSuccess(bytes32 indexed messageHash);
-
-    event ProcessError(
-        bytes32 indexed messageHash,
-        uint32 indexed sequence,
-        address indexed recipient,
-        bytes returnData
-    );
 
     uint256[44] private __GAP; // gap for upgrade safety
 
