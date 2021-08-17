@@ -26,7 +26,8 @@
   "main": "index.ts",
   "scripts": {
     "prettier": "prettier --write ./test ./lib",
-    "test": "hardhat test"
+    "test": "../../scripts/test-solidity.sh",
+    "testNoCompile": "hardhat test"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0"

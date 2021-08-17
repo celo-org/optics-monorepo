@@ -71,10 +71,11 @@ trap 'abort' 0
 set -e
 git update-index -q --refresh
 
-# Conditionally compile, update optics-core abis and generate typechain
+# Lint and compile optics-core
 if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
-    echo "+Updating core ABIs, generating typechain"
+    echo "+Updating core ABIs, generating typechain, linting"
     cd ./solidity/optics-core
+    npm run lint
     npm run compile
     # add abis, typechain
     cd ../..
@@ -85,13 +86,14 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
     git add solidity/optics-core/libs
     git add solidity/optics-core/interfaces
 else
-    echo "+Skipping core ABI updates and typechain generation"
+    echo "+Skipping core ABI updates, typechain generation and lint"
 fi
 
-# Conditionally compile, update optics-xapps abis and generate typechain
+# Lint and compile optics-xapps
 if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
-    echo "+Updating xapps ABIs, generating typechain"
+    echo "+Updating xapps ABIs, generating typechain, linting"
     cd ./solidity/optics-xapps
+    npm run lint
     npm run compile
     # add typechain
     cd ../..
@@ -100,7 +102,7 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
     git add solidity/optics-xapps/contracts
     git add solidity/optics-xapps/interfaces
 else
-    echo "+Skipping xapps ABI updates and typechain generation"
+    echo "+Skipping xapps ABI updates, typechain generation and lint"
 fi
 
 # Conditionally run Rust bins to output into vector JSON files
@@ -140,26 +142,14 @@ else
     echo "+Skipping rust tests"
 fi
 
-# Run solidity/optics-core tests and lint
-if ! git diff-index --quiet HEAD -- ./solidity/optics-core ./vectors; then
-    echo "+Running optics core tests"
-    cd ./solidity/optics-core
-    npm run lint
-    npm test
+# Test solidity contracts
+if ! git diff-index --quiet HEAD -- ./solidity/optics-core ./solidity/optics-xapps ./typescript/optics-tests ./typescript/optics-deploy; then
+    echo "+Running solidity tests"
+    cd ./typescript/optics-tests
+    npm run testNoCompile
     cd ../..
 else
-    echo "+Skipping optics core tests"
-fi
-
-# Run solidity/optics-xapps tests and lint
-if ! git diff-index --quiet HEAD -- ./solidity/optics-xapps; then
-    echo "+Running optics-xapps tests"
-    cd ./solidity/optics-xapps
-    npm run lint
-    npm test
-    cd ../..
-else
-    echo "+Skipping optics-xapps tests"
+    echo "+Skipping solidity tests"
 fi
 
 # Git add abis if updated
