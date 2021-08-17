@@ -7,6 +7,7 @@
     "@typechain/ethers-v5": "^7.0.0",
     "@typechain/hardhat": "^2.0.1",
     "chai": "^4.3.0",
+    "dotenv": "^10.0.0",
     "eslint": "^7.20.0",
     "ethereum-waffle": "^3.2.2",
     "ethers": "^5.4.4",
@@ -41,7 +42,6 @@
     "@celo-org/optics-sol": "file:../optics-core",
     "@openzeppelin/contracts": "~3.4.0",
     "@openzeppelin/contracts-upgradeable": "~3.4.0",
-    "@summa-tx/memview-sol": "^2.0.0",
-    "dotenv": "^10.0.0"
+    "@summa-tx/memview-sol": "^2.0.0"
   }
 }

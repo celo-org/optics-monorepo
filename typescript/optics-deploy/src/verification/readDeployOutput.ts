@@ -34,12 +34,12 @@ export function getPathToLatestBridgeConfig() {
 }
 
 /*
-* Get path to *most recent* config folder
-* of Optics core system deploys
-* */
+ * Get path to *most recent* config folder
+ * of Optics core system deploys
+ * */
 export function getPathToLatestDeployConfig() {
   const configPath = '../../rust/config';
-  const ignoreFolders = ["default"];
+  const ignoreFolders = ['default'];
   return getPathToLatestConfig(configPath, ignoreFolders);
 }
 
@@ -88,7 +88,7 @@ function getPathToLatestConfig(
  * @param network target network to parse ("alfajores", "kovan")
  * */
 export function getVerificationInputFromDeploy(path: any, network: any) {
-  return parseFileFromDeploy(path, network, "verification");
+  return parseFileFromDeploy(path, network, 'verification');
 }
 
 /*

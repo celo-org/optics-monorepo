@@ -1,4 +1,4 @@
-import {verifyProxy} from "./verifyProxy";
+import { verifyProxy } from './verifyProxy';
 
 const {
   getPathToLatestDeployConfig,
@@ -7,47 +7,47 @@ const {
 } = require('./readDeployOutput.ts');
 
 const envError = (network: string) =>
-    `pass --network tag to hardhat task (current network=${network})`;
+  `pass --network tag to hardhat task (current network=${network})`;
 
 // list of networks supported by Etherscan
 const etherscanNetworks = ['mainnet', 'kovan', 'goerli', 'ropsten', 'rinkeby'];
 
 /*
-  * Generate link to Etherscan for an address on the given network
-  * */
+ * Generate link to Etherscan for an address on the given network
+ * */
 function etherscanLink(network: string, address: string) {
   const prefix = network == 'mainnet' ? '' : `${network}.`;
   return `https://${prefix}etherscan.io/address/${address}`;
 }
 
 /*
-  * Parse the contract verification inputs
-  * that were output by the latest contract deploy
-  * for the network that hardhat is configured to
-  * and attempt to verify those contracts' source code on Etherscan
-  * */
+ * Parse the contract verification inputs
+ * that were output by the latest contract deploy
+ * for the network that hardhat is configured to
+ * and attempt to verify those contracts' source code on Etherscan
+ * */
 export async function verifyLatestBridgeDeploy(hre: any) {
   const path = getPathToLatestBridgeConfig();
   return verifyDeploy(path, hre);
 }
 
 /*
-  * Parse the contract verification inputs
-  * that were output by the latest contract deploy
-  * for the network that hardhat is configured to
-  * and attempt to verify those contracts' source code on Etherscan
-  * */
+ * Parse the contract verification inputs
+ * that were output by the latest contract deploy
+ * for the network that hardhat is configured to
+ * and attempt to verify those contracts' source code on Etherscan
+ * */
 export async function verifyLatestCoreDeploy(hre: any) {
   const path = getPathToLatestDeployConfig();
   return verifyDeploy(path, hre);
 }
 
 /*
-  * Parse the contract verification inputs
-  * that were output by the given contract deploy
-  * for the network that hardhat is configured to
-  * and attempt to verify those contracts' source code on Etherscan
-  * */
+ * Parse the contract verification inputs
+ * that were output by the given contract deploy
+ * for the network that hardhat is configured to
+ * and attempt to verify those contracts' source code on Etherscan
+ * */
 async function verifyDeploy(path: string, hre: any) {
   const network = hre.network.name;
 
@@ -70,14 +70,18 @@ async function verifyDeploy(path: string, hre: any) {
 }
 
 /*
-  * Given one contract verification input,
-  * attempt to verify the contracts' source code on Etherscan
-  * */
-async function verifyContract(network: string, verificationInput: any, hre: any) {
+ * Given one contract verification input,
+ * attempt to verify the contracts' source code on Etherscan
+ * */
+async function verifyContract(
+  network: string,
+  verificationInput: any,
+  hre: any,
+) {
   const { name, address, constructorArguments, isProxy } = verificationInput;
   try {
     console.log(
-        `   Attempt to verify ${name}   -  ${etherscanLink(network, address)}`,
+      `   Attempt to verify ${name}   -  ${etherscanLink(network, address)}`,
     );
     await hre.run('verify:verify', {
       network,
@@ -87,9 +91,7 @@ async function verifyContract(network: string, verificationInput: any, hre: any)
     console.log(`   SUCCESS verifying ${name}`);
 
     if (isProxy) {
-      console.log(
-          `   Attempt to verify as proxy`,
-      );
+      console.log(`   Attempt to verify as proxy`);
       await verifyProxy(network, address);
       console.log(`   SUCCESS submitting proxy verification`);
     }

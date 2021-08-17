@@ -54,7 +54,14 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install
-        run: npm i
+        run: |
+          npm i
+          cd ../../typescript/optics-tests
+          npm i
+          cd ../optics-deploy
+          npm i
+          cd ../typechain
+          npm i
 
       - name: Lint
         run: npm run lint
