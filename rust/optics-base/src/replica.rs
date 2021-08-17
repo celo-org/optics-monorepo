@@ -10,6 +10,7 @@ use optics_core::{
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
+use tracing::instrument;
 
 /// Replica type
 #[derive(Debug)]
@@ -215,6 +216,8 @@ impl Common for Replicas {
         }
     }
 
+    // (i cannot remember the macro syntax)
+    #[instrument(fields(update = %update.update))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
             Replicas::Ethereum(replica) => replica.update(update).await,

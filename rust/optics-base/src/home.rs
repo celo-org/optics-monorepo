@@ -7,6 +7,7 @@ use optics_core::{
     Message, SignedUpdate, Update,
 };
 use optics_ethereum::EthereumHome;
+use tracing::instrument;
 
 use optics_test::mocks::MockHomeContract;
 
@@ -73,6 +74,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(level = "trace", err)]
     async fn raw_message_by_sequence(
         &self,
         destination: u32,
@@ -89,6 +91,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(level = "trace", err)]
     async fn raw_message_by_leaf(
         &self,
         leaf: H256,
@@ -100,6 +103,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(level = "trace", err)]
     async fn leaf_by_tree_index(
         &self,
         tree_index: usize,
@@ -111,6 +115,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(level = "trace", err)]
     async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         match self {
             Homes::Ethereum(home) => home.sequences(destination).await,
@@ -119,6 +124,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(level = "trace", err)]
     async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
             Homes::Ethereum(home) => home.enqueue(message).await,
@@ -146,6 +152,7 @@ impl Home for Homes {
         }
     }
 
+    #[instrument(err)]
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         match self {
             Homes::Ethereum(home) => home.produce_update().await,

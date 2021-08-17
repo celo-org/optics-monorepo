@@ -24,8 +24,6 @@ mock! {
 
         pub fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
 
-        pub fn _next_to_process(&self) -> Result<u32, ChainCommunicationError> {}
-
         pub fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {}

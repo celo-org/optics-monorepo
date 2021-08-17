@@ -19,8 +19,10 @@ pub struct AgentCore {
     pub db: Arc<DB>,
 }
 
-/// A trait for an application that runs on a replica and a reference to a
-/// home.
+/// A trait for an application:
+///      that runs on a replica
+/// and:
+///     a reference to a home.
 #[async_trait]
 pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     /// The settings object for this agent

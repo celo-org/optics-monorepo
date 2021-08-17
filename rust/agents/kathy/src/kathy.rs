@@ -76,13 +76,13 @@ impl OpticsAgent for Kathy {
                             body,
                         };
                         info!(
+                            target: "outgoing_messages",
                             "Enqueuing message of length {} to {}::{}",
-                            message.body.len(),
-                            message.destination,
-                            message.recipient
+                            length = message.body.len(),
+                            destination = message.destination,
+                            recipient = message.recipient
                         );
                         home.enqueue(&message).await?;
-                        info!("Enqueue success");
                     }
                     _ => {
                         info!("Reached the end of the static message queue. Shutting down.");

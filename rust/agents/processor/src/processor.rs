@@ -16,7 +16,7 @@ use tokio::{
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{error, info, instrument, instrument::Instrumented, Instrument};
+use tracing::{error, info, instrument, instrument::Instrumented, warn, Instrument};
 
 use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 use optics_base::{
@@ -25,15 +25,21 @@ use optics_base::{
     home::Homes,
     persistence::UsingPersistence,
     replica::Replicas,
-    reset_loop, reset_loop_if,
 };
 use optics_core::{
     accumulator::merkle::Proof,
-    traits::{CommittedMessage, Common, Home, MessageStatus, Replica},
+    traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 
+use crate::{
+    prover::{Prover, ProverSync},
+    settings::ProcessorSettings as Settings,
+};
+
+/// The replica processor is responsible for polling messages and waiting until they validate
+/// before proving/processing them.
 #[derive(Debug)]
-pub(crate) struct ReplicaProcessor {
+pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
@@ -42,7 +48,7 @@ pub(crate) struct ReplicaProcessor {
     denied: Option<Arc<HashSet<H256>>>,
 }
 
-impl std::fmt::Display for ReplicaProcessor {
+impl std::fmt::Display for Replica {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -52,121 +58,153 @@ impl std::fmt::Display for ReplicaProcessor {
     }
 }
 
-impl UsingPersistence<usize, Proof> for ReplicaProcessor {
-    const KEY_PREFIX: &'static [u8] = "proof_".as_bytes();
+impl UsingPersistence<usize, Proof> for Replica {
+    const KEY_PREFIX: &'static [u8] = b"proof_";
 
     fn key_to_bytes(key: usize) -> Vec<u8> {
         key.to_be_bytes().into()
     }
 }
 
-impl ReplicaProcessor {
-    pub(crate) fn new(
-        interval: u64,
-        replica: Arc<Replicas>,
-        home: Arc<Homes>,
-        db: Arc<DB>,
-        allowed: Option<Arc<HashSet<H256>>>,
-        denied: Option<Arc<HashSet<H256>>>,
-    ) -> Self {
-        Self {
-            interval,
-            replica,
-            home,
-            db,
-            allowed,
-            denied,
-        }
-    }
+impl UsingPersistence<usize, u32> for Replica {
+    const KEY_PREFIX: &'static [u8] = b"state_";
 
+    fn key_to_bytes(key: usize) -> Vec<u8> {
+        key.to_be_bytes().into()
+    }
+}
+
+impl Replica {
     #[instrument(skip(self), fields(self = %self))]
-    pub(crate) fn spawn(self) -> JoinHandle<Result<()>> {
-        tokio::spawn(async move {
-            info!("Starting processor for {}", self.replica.name());
-            let domain = self.replica.local_domain();
+    fn main(self) -> JoinHandle<Result<()>> {
+        tokio::spawn(
+            async move {
+                use optics_core::traits::Replica;
+                info!("Starting processor for {}", self.replica.name());
 
-            // The basic structure of this loop is as follows:
-            // 1. Get the last processed index
-            // 2. Check if the Home knows of a message above that index
-            //      - If not, wait and poll again
-            // 3. Check if we have a proof for that message
-            //      - If not, wait and poll again
-            // 4. Check if the proof is valid under the replica
-            // 5. Submit the proof to the replica
-            let mut sequence = 0;
-            loop {
-                info!(
-                    "Next to process for replica {} is {}",
-                    self.replica.name(),
-                    sequence
-                );
+                let domain = self.replica.local_domain();
 
-                let message = self.home.message_by_sequence(domain, sequence).await?;
-                reset_loop_if!(
-                    message.is_none(),
-                    self.interval,
-                    "Home does not contain message at {}:{}",
-                    domain,
-                    sequence,
-                );
-
-                let message = message.unwrap();
-
-                // check allow/deny lists
-
-                // if we have an allow list, filter senders not on it
-                if let Some(false) = self.allowed.as_ref().map(|set| set.contains(&message.message.sender)) {
-                    sequence += 1;
-                    reset_loop!(self.interval);
-                }
-
-                // if we have a deny list, filter senders on it
-                if let Some(true) = self.denied.as_ref().map(|set| set.contains(&message.message.sender)) {
-                    sequence += 1;
-                    reset_loop!(self.interval);
-                }
-
-                let proof_opt = Self::db_get(&self.db, message.leaf_index as usize)?;
-
-                reset_loop_if!(
-                    proof_opt.is_none(),
-                    self.interval,
-                    "Proof not yet available for message at {}:{}",
-                    domain,
-                    sequence,
-                );
-
-                let proof = proof_opt.unwrap();
-                if proof.leaf != message.to_leaf() {
-                    let err = format!("Leaf in prover does not match retrieved message. Index: {}. Calculated: {}. Prover: {}.", message.leaf_index, message.to_leaf(), proof.leaf);
-                    error!("{}", err);
-                    bail!(err);
-                }
-
-                while !self.replica.acceptable_root(proof.root()).await? {
-                    info!(
-                        "Proof under root {} not yet valid on replica {}",
-                        proof.root(),
-                        self.replica.name(),
+                // The basic structure of this loop is as follows:
+                // 1. Get the last processed index
+                // 2. Check if the Home knows of a message above that index
+                //      - If not, wait and poll again
+                // 3. Check if we have a proof for that message
+                //      - If not, wait and poll again
+                // 4. Check if the proof is valid under the replica
+                // 5. Submit the proof to the replica
+                let mut next_to_inspect: u32 = match Self::db_get(&self.db, "lastInspected") {
+                    Some(n) => n + 1,
+                    None => 0,
+                };
+                loop {
+                    let seq_span = tracing::trace_span!(
+                        "ReplicaProcessor",
+                        name = self.replica.name(),
+                        sequence = next_to_inspect,
+                        replica_domain = self.replica.domain(),
+                        home_domain = self.home.domain(),
                     );
-                    sleep(Duration::from_secs(self.interval)).await;
-                }
 
-                // Dispatch for processing
-                info!(
-                    "Dispatching a message for processing {}:{}",
-                    domain, sequence
-                );
-                self.process(message, proof).await?;
-                sequence += 1;
-                sleep(Duration::from_secs(self.interval)).await;
+                    match self
+                        .try_msg_by_domain_and_seq(domain, sequence)
+                        .instrument(seq_span)
+                        .await
+                    {
+                        Ok(true) => {
+                            Self::db_put(&self.db, "lastInspected", sequence);
+                            next_to_inspect += 1;
+                        }
+                        Ok(false) => {
+                            // there was some fault, let's wait and then try again later when state may have moved
+                            sleep(Duration::from_secs(self.interval)).await
+                        }
+                        Err(e) => {
+                            error!("fatal error in processor::Replica: {}", e);
+                            bail!(e)
+                        }
+                    }
+                }
             }
-        }.in_current_span())
+            .in_current_span(),
+        )
     }
 
-    #[instrument(err, skip(self), fields(self = %self))]
+    /// Returns the next sequence number to try and process, for the given domain.
+    ///
+    /// Postcondition: if retval? { message was filtered ⊻ message was processed }
+    ///                else { prerequisite data not yet found }
+    /// In case of error: send help?
+    #[instrument(err)]
+    async fn try_msg_by_domain_and_seq(&self, domain: u32, current_seq: u32) -> Result<bool> {
+        use optics_core::traits::Replica;
+
+        let message = match self.home.message_by_sequence(domain, current_seq).await {
+            Ok(Some(m)) => m,
+            Ok(None) => {
+                info!("Message not yet found");
+                return Ok(false);
+            }
+            Err(e) => bail!(e),
+        };
+
+        info!(target: "seen_committed_messages", leaf_index = message.leaf_index);
+
+        // if we have an allow list, filter senders not on it
+        if let Some(false) = self
+            .allowed
+            .as_ref()
+            .map(|set| set.contains(&message.message.sender))
+        {
+            return Ok(true);
+        }
+
+        // if we have a deny list, filter senders on it
+        if let Some(true) = self
+            .denied
+            .as_ref()
+            .map(|set| set.contains(&message.message.sender))
+        {
+            return Ok(true);
+        }
+
+        let proof = match Self::db_get(&self.db, message.leaf_index as usize) {
+            Ok(Some(p)) => p,
+            Ok(None) => {
+                info!("Proof not yet found");
+                return Ok(false);
+            }
+            Err(e) => bail!(e),
+        };
+
+        if proof.leaf != message.to_leaf() {
+            let msg =
+                eyre!("Leaf in prover does not match retrieved message. Index: {}. Calculated: {}. Prover: {}.", message.leaf_index, message.to_leaf(), proof.leaf);
+            error!("{}", msg);
+            bail!(msg);
+        }
+
+        while !self.replica.acceptable_root(proof.root()).await? {
+            info!(
+                "Proof under root {root} not yet valid here",
+                root = proof.root(),
+            );
+            sleep(Duration::from_secs(self.interval)).await;
+        }
+
+        info!(
+            "Dispatching a message for processing {}:{}",
+            domain, current_seq
+        );
+
+        self.process(message, proof).await?;
+
+        Ok(true)
+    }
+
+    #[instrument(err, level = "trace")]
     /// Dispatch a message for processing. If the message is already proven, process only.
     async fn process(&self, message: CommittedMessage, proof: Proof) -> Result<()> {
+        use optics_core::traits::Replica;
         let status = self.replica.message_status(message.to_leaf()).await?;
 
         match status {
@@ -178,7 +216,9 @@ impl ReplicaProcessor {
             MessageStatus::Pending => {
                 self.replica.process(message.as_ref()).await?;
             }
-            MessageStatus::Processed => {} // Indicates race condition?
+            MessageStatus::Processed => {
+                warn!(target: "possible_race_condition");
+            } // Indicates race condition?
         }
 
         Ok(())
@@ -245,9 +285,16 @@ impl OpticsAgent for Processor {
 
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
-            ReplicaProcessor::new(interval, replica, home, db, allowed, denied)
-                .spawn()
-                .await?
+            Replica {
+                interval,
+                replica,
+                home,
+                db,
+                allowed,
+                denied,
+            }
+            .main()
+            .await?
         })
         .in_current_span()
     }

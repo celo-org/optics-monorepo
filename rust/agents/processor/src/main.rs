@@ -23,6 +23,7 @@ async fn _main() -> Result<()> {
     let settings = Settings::new()?;
     settings.base.tracing.start_tracing()?;
 
+    // TODO: top-level root span customizations?
     let agent = Processor::from_settings(settings).await?;
     agent.run_all().await?;
     Ok(())
