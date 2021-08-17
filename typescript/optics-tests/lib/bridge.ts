@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { ethers } from 'ethers';
 
-import { HardhatBridgeHelpers, TransferAction, DetailsAction, RequestDetailsAction } from './types';
+import * as types from './types';
 
 export enum BridgeMessageTypes {
   INVALID = 0,
@@ -48,30 +48,63 @@ export function formatTokenId(domain: number, id: string): ethers.BytesLike {
   return ethers.utils.solidityPack(['uint32', 'bytes32'], [domain, id]);
 }
 
-export function formatMessage(tokenId: string, action: string): ethers.BytesLike {
+export function formatMessage(tokenId: ethers.BytesLike, action: ethers.BytesLike): ethers.BytesLike {
   return ethers.utils.solidityPack(['bytes', 'bytes'], [tokenId, action]);
 }
 
-export function serializeTransferAction(transferAction: TransferAction): ethers.BytesLike {
+export function serializeTransferAction(transferAction: types.TransferAction): ethers.BytesLike {
   const { type, recipient, amount } = transferAction;
 
   assert(type === BridgeMessageTypes.TRANSFER);
   return formatTransfer(recipient, amount);
 }
 
-export function serializeDetailsAction(detailsAction: DetailsAction): ethers.BytesLike {
+export function serializeDetailsAction(detailsAction: types.DetailsAction): ethers.BytesLike {
   const { type, name, symbol, decimal } = detailsAction;
 
   assert(type === BridgeMessageTypes.DETAILS);
   return formatDetails(name, symbol, decimal);
 }
 
-export function serializeRequestDetailsAction(requestDetailsAction: RequestDetailsAction): ethers.BytesLike {
+export function serializeRequestDetailsAction(requestDetailsAction: types.RequestDetailsAction): ethers.BytesLike {
   assert(requestDetailsAction.type === BridgeMessageTypes.REQUEST_DETAILS);
   return formatRequestDetails();
 }
 
-export const bridge: HardhatBridgeHelpers = {
+export function serializeAction(action: types.Action): ethers.BytesLike {
+  let actionBytes: ethers.BytesLike = [];
+  switch(action.type) {
+    case BridgeMessageTypes.TRANSFER: {
+      actionBytes = serializeTransferAction(action);
+      break;
+    }
+    case BridgeMessageTypes.DETAILS: {
+      actionBytes = serializeDetailsAction(action);
+      break;
+    }
+    case BridgeMessageTypes.REQUEST_DETAILS: {
+      actionBytes = serializeRequestDetailsAction(action);
+      break;
+    }
+    default: {
+      console.error("Invalid action");
+      break;
+    }
+  }
+  return actionBytes;
+}
+
+export function serializeTokenId(tokenId: types.TokenId): ethers.BytesLike {
+  return formatTokenId(tokenId.domain, tokenId.id);
+}
+
+export function serializeMessage(message: types.Message): ethers.BytesLike {
+  const tokenId = serializeTokenId(message.tokenId);
+  const action = serializeAction(message.action);
+  return formatMessage(tokenId, action)
+}
+
+export const bridge: types.HardhatBridgeHelpers = {
   BridgeMessageTypes,
   typeToByte,
   MESSAGE_LEN,
