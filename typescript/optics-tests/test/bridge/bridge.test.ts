@@ -30,7 +30,7 @@ const stringToBytes32 = (s: string): string => {
   return '0x' + result.toString('hex');
 };
 
-describe.only('BridgeRouter', async () => {
+describe('BridgeRouter', async () => {
   let deployer: Signer;
   let deployerAddress: string;
   let deployerId: BytesLike;
