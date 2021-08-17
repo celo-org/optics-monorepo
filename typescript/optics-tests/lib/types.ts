@@ -26,6 +26,7 @@ export interface HardhatBridgeHelpers {
   formatDetails: Function;
   formatRequestDetails: Function;
   formatTokenId: Function;
+  formatMessage: Function;
 }
 
 declare module 'hardhat/types/runtime' {
