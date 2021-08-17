@@ -9,7 +9,7 @@
   - OwnableUpgradeable
 - Replica (initializes Common)
   -Common (initializes QueueManager)
-    -QueueManager
+  -QueueManager
 - UpdaterManager
   - Ownable
   - IUpdaterManager
@@ -34,10 +34,10 @@
 
 ### Token Bridge
 
-- BridgeRouter (initializes TokenRegistry and Router)
+- BridgeRouter (initializes TokenRegistry and XAppConnectionClient)
   - TokenRegistry
     - Initializable
-  - Router (initializes XAppConnectionClient)
+  - Router (no initializer)
     - XAppConnectionClient (initializes OwnableUpgradeable)
       - OwnableUpgradeable
 - BridgeToken (initializes OwnableUpgradeable)
