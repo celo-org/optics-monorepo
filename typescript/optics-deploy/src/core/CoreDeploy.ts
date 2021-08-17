@@ -73,6 +73,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     };
 
     const rustConfig: RustConfig = {
+      environment: local.config.environment,
       signers: {
         [home.name]: { key: '', type: 'hexKey' },
       },

@@ -469,6 +469,12 @@ export async function transferGovernorship(gov: CoreDeploy, non: CoreDeploy) {
  * @param non - The non-governor chain deploy instance
  */
 export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
+  console.log('Beginning Two Chain deploy process');
+  console.log(`Deploy env is ${gov.config.environment}`);
+  console.log(`${gov.chain.name} is governing`);
+  console.log(`Updater for ${gov.chain.name} Home is ${gov.config.updater}`);
+  console.log(`Updater for ${gov.chain.name} Home is ${non.config.updater}`);
+
   const isTestDeploy: boolean = gov.test || non.test;
   await Promise.all([deployOptics(gov), deployOptics(non)]);
 
@@ -537,14 +543,23 @@ export async function deployHubAndSpokes(
  *
  * @dev The first chain in the sequence will be the governing chain
  *
- * @param chains - An array of chain deploys
+ * @param deploys - An array of chain deploys
  */
-export async function deployNChains(chains: CoreDeploy[]) {
-  // there exists any chain marked test
-  const isTestDeploy: boolean = chains.filter((c) => c.test).length > 0;
+export async function deployNChains(deploys: CoreDeploy[]) {
+  console.log(`Beginning ${deploys.length} Chain deploy process`);
+  console.log(`Deploy env is ${deploys[0].config.environment}`);
+  console.log(`${deploys[0].chain.name} is governing`);
+  deploys.forEach((deploy) => {
+    console.log(
+      `Updater for ${deploy.chain.name} Home is ${deploy.config.updater}`,
+    );
+  });
 
-  const govChain = chains[0];
-  const nonGovChains = chains.slice(1);
+  // there exists any chain marked test
+  const isTestDeploy: boolean = deploys.filter((c) => c.test).length > 0;
+  const govChain = deploys[0];
+  const nonGovChains = deploys.slice(1);
+
   await deployHubAndSpokes(govChain, nonGovChains);
   for (let local of nonGovChains) {
     for (let remote of nonGovChains) {
@@ -559,7 +574,7 @@ export async function deployNChains(chains: CoreDeploy[]) {
   }
 
   if (!isTestDeploy) {
-    writeDeployOutput(chains);
+    writeDeployOutput(deploys);
   }
 }
 

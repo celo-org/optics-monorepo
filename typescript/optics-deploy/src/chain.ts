@@ -79,6 +79,7 @@ export type RustContractBlock = {
 };
 
 export type RustConfig = {
+  environment: string;
   signers: Record<string, RustSigner>;
   replicas: Record<string, RustContractBlock>;
   home: RustContractBlock;
