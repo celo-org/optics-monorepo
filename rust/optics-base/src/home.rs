@@ -55,7 +55,7 @@ impl From<Box<dyn Home>> for Homes {
     }
 }
 
-#[async_trait] // WHY???
+#[async_trait]
 impl Home for Homes {
     fn local_domain(&self) -> u32 {
         match self {
