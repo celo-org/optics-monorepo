@@ -110,19 +110,30 @@ export type MessageLen = {
   requestDetails: number;
 }
 
-export type TransferMessage = {
+export type Action = DetailsAction | TransferAction | RequestDetailsAction;
+
+export type TokenId = {
+  domain: number;
+  id: string;
+}
+export type Message = {
+  tokenId: TokenId;
+  action: Action;
+}
+
+export type TransferAction = {
   type: BridgeMessageTypes.TRANSFER;
   recipient: string;
   amount: number;
 }
 
-export type DetailsMessage = {
+export type DetailsAction = {
   type: BridgeMessageTypes.DETAILS;
   name: string;
   symbol: string;
   decimal: number;
 }
 
-export type RequestDetailsMessage = {
+export type RequestDetailsAction = {
   type: BridgeMessageTypes.REQUEST_DETAILS;
 }
