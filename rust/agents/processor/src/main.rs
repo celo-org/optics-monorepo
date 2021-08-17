@@ -8,8 +8,10 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
+mod prover_sync;
 mod processor;
 mod prover;
+mod prover_sync;
 mod settings;
 
 use color_eyre::Result;
