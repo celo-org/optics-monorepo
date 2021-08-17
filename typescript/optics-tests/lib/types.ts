@@ -1,5 +1,5 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { BytesLike } from 'ethers';
+import { BytesLike, ethers } from 'ethers';
 import { BridgeMessageTypes } from './bridge';
 
 /********* HRE *********/
@@ -22,11 +22,12 @@ export interface HardhatBridgeHelpers {
   BridgeMessageTypes: typeof BridgeMessageTypes;
   typeToByte: Function;
   MESSAGE_LEN: MessageLen;
-  formatTransfer: Function;
-  formatDetails: Function;
-  formatRequestDetails: Function;
-  formatTokenId: Function;
-  formatMessage: Function;
+  serializeTransferAction: Function;
+  serializeDetailsAction: Function;
+  serializeRequestDetailsAction: Function;
+  serializeAction: Function;
+  serializeTokenId: Function;
+  serializeMessage: Function;
 }
 
 declare module 'hardhat/types/runtime' {
@@ -123,7 +124,7 @@ export type Message = {
 
 export type TransferAction = {
   type: BridgeMessageTypes.TRANSFER;
-  recipient: string;
+  recipient: ethers.BytesLike;
   amount: number;
 }
 
