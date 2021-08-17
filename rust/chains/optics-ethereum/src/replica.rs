@@ -17,7 +17,7 @@ use crate::report_tx;
 #[allow(missing_docs)]
 abigen!(
     EthereumReplicaInternal,
-    "./optics-ethereum/abis/Replica.abi.json",
+    "./chains/optics-ethereum/abis/Replica.abi.json",
      methods {
         initialize(address) as initialize_common;
         initialize(uint32, address, bytes32, uint256, uint32) as initialize;

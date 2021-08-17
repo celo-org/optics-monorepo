@@ -1,12 +1,12 @@
 [package]
-name = "updater"
+name = "relayer"
 version = "0.1.0"
-authors = ["James Prestwich <prestwich@clabs.co>"]
+authors = ["ltchang <ltchang@stanford.edu>"]
 edition = "2018"
 
 [dependencies]
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
-config = "0.11.0"
+config = "0.10"
 serde = "1.0.120"
 serde_json = { version = "1.0.61", default-features = false }
 log = "0.4.13"
@@ -18,13 +18,11 @@ color-eyre = "0.5.0"
 tracing = "0.1.22"
 tracing-futures = "0.2.4"
 tracing-subscriber = "0.2.15"
-rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
-optics-core = { path = "../optics-core" }
-optics-base = { path = "../optics-base" }
-optics-ethereum = { path = "../optics-ethereum" }
+optics-core = { path = "../../optics-core" }
+optics-base = { path = "../../optics-base" }
 paste = "1.0.5"
 
 [dev-dependencies]
-mockall = "0.9.1"
-optics-test = { path = "../optics-test" }
+tokio-test = "0.4.0"
+optics-test = { path = "../../optics-test" }

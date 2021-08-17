@@ -1,7 +1,7 @@
 [package]
-name = "processor"
+name = "watcher"
 version = "0.1.0"
-authors = ["anna-caroll <anna.s.carroll@gmail.com>"]
+authors = ["Luke Tchang <ltchang@stanford.edu>"]
 edition = "2018"
 
 [dependencies]
@@ -20,10 +20,11 @@ tracing-futures = "0.2.4"
 tracing-subscriber = "0.2.15"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
-optics-core = { path = "../optics-core" }
-optics-base = { path = "../optics-base" }
+optics-core = { path = "../../optics-core" }
+optics-base = { path = "../../optics-base" }
+optics-ethereum = { path = "../../chains/optics-ethereum" }
 paste = "1.0.5"
 
 [dev-dependencies]
-optics-test = { path = "../optics-test" }
-
+tokio-test = "0.4.0"
+optics-test = { path = "../../optics-test" }

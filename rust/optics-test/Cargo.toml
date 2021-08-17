@@ -19,4 +19,4 @@ rand = "0.8.3"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
 optics-core = { path = "../optics-core" }
-optics-ethereum = { path = "../optics-ethereum"}
+optics-ethereum = { path = "../chains/optics-ethereum"}

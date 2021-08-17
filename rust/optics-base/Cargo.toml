@@ -22,7 +22,7 @@ tracing-subscriber = "0.2.15"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 
 optics-core = { path = "../optics-core" }
-optics-ethereum = { path = "../optics-ethereum"}
+optics-ethereum = { path = "../chains/optics-ethereum"}
 optics-test = { path = "../optics-test" }
 paste = "1.0.5"
 tracing-error = "0.1.2"

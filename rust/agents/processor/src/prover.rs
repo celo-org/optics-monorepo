@@ -1,4 +1,6 @@
-/// Struct responsible for syncing Prover
+//! Prover process: generate proofs in the tree.
+//! 
+//! Struct responsible for syncing Prover
 pub mod prover_sync;
 pub use prover_sync::ProverSync;
 

@@ -3,12 +3,12 @@
 members = [
     "optics-core",
     "optics-base",
-    "optics-ethereum",
     "optics-test",
-    "kathy",
-    "updater",
-    "relayer",
-    "watcher",
-    "processor",
-    "kms-cli"
+    "chains/optics-ethereum",
+    "agents/kathy",
+    "agents/updater",
+    "agents/relayer",
+    "agents/watcher",
+    "agents/processor",
+    "kms-cli",
 ]

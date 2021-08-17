@@ -14,7 +14,7 @@ use crate::report_tx;
 #[allow(missing_docs)]
 abigen!(
     EthereumConnectionManagerInternal,
-    "./optics-ethereum/abis/XAppConnectionManager.abi.json"
+    "./chains/optics-ethereum/abis/XAppConnectionManager.abi.json"
 );
 
 /// A reference to a XAppConnectionManager contract on some Ethereum chain

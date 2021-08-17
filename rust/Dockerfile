@@ -10,16 +10,13 @@ RUN apt-get update && \
     rustup target add x86_64-unknown-linux-musl 
 
 # Add workspace to workdir 
-COPY optics-core ./optics-core
-COPY optics-ethereum ./optics-ethereum
-COPY optics-base ./optics-base 
-COPY optics-test ./optics-test
+COPY agents ./agents
+COPY chains ./chains
 COPY kms-cli ./kms-cli
-COPY processor ./processor
-COPY relayer ./relayer
-COPY watcher ./watcher
-COPY updater ./updater
-COPY kathy ./kathy
+COPY optics-base ./optics-base 
+COPY optics-core ./optics-core
+COPY optics-test ./optics-test
+
 COPY Cargo.toml .
 COPY Cargo.lock .
 

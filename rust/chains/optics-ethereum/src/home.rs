@@ -15,7 +15,7 @@ use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 use crate::report_tx;
 
 #[allow(missing_docs)]
-abigen!(EthereumHomeInternal, "./optics-ethereum/abis/Home.abi.json");
+abigen!(EthereumHomeInternal, "./chains/optics-ethereum/abis/Home.abi.json");
 
 /// A reference to a Home contract on some Ethereum chain
 #[derive(Debug)]
