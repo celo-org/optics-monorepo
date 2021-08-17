@@ -1,6 +1,7 @@
+import { assert } from 'chai';
 import { ethers } from 'ethers';
 
-import { HardhatBridgeHelpers, TransferMessage } from './types';
+import { HardhatBridgeHelpers, TransferMessage, DetailsMessage, RequestDetailsMessage } from './types';
 
 export enum BridgeMessageTypes {
   INVALID = 0,
@@ -22,7 +23,7 @@ const MESSAGE_LEN = {
 }
 
 // Formats Transfer Message
-export function formatTransfer(to: string, amnt: number): string {
+export function formatTransfer(to: string, amnt: number): ethers.BytesLike {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'uint256'],
     [BridgeMessageTypes.TRANSFER, to, amnt]
@@ -30,7 +31,7 @@ export function formatTransfer(to: string, amnt: number): string {
 }
 
 // Formats Details Message
-export function formatDetails(name: string, symbol: string, decimals: number): string {
+export function formatDetails(name: string, symbol: string, decimals: number): ethers.BytesLike {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'bytes32', 'uint8'],
     [BridgeMessageTypes.DETAILS, name, symbol, decimals]
@@ -38,17 +39,36 @@ export function formatDetails(name: string, symbol: string, decimals: number): s
 }
 
 // Formats Request Details message
-export function formatRequestDetails(): string {
+export function formatRequestDetails(): ethers.BytesLike {
   return ethers.utils.solidityPack(['bytes1'], [BridgeMessageTypes.REQUEST_DETAILS]);
 }
 
 // Formats the Token ID
-export function formatTokenId(domain: number, id: string): string {
+export function formatTokenId(domain: number, id: string): ethers.BytesLike {
   return ethers.utils.solidityPack(['uint32', 'bytes32'], [domain, id]);
 }
 
-export function formatMessage(tokenId: string, action: string): string {
+export function formatMessage(tokenId: string, action: string): ethers.BytesLike {
   return ethers.utils.solidityPack(['bytes', 'bytes'], [tokenId, action]);
+}
+
+export function serializeTransferMessage(transferMessage: TransferMessage): ethers.BytesLike {
+  const { type, recipient, amount } = transferMessage;
+
+  assert(type === BridgeMessageTypes.TRANSFER);
+  return formatTransfer(recipient, amount);
+}
+
+export function serializeDetailsMessage(detailsMessage: DetailsMessage): ethers.BytesLike {
+  const { type, name, symbol, decimal } = detailsMessage;
+
+  assert(type === BridgeMessageTypes.DETAILS);
+  return formatDetails(name, symbol, decimal);
+}
+
+export function serializeRequestDetailsMessage(requestDetailsMessage: RequestDetailsMessage): ethers.BytesLike {
+  assert(requestDetailsMessage.type === BridgeMessageTypes.REQUEST_DETAILS);
+  return formatRequestDetails();
 }
 
 export const bridge: HardhatBridgeHelpers = {

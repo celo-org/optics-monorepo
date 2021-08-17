@@ -112,7 +112,7 @@ export type MessageLen = {
 
 export type TransferMessage = {
   type: BridgeMessageTypes.TRANSFER;
-  recipient: number;
+  recipient: string;
   amount: number;
 }
 
