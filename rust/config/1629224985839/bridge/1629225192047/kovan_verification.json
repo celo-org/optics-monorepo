@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Contract Implementation",
+    "address": "0xA85971b0d20F771dADD86bAe26F1C4b8D8Cb7663",
+    "constructorArguments": []
+  },
+  {
+    "name": "Contract UpgradeBeacon",
+    "address": "0x19653A25D654547b1c57E19c17e2FbD0B636f986",
+    "constructorArguments": [
+      "0xA85971b0d20F771dADD86bAe26F1C4b8D8Cb7663",
+      "0x646C628334ffAffdaA60200010D3425fbE289295"
+    ]
+  },
+  {
+    "name": "Contract Proxy",
+    "address": "0xe25E0a9dBf89E3278f06cA573e252270cdbB78fC",
+    "constructorArguments": [
+      "0x19653A25D654547b1c57E19c17e2FbD0B636f986",
+      "0x"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "Contract Implementation",
+    "address": "0x244e128BbABCbF9936915C9d69F582e3DeFD4A96",
+    "constructorArguments": []
+  },
+  {
+    "name": "Contract UpgradeBeacon",
+    "address": "0x4b9b8A389475146A62a6bE669408B7E45F75c13E",
+    "constructorArguments": [
+      "0x244e128BbABCbF9936915C9d69F582e3DeFD4A96",
+      "0x646C628334ffAffdaA60200010D3425fbE289295"
+    ]
+  },
+  {
+    "name": "Contract Proxy",
+    "address": "0xac77f65BBAd8C55E589fBEBFF68bE29A2BDec3D1",
+    "constructorArguments": [
+      "0x4b9b8A389475146A62a6bE669408B7E45F75c13E",
+      "0x485cc95500000000000000000000000019653a25d654547b1c57e19c17e2fbd0b636f9860000000000000000000000000977a93022b364f3aa075c1d8565d77945b89512"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "ETH Helper",
+    "address": "0x6290856456A9AC5196CA96adcB9615dd1a8a7eFD",
+    "constructorArguments": [
+      "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+      "0xac77f65BBAd8C55E589fBEBFF68bE29A2BDec3D1"
+    ]
+  }
+]
