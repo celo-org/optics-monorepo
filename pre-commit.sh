@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Specifying minimum versions
 MIN_GIT=2.25.0
@@ -18,7 +18,7 @@ echo_abort ()
 
 ensure()
 {
-    if ! command -v $1 &> /dev/null
+    if ! command -v "$1" &> /dev/null
     then
         echo_abort
         echo "command '$1' could not be found."
@@ -79,7 +79,7 @@ if ! git diff-index --quiet HEAD -- ./solidity/optics-core; then
     npm run compile
     # add abis, typechain
     cd ../..
-    git add rust/optics-ethereum/abis
+    git add rust/chains/optics-ethereum/abis
     git add typescript/typechain
     # add linter modified files
     git add solidity/optics-core/contracts
@@ -153,9 +153,10 @@ else
 fi
 
 # Git add abis if updated
-if ! git diff-index --quiet HEAD -- ./rust/optics-ethereum/abis/; then
-    echo '+git add ./rust/optics-ethereum/abis/*'
-    git add ./rust/optics-ethereum/abis/*
+abis_dir=./rust/chains/optics-ethereum/abis/
+if ! git diff-index --quiet HEAD -- ./rust/chains/optics-ethereum/abis/; then
+    echo "+git add $abis_dir\*"
+    git add $abis_dir/*
 else
     echo "+Skipping git add ABIs"
 fi

@@ -1,3 +1,7 @@
-cat artifacts/contracts/Replica.sol/Replica.json| jq .abi > ../../rust/optics-ethereum/abis/Replica.abi.json && \
-cat artifacts/contracts/Home.sol/Home.json| jq .abi > ../../rust/optics-ethereum/abis/Home.abi.json && \
-cat artifacts/contracts/XAppConnectionManager.sol/XAppConnectionManager.json | jq .abi > ../../rust/optics-ethereum/abis/XAppConnectionManager.abi.json
+#!/bin/sh 
+
+copy() {
+    jq .abi < artifacts/contracts/"$1".sol/$.json > ../rust/chains/optics-ethereum/abis/"$1".abi.json
+}
+
+copy Replica && copy Home && copy XAppConnectionManager

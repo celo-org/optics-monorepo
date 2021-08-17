@@ -129,8 +129,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
 
 ### Rust
 
-- install `rustup`
-  - [link here](https://rustup.rs/)
+- install [`rustup`](https://rustup.rs)
 - see `rust/README.md`
 
 #### Building Agent Images
