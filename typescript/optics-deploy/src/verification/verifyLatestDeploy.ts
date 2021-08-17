@@ -1,10 +1,10 @@
 import { verifyProxy } from './verifyProxy';
 
-const {
+import {
   getPathToLatestDeployConfig,
   getPathToLatestBridgeConfig,
   getVerificationInputFromDeploy,
-} = require('./readDeployOutput.ts');
+} from './readDeployOutput';
 
 const envError = (network: string) =>
   `pass --network tag to hardhat task (current network=${network})`;
