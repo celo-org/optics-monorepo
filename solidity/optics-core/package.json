@@ -30,7 +30,7 @@
     "prettier": "prettier --write ./contracts",
     "compile": "hardhat compile && hardhat typechain && npm run prettier && ./update_abis.sh",
     "coverage": "npm run compile && hardhat coverage",
-    "test": "./test.sh",
+    "test": "cd ../../ && ./scripts/test-solidity.sh",
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol'",
     "deploy": "npm run compile && cd ../../typescript/optics-deploy && npm run deploy-core",

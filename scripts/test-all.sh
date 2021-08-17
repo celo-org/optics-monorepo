@@ -1,7 +1,9 @@
 #!/bin/sh
+# Script for testing entire optics monorepo unconditionally
+# Run from root (./scripts/test-all.sh)
 
 # update ABIs
-cd ../solidity
+cd ./solidity
 
 echo "+Lint and compile core"
 cd ./optics-core

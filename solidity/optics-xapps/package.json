@@ -29,7 +29,7 @@
     "prettier": "prettier --write './contracts'",
     "compile": "hardhat compile && hardhat typechain && npm run prettier",
     "coverage": "npm run compile && hardhat coverage",
-    "test": "../../scripts/test-solidity.sh",
+    "test": "cd ../../ && ./scripts/test-solidity.sh",
     "lint": "solhint contracts/*.sol",
     "lint:fix": "solhint --fix contracts/*.sol",
     "deploy": "npm run compile && cd ../../typescript/optics-deploy && npm run deploy-bridge",
