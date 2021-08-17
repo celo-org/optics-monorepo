@@ -2,16 +2,23 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-etherscan";
+
 import { task } from "hardhat/config";
-const { verifyLatestCoreDeploy } = require("../../typescript/optics-deploy/src/verification/verifyLatestDeploy");
+import { verifyLatestCoreDeploy } from "../../typescript/optics-deploy/src/verification/verifyLatestDeploy";
+
 import * as dotenv from "dotenv";
 dotenv.config();
+
+const etherscanKey = process.env.ETHERSCAN_API_KEY;
 
 task(
   "verify-latest-deploy",
   "Verifies the source code of the latest contract deploy"
-).setAction(async(args: any, hre: any) => {
-  await verifyLatestCoreDeploy(hre);
+).setAction(async (args: any, hre: any) => {
+  if (!etherscanKey) {
+    throw new Error("set ETHERSCAN_API_KEY");
+  }
+  await verifyLatestCoreDeploy(hre, etherscanKey);
 });
 
 /**
@@ -52,6 +59,6 @@ module.exports = {
     bail: true,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: etherscanKey,
   },
 };

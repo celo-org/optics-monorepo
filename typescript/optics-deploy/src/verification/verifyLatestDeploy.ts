@@ -26,9 +26,9 @@ function etherscanLink(network: string, address: string) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-export async function verifyLatestBridgeDeploy(hre: any) {
+export async function verifyLatestBridgeDeploy(hre: any, etherscanKey: string) {
   const path = getPathToLatestBridgeConfig();
-  return verifyDeploy(path, hre);
+  return verifyDeploy(path, etherscanKey, hre);
 }
 
 /*
@@ -37,9 +37,9 @@ export async function verifyLatestBridgeDeploy(hre: any) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-export async function verifyLatestCoreDeploy(hre: any) {
+export async function verifyLatestCoreDeploy(hre: any, etherscanKey: string) {
   const path = getPathToLatestDeployConfig();
-  return verifyDeploy(path, hre);
+  return verifyDeploy(path, etherscanKey, hre);
 }
 
 /*
@@ -48,7 +48,7 @@ export async function verifyLatestCoreDeploy(hre: any) {
  * for the network that hardhat is configured to
  * and attempt to verify those contracts' source code on Etherscan
  * */
-async function verifyDeploy(path: string, hre: any) {
+async function verifyDeploy(path: string, etherscanKey: string, hre: any) {
   const network = hre.network.name;
 
   // assert that network from .env is supported by Etherscan
@@ -65,7 +65,7 @@ async function verifyDeploy(path: string, hre: any) {
   for (let verificationInput of verificationInputs) {
     // attempt to verify contract on etherscan
     // (await one-by-one so that Etherscan doesn't rate limit)
-    await verifyContract(network, verificationInput, hre);
+    await verifyContract(network, etherscanKey, verificationInput, hre);
   }
 }
 
@@ -75,6 +75,7 @@ async function verifyDeploy(path: string, hre: any) {
  * */
 async function verifyContract(
   network: string,
+  etherscanKey: string,
   verificationInput: any,
   hre: any,
 ) {
@@ -92,7 +93,7 @@ async function verifyContract(
 
     if (isProxy) {
       console.log(`   Attempt to verify as proxy`);
-      await verifyProxy(network, address);
+      await verifyProxy(network, address, etherscanKey);
       console.log(`   SUCCESS submitting proxy verification`);
     }
   } catch (e) {

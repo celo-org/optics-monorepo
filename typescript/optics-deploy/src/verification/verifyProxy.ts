@@ -1,9 +1,10 @@
 import axios from 'axios';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
-
-export async function verifyProxy(network: string, address: string) {
+export async function verifyProxy(
+  network: string,
+  address: string,
+  etherscanKey: string,
+) {
   const suffix = network == 'mainnet' ? '' : `-${network}`;
 
   console.log(`   Submit ${address} for proxy verification on ${network}`);
@@ -15,7 +16,7 @@ export async function verifyProxy(network: string, address: string) {
       params: {
         module: 'contract',
         action: 'verifyproxycontract',
-        apikey: process.env.ETHERSCAN_API_KEY,
+        apikey: etherscanKey,
       },
     },
   );
