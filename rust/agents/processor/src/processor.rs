@@ -18,6 +18,7 @@ use tokio::{
 };
 use tracing::{error, info, instrument, instrument::Instrumented, Instrument};
 
+use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
@@ -29,11 +30,6 @@ use optics_base::{
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{CommittedMessage, Common, Home, MessageStatus, Replica},
-};
-
-use crate::{
-    prover::{Prover, ProverSync},
-    settings::ProcessorSettings as Settings,
 };
 
 #[derive(Debug)]
