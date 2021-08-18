@@ -1,12 +1,11 @@
-import { ethers } from 'hardhat';
-import { Signer, Wallet } from 'ethers';
-import {
-  BridgeToken,
-  BridgeToken__factory,
-} from '../../../typechain/optics-xapps';
-import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
+import { ethers, bridge } from 'hardhat';
+const { BridgeMessageTypes } = bridge;
+import { Signer } from 'ethers';
 import { expect } from 'chai';
+
+import * as types from '../../lib/types';
 import { toBytes32 } from '../../lib/utils';
+import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
 
 describe('EthHelper', async () => {
   let deploy: TestBridgeDeploy;
@@ -23,8 +22,6 @@ describe('EthHelper', async () => {
   let transferMessage: string;
 
   const value = 1;
-  const valueBytes = ethers.utils.zeroPad('0x01', 32);
-  const TRANSFER_TAG = '0x03';
 
   before(async () => {
     [deployer, recipient] = await ethers.getSigners();
@@ -34,22 +31,29 @@ describe('EthHelper', async () => {
     recipientId = toBytes32(recipientAddress).toLowerCase();
     deploy = await TestBridgeDeploy.deploy(deployer);
 
-    const tokenId = ethers.utils.hexConcat([
-      deploy.localDomainBytes,
-      toBytes32(deploy.mockWeth.address),
-    ]);
-    const transferToSelfAction = ethers.utils.hexConcat([
-      TRANSFER_TAG,
-      deployerId,
-      valueBytes,
-    ]);
-    transferToSelfMessage = ethers.utils.hexConcat([tokenId, transferToSelfAction]);
-    const transferAction = ethers.utils.hexConcat([
-      TRANSFER_TAG,
-      recipientId,
-      valueBytes,
-    ]);
-    transferMessage = ethers.utils.hexConcat([tokenId, transferAction]);
+    const tokenId: types.TokenId = {
+      domain: deploy.localDomain,
+      id: toBytes32(deploy.mockWeth.address)
+    }
+    const transferToSelfMessageObj: types.Message = {
+      tokenId,
+      action: {
+        type: BridgeMessageTypes.TRANSFER,
+        recipient: deployerId,
+        amount: value
+      }
+    }
+    transferToSelfMessage = bridge.serializeMessage(transferToSelfMessageObj);
+
+    const transferMessageObj: types.Message = {
+      tokenId,
+      action: {
+        type: BridgeMessageTypes.TRANSFER,
+        recipient: recipientId,
+        amount: value
+      }
+    }
+    transferMessage = bridge.serializeMessage(transferMessageObj);
   });
 
   it('send function', async () => {
