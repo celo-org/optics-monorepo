@@ -9,11 +9,17 @@ import { expect } from 'chai';
 import { toBytes32 } from '../../lib/utils';
 
 describe('EthHelper', async () => {
+  let deploy: TestBridgeDeploy;
+
   let deployer: Signer;
   let deployerAddress: string;
   let deployerId: string;
-  let deploy: TestBridgeDeploy;
 
+  let recipient: Signer;
+  let recipientAddress: string;
+  let recipientId: string;
+
+  let transferToSelfMessage: string;
   let transferMessage: string;
 
   const value = 1;
@@ -21,18 +27,26 @@ describe('EthHelper', async () => {
   const TRANSFER_TAG = '0x03';
 
   before(async () => {
-    [deployer] = await ethers.getSigners();
+    [deployer, recipient] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();
     deployerId = toBytes32(deployerAddress).toLowerCase();
+    recipientAddress = await recipient.getAddress();
+    recipientId = toBytes32(recipientAddress).toLowerCase();
     deploy = await TestBridgeDeploy.deploy(deployer);
 
     const tokenId = ethers.utils.hexConcat([
       deploy.localDomainBytes,
       toBytes32(deploy.mockWeth.address),
     ]);
-    const transferAction = ethers.utils.hexConcat([
+    const transferToSelfAction = ethers.utils.hexConcat([
       TRANSFER_TAG,
       deployerId,
+      valueBytes,
+    ]);
+    transferToSelfMessage = ethers.utils.hexConcat([tokenId, transferToSelfAction]);
+    const transferAction = ethers.utils.hexConcat([
+      TRANSFER_TAG,
+      recipientId,
       valueBytes,
     ]);
     transferMessage = ethers.utils.hexConcat([tokenId, transferAction]);
@@ -45,13 +59,13 @@ describe('EthHelper', async () => {
 
     await expect(sendTx)
       .to.emit(deploy.mockCore, 'Enqueue')
-      .withArgs(deploy.remoteDomain, deployerId, transferMessage);
+      .withArgs(deploy.remoteDomain, deployerId, transferToSelfMessage);
   });
 
   it('sendTo function', async () => {
     let sendTx = deploy.contracts.ethHelper!.sendTo(
       deploy.remoteDomain,
-      deployerId,
+      recipientId,
       {
         value,
       },
@@ -65,7 +79,7 @@ describe('EthHelper', async () => {
   it('sendToEVMLike function', async () => {
     let sendTx = deploy.contracts.ethHelper!.sendToEVMLike(
       deploy.remoteDomain,
-      deployerAddress,
+      recipientAddress,
       {
         value,
       },

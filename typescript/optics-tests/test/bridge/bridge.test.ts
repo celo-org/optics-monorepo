@@ -671,7 +671,7 @@ describe('BridgeRouter', async () => {
       await expect(migrate).to.be.revertedWith('!different');
     });
 
-    it('migrate errors if old === new', async () => {
+    it('migrate errors if custom token is not enrolled', async () => {
       const migrate = deploy.bridgeRouter!.migrate(customRepr.address);
       await expect(migrate).to.be.revertedWith('!repr');
     });
