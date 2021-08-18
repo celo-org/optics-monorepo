@@ -136,7 +136,9 @@ export async function deployEthHelper(deploy: Deploy) {
     deploy.overrides,
   );
 
-  await deploy.contracts.ethHelper.deployTransaction.wait(5);
+  await deploy.contracts.ethHelper.deployTransaction.wait(
+    deploy.chain.confirmations,
+  );
   deploy.verificationInput.push({
     name: `ETH Helper`,
     address: deploy.contracts.ethHelper.address,

@@ -81,6 +81,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockCore__factory>;
     getContractFactory(
+      name: "MockWeth",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockWeth__factory>;
+    getContractFactory(
       name: "TestEncoding",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestEncoding__factory>;

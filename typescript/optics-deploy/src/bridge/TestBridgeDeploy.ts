@@ -9,6 +9,8 @@ import {
   BridgeToken__factory,
   MockCore,
   MockCore__factory,
+  MockWeth,
+  MockWeth__factory,
 } from '../../../typechain/optics-xapps';
 import { ContractVerificationInput } from '../deploy';
 import { BridgeContracts } from './BridgeContracts';
@@ -29,6 +31,7 @@ export default class TestBridgeDeploy {
   signer: Signer;
   ubc: UpgradeBeaconController;
   mockCore: MockCore;
+  mockWeth: MockWeth;
   contracts: BridgeContracts;
   verificationInput: ContractVerificationInput[];
   localDomain: number;
@@ -36,6 +39,7 @@ export default class TestBridgeDeploy {
   constructor(
     signer: Signer,
     mockCore: MockCore,
+    mockWeth: MockWeth,
     ubc: UpgradeBeaconController,
     contracts: BridgeContracts,
     domain: number,
@@ -47,13 +51,16 @@ export default class TestBridgeDeploy {
     this.verificationInput = [];
     this.ubc = ubc;
     this.mockCore = mockCore;
+    this.mockWeth = mockWeth;
     this.contracts = contracts;
     this.signer = signer;
     this.localDomain = domain;
+    this.config.weth = mockWeth.address;
   }
 
   static async deploy(signer: Signer): Promise<TestBridgeDeploy> {
     const mockCore = await new MockCore__factory(signer).deploy();
+    const mockWeth = await new MockWeth__factory(signer).deploy();
     const ubc = await new UpgradeBeaconController__factory(signer).deploy();
     const contracts = new BridgeContracts();
     const domain = await mockCore.localDomain();
@@ -61,6 +68,7 @@ export default class TestBridgeDeploy {
     let deploy = new TestBridgeDeploy(
       signer,
       mockCore,
+      mockWeth,
       ubc,
       contracts,
       domain,
@@ -108,7 +116,7 @@ export default class TestBridgeDeploy {
     return {};
   }
   get config() {
-    return { weth: '' };
+    return { weth: this.mockWeth.address };
   }
 
   get bridgeRouter(): BridgeRouter | undefined {
