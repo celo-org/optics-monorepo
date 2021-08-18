@@ -1,19 +1,48 @@
-replicaCount: 1
-# -- Default to standard storageclass provided by GKE
-volumeStorageClass: "standard"
+image:
+  repository: gcr.io/clabs-optics/optics-agent
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podCommonLabels: {}
+
+storage:
+  storageClass: "standard"
+  accessModes: ReadWriteOnce
+  snapshot:
+    enabled: false
+    name: "snapshot-name"
 
 # -- Optics Overrides
 # By Default, Optics Agents load the config baked into the Docker Image
 # Pass values here in order to override the values in the config
 # Note: For successful operation, one _must_ pass signer keys as
-#       they are not baked into the image for security reasons. 
-optics: 
+#       they are not baked into the image for security reasons.
+optics:
+  # Sets the config folder to use
   runEnv: "default"
+  # Sets the base config to be used (switch between Homes)
   baseConfig: "base.json"
-  tracing: 
+  # Set the DB location to be the volume
+  dbPath: /usr/share/optics
+  rustBacktrace: full
+  tracing:
+    # Set the log formatting
+    format: json
+    # Set the log level
+    level: info
     uri: ""
-  homeChain: 
-    name: "goerli"
+  homeChain:
+    name: "kovan"
     # -- The contract address for the home contract
     address: # "0x0C473afC0cabd469751CBE3Ac08aBac3e40bF586"
     # -- The hard-coded domain corresponding to this blockchain
@@ -21,11 +50,12 @@ optics:
     # -- RPC Style
     rpcStyle: # "ethereum"
     connectionType: # "http"
-    # -- Connection string pointing to an RPC endpoint for the home chain 
-    connectionUrl: # "https://goerli.infura.io/v3/<KEY>"
-  awsAccessKeyId: ""
-  awsSecretAccessKey: ""
-    
+    # -- Connection string pointing to an RPC endpoint for the home chain
+    connectionUrl: # "https://kovan.infura.io/v3/<KEY>"
+  aws:
+    # accessKeyId: ""
+    # secretAccessKey: ""
+
   # -- Replica chain overrides, a sequence
   replicaChains:
     - name: "alfajores"
@@ -36,16 +66,22 @@ optics:
       connectionType: # "http"
       # -- Connection string pointing to an RPC endpoint for the replica chain
       connectionUrl: # "https://alfajores-forno.celo-testnet.org"
-  
+
   # Optics Agent Roles
-  # Individually Switchable via <role>.enabled 
-  updater: 
-    # -- Enables or disables the updater
+  # Individually Switchable via <role>.enabled
+  updater:
     enabled: false
-    # -- Transaction Signing keys for home and replica(s)
-    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
-    transactionSigners: 
-      - name: "goerli"
+    podAnnotations: {}
+    podLabels: {}
+    storage:
+      size: 10Gi
+      snapshot:
+        enabled: false
+        name: ""
+    resources: {}
+    # -- Trnsaction Signing keys for home and replica(s)
+    transactionSigners:
+      - name: "kovan"
         hexKey: ""
         aws:
           keyId: ""
@@ -55,8 +91,7 @@ optics:
         aws:
           keyId: ""
           region: ""
-    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.transactionSigners
-    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
+    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.keys
     attestationSigner: 
       hexKey: ""
       aws:
@@ -65,12 +100,19 @@ optics:
     # -- How long to wait between checking for updates
     pollingInterval: # 5
     updatePause: # 15
-  relayer: 
-    # -- Enables or disables the relayer
+
+  relayer:
     enabled: false
-    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
-    transactionSigners: 
-      - name: "goerli"
+    podAnnotations: {}
+    podLabels: {}
+    storage:
+      size: 10Gi
+      snapshot:
+        enabled: false
+        name: ""
+    resources: {}
+    transactionSigners:
+      - name: "kovan"
         hexKey: ""
         aws:
           keyId: ""
@@ -81,11 +123,19 @@ optics:
           keyId: ""
           region: ""
     pollingInterval: # 10
-  processor: 
+
+  processor:
     enabled: false
-    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
-    transactionSigners: 
-      - name: "goerli"
+    podAnnotations: {}
+    podLabels: {}
+    storage:
+      size: 10Gi
+      snapshot:
+        enabled: false
+        name: ""
+    resources: {}
+    transactionSigners:
+      - name: "kovan"
         hexKey: ""
         aws:
           keyId: ""
@@ -96,11 +146,19 @@ optics:
           keyId: ""
           region: ""
     pollingInterval: # 10
-  kathy: 
+
+  kathy:
     enabled: false
-    # Note: Only select one kind of key, either hexKey OR AWS. hexKey will take precedence over AWS if set. 
-    transactionSigners: 
-      - name: "goerli"
+    podAnnotations: {}
+    podLabels: {}
+    storage:
+      size: 10Gi
+      snapshot:
+        enabled: false
+        name: ""
+    resources: {}
+    transactionSigners:
+      - name: "kovan"
         hexKey: ""
         aws:
           keyId: ""
@@ -110,6 +168,7 @@ optics:
         aws:
           keyId: ""
           region: ""
+    # Polling Interval Override
     messageInterval: # 100
     # -- Configuration for Kathy's message generation code
     chatGenConfig:
@@ -117,20 +176,6 @@ optics:
       message: # "hello are you listening?"
       recipient: # "recipient"
       type: # "static"
-
-image:
-  # -- Main repository for Optics Agent binaries, provided by cLabs
-  repository: gcr.io/clabs-optics/optics-agent
-  pullPolicy: Always
-  # -- Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-
-podAnnotations: {}
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -143,12 +188,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi

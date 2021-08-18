@@ -35,7 +35,6 @@ Common labels
 */}}
 {{- define "optics-agent.labels" -}}
 helm.sh/chart: {{ include "optics-agent.chart" . }}
-optics/deployment: {{ .Values.optics.runEnv | quote }}
 {{ include "optics-agent.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -49,4 +48,15 @@ Selector labels
 {{- define "optics-agent.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "optics-agent.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "optics-agent.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "optics-agent.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }}

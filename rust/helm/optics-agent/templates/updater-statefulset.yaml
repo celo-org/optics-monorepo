@@ -1,41 +1,37 @@
 {{- if .Values.optics.updater.enabled }}
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "optics-agent.fullname" . }}-updater
-  labels:
-    {{- include "optics-agent.labels" . | nindent 4 }}
-    role: updater
-spec:
-  clusterIP: None
-  selector:
-    {{- include "optics-agent.selectorLabels" . | nindent 4 }}
-    role: updater
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "optics-agent.fullname" . }}-updater
   labels:
     {{- include "optics-agent.labels" . | nindent 4 }}
-    role: updater
+    app.kubernetes.io/component: updater
 spec:
   selector:
     matchLabels:
       {{- include "optics-agent.selectorLabels" . | nindent 6 }}
-      role: updater
+      app.kubernetes.io/component: updater
   replicas: 1 
   serviceName: {{ include "optics-agent.fullname" . }}-updater
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        {{- with .Values.optics.updater.podAnnotations }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
       labels:
-        {{- include "optics-agent.selectorLabels" . | nindent 8 }}
-        role: updater
         {{- include "optics-agent.labels" . | nindent 8 }}
+        app.kubernetes.io/component: updater
+        {{- with .Values.podCommonLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.optics.updater.podLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -45,58 +41,18 @@ spec:
       containers:
       - name: agent
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- toYaml .Values.securityContext | nindent 10 }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["./updater"]
+        envFrom:
+        - configMapRef:
+            name: {{ include "optics-agent.fullname" . }}
         env: 
-          # Set AWS Keys if present in config 
-          {{- if .Values.optics.awsAccessKeyId }}
-          - name: AWS_ACCESS_KEY_ID
-            value: {{ .Values.optics.awsAccessKeyId }}
-          {{- end }}
-          {{- if .Values.optics.awsSecretAccessKey }}
-          - name: AWS_SECRET_ACCESS_KEY
-            value: {{ .Values.optics.awsSecretAccessKey }}
-          {{- end }}
-          # Set the DB location to be the volume 
-          - name: OPT_BASE_DBPATH
-            value: /usr/share/optics
-          # Set the log formatting 
-          - name: OPT_BASE_TRACING_FMT
-            value: "json"
-          # Sets the config folder to use
-          - name: RUN_ENV
-            value: {{ .Values.optics.runEnv | quote }}
-          # Sets the base config to be used (switch between Homes)
-          - name: BASE_CONFIG
-            value: {{ .Values.optics.baseConfig }}
-          # Home Overrides
-          {{- if .Values.optics.homeChain.connectionUrl }}
-          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_URL
-            value: {{ .Values.optics.homeChain.connectionUrl }}
-          {{- end }}
-          {{- if .Values.optics.homeChain.connectionType }}
-          - name: OPT_UPDATER_HOME_CONFIG_CONNECTION_TYPE
-            value: {{ .Values.optics.homeChain.connectionType }}
-          {{- end }}
-          # Replica Overrides
-          {{- range .Values.optics.replicaChains }}
-          {{- if .connectionUrl }}
-          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_CONNECTION_URL
-            value: {{ .connectionUrl }}
-          {{- end }}
-          {{- if .address }}
-          - name: OPT_UPDATER_REPLICAS_{{ .name | upper }}_ADDRESS
-            value: {{ .address }}
-          {{- end }}
-          {{- end }}
-          # Polling Interval Override
           {{- if .Values.optics.updater.pollingInterval }}
           - name: OPT_BASE_POLLINGINTERVAL
             value: {{ .Values.optics.updater.pollingInterval | quote }}
           {{- end }}
-          # Transaction Signer Keys
           {{- range .Values.optics.updater.transactionSigners }}
           {{- if .hexKey }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_KEY
@@ -104,13 +60,12 @@ spec:
           {{- else }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_TYPE
             value: "aws"
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_ID
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_ID
             value: {{ .aws.keyId }}
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_REGION
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
             value: {{ .aws.region }}
           {{- end }}
           {{- end }}
-          # Attestation Signer Key
           {{- if .Values.optics.updater.attestationSigner.hexKey }}
           - name: OPT_BASE_UPDATER_KEY
             value: {{ .Values.optics.updater.attestationSigner.hexKey }}
@@ -122,19 +77,13 @@ spec:
           - name: OPT_BASE_UPDATER_REGION
             value: {{ .Values.optics.updater.attestationSigner.aws.region }}
           {{- end }}
-          {{- if .Values.optics.tracing.uri }}
           - name: OPT_BASE_TRACING_JAEGER_NAME
             value: {{ include "optics-agent.fullname" . }}-updater
-          - name: OPT_BASE_TRACING_JAEGER_COLLECTOR_URI
-            value: {{ $.Values.optics.tracing.uri }}
-          {{- end }}
-          - name: RUST_BACKTRACE
-            value: full
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.optics.updater.resources | nindent 10 }}
         volumeMounts:
         - name: state
-          mountPath: /usr/share/optics
+          mountPath: {{ .Values.optics.dbPath }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -151,9 +100,15 @@ spec:
   - metadata:
       name: state
     spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.volumeStorageClass }}
+      storageClassName: {{ .Values.storage.storageClass }}
+      accessModes: [ {{ .Values.storage.accessModes }} ]
+      {{- if .Values.optics.updater.storage.snapshot.enabled }}
+      dataSource:
+        name: {{ .Values.optics.updater.storage.snapshot.name }}
+        kind: VolumeSnapshot
+        apiGroup: snapshot.storage.k8s.io
+      {{- end }}
       resources:
         requests:
-          storage: 10Gi
+          storage: {{ .Values.optics.updater.storage.size }}
 {{- end }}
