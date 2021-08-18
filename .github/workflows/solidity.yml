@@ -23,7 +23,12 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ./optics-core/node_modules
+            ./optics-xapps/node_modules
+            ../../typescript/optics-tests/node_modules
+            ../../typescript/optics-deploy/node_modules
+            ../typechain/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
@@ -54,7 +59,12 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ./optics-core/node_modules
+            ./optics-xapps/node_modules
+            ../../typescript/optics-tests/node_modules
+            ../../typescript/optics-deploy/node_modules
+            ../typechain/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
@@ -78,7 +88,12 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ./optics-core/node_modules
+            ./optics-xapps/node_modules
+            ../../typescript/optics-tests/node_modules
+            ../../typescript/optics-deploy/node_modules
+            ../typechain/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
