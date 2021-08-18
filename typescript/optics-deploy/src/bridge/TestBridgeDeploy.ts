@@ -1,4 +1,4 @@
-import { BytesLike, ethers, Signer } from 'ethers';
+import { BytesLike, Signer } from 'ethers';
 import {
   UpgradeBeaconController,
   UpgradeBeaconController__factory,
@@ -15,6 +15,7 @@ import {
 import { ContractVerificationInput } from '../deploy';
 import { BridgeContracts } from './BridgeContracts';
 import * as process from '.';
+import { TokenId } from '../../../optics-tests/lib/types';
 
 function toBytes32(address: string): string {
   return '0x' + '00'.repeat(12) + address.slice(2);
@@ -127,20 +128,15 @@ export default class TestBridgeDeploy {
     return 1;
   }
 
-  get remoteDomainBytes(): string {
-    return `0x0000000${this.remoteDomain}`;
-  }
-
-  get localDomainBytes(): string {
-    return `0x0000000${this.localDomain}`;
-  }
-
   get testToken(): string {
     return `0x${'11'.repeat(32)}`;
   }
 
-  get testTokenId(): string {
-    return ethers.utils.hexConcat([this.remoteDomainBytes, this.testToken]);
+  get testTokenId(): TokenId {
+    return {
+      domain: this.remoteDomain,
+      id: this.testToken
+    }
   }
 
   async getTestRepresentation(): Promise<BridgeToken | undefined> {

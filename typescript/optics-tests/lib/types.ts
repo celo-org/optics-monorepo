@@ -125,7 +125,7 @@ export type Message = {
 export type TransferAction = {
   type: BridgeMessageTypes.TRANSFER;
   recipient: ethers.BytesLike;
-  amount: number;
+  amount: number | ethers.BytesLike;
 }
 
 export type DetailsAction = {

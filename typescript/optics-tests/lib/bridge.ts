@@ -23,7 +23,7 @@ const MESSAGE_LEN = {
 }
 
 // Formats Transfer Message
-export function formatTransfer(to: ethers.BytesLike, amnt: number): ethers.BytesLike {
+export function formatTransfer(to: ethers.BytesLike, amnt: number | ethers.BytesLike): ethers.BytesLike {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'uint256'],
     [BridgeMessageTypes.TRANSFER, to, amnt]
