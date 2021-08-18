@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+
 import * as contracts from '../../../typechain/optics-xapps';
 
 describe('Encoding', async () => {

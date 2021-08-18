@@ -1,13 +1,13 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { Wallet } from 'ethers';
 
+import { Signer } from '../../lib/types';
+import { permitDigest } from '../../lib/permit';
 import {
   BridgeToken__factory,
   BridgeToken,
 } from '../../../typechain/optics-xapps';
-import { Signer } from '../../lib/types';
-import { permitDigest } from '../../lib/permit';
-import { Wallet } from 'ethers';
 
 const VALUE = 100;
 

@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Bytes, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { BridgeToken } from '../../typechain/optics-xapps';
 
 const PERMIT_TYPEHASH = ethers.utils.keccak256(
@@ -18,7 +18,6 @@ export async function permitDigest(
   token: BridgeToken,
   approval: Approval,
 ): Promise<string> {
-  const name = await token.name();
   const separator = await token.domainSeparator();
   const nonce = await token.nonces(approval.owner);
 
