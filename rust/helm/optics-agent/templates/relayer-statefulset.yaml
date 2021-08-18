@@ -60,9 +60,9 @@ spec:
           {{- else }}
           - name: OPT_BASE_SIGNERS_{{ .name | upper }}_TYPE
             value: "aws"
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_ID
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_ID
             value: {{ .aws.keyId }}
-          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_AWS_REGION
+          - name: OPT_BASE_SIGNERS_{{ .name | upper }}_REGION
             value: {{ .aws.region }}
           {{- end }}
           {{- end }}
