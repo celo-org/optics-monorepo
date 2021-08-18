@@ -77,8 +77,10 @@ spec:
           - name: OPT_BASE_UPDATER_REGION
             value: {{ .Values.optics.updater.attestationSigner.aws.region }}
           {{- end }}
+          {{- if .Values.optics.tracing.uri }}
           - name: OPT_BASE_TRACING_JAEGER_NAME
             value: {{ include "optics-agent.fullname" . }}-updater
+          {{- end }}
         resources:
           {{- toYaml .Values.optics.updater.resources | nindent 10 }}
         volumeMounts:

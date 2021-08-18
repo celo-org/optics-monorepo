@@ -18,9 +18,6 @@ podCommonLabels: {}
 storage:
   storageClass: "standard"
   accessModes: ReadWriteOnce
-  snapshot:
-    enabled: false
-    name: "snapshot-name"
 
 # -- Optics Overrides
 # By Default, Optics Agents load the config baked into the Docker Image
@@ -92,7 +89,7 @@ optics:
           keyId: ""
           region: ""
     # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.keys
-    attestationSigner: 
+    attestationSigner:
       hexKey: ""
       aws:
         keyId: ""

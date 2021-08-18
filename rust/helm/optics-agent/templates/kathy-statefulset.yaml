@@ -66,8 +66,10 @@ spec:
             value: {{ .aws.region }}
           {{- end }}
           {{- end }}
+          {{- if .Values.optics.tracing.uri }}
           - name: OPT_BASE_TRACING_JAEGER_NAME
             value: {{ include "optics-agent.fullname" . }}-kathy
+          {{- end }}
         resources:
           {{- toYaml .Values.optics.kathy.resources | nindent 10 }}
         volumeMounts:
