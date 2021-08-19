@@ -99,7 +99,7 @@ jobs:
       # Lint
       - name: Lint
         run: |
-          cd ./optics-core
+          cd ./solidity/optics-core
           npm run lint
           cd ../optics-xapps
           npm run lint
