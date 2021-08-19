@@ -26,11 +26,11 @@ jobs:
         with:
           path: |
             ~/.npm
-            ./optics-core/node_modules
-            ./optics-xapps/node_modules
-            ../typescript/optics-tests
-            ../typescript/optics-deploy
-            ../typescript/typechain
+            ./solidity/optics-core/node_modules
+            ./solidity/optics-xapps/node_modules
+            ./typescript/optics-tests
+            ./typescript/optics-deploy
+            ./typescript/typechain
           key: test2
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
@@ -62,11 +62,11 @@ jobs:
         with:
           path: |
             ~/.npm
-            ./optics-core/node_modules
-            ./optics-xapps/node_modules
-            ../typescript/optics-tests
-            ../typescript/optics-deploy
-            ../typescript/typechain
+            ./solidity/optics-core/node_modules
+            ./solidity/optics-xapps/node_modules
+            ./typescript/optics-tests
+            ./typescript/optics-deploy
+            ./typescript/typechain
           key: test2
 
       - name: Install
