@@ -55,6 +55,7 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     "timestamp()": FunctionFragment;
     "update(bytes32,bytes32,bytes)": FunctionFragment;
     "updater()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -274,6 +275,7 @@ interface TestReplicaInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "PROCESS_GAS",
@@ -366,6 +368,7 @@ interface TestReplicaInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "timestamp", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "update", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
@@ -655,6 +658,8 @@ export class TestReplica extends BaseContract {
     ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[number]>;
   };
 
   PROCESS_GAS(overrides?: CallOverrides): Promise<BigNumber>;
@@ -881,6 +886,8 @@ export class TestReplica extends BaseContract {
 
   updater(overrides?: CallOverrides): Promise<string>;
 
+  version(overrides?: CallOverrides): Promise<number>;
+
   callStatic: {
     PROCESS_GAS(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1103,6 +1110,8 @@ export class TestReplica extends BaseContract {
     ): Promise<void>;
 
     updater(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {
@@ -1384,6 +1393,8 @@ export class TestReplica extends BaseContract {
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1622,5 +1633,7 @@ export class TestReplica extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

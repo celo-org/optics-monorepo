@@ -10,6 +10,8 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract BridgeToken is IBridgeToken, OwnableUpgradeable, ERC20 {
+    /// @notice Version of the contract
+    uint8 public constant version = 0;
     // Immutables used in EIP 712 structured data hashing & signing
     // https://eips.ethereum.org/EIPS/eip-712
     bytes32 public immutable _PERMIT_TYPEHASH =

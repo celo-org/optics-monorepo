@@ -17,6 +17,9 @@ contract GovernanceRouter is Initializable, IMessageRecipient {
     using TypedMemView for bytes29;
     using GovernanceMessage for bytes29;
 
+    /// @notice Version of the contract
+    uint8 public constant version = 0;
+
     uint32 public immutable localDomain;
     uint256 public immutable recoveryTimelock; // number of seconds before recovery can be activated
 

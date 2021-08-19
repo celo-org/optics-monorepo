@@ -44,6 +44,7 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     "testSetRouter(uint32,bytes32)": FunctionFragment;
     "transferGovernor(uint32,address)": FunctionFragment;
     "transferRecoveryManager(address)": FunctionFragment;
+    "version()": FunctionFragment;
     "xAppConnectionManager()": FunctionFragment;
   };
 
@@ -136,6 +137,7 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "transferRecoveryManager",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "xAppConnectionManager",
     values?: undefined
@@ -206,6 +208,7 @@ interface TestGovernanceRouterInterface extends ethers.utils.Interface {
     functionFragment: "transferRecoveryManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "xAppConnectionManager",
     data: BytesLike
@@ -365,6 +368,8 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[number]>;
+
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -463,6 +468,8 @@ export class TestGovernanceRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<number>;
+
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
@@ -556,6 +563,8 @@ export class TestGovernanceRouter extends BaseContract {
       _newRecoveryManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<number>;
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
   };
@@ -702,6 +711,8 @@ export class TestGovernanceRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -806,6 +817,8 @@ export class TestGovernanceRouter extends BaseContract {
       _newRecoveryManager: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     xAppConnectionManager(
       overrides?: CallOverrides

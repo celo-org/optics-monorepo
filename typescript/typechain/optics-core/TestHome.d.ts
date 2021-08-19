@@ -50,6 +50,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     "update(bytes32,bytes32,bytes)": FunctionFragment;
     "updater()": FunctionFragment;
     "updaterManager()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -135,6 +136,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "updaterManager",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "MAX_MESSAGE_BODY_BYTES",
@@ -210,6 +212,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "updaterManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "Dispatch(uint256,uint64,bytes32,bytes32,bytes)": EventFragment;
@@ -381,6 +384,8 @@ export class TestHome extends BaseContract {
     updater(overrides?: CallOverrides): Promise<[string]>;
 
     updaterManager(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[number]>;
   };
 
   MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
@@ -484,6 +489,8 @@ export class TestHome extends BaseContract {
 
   updaterManager(overrides?: CallOverrides): Promise<string>;
 
+  version(overrides?: CallOverrides): Promise<number>;
+
   callStatic: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -581,6 +588,8 @@ export class TestHome extends BaseContract {
     updater(overrides?: CallOverrides): Promise<string>;
 
     updaterManager(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {
@@ -761,6 +770,8 @@ export class TestHome extends BaseContract {
     updater(overrides?: CallOverrides): Promise<BigNumber>;
 
     updaterManager(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -872,5 +883,7 @@ export class TestHome extends BaseContract {
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     updaterManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

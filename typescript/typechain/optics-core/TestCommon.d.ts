@@ -32,6 +32,7 @@ interface TestCommonInterface extends ethers.utils.Interface {
     "state()": FunctionFragment;
     "testIsUpdaterSignature(bytes32,bytes32,bytes)": FunctionFragment;
     "updater()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "current", values?: undefined): string;
@@ -63,6 +64,7 @@ interface TestCommonInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
   decodeFunctionResult(
@@ -93,6 +95,7 @@ interface TestCommonInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
@@ -185,6 +188,8 @@ export class TestCommon extends BaseContract {
     ): Promise<[boolean]>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[number]>;
   };
 
   current(overrides?: CallOverrides): Promise<string>;
@@ -223,6 +228,8 @@ export class TestCommon extends BaseContract {
 
   updater(overrides?: CallOverrides): Promise<string>;
 
+  version(overrides?: CallOverrides): Promise<number>;
+
   callStatic: {
     current(overrides?: CallOverrides): Promise<string>;
 
@@ -259,6 +266,8 @@ export class TestCommon extends BaseContract {
     ): Promise<boolean>;
 
     updater(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {
@@ -332,6 +341,8 @@ export class TestCommon extends BaseContract {
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -373,5 +384,7 @@ export class TestCommon extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

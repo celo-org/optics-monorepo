@@ -30,6 +30,7 @@ interface CommonInterface extends ethers.utils.Interface {
     "queueLength()": FunctionFragment;
     "state()": FunctionFragment;
     "updater()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "current", values?: undefined): string;
@@ -56,6 +57,7 @@ interface CommonInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
   decodeFunctionResult(
@@ -81,6 +83,7 @@ interface CommonInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
@@ -161,6 +164,8 @@ export class Common extends BaseContract {
     state(overrides?: CallOverrides): Promise<[number]>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[number]>;
   };
 
   current(overrides?: CallOverrides): Promise<string>;
@@ -186,6 +191,8 @@ export class Common extends BaseContract {
   state(overrides?: CallOverrides): Promise<number>;
 
   updater(overrides?: CallOverrides): Promise<string>;
+
+  version(overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
     current(overrides?: CallOverrides): Promise<string>;
@@ -214,6 +221,8 @@ export class Common extends BaseContract {
     state(overrides?: CallOverrides): Promise<number>;
 
     updater(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {
@@ -275,6 +284,8 @@ export class Common extends BaseContract {
     state(overrides?: CallOverrides): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -304,5 +315,7 @@ export class Common extends BaseContract {
     state(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

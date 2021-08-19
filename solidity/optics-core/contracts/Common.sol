@@ -18,6 +18,8 @@ abstract contract Common is QueueManager {
         FAILED
     }
 
+    /// @notice Version of the contract
+    uint8 public constant version = 0;
     /// @notice Domain of owning contract
     uint32 public immutable localDomain;
     /// @notice Address of bonded updater

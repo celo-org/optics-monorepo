@@ -23,6 +23,8 @@ contract BridgeRouter is Router, TokenRegistry {
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
+    /// @notice Version of the contract
+    uint8 public constant version = 0;
     /// @notice 5 bps (0.05%) hardcoded fee. Can be changed by contract upgrade
     uint256 public constant PRE_FILL_FEE_NUMERATOR = 9995;
     uint256 public constant PRE_FILL_FEE_DENOMINATOR = 10000;
