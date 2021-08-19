@@ -24,8 +24,14 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: ~/.npm
-          key: test
+          path: |
+            ~/.npm
+            ./optics-core/node_modules
+            ./optics-xapps/node_modules
+            ../typescript/optics-tests
+            ../typescript/optics-deploy
+            ../typescript/typechain
+          key: test2
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -54,8 +60,14 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: ~/.npm
-          key: test
+          path: |
+            ~/.npm
+            ./optics-core/node_modules
+            ./optics-xapps/node_modules
+            ../typescript/optics-tests
+            ../typescript/optics-deploy
+            ../typescript/typechain
+          key: test2
 
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
@@ -91,8 +103,14 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: ~/.npm
-          key: test
+          path: |
+            ~/.npm
+            ./solidity/optics-core/node_modules
+            ./solidity/optics-xapps/node_modules
+            ./typescript/optics-tests
+            ./typescript/optics-deploy
+            ./typescript/typechain
+          key: test2
 
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
