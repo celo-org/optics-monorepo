@@ -96,20 +96,17 @@ impl SignerConf {
         match self {
             SignerConf::HexKey { key } => Ok(Signers::Local(key.as_ref().parse()?)),
             SignerConf::Aws { id, region } => {
-                let client = rusoto_core::Client::new_with(
-                    EnvironmentProvider::default(),
-                    HttpClient::new().unwrap(),
-                );
-                if KMS_CLIENT
-                    .set(KmsClient::new_with_client(
-                        client,
+                let client = KMS_CLIENT.get_or_init(|| {
+                    KmsClient::new_with_client(
+                        rusoto_core::Client::new_with(
+                            EnvironmentProvider::default(),
+                            HttpClient::new().unwrap(),
+                        ),
                         region.parse().expect("invalid region"),
-                    ))
-                    .is_err()
-                {
-                    panic!("couldn't set cell")
-                }
-                let signer = AwsSigner::new(KMS_CLIENT.get().unwrap(), id, 0).await?;
+                    )
+                });
+
+                let signer = AwsSigner::new(client, id, 0).await?;
                 Ok(Signers::Aws(signer))
             }
             SignerConf::Node => bail!("Node signer"),
