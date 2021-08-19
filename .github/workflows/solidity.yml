@@ -14,75 +14,89 @@ jobs:
   install:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./solidity
-
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: cache
+      # Save caches individually
+      - name: Core Cache
+        id: core-cache
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/.npm
-            ./solidity/optics-core/node_modules
-            ./solidity/optics-xapps/node_modules
-            ./typescript/optics-tests
-            ./typescript/optics-deploy
-            ./typescript/typechain
-          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
-      - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd ./optics-core
-          npm i
-          cd ../optics-xapps
-          npm i
-          cd ../../typescript/optics-tests
-          npm i
-          cd ../optics-deploy
-          npm i
-          cd ../typechain
-          npm i
+          path: ./solidity/optics-core/node_modules
+          key: ${{ runner.os }}-core-cache-${{ hashFiles('solidity/optics-core/package-lock.json') }}
+
+      - name: XApps Cache
+        id: xapps-cache
+        uses: actions/cache@v2
+        with:
+          path: ./solidity/optics-xapps/node_modules
+          key: ${{ runner.os }}-xapps-cache-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}
+
+      - name: Tests Cache
+        id: tests-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-tests/node_modules
+          key: ${{ runner.os }}-tests-cache-${{ hashFiles('typescript/optics-tests/package-lock.json') }}
+
+      - name: Deploy Cache
+        id: deploy-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-deploy/node_modules
+          key: ${{ runner.os }}-deploy-cache-${{ hashFiles('typescript/optics-deploy/package-lock.json') }}
+
+      - name: Typechain Cache
+        id: typechain-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/typechain/node_modules
+          key: ${{ runner.os }}-typechain-cache-${{ hashFiles('typescript/typechain/package-lock.json') }}
+
+      # Install separately depending on cache hit
+      - name: Install Core
+        if: steps.core-cache.outputs.cache-hit != 'true'
+        run: cd ./solidity/optics-core && npm i
+
+      - name: Install XApps
+        if: steps.xapps-cache.outputs.cache-hit != 'true'
+        run: cd ./solidity/optics-xapps && npm i
+
+      - name: Install Tests
+        if: steps.tests-cache.outputs.cache-hit != 'true'
+        run: cd ./typescript/optics-tests && npm i
+
+      - name: Install Deploy
+        if: steps.deploy-cache.outputs.cache-hit != 'true'
+        run: cd ./typescript/optics-deploy && npm i
+
+      - name: Install Typechain
+        if: steps.typechain-cache.outputs.cache-hit != 'true'
+        run: cd ./typescript/typechain && npm i
 
   lint:
     runs-on: ubuntu-latest
     needs: [install]
 
-    defaults:
-      run:
-        working-directory: ./solidity
-
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: cache
+      # Get cache for Core and XApps
+      - name: Core Cache
+        id: core-cache
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/.npm
-            ./solidity/optics-core/node_modules
-            ./solidity/optics-xapps/node_modules
-            ./typescript/optics-tests
-            ./typescript/optics-deploy
-            ./typescript/typechain
-          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
+          path: ./solidity/optics-core/node_modules
+          key: ${{ runner.os }}-core-cache-${{ hashFiles('solidity/optics-core/package-lock.json') }}
 
-      - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd ./optics-core
-          npm i
-          cd ../optics-xapps
-          npm i
-          cd ../../typescript/optics-tests
-          npm i
-          cd ../optics-deploy
-          npm i
-          cd ../typechain
-          npm i
+      - name: XApps Cache
+        id: xapps-cache
+        uses: actions/cache@v2
+        with:
+          path: ./solidity/optics-xapps/node_modules
+          key: ${{ runner.os }}-xapps-cache-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}
 
+      # Lint
       - name: Lint
         run: |
           cd ./optics-core
@@ -100,32 +114,43 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: cache
+      # Get caches
+      - name: Core Cache
+        id: core-cache
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/.npm
-            ./solidity/optics-core/node_modules
-            ./solidity/optics-xapps/node_modules
-            ./typescript/optics-tests
-            ./typescript/optics-deploy
-            ./typescript/typechain
-          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
+          path: ./solidity/optics-core/node_modules
+          key: ${{ runner.os }}-core-cache-${{ hashFiles('solidity/optics-core/package-lock.json') }}
 
-      - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd ./solidity/optics-core
-          npm i
-          cd ../optics-xapps
-          npm i
-          cd ../../typescript/optics-tests
-          npm i
-          cd ../optics-deploy
-          npm i
-          cd ../typechain
-          npm i
+      - name: XApps Cache
+        id: xapps-cache
+        uses: actions/cache@v2
+        with:
+          path: ./solidity/optics-xapps/node_modules
+          key: ${{ runner.os }}-xapps-cache-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}
 
+      - name: Tests Cache
+        id: tests-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-tests/node_modules
+          key: ${{ runner.os }}-tests-cache-${{ hashFiles('typescript/optics-tests/package-lock.json') }}
+
+      - name: Deploy Cache
+        id: deploy-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-deploy/node_modules
+          key: ${{ runner.os }}-deploy-cache-${{ hashFiles('typescript/optics-deploy/package-lock.json') }}
+
+      - name: Typechain Cache
+        id: typechain-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/typechain/node_modules
+          key: ${{ runner.os }}-typechain-cache-${{ hashFiles('typescript/typechain/package-lock.json') }}
+
+      # Test
       - name: Test
         run: ./scripts/test-solidity.sh
 
