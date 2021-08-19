@@ -31,7 +31,7 @@ jobs:
             ./typescript/optics-tests
             ./typescript/optics-deploy
             ./typescript/typechain
-          key: test2
+          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -67,7 +67,7 @@ jobs:
             ./typescript/optics-tests
             ./typescript/optics-deploy
             ./typescript/typechain
-          key: test2
+          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
 
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
@@ -110,7 +110,7 @@ jobs:
             ./typescript/optics-tests
             ./typescript/optics-deploy
             ./typescript/typechain
-          key: test2
+          key: ${{ runner.os }}-node-${{ hashFiles('solidity/optics-core/package-lock.json') }}-${{ hashFiles('solidity/optics-xapps/package-lock.json') }}-${{ hashFiles('typescript/optics-tests') }}-${{ hashFiles('typescript/optics-deploy') }}-${{ hashFiles('typescript/typechain') }}
 
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
