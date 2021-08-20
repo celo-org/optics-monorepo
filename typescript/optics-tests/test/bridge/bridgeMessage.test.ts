@@ -70,5 +70,5 @@ describe('BridgeMessage', async () => {
       }
     }
     detailsMessage = bridge.serializeMessage(detailsObj);
-  })
+  });
 });
