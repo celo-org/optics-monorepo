@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { BigNumber, BytesLike } from 'ethers';
 import { ethers, bridge } from 'hardhat';
-const { BridgeMessageTypes, typeToByte } = bridge;
+const { BridgeMessageTypes } = bridge;
 
 import * as types from '../../lib/types';
 import { toBytes32 } from '../../lib/utils';
@@ -71,7 +71,7 @@ describe('BridgeRouter', async () => {
     });
 
     describe('remotely-originating asset roundtrup', async () => {
-      let transferMessage: string;
+      let transferMessage: BytesLike;
       let repr: IERC20;
 
       before(async () => {
