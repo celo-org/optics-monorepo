@@ -54,8 +54,10 @@ jobs:
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
-      - name: Lint
+      - name: Rustfmt
         run: cd rust && cargo fmt -- --check
+      - name: Clippy
+        run: cd rust && cargo clippy -- -D warnings
 
   complete:
     runs-on: ubuntu-latest
