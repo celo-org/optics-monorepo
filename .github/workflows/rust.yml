@@ -47,7 +47,10 @@ jobs:
           working-directory: ./rust
 
       - name: Clippy
-        run: cd rust && cargo clippy -- -D warnings
+        run: |
+          cd rust
+          rustup component add clippy
+          cargo clippy -- -D warnings
       - name: Lint
         run: cd rust && cargo fmt -- --check
 
