@@ -3,6 +3,7 @@ use crate::{
         merkle::{merkle_root_from_branch, MerkleTree},
         TREE_DEPTH,
     },
+    test_utils::find_vector,
     utils::{destination_and_sequence, home_domain_hash},
     FailureNotification, OpticsMessage, Update,
 };
@@ -52,7 +53,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/message.json")
+            .open(find_vector("message.json"))
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -89,7 +90,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/proof.json")
+            .open(find_vector("proof.json"))
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -113,7 +114,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/homeDomainHash.json")
+            .open(find_vector("homeDomainHash.json"))
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -139,7 +140,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open("../../vectors/destinationSequence.json")
+            .open(find_vector("destinationSequence.json"))
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
@@ -182,7 +183,7 @@ pub mod output_functions {
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open("../../vectors/signedUpdate.json")
+                .open(find_vector("signedUpdate.json"))
                 .expect("Failed to open/create file");
 
             file.write_all(json.as_bytes())
@@ -232,7 +233,7 @@ pub mod output_functions {
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open("../../vectors/signedFailure.json")
+                .open(find_vector("signedFailure.json"))
                 .expect("Failed to open/create file");
 
             file.write_all(json.as_bytes())

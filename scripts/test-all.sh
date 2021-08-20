@@ -6,6 +6,8 @@ set -xe
 
 # update ABIs
 (
+    cd ./solidity
+
     echo "+Lint and compile core"
     cd ./optics-core
     npm run lint
