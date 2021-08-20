@@ -5,6 +5,7 @@ import "../BridgeMessage.sol";
 
 // ============ External Imports ============
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+import "hardhat/console.sol";
 
 contract TestBridgeMessage {
     using BridgeMessage for bytes29;
@@ -28,12 +29,12 @@ contract TestBridgeMessage {
         _;
     }
 
-    function testIsValidAction(bytes29 _action) external pure returns (bool) {
-        // return
-        //     isDetails(_action) ||
-        //     isRequestDetails(_action) ||
-        //     isTransfer(_action);
-        return BridgeMessage.isValidAction(_action);
+    function testIsValidAction(bytes memory _action, BridgeMessage.Types _t)
+        external
+        view
+        returns (bool)
+    {
+        return BridgeMessage.isValidAction(_action.ref(uint40(_t)));
     }
 
     function testIsValidMessageLength(bytes29 _view)

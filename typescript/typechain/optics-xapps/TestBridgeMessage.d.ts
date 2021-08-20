@@ -36,7 +36,7 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testIsDetails(bytes29)": FunctionFragment;
     "testIsRequestDetails(bytes29)": FunctionFragment;
     "testIsTransfer(bytes29)": FunctionFragment;
-    "testIsValidAction(bytes29)": FunctionFragment;
+    "testIsValidAction(bytes,uint8)": FunctionFragment;
     "testIsValidMessageLength(bytes29)": FunctionFragment;
     "testMessageType(bytes29)": FunctionFragment;
     "testMsgType(bytes29)": FunctionFragment;
@@ -116,7 +116,7 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "testIsValidAction",
-    values: [BytesLike]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "testIsValidMessageLength",
@@ -428,6 +428,7 @@ export class TestBridgeMessage extends BaseContract {
 
     testIsValidAction(
       _action: BytesLike,
+      _t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -589,6 +590,7 @@ export class TestBridgeMessage extends BaseContract {
 
   testIsValidAction(
     _action: BytesLike,
+    _t: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -741,6 +743,7 @@ export class TestBridgeMessage extends BaseContract {
 
     testIsValidAction(
       _action: BytesLike,
+      _t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -914,6 +917,7 @@ export class TestBridgeMessage extends BaseContract {
 
     testIsValidAction(
       _action: BytesLike,
+      _t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1090,6 +1094,7 @@ export class TestBridgeMessage extends BaseContract {
 
     testIsValidAction(
       _action: BytesLike,
+      _t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

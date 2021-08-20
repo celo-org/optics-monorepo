@@ -1,7 +1,7 @@
 import { ethers, bridge } from 'hardhat';
 const { BridgeMessageTypes } = bridge;
 import { BytesLike } from 'ethers';
-// import { expect } from 'chai';
+import { expect } from 'chai';
 // import { Wallet } from 'ethers';
 
 // import { Signer } from '../../lib/types';
@@ -29,8 +29,14 @@ describe('BridgeMessage', async () => {
   const deployerId = toBytes32(await deployer.getAddress()).toLowerCase();
   const TOKEN_VALUE = 0xffff;
 
-  let transferMessage: BytesLike, requestDetails: BytesLike, detailsMessage: BytesLike;
-  let deploy: TestBridgeDeploy;
+  let
+    deploy: TestBridgeDeploy,
+    transferAction: types.TransferAction,
+    detailsAction: types.DetailsAction,
+    requestDetailsAction: types.RequestDetailsAction,
+    transferMessage: BytesLike,
+    requestDetails: BytesLike,
+    detailsMessage: BytesLike
 
   before(async () => {
     const [signer] = await ethers.getSigners();
@@ -39,16 +45,18 @@ describe('BridgeMessage', async () => {
     bridgeMessage = await bridgeMessageFactory.deploy();
     deploy = await TestBridgeDeploy.deploy(deployer);
 
+    transferAction = {
+      type: BridgeMessageTypes.TRANSFER,
+      recipient: deployerId,
+      amount: TOKEN_VALUE
+    }
     const transferMessageObj: types.Message = {
       tokenId: deploy.testTokenId,
-      action: {
-        type: BridgeMessageTypes.TRANSFER,
-        recipient: deployerId,
-        amount: TOKEN_VALUE
-      }
+      action: transferAction
     }
     transferMessage = bridge.serializeMessage(transferMessageObj);
 
+    requestDetailsAction = { type: BridgeMessageTypes.REQUEST_DETAILS };
     const requestDetailsObj: types.Message = {
       tokenId: deploy.testTokenId,
       action: {
@@ -57,18 +65,44 @@ describe('BridgeMessage', async () => {
     }
     requestDetails = bridge.serializeMessage(requestDetailsObj);
 
-    const TEST_NAME = 'TEST TOKEN';
-    const TEST_SYMBOL = 'TEST';
-    const TEST_DECIMALS = 8;
+    detailsAction = {
+      type: BridgeMessageTypes.DETAILS,
+      name: stringToBytes32('TEST TOKEN'),
+      symbol: stringToBytes32('TEST'),
+      decimal: 8
+    }
     const detailsObj: types.Message = {
       tokenId: deploy.testTokenId,
-      action: {
-        type: BridgeMessageTypes.DETAILS,
-        name: stringToBytes32(TEST_NAME),
-        symbol: stringToBytes32(TEST_SYMBOL),
-        decimal: TEST_DECIMALS
-      }
+      action: detailsAction
     }
     detailsMessage = bridge.serializeMessage(detailsObj);
+  });
+
+  it('validates actions', async () => {
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const requestDeets = bridge.serializeRequestDetailsAction(requestDetailsAction);
+
+    const invalidAction = "0x00";
+    const invalidActionLen = "0x0300"
+
+    // transfer message is valid
+    let isAction = await bridgeMessage.testIsValidAction(transfer, BridgeMessageTypes.TRANSFER);
+    expect(isAction).to.be.true;
+    // details message is valid
+    isAction = await bridgeMessage.testIsValidAction(details, BridgeMessageTypes.DETAILS);
+    expect(isAction).to.be.true;
+    // request details message is valid
+    isAction = await bridgeMessage.testIsValidAction(requestDeets, BridgeMessageTypes.REQUEST_DETAILS);
+    expect(isAction).to.be.true;
+    // not a valid message type
+    isAction = await bridgeMessage.testIsValidAction(transfer, BridgeMessageTypes.INVALID);
+    expect(isAction).to.be.false;
+    // not a valid action type
+    isAction = await bridgeMessage.testIsValidAction(invalidAction, BridgeMessageTypes.TRANSFER);
+    expect(isAction).to.be.false;
+    // invalid length
+    isAction = await bridgeMessage.testIsValidAction(invalidActionLen, BridgeMessageTypes.TRANSFER);
+    expect(isAction).to.be.false;
   });
 });
