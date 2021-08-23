@@ -35,6 +35,7 @@ Common labels
 */}}
 {{- define "optics-agent.labels" -}}
 helm.sh/chart: {{ include "optics-agent.chart" . }}
+optics/deployment: {{ .Values.optics.runEnv | quote }}
 {{ include "optics-agent.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
