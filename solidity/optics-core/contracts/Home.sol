@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
+import {Version0} from "./Version0.sol";
 import {Common} from "./Common.sol";
 import {QueueLib} from "../libs/Queue.sol";
 import {MerkleLib} from "../libs/Merkle.sol";
@@ -18,7 +19,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
  * @notice Contract responsible for managing production of the message tree and
  * holding custody of the updater bond.
  */
-contract Home is MerkleTreeManager, Common, OwnableUpgradeable {
+contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
 

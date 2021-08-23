@@ -2,6 +2,7 @@
 pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
+import {Version0} from "./Version0.sol";
 import {Common} from "./Common.sol";
 import {MerkleLib} from "../libs/Merkle.sol";
 import {QueueLib} from "../libs/Queue.sol";
@@ -16,7 +17,7 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * @notice Contract responsible for tracking root updates on home,
  * and dispatching messages on Replica to end recipients.
  */
-contract Replica is Common {
+contract Replica is Version0, Common {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;

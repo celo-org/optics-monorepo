@@ -4,12 +4,12 @@ pragma solidity >=0.6.11;
 // ============ Internal Imports ============
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {ERC20} from "./vendored/OZERC20.sol";
-
 // ============ External Imports ============
+import {Version0} from "@celo-org/optics-sol/contracts/Version0.sol";
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract BridgeToken is IBridgeToken, OwnableUpgradeable, ERC20 {
+contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
     // Immutables used in EIP 712 structured data hashing & signing
     // https://eips.ethereum.org/EIPS/eip-712
     bytes32 public immutable _PERMIT_TYPEHASH =
