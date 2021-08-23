@@ -52,9 +52,6 @@ contract Replica is Version0, Common {
     /// @notice Number of seconds to wait before enqueued root becomes confirmable
     uint256 public optimisticSeconds;
 
-    /// @notice Index of last processed message's leaf in home's merkle tree
-    uint32 public nextToProcess;
-
     /// @notice Mapping of enqueued roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
 
@@ -80,8 +77,7 @@ contract Replica is Version0, Common {
         uint32 _remoteDomain,
         address _updater,
         bytes32 _current,
-        uint256 _optimisticSeconds,
-        uint32 _nextToProcess
+        uint256 _optimisticSeconds
     ) public initializer {
         __Common_initialize(_updater);
 
@@ -90,7 +86,6 @@ contract Replica is Version0, Common {
         current = _current;
         confirmAt[_current] = 1;
         optimisticSeconds = _optimisticSeconds;
-        nextToProcess = _nextToProcess;
     }
 
     /**
@@ -229,7 +224,6 @@ contract Replica is Version0, Common {
 
         // update the status and next to process
         messages[_messageHash] = MessageStatus.Processed;
-        nextToProcess = _sequence + 1;
 
         // NB:
         // A call running out of gas TYPICALLY errors the whole tx. We want to

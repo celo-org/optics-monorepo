@@ -223,7 +223,6 @@ export async function deployUnenrolledReplica(
     remote.config.updater,
     ethers.constants.HashZero, // TODO: allow configuration
     remote.config.optimisticSeconds,
-    0, // TODO: allow configuration
   ]);
 
   // if we have no replicas, deploy the whole setup.

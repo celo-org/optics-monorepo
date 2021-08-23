@@ -275,11 +275,6 @@
         "internalType": "uint256",
         "name": "_optimisticSeconds",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "_nextToProcess",
-        "type": "uint32"
       }
     ],
     "name": "initialize",
@@ -332,19 +327,6 @@
         "internalType": "uint256",
         "name": "_confirmAt",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextToProcess",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
       }
     ],
     "stateMutability": "view",

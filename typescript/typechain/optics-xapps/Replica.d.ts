@@ -30,11 +30,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
     "current()": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
-    "initialize(uint32,address,bytes32,uint256,uint32)": FunctionFragment;
+    "initialize(uint32,address,bytes32,uint256)": FunctionFragment;
     "localDomain()": FunctionFragment;
     "messages(bytes32)": FunctionFragment;
     "nextPending()": FunctionFragment;
-    "nextToProcess()": FunctionFragment;
     "optimisticSeconds()": FunctionFragment;
     "process(bytes)": FunctionFragment;
     "prove(bytes32,bytes32[32],uint256)": FunctionFragment;
@@ -80,7 +79,7 @@ interface ReplicaInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [BigNumberish, string, BytesLike, BigNumberish, BigNumberish]
+    values: [BigNumberish, string, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "localDomain",
@@ -89,10 +88,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "messages", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "nextPending",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "nextToProcess",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -237,10 +232,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nextToProcess",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "optimisticSeconds",
     data: BytesLike
   ): Result;
@@ -358,7 +349,6 @@ export class Replica extends BaseContract {
       _updater: string,
       _current: BytesLike,
       _optimisticSeconds: BigNumberish,
-      _nextToProcess: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -371,8 +361,6 @@ export class Replica extends BaseContract {
     ): Promise<
       [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
     >;
-
-    nextToProcess(overrides?: CallOverrides): Promise<[number]>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -515,7 +503,6 @@ export class Replica extends BaseContract {
     _updater: string,
     _current: BytesLike,
     _optimisticSeconds: BigNumberish,
-    _nextToProcess: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -526,8 +513,6 @@ export class Replica extends BaseContract {
   nextPending(
     overrides?: CallOverrides
   ): Promise<[string, BigNumber] & { _pending: string; _confirmAt: BigNumber }>;
-
-  nextToProcess(overrides?: CallOverrides): Promise<number>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -668,7 +653,6 @@ export class Replica extends BaseContract {
       _updater: string,
       _current: BytesLike,
       _optimisticSeconds: BigNumberish,
-      _nextToProcess: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -681,8 +665,6 @@ export class Replica extends BaseContract {
     ): Promise<
       [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
     >;
-
-    nextToProcess(overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -877,7 +859,6 @@ export class Replica extends BaseContract {
       _updater: string,
       _current: BytesLike,
       _optimisticSeconds: BigNumberish,
-      _nextToProcess: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -886,8 +867,6 @@ export class Replica extends BaseContract {
     messages(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     nextPending(overrides?: CallOverrides): Promise<BigNumber>;
-
-    nextToProcess(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1037,7 +1016,6 @@ export class Replica extends BaseContract {
       _updater: string,
       _current: BytesLike,
       _optimisticSeconds: BigNumberish,
-      _nextToProcess: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1049,8 +1027,6 @@ export class Replica extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     nextPending(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    nextToProcess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
