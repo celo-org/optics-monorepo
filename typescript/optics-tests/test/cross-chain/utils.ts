@@ -160,7 +160,7 @@ export async function formatOpticsMessage(
   destinationRouter: TestGovernanceRouter,
   message: string,
 ): Promise<string> {
-  const sequence = await replica.nextToProcess();
+  const sequence = 0;
   const governorDomain = await governorRouter.localDomain();
   const destinationDomain = await destinationRouter.localDomain();
 

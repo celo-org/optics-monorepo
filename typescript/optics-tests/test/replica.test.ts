@@ -76,7 +76,6 @@ describe('Replica', async () => {
       deploys[0].config.updater,
       ethers.constants.HashZero,
       deploys[0].config.optimisticSeconds,
-      0,
     ]);
 
     await expect(
@@ -314,7 +313,7 @@ describe('Replica', async () => {
     const testRecipientFactory = new contracts.TestRecipient__factory(signer);
     const testRecipient = await testRecipientFactory.deploy();
 
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
@@ -335,12 +334,11 @@ describe('Replica', async () => {
     await expect(processTx)
       .to.emit(replica, 'ProcessSuccess')
       .withArgs(optics.messageToLeaf(opticsMessage));
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 
   it('Fails to process an unproved message', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -363,7 +361,7 @@ describe('Replica', async () => {
       const factory = new badRecipientFactories[i](signer);
       const badRecipient = await factory.deploy();
 
-      const sequence = await replica.nextToProcess();
+      const sequence = 0;
       const opticsMessage = optics.formatMessage(
         remoteDomain,
         sender.address,
@@ -376,13 +374,12 @@ describe('Replica', async () => {
       // Set message status to MessageStatus.Pending
       await replica.setMessagePending(opticsMessage);
       await replica.process(opticsMessage);
-      expect(await replica.nextToProcess()).to.equal(sequence + 1);
     });
   }
 
   it('Fails to process message with wrong destination Domain', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -401,7 +398,7 @@ describe('Replica', async () => {
   });
 
   it('Processes message sent to a non-existent contract address', async () => {
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -420,7 +417,7 @@ describe('Replica', async () => {
 
   it('Fails to process an undergased transaction', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
@@ -447,7 +444,7 @@ describe('Replica', async () => {
     const factory = new contracts.BadRecipientHandle__factory(recipient);
     const testRecipient = await factory.deploy();
 
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
@@ -470,7 +467,7 @@ describe('Replica', async () => {
     const testRecipientFactory = new contracts.TestRecipient__factory(signer);
     const testRecipient = await testRecipientFactory.deploy();
 
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
 
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
@@ -504,12 +501,11 @@ describe('Replica', async () => {
     expect(await replica.messages(messageLeaf)).to.equal(
       MessageStatus.PROCESSED,
     );
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 
   it('Has proveAndProcess fail if prove fails', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
 
     // Use 1st proof of 1st merkle vector test case
     const testCase = merkleTestCases[0];

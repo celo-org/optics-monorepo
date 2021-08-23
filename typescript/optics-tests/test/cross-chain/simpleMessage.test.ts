@@ -173,7 +173,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
-    const sequence = await replica.nextToProcess();
+    const sequence = 0;
     const opticsMessage = optics.formatMessage(
       1000,
       governorRouter.address,
@@ -201,6 +201,5 @@ describe('SimpleCrossChainMessage', async () => {
     // expect call to have been processed
     expect(await TestRecipient.processed()).to.be.true;
     expect(await replica.messages(leaf)).to.equal(MessageStatus.PROCESSED);
-    expect(await replica.nextToProcess()).to.equal(sequence + 1);
   });
 });
