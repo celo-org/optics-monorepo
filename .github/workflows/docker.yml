@@ -1,0 +1,22 @@
+name: Push to GCR GitHub Action
+on:
+  push:
+    tags:
+    - '*'
+jobs:
+  build-and-push-to-gcr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get the version
+        id: get_tag_name
+        run: echo ::set-output name=GIT_TAG_NAME::${GITHUB_REF/refs\/tags\//}
+      - uses: RafikFarhad/push-to-gcr-github-action@v3.0.2
+        with:
+          gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+          registry: gcr.io
+          project_id: clabs-optics
+          image_name: optics-agent
+          image_tag: ${{ steps.get_tag_name.outputs.GIT_TAG_NAME}}
+          dockerfile: ./rust/Dockerfile
+          context: ./rust

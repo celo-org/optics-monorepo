@@ -76,7 +76,7 @@ optics:
         enabled: false
         name: ""
     resources: {}
-    # -- Trnsaction Signing keys for home and replica(s)
+    # -- Transaction Signing keys for home and replica(s)
     transactionSigners:
       - name: "kovan"
         hexKey: ""
@@ -88,7 +88,7 @@ optics:
         aws:
           keyId: ""
           region: ""
-    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.keys
+    # -- Specialized key used by updater and watcher used to sign attestations, separate from updater.transactionSigners
     attestationSigner:
       hexKey: ""
       aws:
