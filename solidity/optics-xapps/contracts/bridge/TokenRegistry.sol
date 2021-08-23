@@ -6,7 +6,6 @@ import {BridgeMessage} from "./BridgeMessage.sol";
 import {Encoding} from "./Encoding.sol";
 import {IBridgeToken} from "../../interfaces/bridge/IBridgeToken.sol";
 import {XAppConnectionClient} from "../XAppConnectionClient.sol";
-
 // ============ External Imports ============
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 import {UpgradeBeaconProxy} from "@celo-org/optics-sol/contracts/upgrade/UpgradeBeaconProxy.sol";
