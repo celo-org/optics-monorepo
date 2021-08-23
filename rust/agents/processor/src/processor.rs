@@ -93,7 +93,7 @@ impl ReplicaProcessor {
             //      - If not, wait and poll again
             // 4. Check if the proof is valid under the replica
             // 5. Submit the proof to the replica
-            let mut sequence = self.replica.next_to_process().await?;
+            let mut sequence = 0;
             loop {
                 info!(
                     "Next to process for replica {} is {}",
@@ -158,7 +158,7 @@ impl ReplicaProcessor {
                     domain, sequence
                 );
                 self.process(message, proof).await?;
-                sequence = self.replica.next_to_process().await?;
+                sequence += 1;
                 sleep(Duration::from_secs(self.interval)).await;
             }
         }.in_current_span())

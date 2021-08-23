@@ -100,10 +100,6 @@ impl Replica for MockReplicaContract {
         self._confirm()
     }
 
-    async fn next_to_process(&self) -> Result<u32, ChainCommunicationError> {
-        self._next_to_process()
-    }
-
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         self._prove(proof)
     }

@@ -214,11 +214,6 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn next_to_process(&self) -> Result<u32, ChainCommunicationError> {
-        Ok(self.contract.next_to_process().call().await?)
-    }
-
-    #[tracing::instrument(err)]
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();
         sol_proof

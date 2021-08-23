@@ -36,9 +36,6 @@ pub trait Replica: Common + Send + Sync + std::fmt::Debug {
     /// Confirm the next pending root (after its timer has elapsed);
     async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError>;
 
-    /// Fetch the last processed sequence number
-    async fn next_to_process(&self) -> Result<u32, ChainCommunicationError>;
-
     /// Dispatch a transaction to prove inclusion of some leaf in the replica.
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError>;
 
