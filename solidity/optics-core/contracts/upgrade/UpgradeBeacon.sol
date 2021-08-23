@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.6.11;
 
-import "@openzeppelin/contracts/utils/Address.sol";
+// ============ External Imports ============
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title UpgradeBeacon

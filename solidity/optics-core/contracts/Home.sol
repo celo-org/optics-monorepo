@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Common.sol";
-import "./Merkle.sol";
-import "../interfaces/IUpdaterManager.sol";
-
-import "@openzeppelin/contracts/utils/Address.sol";
+// ============ Internal Imports ============
+import {Common} from "./Common.sol";
+import {QueueLib} from "../libs/Queue.sol";
+import {MerkleLib} from "../libs/Merkle.sol";
+import {Message} from "../libs/Message.sol";
+import {MerkleTreeManager} from "./Merkle.sol";
+import {IUpdaterManager} from "../interfaces/IUpdaterManager.sol";
+// ============ External Imports ============
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**

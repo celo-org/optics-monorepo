@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Queue.sol";
-import "../libs/Message.sol";
-
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+// ============ Internal Imports ============
+import {QueueManager} from "./Queue.sol";
+import {Message} from "../libs/Message.sol";
+// ============ External Imports ============
+import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
  * @title Common

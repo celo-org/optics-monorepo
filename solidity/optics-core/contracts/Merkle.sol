@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "../libs/Merkle.sol";
+// ============ Internal Imports ============
+import {MerkleLib} from "../libs/Merkle.sol";
 
 /**
  * @title MerkleTreeManager

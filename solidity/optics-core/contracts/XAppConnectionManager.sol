@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Home.sol";
-import "./Replica.sol";
-import "../libs/TypeCasts.sol";
-
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+// ============ Internal Imports ============
+import {Home} from "./Home.sol";
+import {Replica} from "./Replica.sol";
+import {TypeCasts} from "../libs/TypeCasts.sol";
+// ============ External Imports ============
+import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract XAppConnectionManager is Ownable {
     mapping(address => uint32) public replicaToDomain;

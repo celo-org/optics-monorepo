@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "../libs/Queue.sol";
-
+// ============ Internal Imports ============
+import {QueueLib} from "../libs/Queue.sol";
+// ============ External Imports ============
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 /**

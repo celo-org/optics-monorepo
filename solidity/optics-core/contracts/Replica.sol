@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import "./Common.sol";
-import "./Merkle.sol";
+// ============ Internal Imports ============
+import {Common} from "./Common.sol";
+import {MerkleLib} from "../libs/Merkle.sol";
+import {QueueLib} from "../libs/Queue.sol";
+import {Message} from "../libs/Message.sol";
 import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
-
-import "@summa-tx/memview-sol/contracts/TypedMemView.sol";
+// ============ External Imports ============
+import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 /**
  * @title Replica
