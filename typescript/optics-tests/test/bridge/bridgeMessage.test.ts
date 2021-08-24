@@ -179,13 +179,13 @@ describe('BridgeMessage', async () => {
   });
 
   it('fails for wrong action type', async () => {
-    const invalidType = "0x00"
+    const invalidType = '0x00'
     const transfer = bridge.serializeTransferAction(transferAction);
     const badTransfer: BytesLike = invalidType + transfer.slice(4);
     const details = bridge.serializeDetailsAction(detailsAction);
     const badDetails: BytesLike = invalidType + details.slice(4);
-    const requestDeets = bridge.serializeRequestDetailsAction(requestDetailsAction);
-    const badRequest: BytesLike = invalidType + requestDeets.slice(4);
+    const request = bridge.serializeRequestDetailsAction(requestDetailsAction);
+    const badRequest: BytesLike = invalidType + request.slice(4);
 
     const isTransfer = await bridgeMessage.testIsTransfer(badTransfer);
     expect(isTransfer).to.be.false;
@@ -194,4 +194,30 @@ describe('BridgeMessage', async () => {
     const isRequest = await bridgeMessage.testIsRequestDetails(badRequest);
     expect(isRequest).to.be.false;
   });
+
+  it('formats transfer action', async () => {
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const { recipient, amount } = transferAction;
+    const newTransfer = await bridgeMessage.testFormatTransfer(recipient, amount);
+    expect(newTransfer).to.equal(transfer);
+  });
+
+  it('formats details action', async () => {
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const { name, symbol, decimal } = detailsAction;
+    const newDetails = await bridgeMessage.testFormatDetails(name, symbol, decimal);
+    expect(newDetails).to.equal(details);
+  });
+
+  it('formats request details action', async () => {
+    const request = bridge.serializeRequestDetailsAction(requestDetailsAction);
+    const newDetails = await bridgeMessage.testFormatRequestDetails();
+    expect(newDetails).to.equal(request);
+  });
+
+  it('formats token id', async () => {
+    const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
+    const newTokenId = await bridgeMessage.testFormatTokenId(deploy.remoteDomain, deploy.testToken);
+    expect(newTokenId).to.equal(tokenId);
+  })
 });

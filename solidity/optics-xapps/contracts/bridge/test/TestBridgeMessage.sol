@@ -101,41 +101,30 @@ contract TestBridgeMessage {
 
     function testFormatTransfer(bytes32 _to, uint256 _amnt)
         external
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory)
     {
-        // return
-        //     mustBeTransfer(abi.encodePacked(Types.Transfer, _to, _amnt).ref(0));
-        return BridgeMessage.formatTransfer(_to, _amnt);
+        return BridgeMessage.formatTransfer(_to, _amnt).clone();
     }
 
     function testFormatDetails(
         bytes32 _name,
         bytes32 _symbol,
         uint8 _decimals
-    ) external pure returns (bytes29) {
-        // return
-        //     mustBeDetails(
-        //         abi.encodePacked(Types.Details, _name, _symbol, _decimals).ref(
-        //             0
-        //         )
-        //     );
-        return BridgeMessage.formatDetails(_name, _symbol, _decimals);
+    ) external view returns (bytes memory) {
+        return BridgeMessage.formatDetails(_name, _symbol, _decimals).clone();
     }
 
-    function testFormatRequestDetails() external pure returns (bytes29) {
-        // return
-        //     mustBeRequestDetails(abi.encodePacked(Types.RequestDetails).ref(0));
-        return BridgeMessage.formatRequestDetails();
+    function testFormatRequestDetails() external view returns (bytes memory) {
+        return BridgeMessage.formatRequestDetails().clone();
     }
 
     function testFormatTokenId(uint32 _domain, bytes32 _id)
         external
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory)
     {
-        // return mustBeTokenId(abi.encodePacked(_domain, _id).ref(0));
-        return BridgeMessage.formatTokenId(_domain, _id);
+        return BridgeMessage.formatTokenId(_domain, _id).clone();
     }
 
     function testDomain(bytes29 _tokenId)
