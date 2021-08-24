@@ -18,7 +18,6 @@ use tokio::{
 };
 use tracing::{error, info, instrument, instrument::Instrumented, warn, Instrument};
 
-use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
@@ -31,10 +30,7 @@ use optics_core::{
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 
-use crate::{
-    prover::{Prover, ProverSync},
-    settings::ProcessorSettings as Settings,
-};
+use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 
 /// The replica processor is responsible for polling messages and waiting until they validate
 /// before proving/processing them.
@@ -66,11 +62,12 @@ impl UsingPersistence<usize, Proof> for Replica {
     }
 }
 
-impl UsingPersistence<usize, u32> for Replica {
+// 'static usually means "string constant", don't dynamically create db keys
+impl UsingPersistence<&'static str, u32> for Replica {
     const KEY_PREFIX: &'static [u8] = b"state_";
 
-    fn key_to_bytes(key: usize) -> Vec<u8> {
-        key.to_be_bytes().into()
+    fn key_to_bytes(key: &'static str) -> Vec<u8> {
+        key.into()
     }
 }
 
@@ -92,26 +89,27 @@ impl Replica {
                 //      - If not, wait and poll again
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
-                let mut next_to_inspect: u32 = match Self::db_get(&self.db, "lastInspected") {
+                let mut next_to_inspect: u32 = match Self::db_get(&self.db, "lastInspected")? {
                     Some(n) => n + 1,
                     None => 0,
                 };
                 loop {
+                    use optics_core::traits::Replica;
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
                         sequence = next_to_inspect,
-                        replica_domain = self.replica.domain(),
-                        home_domain = self.home.domain(),
+                        replica_domain = self.replica.local_domain(),
+                        home_domain = self.home.local_domain(),
                     );
 
                     match self
-                        .try_msg_by_domain_and_seq(domain, sequence)
+                        .try_msg_by_domain_and_seq(domain, next_to_inspect)
                         .instrument(seq_span)
                         .await
                     {
                         Ok(true) => {
-                            Self::db_put(&self.db, "lastInspected", sequence);
+                            Self::db_put(&self.db, "lastInspected", next_to_inspect)?;
                             next_to_inspect += 1;
                         }
                         Ok(false) => {
@@ -129,10 +127,13 @@ impl Replica {
         )
     }
 
-    /// Returns the next sequence number to try and process, for the given domain.
+    /// Attempt to process a message.
     ///
-    /// Postcondition: if retval? { message was filtered ⊻ message was processed }
-    ///                else { prerequisite data not yet found }
+    /// Postcondition: ```match retval? {
+    ///   true => message skipped ⊻ message was processed
+    ///   false => try again later
+    /// }```
+    ///
     /// In case of error: send help?
     #[instrument(err)]
     async fn try_msg_by_domain_and_seq(&self, domain: u32, current_seq: u32) -> Result<bool> {
@@ -185,7 +186,7 @@ impl Replica {
 
         while !self.replica.acceptable_root(proof.root()).await? {
             info!(
-                "Proof under root {root} not yet valid here",
+                "Proof under {root} not yet valid here, waiting until Replica confirms",
                 root = proof.root(),
             );
             sleep(Duration::from_secs(self.interval)).await;
@@ -217,7 +218,7 @@ impl Replica {
                 self.replica.process(message.as_ref()).await?;
             }
             MessageStatus::Processed => {
-                warn!(target: "possible_race_condition");
+                warn!(target: "possible_race_condition", "Message {idx} already processed", idx = message.leaf_index);
             } // Indicates race condition?
         }
 
