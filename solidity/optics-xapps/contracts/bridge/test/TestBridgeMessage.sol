@@ -54,18 +54,15 @@ contract TestBridgeMessage {
         return BridgeMessage.isValidMessageLength(_message.ref(_t));
     }
 
-    function testFormatMessage(bytes29 _tokenId, bytes29 _action)
-        external
-        view
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (bytes memory)
-    {
-        // require(isValidAction(_action), "!action");
-        // bytes29[] memory _views = new bytes29[](2);
-        // _views[0] = _tokenId;
-        // _views[1] = _action;
-        // return TypedMemView.join(_views);
-        return BridgeMessage.formatMessage(_tokenId, _action);
+    function testFormatMessage(
+        bytes memory _tokenId,
+        bytes memory _action,
+        BridgeMessage.Types _idType,
+        BridgeMessage.Types _actionType
+    ) external view returns (bytes memory) {
+        bytes29 tokenId = _tokenId.ref(uint40(uint8(_idType)));
+        bytes29 action = _action.ref(uint40(uint8(_actionType)));
+        return BridgeMessage.formatMessage(tokenId, action);
     }
 
     function testMessageType(bytes29 _view)

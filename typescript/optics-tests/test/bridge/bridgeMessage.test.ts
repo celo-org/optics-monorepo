@@ -7,6 +7,7 @@ import { expect } from 'chai';
 // import { Signer } from '../../lib/types';
 // import { permitDigest } from '../../lib/permit';
 import { toBytes32 } from '../../lib/utils';
+import { formatTokenId } from '../../lib/bridge';
 import * as types from '../../lib/types';
 import {
   TestBridgeMessage__factory,
@@ -83,8 +84,8 @@ describe('BridgeMessage', async () => {
     const details = bridge.serializeDetailsAction(detailsAction);
     const requestDeets = bridge.serializeRequestDetailsAction(requestDetailsAction);
 
-    const invalidAction = "0x00";
-    const invalidActionLen = "0x0300"
+    const invalidAction = '0x00';
+    const invalidActionLen = '0x0300'
 
     // transfer message is valid
     let isAction = await bridgeMessage.testIsValidAction(transfer, BridgeMessageTypes.TRANSFER);
@@ -108,7 +109,7 @@ describe('BridgeMessage', async () => {
   });
 
   it('validates message length', async () => {
-    const invalidMessageLen = "0x" + "03".repeat(38);
+    const invalidMessageLen = '0x' + '03'.repeat(38);
     // valid transfer message
     let isValidLen = await bridgeMessage.testIsValidMessageLength(transferMessage);
     expect(isValidLen).to.be.true;
@@ -122,5 +123,18 @@ describe('BridgeMessage', async () => {
     isValidLen = await bridgeMessage.testIsValidMessageLength(invalidMessageLen);
     expect(isValidLen).to.be.false;
     // TODO: check that message length matches type?
-  })
+  });
+
+  it('formats message', async () => {
+    const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
+    const transfer = bridge.serializeTransferAction(transferAction);
+
+    // formats message
+    const newMessage = await bridgeMessage.testFormatMessage(tokenId, transfer, BridgeMessageTypes.TOKEN_ID, BridgeMessageTypes.TRANSFER);
+    expect(newMessage).to.equal(transferMessage);
+    // reverts with bad tokenId
+    await expect(bridgeMessage.testFormatMessage(tokenId, transfer, BridgeMessageTypes.INVALID, BridgeMessageTypes.TRANSFER)).to.be.reverted;
+    // reverts with bad action
+    await expect(bridgeMessage.testFormatMessage(tokenId, transfer, BridgeMessageTypes.TOKEN_ID, BridgeMessageTypes.INVALID)).to.be.revertedWith('!action');
+  });
 });

@@ -28,7 +28,7 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testEvmId(bytes29)": FunctionFragment;
     "testEvmRecipient(bytes29)": FunctionFragment;
     "testFormatDetails(bytes32,bytes32,uint8)": FunctionFragment;
-    "testFormatMessage(bytes29,bytes29)": FunctionFragment;
+    "testFormatMessage(bytes,bytes,uint8,uint8)": FunctionFragment;
     "testFormatRequestDetails()": FunctionFragment;
     "testFormatTokenId(uint32,bytes32)": FunctionFragment;
     "testFormatTransfer(bytes32,uint256)": FunctionFragment;
@@ -87,7 +87,7 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "testFormatMessage",
-    values: [BytesLike, BytesLike]
+    values: [BytesLike, BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "testFormatRequestDetails",
@@ -392,6 +392,8 @@ export class TestBridgeMessage extends BaseContract {
     testFormatMessage(
       _tokenId: BytesLike,
       _action: BytesLike,
+      _idType: BigNumberish,
+      _actionType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -554,6 +556,8 @@ export class TestBridgeMessage extends BaseContract {
   testFormatMessage(
     _tokenId: BytesLike,
     _action: BytesLike,
+    _idType: BigNumberish,
+    _actionType: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -707,6 +711,8 @@ export class TestBridgeMessage extends BaseContract {
     testFormatMessage(
       _tokenId: BytesLike,
       _action: BytesLike,
+      _idType: BigNumberish,
+      _actionType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -881,6 +887,8 @@ export class TestBridgeMessage extends BaseContract {
     testFormatMessage(
       _tokenId: BytesLike,
       _action: BytesLike,
+      _idType: BigNumberish,
+      _actionType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1053,6 +1061,8 @@ export class TestBridgeMessage extends BaseContract {
     testFormatMessage(
       _tokenId: BytesLike,
       _action: BytesLike,
+      _idType: BigNumberish,
+      _actionType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
