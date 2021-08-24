@@ -108,6 +108,7 @@ describe('BridgeMessage', async () => {
   });
 
   it('validates message length', async () => {
+    const invalidMessageLen = "0x" + "03".repeat(38);
     // valid transfer message
     let isValidLen = await bridgeMessage.testIsValidMessageLength(transferMessage);
     expect(isValidLen).to.be.true;
@@ -117,5 +118,9 @@ describe('BridgeMessage', async () => {
     // valid requestDetails message
     isValidLen = await bridgeMessage.testIsValidMessageLength(requestDetails);
     expect(isValidLen).to.be.true;
+    // invalid message length
+    isValidLen = await bridgeMessage.testIsValidMessageLength(invalidMessageLen);
+    expect(isValidLen).to.be.false;
+    // TODO: check that message length matches type?
   })
 });
