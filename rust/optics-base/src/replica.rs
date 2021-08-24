@@ -216,7 +216,6 @@ impl Common for Replicas {
         }
     }
 
-    // (i cannot remember the macro syntax)
     #[instrument(fields(update = %update.update))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
