@@ -29,6 +29,14 @@ contract TestBridgeMessage {
         _;
     }
 
+    function getMessageType(bytes memory _message)
+        internal
+        view
+        returns (uint40)
+    {
+        return uint40(uint8(_message[TOKEN_ID_LEN]));
+    }
+
     function testIsValidAction(bytes memory _action, BridgeMessage.Types _t)
         external
         view
@@ -37,17 +45,13 @@ contract TestBridgeMessage {
         return BridgeMessage.isValidAction(_action.ref(uint40(_t)));
     }
 
-    function testIsValidMessageLength(bytes29 _view)
+    function testIsValidMessageLength(bytes memory _message)
         external
-        pure
+        view
         returns (bool)
     {
-        // uint256 _len = _view.len();
-        // return
-        //     _len == TOKEN_ID_LEN + TRANSFER_LEN ||
-        //     _len == TOKEN_ID_LEN + DETAILS_LEN ||
-        //     _len == TOKEN_ID_LEN + REQUEST_DETAILS_LEN;
-        return BridgeMessage.isValidMessageLength(_view);
+        uint40 _t = getMessageType(_message);
+        return BridgeMessage.isValidMessageLength(_message.ref(_t));
     }
 
     function testFormatMessage(bytes29 _tokenId, bytes29 _action)

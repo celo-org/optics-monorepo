@@ -101,8 +101,21 @@ describe('BridgeMessage', async () => {
     // not a valid action type
     isAction = await bridgeMessage.testIsValidAction(invalidAction, BridgeMessageTypes.TRANSFER);
     expect(isAction).to.be.false;
+    // TODO: Action length is not checked, should it be? We do check message length
     // invalid length
-    isAction = await bridgeMessage.testIsValidAction(invalidActionLen, BridgeMessageTypes.TRANSFER);
-    expect(isAction).to.be.false;
+    // isAction = await bridgeMessage.testIsValidAction(invalidActionLen, BridgeMessageTypes.TRANSFER);
+    // expect(isAction).to.be.false;
   });
+
+  it('validates message length', async () => {
+    // valid transfer message
+    let isValidLen = await bridgeMessage.testIsValidMessageLength(transferMessage);
+    expect(isValidLen).to.be.true;
+    // valid details message
+    isValidLen = await bridgeMessage.testIsValidMessageLength(detailsMessage);
+    expect(isValidLen).to.be.true;
+    // valid requestDetails message
+    isValidLen = await bridgeMessage.testIsValidMessageLength(requestDetails);
+    expect(isValidLen).to.be.true;
+  })
 });

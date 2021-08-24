@@ -37,7 +37,7 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testIsRequestDetails(bytes29)": FunctionFragment;
     "testIsTransfer(bytes29)": FunctionFragment;
     "testIsValidAction(bytes,uint8)": FunctionFragment;
-    "testIsValidMessageLength(bytes29)": FunctionFragment;
+    "testIsValidMessageLength(bytes)": FunctionFragment;
     "testMessageType(bytes29)": FunctionFragment;
     "testMsgType(bytes29)": FunctionFragment;
     "testMustBeDetails(bytes29)": FunctionFragment;
@@ -433,7 +433,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<[boolean]>;
 
     testIsValidMessageLength(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -595,7 +595,7 @@ export class TestBridgeMessage extends BaseContract {
   ): Promise<boolean>;
 
   testIsValidMessageLength(
-    _view: BytesLike,
+    _message: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -748,7 +748,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<boolean>;
 
     testIsValidMessageLength(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -922,7 +922,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<BigNumber>;
 
     testIsValidMessageLength(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1099,7 +1099,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     testIsValidMessageLength(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
