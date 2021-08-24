@@ -33,12 +33,12 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testFormatTokenId(uint32,bytes32)": FunctionFragment;
     "testFormatTransfer(bytes32,uint256)": FunctionFragment;
     "testId(bytes29)": FunctionFragment;
-    "testIsDetails(bytes29)": FunctionFragment;
-    "testIsRequestDetails(bytes29)": FunctionFragment;
-    "testIsTransfer(bytes29)": FunctionFragment;
+    "testIsDetails(bytes)": FunctionFragment;
+    "testIsRequestDetails(bytes)": FunctionFragment;
+    "testIsTransfer(bytes)": FunctionFragment;
     "testIsValidAction(bytes,uint8)": FunctionFragment;
     "testIsValidMessageLength(bytes)": FunctionFragment;
-    "testMessageType(bytes29)": FunctionFragment;
+    "testMessageType(bytes)": FunctionFragment;
     "testMsgType(bytes29)": FunctionFragment;
     "testMustBeDetails(bytes29)": FunctionFragment;
     "testMustBeMessage(bytes29)": FunctionFragment;
@@ -440,7 +440,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<[boolean]>;
 
     testMessageType(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
@@ -603,7 +603,10 @@ export class TestBridgeMessage extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  testMessageType(_view: BytesLike, overrides?: CallOverrides): Promise<number>;
+  testMessageType(
+    _message: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<number>;
 
   testMsgType(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
@@ -759,7 +762,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<boolean>;
 
     testMessageType(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<number>;
 
@@ -935,7 +938,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<BigNumber>;
 
     testMessageType(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1114,7 +1117,7 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     testMessageType(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

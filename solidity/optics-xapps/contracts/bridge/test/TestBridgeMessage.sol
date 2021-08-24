@@ -65,38 +65,38 @@ contract TestBridgeMessage {
         return BridgeMessage.formatMessage(tokenId, action);
     }
 
-    function testMessageType(bytes29 _view)
+    function testMessageType(bytes memory _message)
         external
-        pure
+        view
         returns (BridgeMessage.Types)
     {
-        // return Types(uint8(_view.typeOf()));
-        return BridgeMessage.messageType(_view);
+        uint40 _t = getMessageType(_message);
+        return BridgeMessage.messageType(_message.ref(_t));
     }
 
-    function testIsTransfer(bytes29 _action) external pure returns (bool) {
-        // return
-        //     actionType(_action) == uint8(Types.Transfer) &&
-        //     messageType(_action) == Types.Transfer;
-        return BridgeMessage.isTransfer(_action);
+    function testIsTransfer(bytes memory _action) external pure returns (bool) {
+        bytes29 action = _action.ref(
+            uint40(uint8(BridgeMessage.Types.Transfer))
+        );
+        return BridgeMessage.isTransfer(action);
     }
 
-    function testIsDetails(bytes29 _action) external pure returns (bool) {
-        // return
-        //     actionType(_action) == uint8(Types.Details) &&
-        //     messageType(_action) == Types.Details;
-        return BridgeMessage.isDetails(_action);
+    function testIsDetails(bytes memory _action) external pure returns (bool) {
+        bytes29 action = _action.ref(
+            uint40(uint8(BridgeMessage.Types.Details))
+        );
+        return BridgeMessage.isDetails(action);
     }
 
-    function testIsRequestDetails(bytes29 _action)
+    function testIsRequestDetails(bytes memory _action)
         external
         pure
         returns (bool)
     {
-        // return
-        //     actionType(_action) == uint8(Types.RequestDetails) &&
-        //     messageType(_action) == Types.RequestDetails;
-        return BridgeMessage.isRequestDetails(_action);
+        bytes29 action = _action.ref(
+            uint40(uint8(BridgeMessage.Types.RequestDetails))
+        );
+        return BridgeMessage.isRequestDetails(action);
     }
 
     function testFormatTransfer(bytes32 _to, uint256 _amnt)

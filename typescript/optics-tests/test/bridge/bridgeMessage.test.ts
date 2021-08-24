@@ -137,4 +137,61 @@ describe('BridgeMessage', async () => {
     // reverts with bad action
     await expect(bridgeMessage.testFormatMessage(tokenId, transfer, BridgeMessageTypes.TOKEN_ID, BridgeMessageTypes.INVALID)).to.be.revertedWith('!action');
   });
+
+  it('returns correct message type', async () => {
+    // transfer message
+    let type = await bridgeMessage.testMessageType(transferMessage);
+    expect(type).to.equal(BridgeMessageTypes.TRANSFER);
+    // details message
+    type = await bridgeMessage.testMessageType(detailsMessage);
+    expect(type).to.equal(BridgeMessageTypes.DETAILS);
+    // request details message
+    type = await bridgeMessage.testMessageType(requestDetails);
+    expect(type).to.equal(BridgeMessageTypes.REQUEST_DETAILS);
+  });
+
+  it('checks message type', async () => {
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const requestDeets = bridge.serializeRequestDetailsAction(requestDetailsAction);
+
+    // transfer message
+    let isTransfer = await bridgeMessage.testIsTransfer(transfer);
+    expect(isTransfer).to.be.true;
+    isTransfer = await bridgeMessage.testIsTransfer(details);
+    expect(isTransfer).to.be.false;
+    isTransfer = await bridgeMessage.testIsTransfer(requestDeets);
+    expect(isTransfer).to.be.false;
+
+    let isDetails = await bridgeMessage.testIsDetails(details);
+    expect(isDetails).to.be.true;
+    isDetails = await bridgeMessage.testIsDetails(transfer);
+    expect(isDetails).to.be.false;
+    isDetails = await bridgeMessage.testIsDetails(requestDeets);
+    expect(isDetails).to.be.false;
+
+    let isRequestDetails = await bridgeMessage.testIsRequestDetails(requestDeets);
+    expect(isRequestDetails).to.be.true;
+    isRequestDetails = await bridgeMessage.testIsRequestDetails(details);
+    expect(isRequestDetails).to.be.false;
+    isRequestDetails = await bridgeMessage.testIsRequestDetails(transfer);
+    expect(isRequestDetails).to.be.false;
+  });
+
+  it('fails for wrong action type', async () => {
+    const invalidType = "0x00"
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const badTransfer: BytesLike = invalidType + transfer.slice(4);
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const badDetails: BytesLike = invalidType + details.slice(4);
+    const requestDeets = bridge.serializeRequestDetailsAction(requestDetailsAction);
+    const badRequest: BytesLike = invalidType + requestDeets.slice(4);
+
+    const isTransfer = await bridgeMessage.testIsTransfer(badTransfer);
+    expect(isTransfer).to.be.false;
+    const isDetails = await bridgeMessage.testIsDetails(badDetails);
+    expect(isDetails).to.be.false;
+    const isRequest = await bridgeMessage.testIsRequestDetails(badRequest);
+    expect(isRequest).to.be.false;
+  });
 });
