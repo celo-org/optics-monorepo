@@ -1989,6 +1989,7 @@ dependencies = [
  "optics-ethereum",
  "optics-test",
  "paste",
+ "rand",
  "rocksdb",
  "rusoto_core",
  "rusoto_kms",

@@ -1,5 +1,7 @@
 use color_eyre::Result;
+use opentelemetry::trace::{SpanId, TraceId};
 use opentelemetry_otlp::WithExportConfig;
+use tracing::info;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, prelude::*};
 
@@ -63,6 +65,20 @@ pub struct TracingConfig {
     #[serde(default)]
     level: Level,
 }
+#[derive(Debug)]
+struct LoggingIdGenerator;
+impl opentelemetry::trace::IdGenerator for LoggingIdGenerator {
+    fn new_trace_id(&self) -> TraceId {
+        let id: u128 = rand::random();
+        info!(target: "new_trace_id", trace_id = %id);
+        TraceId::from_u128(id)
+    }
+
+    fn new_span_id(&self) -> SpanId {
+        let id: u64 = rand::random();
+        SpanId::from_u64(id)
+    }
+}
 
 impl TracingConfig {
     /// Attempt to instantiate and register a tracing subscriber setup from settings.
@@ -85,6 +101,9 @@ impl TracingConfig {
                             .tonic()
                             .with_endpoint(uri)
                             .with_timeout(std::time::Duration::from_secs(3)),
+                    )
+                    .with_trace_config(
+                        opentelemetry::sdk::trace::config().with_id_generator(LoggingIdGenerator),
                     )
                     .install_batch(opentelemetry::runtime::Tokio)?;
 
