@@ -27,10 +27,11 @@ optics-test = { path = "../optics-test" }
 paste = "1.0.5"
 tracing-error = "0.1.2"
 
-# these versions are important!
 tracing-opentelemetry = "0.15.0"
 opentelemetry = { version = "0.16.0", features = ["rt-tokio", "trace"] }
 opentelemetry-otlp = { version = "0.9", features = ["tokio", "tonic"] }
+
+# these versions are important!
 rusoto_core = "0.47.0"
 rusoto_kms = "0.47.0"
 lazy_static = "1.4.0"
