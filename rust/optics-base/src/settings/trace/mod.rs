@@ -57,7 +57,7 @@ impl From<Level> for LevelFilter {
 /// Configuration for the tracing subscribers used by Optics agents
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct TracingConfig {
-    otlp_endpoint: Option<String>,
+    otlp: Option<String>,
     #[serde(default)]
     fmt: Style,
     #[serde(default)]
@@ -75,7 +75,7 @@ impl TracingConfig {
             .with(fmt_layer)
             .with(err_layer);
 
-        match self.otlp_endpoint {
+        match self.otlp {
             None => subscriber.try_init()?,
             Some(ref uri) => {
                 let tracer = opentelemetry_otlp::new_pipeline()
