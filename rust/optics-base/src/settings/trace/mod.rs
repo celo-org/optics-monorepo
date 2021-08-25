@@ -7,13 +7,7 @@ use crate::settings::trace::fmt::Style;
 /// Configure a `tracing_subscriber::fmt` Layer outputting to stdout
 pub mod fmt;
 
-use self::{fmt::LogOutputLayer, jaeger::JaegerConfig, zipkin::ZipkinConfig};
-
-/// Configure a Layer using `tracing_opentelemtry` + `opentelemetry-jaeger`
-pub mod jaeger;
-
-/// Configure a Layer using `tracing_opentelemtry` + `opentelemetry-zipkin`
-pub mod zipkin;
+use self::fmt::LogOutputLayer;
 
 /// Logging level
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
@@ -62,8 +56,7 @@ impl From<Level> for LevelFilter {
 /// Configuration for the tracing subscribers used by Optics agents
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct TracingConfig {
-    jaeger: Option<JaegerConfig>,
-    zipkin: Option<ZipkinConfig>,
+    otlp_endpoint: Option<String>,
     #[serde(default)]
     fmt: Style,
     #[serde(default)]
@@ -81,16 +74,22 @@ impl TracingConfig {
             .with(fmt_layer)
             .with(err_layer);
 
-        match self.jaeger {
-            None => match self.zipkin {
-                None => subscriber.try_init()?,
-                Some(ref zipkin) => {
-                    let layer: OpenTelemetryLayer<_, _> = zipkin.try_into_layer()?;
-                    subscriber.with(layer).try_init()?
-                }
-            },
-            Some(ref jaeger) => {
-                let layer: OpenTelemetryLayer<_, _> = jaeger.try_into_layer()?;
+        match self.otlp_endpoint {
+            None => subscriber.try_init()?,
+            Some(ref uri) => {
+                let tracer = opentelemetry_otlp::new_pipeline()
+                    .tracing()
+                    .with_exporter(
+                        opentelemetry_otlp::new_exporter()
+                            .tonic()
+                            .with_endpoint(uri)
+                            .with_timeout(Duration::from_secs(3)),
+                    )
+                    .install_batch(opentelemetry::runtime::Tokio)?;
+
+                let telemetry: OpenTelemetryLayer<_, _> =
+                    tracing_opentelemetry::layer().with_tracer(tracer);
+
                 subscriber.with(layer).try_init()?
             }
         }
