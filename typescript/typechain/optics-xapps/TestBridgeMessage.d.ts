@@ -20,35 +20,26 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface TestBridgeMessageInterface extends ethers.utils.Interface {
   functions: {
-    "testAction(bytes29)": FunctionFragment;
-    "testActionType(bytes29)": FunctionFragment;
-    "testAmnt(bytes29)": FunctionFragment;
-    "testDecimals(bytes29)": FunctionFragment;
-    "testDomain(bytes29)": FunctionFragment;
-    "testEvmId(bytes29)": FunctionFragment;
-    "testEvmRecipient(bytes29)": FunctionFragment;
     "testFormatDetails(bytes32,bytes32,uint8)": FunctionFragment;
     "testFormatMessage(bytes,bytes,uint8,uint8)": FunctionFragment;
     "testFormatRequestDetails()": FunctionFragment;
     "testFormatTokenId(uint32,bytes32)": FunctionFragment;
     "testFormatTransfer(bytes32,uint256)": FunctionFragment;
-    "testId(bytes29)": FunctionFragment;
     "testIsDetails(bytes)": FunctionFragment;
     "testIsRequestDetails(bytes)": FunctionFragment;
     "testIsTransfer(bytes)": FunctionFragment;
     "testIsValidAction(bytes,uint8)": FunctionFragment;
     "testIsValidMessageLength(bytes)": FunctionFragment;
     "testMessageType(bytes)": FunctionFragment;
-    "testMsgType(bytes29)": FunctionFragment;
     "testMustBeDetails(bytes29)": FunctionFragment;
     "testMustBeMessage(bytes29)": FunctionFragment;
     "testMustBeRequestDetails(bytes29)": FunctionFragment;
     "testMustBeTokenId(bytes29)": FunctionFragment;
     "testMustBeTransfer(bytes29)": FunctionFragment;
-    "testName(bytes29)": FunctionFragment;
-    "testRecipient(bytes29)": FunctionFragment;
-    "testSymbol(bytes29)": FunctionFragment;
-    "testTokenId(bytes29)": FunctionFragment;
+    "testSplitDetails(bytes)": FunctionFragment;
+    "testSplitMessage(bytes)": FunctionFragment;
+    "testSplitTokenId(bytes)": FunctionFragment;
+    "testSplitTransfer(bytes)": FunctionFragment;
     "testTryAsDetails(bytes29)": FunctionFragment;
     "testTryAsMessage(bytes29)": FunctionFragment;
     "testTryAsRequestDetails(bytes29)": FunctionFragment;
@@ -56,31 +47,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testTryAsTransfer(bytes29)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "testAction",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testActionType",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "testAmnt", values: [BytesLike]): string;
-  encodeFunctionData(
-    functionFragment: "testDecimals",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testDomain",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testEvmId",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testEvmRecipient",
-    values: [BytesLike]
-  ): string;
   encodeFunctionData(
     functionFragment: "testFormatDetails",
     values: [BytesLike, BytesLike, BigNumberish]
@@ -101,7 +67,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     functionFragment: "testFormatTransfer",
     values: [BytesLike, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "testId", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "testIsDetails",
     values: [BytesLike]
@@ -127,10 +92,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "testMsgType",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "testMustBeDetails",
     values: [BytesLike]
   ): string;
@@ -150,17 +111,20 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     functionFragment: "testMustBeTransfer",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "testName", values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "testRecipient",
+    functionFragment: "testSplitDetails",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "testSymbol",
+    functionFragment: "testSplitMessage",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "testTokenId",
+    functionFragment: "testSplitTokenId",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "testSplitTransfer",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
@@ -184,22 +148,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
 
-  decodeFunctionResult(functionFragment: "testAction", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "testActionType",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "testAmnt", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "testDecimals",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "testDomain", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "testEvmId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "testEvmRecipient",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "testFormatDetails",
     data: BytesLike
@@ -220,7 +168,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     functionFragment: "testFormatTransfer",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "testId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "testIsDetails",
     data: BytesLike
@@ -246,10 +193,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "testMsgType",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "testMustBeDetails",
     data: BytesLike
   ): Result;
@@ -269,14 +212,20 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     functionFragment: "testMustBeTransfer",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "testName", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "testRecipient",
+    functionFragment: "testSplitDetails",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "testSymbol", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "testTokenId",
+    functionFragment: "testSplitMessage",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "testSplitTokenId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "testSplitTransfer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -347,41 +296,6 @@ export class TestBridgeMessage extends BaseContract {
   interface: TestBridgeMessageInterface;
 
   functions: {
-    testAction(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testActionType(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    testAmnt(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    testDecimals(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    testDomain(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    testEvmId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testEvmRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     testFormatDetails(
       _name: BytesLike,
       _symbol: BytesLike,
@@ -410,8 +324,6 @@ export class TestBridgeMessage extends BaseContract {
       _amnt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    testId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     testIsDetails(
       _action: BytesLike,
@@ -444,11 +356,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number]>;
 
-    testMsgType(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
     testMustBeDetails(
       _view: BytesLike,
       overrides?: CallOverrides
@@ -474,25 +381,25 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    testName(
-      _detailsAction: BytesLike,
+    testSplitDetails(
+      _details: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[number, string, string, number]>;
 
-    testRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testSymbol(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testTokenId(
+    testSplitMessage(
       _message: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string, string]>;
+
+    testSplitTokenId(
+      _tokenId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[number, number, string]>;
+
+    testSplitTransfer(
+      _transfer: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[number, string, BigNumber]>;
 
     testTryAsDetails(
       _action: BytesLike,
@@ -519,32 +426,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
   };
-
-  testAction(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
-
-  testActionType(
-    _action: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  testAmnt(
-    _transferAction: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  testDecimals(
-    _detailsAction: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  testDomain(_tokenId: BytesLike, overrides?: CallOverrides): Promise<number>;
-
-  testEvmId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<string>;
-
-  testEvmRecipient(
-    _transferAction: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   testFormatDetails(
     _name: BytesLike,
@@ -574,8 +455,6 @@ export class TestBridgeMessage extends BaseContract {
     _amnt: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
-
-  testId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   testIsDetails(
     _action: BytesLike,
@@ -608,8 +487,6 @@ export class TestBridgeMessage extends BaseContract {
     overrides?: CallOverrides
   ): Promise<number>;
 
-  testMsgType(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
-
   testMustBeDetails(
     _view: BytesLike,
     overrides?: CallOverrides
@@ -635,22 +512,25 @@ export class TestBridgeMessage extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  testName(
-    _detailsAction: BytesLike,
+  testSplitDetails(
+    _details: BytesLike,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<[number, string, string, number]>;
 
-  testRecipient(
-    _transferAction: BytesLike,
+  testSplitMessage(
+    _message: BytesLike,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<[string, string]>;
 
-  testSymbol(
-    _detailsAction: BytesLike,
+  testSplitTokenId(
+    _tokenId: BytesLike,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<[number, number, string]>;
 
-  testTokenId(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
+  testSplitTransfer(
+    _transfer: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<[number, string, BigNumber]>;
 
   testTryAsDetails(
     _action: BytesLike,
@@ -678,32 +558,6 @@ export class TestBridgeMessage extends BaseContract {
   ): Promise<string>;
 
   callStatic: {
-    testAction(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
-
-    testActionType(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    testAmnt(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testDecimals(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    testDomain(_tokenId: BytesLike, overrides?: CallOverrides): Promise<number>;
-
-    testEvmId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<string>;
-
-    testEvmRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     testFormatDetails(
       _name: BytesLike,
       _symbol: BytesLike,
@@ -732,8 +586,6 @@ export class TestBridgeMessage extends BaseContract {
       _amnt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    testId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     testIsDetails(
       _action: BytesLike,
@@ -766,11 +618,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<number>;
 
-    testMsgType(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
     testMustBeDetails(
       _view: BytesLike,
       overrides?: CallOverrides
@@ -796,25 +643,25 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    testName(
-      _detailsAction: BytesLike,
+    testSplitDetails(
+      _details: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<[number, string, string, number]>;
 
-    testRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testSymbol(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testTokenId(
+    testSplitMessage(
       _message: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<[string, string]>;
+
+    testSplitTokenId(
+      _tokenId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[number, number, string]>;
+
+    testSplitTransfer(
+      _transfer: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[number, string, BigNumber]>;
 
     testTryAsDetails(
       _action: BytesLike,
@@ -845,41 +692,6 @@ export class TestBridgeMessage extends BaseContract {
   filters: {};
 
   estimateGas: {
-    testAction(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testActionType(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testAmnt(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testDecimals(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testDomain(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testEvmId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testEvmRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     testFormatDetails(
       _name: BytesLike,
       _symbol: BytesLike,
@@ -908,8 +720,6 @@ export class TestBridgeMessage extends BaseContract {
       _amnt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    testId(_tokenId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     testIsDetails(
       _action: BytesLike,
@@ -942,11 +752,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    testMsgType(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     testMustBeDetails(
       _view: BytesLike,
       overrides?: CallOverrides
@@ -972,23 +777,23 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    testName(
-      _detailsAction: BytesLike,
+    testSplitDetails(
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    testRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testSymbol(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTokenId(
+    testSplitMessage(
       _message: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    testSplitTokenId(
+      _tokenId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    testSplitTransfer(
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1019,41 +824,6 @@ export class TestBridgeMessage extends BaseContract {
   };
 
   populateTransaction: {
-    testAction(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testActionType(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testAmnt(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testDecimals(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testDomain(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testEvmId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testEvmRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     testFormatDetails(
       _name: BytesLike,
       _symbol: BytesLike,
@@ -1085,11 +855,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    testId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     testIsDetails(
       _action: BytesLike,
       overrides?: CallOverrides
@@ -1121,11 +886,6 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    testMsgType(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     testMustBeDetails(
       _view: BytesLike,
       overrides?: CallOverrides
@@ -1151,23 +911,23 @@ export class TestBridgeMessage extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    testName(
-      _detailsAction: BytesLike,
+    testSplitDetails(
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    testRecipient(
-      _transferAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testSymbol(
-      _detailsAction: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTokenId(
+    testSplitMessage(
       _message: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    testSplitTokenId(
+      _tokenId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    testSplitTransfer(
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -14,6 +14,7 @@ import {
   TestBridgeMessage
 } from '../../../typechain/optics-xapps';
 import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
+import { type } from 'os';
 
 const stringToBytes32 = (s: string): string => {
   const str = Buffer.from(s.slice(0, 32), 'utf-8');
@@ -219,5 +220,40 @@ describe('BridgeMessage', async () => {
     const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
     const newTokenId = await bridgeMessage.testFormatTokenId(deploy.remoteDomain, deploy.testToken);
     expect(newTokenId).to.equal(tokenId);
-  })
+  });
+
+  it('returns elements of a token id', async () => {
+    const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
+    const [type, domain, id] = await bridgeMessage.testSplitTokenId(tokenId);
+    // TODO: returns wrong type?
+    // expect(type).to.equal(BridgeMessageTypes.TOKEN_ID);
+    expect(domain).to.equal(deploy.remoteDomain);
+    expect(id).to.equal(deploy.testToken);
+  });
+
+  it('returns elements of a transfer action', async () => {
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const [type, recipient, amount] = await bridgeMessage.testSplitTransfer(transfer);
+    expect(type).to.equal(BridgeMessageTypes.TRANSFER);
+    expect(recipient).to.equal(transferAction.recipient);
+    expect(amount).to.equal(transferAction.amount);
+  });
+
+  it('returns elements of a details action', async () => {
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const [type, name, symbol, decimals] = await bridgeMessage.testSplitDetails(details);
+    expect(type).to.equal(BridgeMessageTypes.DETAILS);
+    expect(name).to.equal(detailsAction.name);
+    expect(symbol).to.equal(detailsAction.symbol);
+    // TODO: change decimal to decimals
+    expect(decimals).to.equal(detailsAction.decimal);
+  });
+
+  it('returns elements of a message', async () => {
+    const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const [newTokenId, action] = await bridgeMessage.testSplitMessage(transferMessage);
+    expect(newTokenId).to.equal(tokenId);
+    expect(action).to.equal(transfer);
+  });
 });

@@ -19,6 +19,11 @@ contract TestBridgeMessage {
     uint256 private constant DETAILS_LEN = 66; // 1 byte identifier + 32 bytes name + 32 bytes symbol + 1 byte decimals
     uint256 private constant REQUEST_DETAILS_LEN = 1; // 1 byte identifier
 
+    struct TokenId {
+        uint32 domain;
+        bytes32 id;
+    }
+
     /**
      * @notice Asserts a message is of type `_t`
      * @param _view The message
@@ -127,191 +132,162 @@ contract TestBridgeMessage {
         return BridgeMessage.formatTokenId(_domain, _id).clone();
     }
 
-    function testDomain(bytes29 _tokenId)
+    function testSplitTokenId(bytes memory _tokenId)
         external
-        pure
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (uint32)
+        view
+        returns (
+            uint8,
+            uint32,
+            bytes32
+        )
     {
-        // return uint32(_tokenId.indexUint(0, 4));
-        return BridgeMessage.domain(_tokenId);
+        bytes29 tokenId = _tokenId.ref(
+            uint40(uint8(BridgeMessage.Types.TokenId))
+        );
+        uint8 t = BridgeMessage.actionType(tokenId);
+        uint32 domain = BridgeMessage.domain(tokenId);
+        bytes32 id = BridgeMessage.id(tokenId);
+        return (t, domain, id);
     }
 
-    function testId(bytes29 _tokenId)
+    // function testEvmId(bytes29 _tokenId)
+    //     external
+    //     pure
+    //     typeAssert(_tokenId, BridgeMessage.Types.TokenId)
+    //     returns (address)
+    // {
+    //     // // before = 4 bytes domain + 12 bytes empty to trim for address
+    //     // return _tokenId.indexAddress(16);
+    //     return BridgeMessage.evmId(_tokenId);
+    // }
+
+    // function testMsgType(bytes29 _message) external pure returns (uint8) {
+    //     // return uint8(_message.indexUint(TOKEN_ID_LEN, 1));
+    //     return BridgeMessage.msgType(_message);
+    // }
+
+    // function testActionType(bytes29 _action) external pure returns (uint8) {
+    //     // return uint8(_action.indexUint(0, 1));
+    //     return BridgeMessage.actionType(_action);
+    // }
+
+    function testSplitTransfer(bytes memory _transfer)
         external
-        pure
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (bytes32)
+        view
+        returns (
+            uint8,
+            bytes32,
+            uint256
+        )
     {
-        // // before = 4 bytes domain
-        // return _tokenId.index(4, 32);
-        return BridgeMessage.id(_tokenId);
+        bytes29 transfer = _transfer.ref(
+            uint40(uint8(BridgeMessage.Types.Transfer))
+        );
+        uint8 t = BridgeMessage.actionType(transfer);
+        bytes32 recipient = BridgeMessage.recipient(transfer);
+        uint256 amnt = BridgeMessage.amnt(transfer);
+        return (t, recipient, amnt);
     }
 
-    function testEvmId(bytes29 _tokenId)
+    function testSplitDetails(bytes memory _details)
         external
-        pure
-        typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-        returns (address)
+        view
+        returns (
+            uint8,
+            bytes32,
+            bytes32,
+            uint8
+        )
     {
-        // // before = 4 bytes domain + 12 bytes empty to trim for address
-        // return _tokenId.indexAddress(16);
-        return BridgeMessage.evmId(_tokenId);
+        bytes29 details = _details.ref(
+            uint40(uint8(BridgeMessage.Types.Details))
+        );
+        uint8 t = BridgeMessage.actionType(details);
+        bytes32 name = BridgeMessage.name(details);
+        bytes32 symbol = BridgeMessage.symbol(details);
+        uint8 decimals = BridgeMessage.decimals(details);
+        return (t, name, symbol, decimals);
     }
 
-    function testMsgType(bytes29 _message) external pure returns (uint8) {
-        // return uint8(_message.indexUint(TOKEN_ID_LEN, 1));
-        return BridgeMessage.msgType(_message);
-    }
+    // function testEvmRecipient(bytes29 _transferAction)
+    //     external
+    //     pure
+    //     typeAssert(_transferAction, BridgeMessage.Types.Transfer)
+    //     returns (address)
+    // {
+    //     // // before = 1 byte identifier + 12 bytes empty to trim for address
+    //     // return _transferAction.indexAddress(13);
+    //     return BridgeMessage.evmRecipient(_transferAction);
+    // }
 
-    function testActionType(bytes29 _action) external pure returns (uint8) {
-        // return uint8(_action.indexUint(0, 1));
-        return BridgeMessage.actionType(_action);
-    }
-
-    function testRecipient(bytes29 _transferAction)
+    function testSplitMessage(bytes memory _message)
         external
-        pure
-        typeAssert(_transferAction, BridgeMessage.Types.Transfer)
-        returns (bytes32)
+        view
+        returns (bytes memory, bytes memory)
     {
-        // // before = 1 byte identifier
-        // return _transferAction.index(1, 32);
-        return BridgeMessage.recipient(_transferAction);
+        bytes29 message = _message.ref(
+            uint40(uint8(BridgeMessage.Types.Message))
+        );
+        bytes29 tokenId = BridgeMessage.tokenId(message);
+        bytes29 action = BridgeMessage.action(message);
+        return (tokenId.clone(), action.clone());
     }
 
-    function testEvmRecipient(bytes29 _transferAction)
-        external
-        pure
-        typeAssert(_transferAction, BridgeMessage.Types.Transfer)
-        returns (address)
-    {
-        // // before = 1 byte identifier + 12 bytes empty to trim for address
-        // return _transferAction.indexAddress(13);
-        return BridgeMessage.evmRecipient(_transferAction);
-    }
+    // function testTryAsTransfer(bytes29 _action)
+    //     external
+    //     pure
+    //     returns (bytes29)
+    // {
+    //     // if (_action.len() == TRANSFER_LEN) {
+    //     //     return _action.castTo(uint40(Types.Transfer));
+    //     // }
+    //     // return TypedMemView.nullView();
+    //     return BridgeMessage.tryAsTransfer(_action);
+    // }
 
-    function testAmnt(bytes29 _transferAction)
-        external
-        pure
-        typeAssert(_transferAction, BridgeMessage.Types.Transfer)
-        returns (uint256)
-    {
-        // // before = 1 byte identifier + 32 bytes ID
-        // return _transferAction.indexUint(33, 32);
-        return BridgeMessage.amnt(_transferAction);
-    }
+    // function testTryAsDetails(bytes29 _action) external pure returns (bytes29) {
+    //     // if (_action.len() == DETAILS_LEN) {
+    //     //     return _action.castTo(uint40(Types.Details));
+    //     // }
+    //     // return TypedMemView.nullView();
+    //     return BridgeMessage.tryAsDetails(_action);
+    // }
 
-    function testName(bytes29 _detailsAction)
-        external
-        pure
-        typeAssert(_detailsAction, BridgeMessage.Types.Details)
-        returns (bytes32)
-    {
-        // // before = 1 byte identifier
-        // return _detailsAction.index(1, 32);
-        return BridgeMessage.name(_detailsAction);
-    }
+    // function testTryAsRequestDetails(bytes29 _action)
+    //     external
+    //     pure
+    //     returns (bytes29)
+    // {
+    //     // if (_action.len() == REQUEST_DETAILS_LEN) {
+    //     //     return _action.castTo(uint40(Types.RequestDetails));
+    //     // }
+    //     // return TypedMemView.nullView();
+    //     return BridgeMessage.tryAsRequestDetails(_action);
+    // }
 
-    function testSymbol(bytes29 _detailsAction)
-        external
-        pure
-        typeAssert(_detailsAction, BridgeMessage.Types.Details)
-        returns (bytes32)
-    {
-        // // before = 1 byte identifier + 32 bytes name
-        // return _detailsAction.index(33, 32);
-        return BridgeMessage.symbol(_detailsAction);
-    }
+    // function testTryAsTokenId(bytes29 _tokenId)
+    //     external
+    //     pure
+    //     returns (bytes29)
+    // {
+    //     // if (_tokenId.len() == TOKEN_ID_LEN) {
+    //     //     return _tokenId.castTo(uint40(Types.TokenId));
+    //     // }
+    //     // return TypedMemView.nullView();
+    //     return BridgeMessage.tryAsTokenId(_tokenId);
+    // }
 
-    function testDecimals(bytes29 _detailsAction)
-        external
-        pure
-        typeAssert(_detailsAction, BridgeMessage.Types.Details)
-        returns (uint8)
-    {
-        // // before = 1 byte identifier + 32 bytes name + 32 bytes symbol
-        // return uint8(_detailsAction.indexUint(65, 1));
-        return BridgeMessage.decimals(_detailsAction);
-    }
-
-    function testTokenId(bytes29 _message)
-        external
-        pure
-        typeAssert(_message, BridgeMessage.Types.Message)
-        returns (bytes29)
-    {
-        // return _message.slice(0, TOKEN_ID_LEN, uint40(Types.TokenId));
-        return BridgeMessage.tokenId(_message);
-    }
-
-    function testAction(bytes29 _message)
-        external
-        pure
-        typeAssert(_message, BridgeMessage.Types.Message)
-        returns (bytes29)
-    {
-        // uint256 _actionLen = _message.len() - TOKEN_ID_LEN;
-        // uint40 _type = uint40(msgType(_message));
-        // return _message.slice(TOKEN_ID_LEN, _actionLen, _type);
-        return BridgeMessage.action(_message);
-    }
-
-    function testTryAsTransfer(bytes29 _action)
-        external
-        pure
-        returns (bytes29)
-    {
-        // if (_action.len() == TRANSFER_LEN) {
-        //     return _action.castTo(uint40(Types.Transfer));
-        // }
-        // return TypedMemView.nullView();
-        return BridgeMessage.tryAsTransfer(_action);
-    }
-
-    function testTryAsDetails(bytes29 _action) external pure returns (bytes29) {
-        // if (_action.len() == DETAILS_LEN) {
-        //     return _action.castTo(uint40(Types.Details));
-        // }
-        // return TypedMemView.nullView();
-        return BridgeMessage.tryAsDetails(_action);
-    }
-
-    function testTryAsRequestDetails(bytes29 _action)
-        external
-        pure
-        returns (bytes29)
-    {
-        // if (_action.len() == REQUEST_DETAILS_LEN) {
-        //     return _action.castTo(uint40(Types.RequestDetails));
-        // }
-        // return TypedMemView.nullView();
-        return BridgeMessage.tryAsRequestDetails(_action);
-    }
-
-    function testTryAsTokenId(bytes29 _tokenId)
-        external
-        pure
-        returns (bytes29)
-    {
-        // if (_tokenId.len() == TOKEN_ID_LEN) {
-        //     return _tokenId.castTo(uint40(Types.TokenId));
-        // }
-        // return TypedMemView.nullView();
-        return BridgeMessage.tryAsTokenId(_tokenId);
-    }
-
-    function testTryAsMessage(bytes29 _message)
-        external
-        pure
-        returns (bytes29)
-    {
-        // if (isValidMessageLength(_message)) {
-        //     return _message.castTo(uint40(Types.Message));
-        // }
-        // return TypedMemView.nullView();
-        return BridgeMessage.tryAsMessage(_message);
-    }
+    // function testTryAsMessage(bytes29 _message)
+    //     external
+    //     pure
+    //     returns (bytes29)
+    // {
+    //     // if (isValidMessageLength(_message)) {
+    //     //     return _message.castTo(uint40(Types.Message));
+    //     // }
+    //     // return TypedMemView.nullView();
+    //     return BridgeMessage.tryAsMessage(_message);
+    // }
 
     function testMustBeTransfer(bytes29 _view) external pure returns (bytes29) {
         // return tryAsTransfer(_view).assertValid();
