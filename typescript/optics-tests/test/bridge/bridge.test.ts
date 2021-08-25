@@ -35,7 +35,7 @@ describe('BridgeRouter', async () => {
     // populate deployer signer
     [deployer] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();
-    deployerId = toBytes32(await deployer.getAddress()).toLowerCase();
+    deployerId = toBytes32(deployerAddress).toLowerCase();
   });
 
   describe('invalid messages', async () => {
