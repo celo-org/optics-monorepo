@@ -507,7 +507,7 @@ describe('BridgeRouter', async () => {
           type: BridgeMessageTypes.DETAILS,
           name: stringToBytes32(TEST_NAME),
           symbol: stringToBytes32(TEST_SYMBOL),
-          decimal: TEST_DECIMALS
+          decimals: TEST_DECIMALS
         }
       }
       outgoingDetails = bridge.serializeMessage(outgoingDetailsObj);
@@ -529,7 +529,7 @@ describe('BridgeRouter', async () => {
           type: BridgeMessageTypes.DETAILS,
           name: stringToBytes32(TEST_NAME),
           symbol: stringToBytes32(TEST_SYMBOL),
-          decimal: TEST_DECIMALS
+          decimals: TEST_DECIMALS
         }
       }
       incomingDetails = bridge.serializeMessage(incomingDetailsObj);

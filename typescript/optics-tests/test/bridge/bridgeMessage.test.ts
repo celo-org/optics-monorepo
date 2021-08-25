@@ -51,7 +51,7 @@ describe('BridgeMessage', async () => {
     type: BridgeMessageTypes.DETAILS,
     name: stringToBytes32('TEST TOKEN'),
     symbol: stringToBytes32('TEST'),
-    decimal: 8
+    decimals: 8
   }
   const detailsBytes = bridge.serializeDetailsAction(detailsAction);
   const detailsMessage: types.Message = {
@@ -189,8 +189,8 @@ describe('BridgeMessage', async () => {
   });
 
   it('formats details action', async () => {
-    const { name, symbol, decimal } = detailsAction;
-    const newDetails = await bridgeMessage.testFormatDetails(name, symbol, decimal);
+    const { name, symbol, decimals } = detailsAction;
+    const newDetails = await bridgeMessage.testFormatDetails(name, symbol, decimals);
     expect(newDetails).to.equal(detailsBytes);
   });
 
@@ -229,8 +229,7 @@ describe('BridgeMessage', async () => {
     expect(type).to.equal(BridgeMessageTypes.DETAILS);
     expect(name).to.equal(detailsAction.name);
     expect(symbol).to.equal(detailsAction.symbol);
-    // TODO: change decimal to decimals
-    expect(decimals).to.equal(detailsAction.decimal);
+    expect(decimals).to.equal(detailsAction.decimals);
   });
 
   it('returns elements of a message', async () => {

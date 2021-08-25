@@ -60,10 +60,10 @@ export function serializeTransferAction(transferAction: types.TransferAction): e
 }
 
 export function serializeDetailsAction(detailsAction: types.DetailsAction): ethers.BytesLike {
-  const { type, name, symbol, decimal } = detailsAction;
+  const { type, name, symbol, decimals } = detailsAction;
 
   assert(type === BridgeMessageTypes.DETAILS);
-  return formatDetails(name, symbol, decimal);
+  return formatDetails(name, symbol, decimals);
 }
 
 export function serializeRequestDetailsAction(requestDetailsAction: types.RequestDetailsAction): ethers.BytesLike {

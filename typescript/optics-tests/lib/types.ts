@@ -132,7 +132,7 @@ export type DetailsAction = {
   type: BridgeMessageTypes.DETAILS;
   name: string;
   symbol: string;
-  decimal: number;
+  decimals: number;
 }
 
 export type RequestDetailsAction = {
