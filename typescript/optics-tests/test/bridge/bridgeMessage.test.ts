@@ -256,4 +256,17 @@ describe('BridgeMessage', async () => {
     expect(newTokenId).to.equal(tokenId);
     expect(action).to.equal(transfer);
   });
+
+  it('fails if message type is not valid', async () => {
+    const revertMsg = 'Validity assertion failed';
+    const transfer = bridge.serializeTransferAction(transferAction);
+    const details = bridge.serializeDetailsAction(detailsAction);
+    const request = bridge.serializeRequestDetailsAction(requestDetailsAction);
+
+    await expect(bridgeMessage.testMustBeTransfer(details)).to.be.revertedWith(revertMsg);
+    await expect(bridgeMessage.testMustBeDetails(transfer)).to.be.revertedWith(revertMsg);
+    await expect(bridgeMessage.testMustBeRequestDetails(transfer)).to.be.revertedWith(revertMsg);
+    await expect(bridgeMessage.testMustBeTokenId(transfer)).to.be.revertedWith(revertMsg);
+    await expect(bridgeMessage.testMustBeMessage(transfer)).to.be.revertedWith(revertMsg);
+  });
 });

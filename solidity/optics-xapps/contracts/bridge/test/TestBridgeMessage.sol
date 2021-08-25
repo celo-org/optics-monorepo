@@ -233,88 +233,58 @@ contract TestBridgeMessage {
         return (tokenId.clone(), action.clone());
     }
 
-    // function testTryAsTransfer(bytes29 _action)
-    //     external
-    //     pure
-    //     returns (bytes29)
-    // {
-    //     // if (_action.len() == TRANSFER_LEN) {
-    //     //     return _action.castTo(uint40(Types.Transfer));
-    //     // }
-    //     // return TypedMemView.nullView();
-    //     return BridgeMessage.tryAsTransfer(_action);
-    // }
-
-    // function testTryAsDetails(bytes29 _action) external pure returns (bytes29) {
-    //     // if (_action.len() == DETAILS_LEN) {
-    //     //     return _action.castTo(uint40(Types.Details));
-    //     // }
-    //     // return TypedMemView.nullView();
-    //     return BridgeMessage.tryAsDetails(_action);
-    // }
-
-    // function testTryAsRequestDetails(bytes29 _action)
-    //     external
-    //     pure
-    //     returns (bytes29)
-    // {
-    //     // if (_action.len() == REQUEST_DETAILS_LEN) {
-    //     //     return _action.castTo(uint40(Types.RequestDetails));
-    //     // }
-    //     // return TypedMemView.nullView();
-    //     return BridgeMessage.tryAsRequestDetails(_action);
-    // }
-
-    // function testTryAsTokenId(bytes29 _tokenId)
-    //     external
-    //     pure
-    //     returns (bytes29)
-    // {
-    //     // if (_tokenId.len() == TOKEN_ID_LEN) {
-    //     //     return _tokenId.castTo(uint40(Types.TokenId));
-    //     // }
-    //     // return TypedMemView.nullView();
-    //     return BridgeMessage.tryAsTokenId(_tokenId);
-    // }
-
-    // function testTryAsMessage(bytes29 _message)
-    //     external
-    //     pure
-    //     returns (bytes29)
-    // {
-    //     // if (isValidMessageLength(_message)) {
-    //     //     return _message.castTo(uint40(Types.Message));
-    //     // }
-    //     // return TypedMemView.nullView();
-    //     return BridgeMessage.tryAsMessage(_message);
-    // }
-
-    function testMustBeTransfer(bytes29 _view) external pure returns (bytes29) {
-        // return tryAsTransfer(_view).assertValid();
-        return BridgeMessage.mustBeTransfer(_view);
-    }
-
-    function testMustBeDetails(bytes29 _view) external pure returns (bytes29) {
-        // return tryAsDetails(_view).assertValid();
-        return BridgeMessage.mustBeDetails(_view);
-    }
-
-    function testMustBeRequestDetails(bytes29 _view)
+    function testMustBeTransfer(bytes memory _transfer)
         external
-        pure
-        returns (bytes29)
+        view
+        returns (bytes memory)
     {
-        // return tryAsRequestDetails(_view).assertValid();
-        return BridgeMessage.mustBeRequestDetails(_view);
+        bytes29 transfer = _transfer.ref(
+            uint40(uint8(BridgeMessage.Types.Transfer))
+        );
+        return BridgeMessage.mustBeTransfer(transfer).clone();
     }
 
-    function testMustBeTokenId(bytes29 _view) external pure returns (bytes29) {
-        // return tryAsTokenId(_view).assertValid();
-        return BridgeMessage.mustBeTokenId(_view);
+    function testMustBeDetails(bytes memory _details)
+        external
+        view
+        returns (bytes memory)
+    {
+        bytes29 details = _details.ref(
+            uint40(uint8(BridgeMessage.Types.Details))
+        );
+        return BridgeMessage.mustBeDetails(details).clone();
     }
 
-    function testMustBeMessage(bytes29 _view) external pure returns (bytes29) {
-        // return tryAsMessage(_view).assertValid();
-        return BridgeMessage.mustBeMessage(_view);
+    function testMustBeRequestDetails(bytes memory _request)
+        external
+        view
+        returns (bytes memory)
+    {
+        bytes29 request = _request.ref(
+            uint40(uint8(BridgeMessage.Types.RequestDetails))
+        );
+        return BridgeMessage.mustBeRequestDetails(request).clone();
+    }
+
+    function testMustBeTokenId(bytes memory _tokenId)
+        external
+        view
+        returns (bytes memory)
+    {
+        bytes29 tokenId = _tokenId.ref(
+            uint40(uint8(BridgeMessage.Types.TokenId))
+        );
+        return BridgeMessage.mustBeTokenId(tokenId).clone();
+    }
+
+    function testMustBeMessage(bytes memory _message)
+        external
+        view
+        returns (bytes memory)
+    {
+        bytes29 message = _message.ref(
+            uint40(uint8(BridgeMessage.Types.Message))
+        );
+        return BridgeMessage.mustBeMessage(message).clone();
     }
 }

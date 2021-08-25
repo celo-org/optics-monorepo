@@ -31,20 +31,15 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     "testIsValidAction(bytes,uint8)": FunctionFragment;
     "testIsValidMessageLength(bytes)": FunctionFragment;
     "testMessageType(bytes)": FunctionFragment;
-    "testMustBeDetails(bytes29)": FunctionFragment;
-    "testMustBeMessage(bytes29)": FunctionFragment;
-    "testMustBeRequestDetails(bytes29)": FunctionFragment;
-    "testMustBeTokenId(bytes29)": FunctionFragment;
-    "testMustBeTransfer(bytes29)": FunctionFragment;
+    "testMustBeDetails(bytes)": FunctionFragment;
+    "testMustBeMessage(bytes)": FunctionFragment;
+    "testMustBeRequestDetails(bytes)": FunctionFragment;
+    "testMustBeTokenId(bytes)": FunctionFragment;
+    "testMustBeTransfer(bytes)": FunctionFragment;
     "testSplitDetails(bytes)": FunctionFragment;
     "testSplitMessage(bytes)": FunctionFragment;
     "testSplitTokenId(bytes)": FunctionFragment;
     "testSplitTransfer(bytes)": FunctionFragment;
-    "testTryAsDetails(bytes29)": FunctionFragment;
-    "testTryAsMessage(bytes29)": FunctionFragment;
-    "testTryAsRequestDetails(bytes29)": FunctionFragment;
-    "testTryAsTokenId(bytes29)": FunctionFragment;
-    "testTryAsTransfer(bytes29)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -127,26 +122,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
     functionFragment: "testSplitTransfer",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "testTryAsDetails",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testTryAsMessage",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testTryAsRequestDetails",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testTryAsTokenId",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testTryAsTransfer",
-    values: [BytesLike]
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "testFormatDetails",
@@ -226,26 +201,6 @@ interface TestBridgeMessageInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "testSplitTransfer",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testTryAsDetails",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testTryAsMessage",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testTryAsRequestDetails",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testTryAsTokenId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testTryAsTransfer",
     data: BytesLike
   ): Result;
 
@@ -357,27 +312,27 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<[number]>;
 
     testMustBeDetails(
-      _view: BytesLike,
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     testMustBeMessage(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     testMustBeRequestDetails(
-      _view: BytesLike,
+      _request: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     testMustBeTokenId(
-      _view: BytesLike,
+      _tokenId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     testMustBeTransfer(
-      _view: BytesLike,
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -400,31 +355,6 @@ export class TestBridgeMessage extends BaseContract {
       _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number, string, BigNumber]>;
-
-    testTryAsDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testTryAsMessage(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testTryAsRequestDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testTryAsTokenId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    testTryAsTransfer(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
   };
 
   testFormatDetails(
@@ -488,27 +418,27 @@ export class TestBridgeMessage extends BaseContract {
   ): Promise<number>;
 
   testMustBeDetails(
-    _view: BytesLike,
+    _details: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   testMustBeMessage(
-    _view: BytesLike,
+    _message: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   testMustBeRequestDetails(
-    _view: BytesLike,
+    _request: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   testMustBeTokenId(
-    _view: BytesLike,
+    _tokenId: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   testMustBeTransfer(
-    _view: BytesLike,
+    _transfer: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -531,31 +461,6 @@ export class TestBridgeMessage extends BaseContract {
     _transfer: BytesLike,
     overrides?: CallOverrides
   ): Promise<[number, string, BigNumber]>;
-
-  testTryAsDetails(
-    _action: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  testTryAsMessage(
-    _message: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  testTryAsRequestDetails(
-    _action: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  testTryAsTokenId(
-    _tokenId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  testTryAsTransfer(
-    _action: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   callStatic: {
     testFormatDetails(
@@ -619,27 +524,27 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<number>;
 
     testMustBeDetails(
-      _view: BytesLike,
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     testMustBeMessage(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     testMustBeRequestDetails(
-      _view: BytesLike,
+      _request: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     testMustBeTokenId(
-      _view: BytesLike,
+      _tokenId: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     testMustBeTransfer(
-      _view: BytesLike,
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -662,31 +567,6 @@ export class TestBridgeMessage extends BaseContract {
       _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number, string, BigNumber]>;
-
-    testTryAsDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testTryAsMessage(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testTryAsRequestDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testTryAsTokenId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    testTryAsTransfer(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
   };
 
   filters: {};
@@ -753,27 +633,27 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<BigNumber>;
 
     testMustBeDetails(
-      _view: BytesLike,
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     testMustBeMessage(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     testMustBeRequestDetails(
-      _view: BytesLike,
+      _request: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     testMustBeTokenId(
-      _view: BytesLike,
+      _tokenId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     testMustBeTransfer(
-      _view: BytesLike,
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -794,31 +674,6 @@ export class TestBridgeMessage extends BaseContract {
 
     testSplitTransfer(
       _transfer: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTryAsDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTryAsMessage(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTryAsRequestDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTryAsTokenId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    testTryAsTransfer(
-      _action: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -887,27 +742,27 @@ export class TestBridgeMessage extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     testMustBeDetails(
-      _view: BytesLike,
+      _details: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     testMustBeMessage(
-      _view: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     testMustBeRequestDetails(
-      _view: BytesLike,
+      _request: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     testMustBeTokenId(
-      _view: BytesLike,
+      _tokenId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     testMustBeTransfer(
-      _view: BytesLike,
+      _transfer: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -928,31 +783,6 @@ export class TestBridgeMessage extends BaseContract {
 
     testSplitTransfer(
       _transfer: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTryAsDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTryAsMessage(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTryAsRequestDetails(
-      _action: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTryAsTokenId(
-      _tokenId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    testTryAsTransfer(
-      _action: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
