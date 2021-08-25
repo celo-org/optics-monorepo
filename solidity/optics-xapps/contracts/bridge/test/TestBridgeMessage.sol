@@ -144,16 +144,6 @@ contract TestBridgeMessage {
         return (domain, id, evmId);
     }
 
-    // function testMsgType(bytes29 _message) external pure returns (uint8) {
-    //     // return uint8(_message.indexUint(TOKEN_ID_LEN, 1));
-    //     return BridgeMessage.msgType(_message);
-    // }
-
-    // function testActionType(bytes29 _action) external pure returns (uint8) {
-    //     // return uint8(_action.indexUint(0, 1));
-    //     return BridgeMessage.actionType(_action);
-    // }
-
     function testSplitTransfer(bytes memory _transfer)
         external
         view

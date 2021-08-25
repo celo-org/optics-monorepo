@@ -225,7 +225,7 @@ library BridgeMessage {
     }
 
     /**
-     * @notice Retrieves the identifier from action
+     * @notice Retrieves the action identifier from message
      * @param _message The action
      * @return The message type
      */
