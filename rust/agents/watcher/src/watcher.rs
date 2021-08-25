@@ -338,7 +338,7 @@ impl OpticsAgent for Watcher {
         // Report any invalid ConnectionManager chain setups
         errors
             .into_iter()
-            .for_each(|e| tracing::error!("{:?}", e.unwrap_err()));
+            .for_each(|e| tracing::error!("{:?}", e.as_ref().unwrap_err()));
 
         let connection_managers: Vec<_> = connection_managers
             .into_iter()

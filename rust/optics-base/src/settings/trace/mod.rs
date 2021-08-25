@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use opentelemetry_otlp::WithExportConfig;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, prelude::*};
 
@@ -83,14 +84,14 @@ impl TracingConfig {
                         opentelemetry_otlp::new_exporter()
                             .tonic()
                             .with_endpoint(uri)
-                            .with_timeout(Duration::from_secs(3)),
+                            .with_timeout(std::time::Duration::from_secs(3)),
                     )
                     .install_batch(opentelemetry::runtime::Tokio)?;
 
                 let telemetry: OpenTelemetryLayer<_, _> =
                     tracing_opentelemetry::layer().with_tracer(tracer);
 
-                subscriber.with(layer).try_init()?
+                subscriber.with(telemetry).try_init()?
             }
         }
 
