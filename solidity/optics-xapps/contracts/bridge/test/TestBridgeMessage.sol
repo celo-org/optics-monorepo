@@ -5,7 +5,6 @@ import "../BridgeMessage.sol";
 
 // ============ External Imports ============
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
-import "hardhat/console.sol";
 
 contract TestBridgeMessage {
     using BridgeMessage for bytes29;
@@ -14,25 +13,6 @@ contract TestBridgeMessage {
     using TypedMemView for bytes29;
 
     uint256 private constant TOKEN_ID_LEN = 36; // 4 bytes domain + 32 bytes id
-    uint256 private constant IDENTIFIER_LEN = 1;
-    uint256 private constant TRANSFER_LEN = 65; // 1 byte identifier + 32 bytes recipient + 32 bytes amount
-    uint256 private constant DETAILS_LEN = 66; // 1 byte identifier + 32 bytes name + 32 bytes symbol + 1 byte decimals
-    uint256 private constant REQUEST_DETAILS_LEN = 1; // 1 byte identifier
-
-    struct TokenId {
-        uint32 domain;
-        bytes32 id;
-    }
-
-    /**
-     * @notice Asserts a message is of type `_t`
-     * @param _view The message
-     * @param _t The expected type
-     */
-    modifier typeAssert(bytes29 _view, BridgeMessage.Types _t) {
-        _view.assertType(uint40(_t));
-        _;
-    }
 
     function getMessageType(bytes memory _message)
         internal
