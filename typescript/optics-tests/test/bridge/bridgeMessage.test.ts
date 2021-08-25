@@ -14,7 +14,6 @@ import {
   TestBridgeMessage
 } from '../../../typechain/optics-xapps';
 import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
-import { type } from 'os';
 
 const stringToBytes32 = (s: string): string => {
   const str = Buffer.from(s.slice(0, 32), 'utf-8');
@@ -224,18 +223,23 @@ describe('BridgeMessage', async () => {
 
   it('returns elements of a token id', async () => {
     const tokenId = formatTokenId(deploy.remoteDomain, deploy.testToken);
-    const [type, domain, id] = await bridgeMessage.testSplitTokenId(tokenId);
-    // TODO: returns wrong type?
-    // expect(type).to.equal(BridgeMessageTypes.TOKEN_ID);
+    const evmId = "0x" + deploy.testToken.slice(26);
+    const [domain, id, newEvmId] = await bridgeMessage.testSplitTokenId(tokenId);
     expect(domain).to.equal(deploy.remoteDomain);
     expect(id).to.equal(deploy.testToken);
+    expect(newEvmId).to.equal(evmId);
+
+    const stuff = await bridgeMessage.testSplitTokenId(transferMessage);
   });
 
   it('returns elements of a transfer action', async () => {
     const transfer = bridge.serializeTransferAction(transferAction);
-    const [type, recipient, amount] = await bridgeMessage.testSplitTransfer(transfer);
+    const evmRecipient = '0x' + deployerId.slice(26);
+
+    const [type, recipient, newEvmRecipient, amount] = await bridgeMessage.testSplitTransfer(transfer);
     expect(type).to.equal(BridgeMessageTypes.TRANSFER);
     expect(recipient).to.equal(transferAction.recipient);
+    expect(newEvmRecipient.toLowerCase()).to.equal(evmRecipient);
     expect(amount).to.equal(transferAction.amount);
   });
 
@@ -261,7 +265,6 @@ describe('BridgeMessage', async () => {
     const revertMsg = 'Validity assertion failed';
     const transfer = bridge.serializeTransferAction(transferAction);
     const details = bridge.serializeDetailsAction(detailsAction);
-    const request = bridge.serializeRequestDetailsAction(requestDetailsAction);
 
     await expect(bridgeMessage.testMustBeTransfer(details)).to.be.revertedWith(revertMsg);
     await expect(bridgeMessage.testMustBeDetails(transfer)).to.be.revertedWith(revertMsg);

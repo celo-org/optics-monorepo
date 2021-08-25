@@ -65,8 +65,8 @@ contract TestBridgeMessage {
         BridgeMessage.Types _idType,
         BridgeMessage.Types _actionType
     ) external view returns (bytes memory) {
-        bytes29 tokenId = _tokenId.ref(uint40(uint8(_idType)));
-        bytes29 action = _action.ref(uint40(uint8(_actionType)));
+        bytes29 tokenId = _tokenId.ref(uint40(_idType));
+        bytes29 action = _action.ref(uint40(_actionType));
         return BridgeMessage.formatMessage(tokenId, action);
     }
 
@@ -80,16 +80,12 @@ contract TestBridgeMessage {
     }
 
     function testIsTransfer(bytes memory _action) external pure returns (bool) {
-        bytes29 action = _action.ref(
-            uint40(uint8(BridgeMessage.Types.Transfer))
-        );
+        bytes29 action = _action.ref(uint40(BridgeMessage.Types.Transfer));
         return BridgeMessage.isTransfer(action);
     }
 
     function testIsDetails(bytes memory _action) external pure returns (bool) {
-        bytes29 action = _action.ref(
-            uint40(uint8(BridgeMessage.Types.Details))
-        );
+        bytes29 action = _action.ref(uint40(BridgeMessage.Types.Details));
         return BridgeMessage.isDetails(action);
     }
 
@@ -99,7 +95,7 @@ contract TestBridgeMessage {
         returns (bool)
     {
         bytes29 action = _action.ref(
-            uint40(uint8(BridgeMessage.Types.RequestDetails))
+            uint40(BridgeMessage.Types.RequestDetails)
         );
         return BridgeMessage.isRequestDetails(action);
     }
@@ -136,30 +132,17 @@ contract TestBridgeMessage {
         external
         view
         returns (
-            uint8,
             uint32,
-            bytes32
+            bytes32,
+            address
         )
     {
-        bytes29 tokenId = _tokenId.ref(
-            uint40(uint8(BridgeMessage.Types.TokenId))
-        );
-        uint8 t = BridgeMessage.actionType(tokenId);
+        bytes29 tokenId = _tokenId.ref(uint40(BridgeMessage.Types.TokenId));
         uint32 domain = BridgeMessage.domain(tokenId);
         bytes32 id = BridgeMessage.id(tokenId);
-        return (t, domain, id);
+        address evmId = BridgeMessage.evmId(tokenId);
+        return (domain, id, evmId);
     }
-
-    // function testEvmId(bytes29 _tokenId)
-    //     external
-    //     pure
-    //     typeAssert(_tokenId, BridgeMessage.Types.TokenId)
-    //     returns (address)
-    // {
-    //     // // before = 4 bytes domain + 12 bytes empty to trim for address
-    //     // return _tokenId.indexAddress(16);
-    //     return BridgeMessage.evmId(_tokenId);
-    // }
 
     // function testMsgType(bytes29 _message) external pure returns (uint8) {
     //     // return uint8(_message.indexUint(TOKEN_ID_LEN, 1));
@@ -177,16 +160,16 @@ contract TestBridgeMessage {
         returns (
             uint8,
             bytes32,
+            address,
             uint256
         )
     {
-        bytes29 transfer = _transfer.ref(
-            uint40(uint8(BridgeMessage.Types.Transfer))
-        );
+        bytes29 transfer = _transfer.ref(uint40(BridgeMessage.Types.Transfer));
         uint8 t = BridgeMessage.actionType(transfer);
         bytes32 recipient = BridgeMessage.recipient(transfer);
+        address evmRecipient = BridgeMessage.evmRecipient(transfer);
         uint256 amnt = BridgeMessage.amnt(transfer);
-        return (t, recipient, amnt);
+        return (t, recipient, evmRecipient, amnt);
     }
 
     function testSplitDetails(bytes memory _details)
@@ -199,9 +182,7 @@ contract TestBridgeMessage {
             uint8
         )
     {
-        bytes29 details = _details.ref(
-            uint40(uint8(BridgeMessage.Types.Details))
-        );
+        bytes29 details = _details.ref(uint40(BridgeMessage.Types.Details));
         uint8 t = BridgeMessage.actionType(details);
         bytes32 name = BridgeMessage.name(details);
         bytes32 symbol = BridgeMessage.symbol(details);
@@ -209,25 +190,12 @@ contract TestBridgeMessage {
         return (t, name, symbol, decimals);
     }
 
-    // function testEvmRecipient(bytes29 _transferAction)
-    //     external
-    //     pure
-    //     typeAssert(_transferAction, BridgeMessage.Types.Transfer)
-    //     returns (address)
-    // {
-    //     // // before = 1 byte identifier + 12 bytes empty to trim for address
-    //     // return _transferAction.indexAddress(13);
-    //     return BridgeMessage.evmRecipient(_transferAction);
-    // }
-
     function testSplitMessage(bytes memory _message)
         external
         view
         returns (bytes memory, bytes memory)
     {
-        bytes29 message = _message.ref(
-            uint40(uint8(BridgeMessage.Types.Message))
-        );
+        bytes29 message = _message.ref(uint40(BridgeMessage.Types.Message));
         bytes29 tokenId = BridgeMessage.tokenId(message);
         bytes29 action = BridgeMessage.action(message);
         return (tokenId.clone(), action.clone());
@@ -238,9 +206,7 @@ contract TestBridgeMessage {
         view
         returns (bytes memory)
     {
-        bytes29 transfer = _transfer.ref(
-            uint40(uint8(BridgeMessage.Types.Transfer))
-        );
+        bytes29 transfer = _transfer.ref(uint40(BridgeMessage.Types.Transfer));
         return BridgeMessage.mustBeTransfer(transfer).clone();
     }
 
@@ -249,9 +215,7 @@ contract TestBridgeMessage {
         view
         returns (bytes memory)
     {
-        bytes29 details = _details.ref(
-            uint40(uint8(BridgeMessage.Types.Details))
-        );
+        bytes29 details = _details.ref(uint40(BridgeMessage.Types.Details));
         return BridgeMessage.mustBeDetails(details).clone();
     }
 
@@ -261,7 +225,7 @@ contract TestBridgeMessage {
         returns (bytes memory)
     {
         bytes29 request = _request.ref(
-            uint40(uint8(BridgeMessage.Types.RequestDetails))
+            uint40(BridgeMessage.Types.RequestDetails)
         );
         return BridgeMessage.mustBeRequestDetails(request).clone();
     }
@@ -271,9 +235,7 @@ contract TestBridgeMessage {
         view
         returns (bytes memory)
     {
-        bytes29 tokenId = _tokenId.ref(
-            uint40(uint8(BridgeMessage.Types.TokenId))
-        );
+        bytes29 tokenId = _tokenId.ref(uint40(BridgeMessage.Types.TokenId));
         return BridgeMessage.mustBeTokenId(tokenId).clone();
     }
 
@@ -282,9 +244,7 @@ contract TestBridgeMessage {
         view
         returns (bytes memory)
     {
-        bytes29 message = _message.ref(
-            uint40(uint8(BridgeMessage.Types.Message))
-        );
+        bytes29 message = _message.ref(uint40(BridgeMessage.Types.Message));
         return BridgeMessage.mustBeMessage(message).clone();
     }
 }

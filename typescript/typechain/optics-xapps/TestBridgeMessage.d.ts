@@ -349,12 +349,12 @@ export class TestBridgeMessage extends BaseContract {
     testSplitTokenId(
       _tokenId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[number, number, string]>;
+    ): Promise<[number, string, string]>;
 
     testSplitTransfer(
       _transfer: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[number, string, BigNumber]>;
+    ): Promise<[number, string, string, BigNumber]>;
   };
 
   testFormatDetails(
@@ -455,12 +455,12 @@ export class TestBridgeMessage extends BaseContract {
   testSplitTokenId(
     _tokenId: BytesLike,
     overrides?: CallOverrides
-  ): Promise<[number, number, string]>;
+  ): Promise<[number, string, string]>;
 
   testSplitTransfer(
     _transfer: BytesLike,
     overrides?: CallOverrides
-  ): Promise<[number, string, BigNumber]>;
+  ): Promise<[number, string, string, BigNumber]>;
 
   callStatic: {
     testFormatDetails(
@@ -561,12 +561,12 @@ export class TestBridgeMessage extends BaseContract {
     testSplitTokenId(
       _tokenId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[number, number, string]>;
+    ): Promise<[number, string, string]>;
 
     testSplitTransfer(
       _transfer: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[number, string, BigNumber]>;
+    ): Promise<[number, string, string, BigNumber]>;
   };
 
   filters: {};
