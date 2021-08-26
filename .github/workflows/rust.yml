@@ -58,16 +58,3 @@ jobs:
         run: cd rust && cargo fmt -- --check
       - name: Clippy
         run: cd rust && cargo clippy -- -D warnings
-
-  complete:
-    runs-on: ubuntu-latest
-    needs: [build, test, lint]
-
-    steps:
-      - name: Rust tests successful
-        if: success()
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.ACTIONS_PAT }}
-          repository: ${{ github.repository }}
-          event-type: rust-tests-successful
