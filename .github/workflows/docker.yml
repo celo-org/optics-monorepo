@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: author_association
-        run: echo $"github"
+        run: echo "$github"
 
   build-and-push-to-gcr:
     if: (
