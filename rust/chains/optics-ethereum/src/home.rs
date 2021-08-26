@@ -201,6 +201,7 @@ where
 
         Ok(events.into_iter().next().map(|f| RawCommittedMessage {
             leaf_index: f.leaf_index.as_u32(),
+            current_root: f.current.into(),
             message: f.message,
         }))
     }
@@ -220,6 +221,7 @@ where
 
         Ok(events.into_iter().next().map(|f| RawCommittedMessage {
             leaf_index: f.leaf_index.as_u32(),
+            current_root: f.current.into(),
             message: f.message,
         }))
     }
