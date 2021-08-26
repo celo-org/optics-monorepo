@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: author_association
-        run: echo "$github.events.comment.author_association"
+        run: echo github.events.comment.author_association
 
   build-and-push-to-gcr:
     if: (
