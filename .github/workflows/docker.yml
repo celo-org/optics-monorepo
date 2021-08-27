@@ -9,20 +9,27 @@ on:
   #   branches:
   #     - 'main'
 jobs:
-  print:
+  check-env:
     runs-on: ubuntu-latest
+    # assign output from step to job output
+    outputs:
+      gcloud-service-key: ${{ steps.gcloud-service-key.outputs.defined }}
     steps:
-      - name: author_association
-        run: echo ${{ toJson(github) }}
+      - id: gcloud-service-key
+        # assign GCLOUD_SERVICE_KEY to env for access in conditional
+        env:
+          GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
+        if: "${{ env.GCLOUD_SERVICE_KEY != '' }}"
+        # runs if GCLOUD_SERVICE_KEY is defined, so we set the output to true
+        run: echo "::set-output name=defined::true"
 
   build-and-push-to-gcr:
-    if: (
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'COLLABORATOR' ||
-        github.event.comment.author_association == 'CONTRIBUTOR'
-      )
     runs-on: ubuntu-latest
+
+    # uses check-env to determine if secrets.GCLOUD_SERVICE_KEY is defined
+    needs: [check-env]
+    if: needs.check-env.outputs.gcloud-service-key == 'true'
+
     steps:
       - uses: actions/checkout@v2
       -
