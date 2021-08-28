@@ -45,7 +45,7 @@ The Routers keep track of the number of volleys in a given match, and emit event
 
 See the full-length [Token Bridge Documentation](#TODO) for in-depth details on Token Bridge operation and construction. 
 
-[Link to Contracts](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-core/contracts/bridge)
+[Link to Contracts](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps/contracts/bridge)
 
 ### Cross-Chain Governance xApp
 
