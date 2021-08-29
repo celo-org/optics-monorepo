@@ -44,7 +44,7 @@ impl OpticsAgent for Kathy {
         Ok(Self::new(
             settings.interval.parse().expect("invalid u64"),
             settings.chat.into(),
-            settings.base.try_into_core().await?,
+            settings.base.try_into_core("kathy").await?,
         ))
     }
 

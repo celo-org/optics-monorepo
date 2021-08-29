@@ -24,6 +24,7 @@ optics-core = { path = "../../optics-core" }
 optics-base = { path = "../../optics-base" }
 paste = "1.0.5"
 
+prometheus = "0.12"
+
 [dev-dependencies]
 optics-test = { path = "../../optics-test" }
-

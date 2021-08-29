@@ -44,6 +44,7 @@ pub(crate) struct Replica {
     db: Arc<DB>,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
+    next_to_inspect: prometheus::IntGauge,
 }
 
 impl std::fmt::Display for Replica {
@@ -276,7 +277,7 @@ impl OpticsAgent for Processor {
     {
         Ok(Self::new(
             settings.interval.parse().expect("invalid integer"),
-            settings.as_ref().try_into_core().await?,
+            settings.as_ref().try_into_core("processor").await?,
             settings.allowed,
             settings.denied,
         ))
@@ -293,8 +294,22 @@ impl OpticsAgent for Processor {
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();
 
+        let metrics = self.core.metrics.clone();
+
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
+
+            let next_to_inspect = prometheus::IntGauge::new(
+                "optics_processor_next_to_inspect_idx",
+                "Index of the next message to inspect",
+            )
+            .expect("metric description failed validation");
+
+            metrics
+                .registry
+                .register(Box::new(next_to_inspect.clone()))
+                .expect("must be able to register agent metrics");
+
             Replica {
                 interval,
                 replica,
@@ -302,6 +317,7 @@ impl OpticsAgent for Processor {
                 db,
                 allowed,
                 denied,
+                next_to_inspect,
             }
             .main()
             .await?

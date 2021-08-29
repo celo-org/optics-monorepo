@@ -191,7 +191,7 @@ impl OpticsAgent for Relayer {
     {
         Ok(Self::new(
             settings.interval.parse().expect("invalid uint"),
-            settings.as_ref().try_into_core().await?,
+            settings.as_ref().try_into_core("relayer").await?,
         ))
     }
 

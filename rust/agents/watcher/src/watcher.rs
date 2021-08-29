@@ -336,16 +336,17 @@ impl OpticsAgent for Watcher {
             connection_managers.into_iter().partition(Result::is_ok);
 
         // Report any invalid ConnectionManager chain setups
-        errors
-            .into_iter()
-            .for_each(|e| tracing::error!("{:?}", e.unwrap_err()));
+        errors.into_iter().for_each(|e| {
+            let err = e.unwrap_err();
+            tracing::error!("{:?}", err)
+        });
 
         let connection_managers: Vec<_> = connection_managers
             .into_iter()
             .map(Result::unwrap)
             .collect();
 
-        let core = settings.as_ref().try_into_core().await?;
+        let core = settings.as_ref().try_into_core("watcher").await?;
 
         Ok(Self::new(
             settings.watcher.try_into_signer().await?,
@@ -797,6 +798,14 @@ mod test {
                 home,
                 replicas: replica_map,
                 db: Arc::new(db),
+                metrics: Arc::new(
+                    optics_base::metrics::CoreMetrics::new(
+                        "watcher_test",
+                        None,
+                        Arc::new(prometheus::Registry::new()),
+                    )
+                    .expect("could not make metrics"),
+                ),
             };
 
             let mut watcher = Watcher::new(updater.into(), 1, connection_managers, core);

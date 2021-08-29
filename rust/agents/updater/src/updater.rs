@@ -7,6 +7,7 @@ use color_eyre::{
 };
 use ethers::{core::types::H256, signers::Signer, types::Address};
 use futures_util::future::select_all;
+use prometheus::IntCounter;
 use rocksdb::DB;
 use tokio::{
     sync::{
@@ -39,6 +40,7 @@ struct UpdateHandler {
     signer: Arc<Signers>,
     db: Arc<DB>,
     mutex: Arc<Mutex<()>>,
+    signed_attestation_count: IntCounter,
 }
 
 impl std::fmt::Display for UpdateHandler {
@@ -67,6 +69,7 @@ impl UpdateHandler {
         signer: Arc<Signers>,
         db: Arc<DB>,
         mutex: Arc<Mutex<()>>,
+        signed_attestation_count: IntCounter,
     ) -> Self {
         Self {
             home,
@@ -75,6 +78,7 @@ impl UpdateHandler {
             signer,
             db,
             mutex,
+            signed_attestation_count,
         }
     }
 
@@ -142,6 +146,7 @@ impl UpdateHandler {
             &signed.update.previous_root, &signed.update.new_root
         );
 
+        self.signed_attestation_count.inc();
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
@@ -196,7 +201,8 @@ pub struct Updater {
     signer: Arc<Signers>,
     interval_seconds: u64,
     update_pause: u64,
-    core: AgentCore,
+    pub(crate) core: AgentCore,
+    signed_attestation_count: IntCounter,
 }
 
 impl AsRef<AgentCore> for Updater {
@@ -208,11 +214,23 @@ impl AsRef<AgentCore> for Updater {
 impl Updater {
     /// Instantiate a new updater
     pub fn new(signer: Signers, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
+        let signed_attestation_count = IntCounter::new(
+            "optics_updater_signed_attestation_count",
+            "Number of attestations signed",
+        )
+        .expect("metric description failed validation");
+
+        core.metrics
+            .registry
+            .register(Box::new(signed_attestation_count.clone()))
+            .expect("must be able to register agent metrics");
+
         Self {
             signer: Arc::new(signer),
             interval_seconds,
             update_pause,
             core,
+            signed_attestation_count,
         }
     }
 }
@@ -231,7 +249,7 @@ impl OpticsAgent for Updater {
         let signer = settings.updater.try_into_signer().await?;
         let interval_seconds = settings.interval.parse().expect("invalid uint");
         let update_pause = settings.pause.parse().expect("invalid uint");
-        let core = settings.as_ref().try_into_core().await?;
+        let core = settings.as_ref().try_into_core("updater").await?;
         Ok(Self::new(signer, interval_seconds, update_pause, core))
     }
 
@@ -249,6 +267,7 @@ impl OpticsAgent for Updater {
             self.signer.clone(),
             self.db(),
             Default::default(),
+            self.signed_attestation_count.clone(),
         );
 
         tokio::spawn(async move {

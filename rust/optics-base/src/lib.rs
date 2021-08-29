@@ -31,3 +31,5 @@ pub mod replica;
 
 /// XAppConnectionManager type
 pub mod xapp;
+
+pub mod metrics;

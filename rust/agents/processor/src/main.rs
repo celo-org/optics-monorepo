@@ -25,6 +25,9 @@ async fn _main() -> Result<()> {
 
     // TODO: top-level root span customizations?
     let agent = Processor::from_settings(settings).await?;
+
+    let _ = agent.metrics().run_http_server();
+
     agent.run_all().await?;
     Ok(())
 }

@@ -24,6 +24,9 @@ async fn _main() -> Result<()> {
     settings.base.tracing.start_tracing()?;
 
     let agent = Watcher::from_settings(settings).await?;
+
+    let _ = agent.metrics().run_http_server();
+
     agent.run_all().await?;
     Ok(())
 }

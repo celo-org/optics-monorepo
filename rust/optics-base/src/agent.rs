@@ -1,4 +1,6 @@
-use crate::{cancel_task, home::Homes, replica::Replicas, settings::Settings};
+use crate::{
+    cancel_task, home::Homes, metrics::CoreMetrics, replica::Replicas, settings::Settings,
+};
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
@@ -17,6 +19,8 @@ pub struct AgentCore {
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
     pub db: Arc<DB>,
+    /// Prometheus metrics
+    pub metrics: Arc<CoreMetrics>,
 }
 
 /// A trait for an application:
@@ -32,6 +36,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     async fn from_settings(settings: Self::Settings) -> Result<Self>
     where
         Self: Sized;
+
+    /// Return a handle to the metrics registry
+    fn metrics(&self) -> Arc<CoreMetrics> {
+        self.as_ref().metrics.clone()
+    }
 
     /// Return a handle to the DB
     fn db(&self) -> Arc<DB> {
