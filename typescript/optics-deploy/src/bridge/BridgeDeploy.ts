@@ -1,4 +1,4 @@
-import { Chain, ChainJson, CoreContractDeployOutput, toChain } from '../chain';
+import { Chain, ChainJson, CoreContractAddresses, toChain } from '../chain';
 import { BridgeContracts } from './BridgeContracts';
 import { parseFileFromDeploy } from '../verification/readDeployOutput';
 import { Deploy } from '../deploy';
@@ -10,7 +10,7 @@ export type BridgeConfig = {
 export class BridgeDeploy extends Deploy<BridgeContracts> {
   readonly config: BridgeConfig;
   readonly coreDeployPath: string;
-  readonly coreContractAddresses: CoreContractDeployOutput;
+  readonly coreContractAddresses: CoreContractAddresses;
 
   constructor(
     chain: Chain,

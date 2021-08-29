@@ -460,6 +460,28 @@ export async function transferGovernorship(gov: CoreDeploy, non: CoreDeploy) {
 }
 
 /**
+ * Installs the intended ultimate governor in that domain's Governance Router.
+ * If the governor address is not configured, it will remain the deployer
+ * address.
+ * @param gov - The governor chain deploy instance
+ */
+export async function installGovernor(gov: CoreDeploy) {
+  let governor = gov.config.governor;
+  if (governor) {
+    log(
+      isTestDeploy,
+      `${gov.chain.name}: transferring root governorship to ${governor}`,
+    );
+    const tx = await gov.contracts.governance!.proxy.transferGovernor(
+      gov.domain,
+      governor,
+    );
+    await tx.wait(gov.chain.confirmations);
+    log(isTestDeploy, `${gov.chain.name}: root governorship transferred`);
+  }
+}
+
+/**
  * Deploys the entire optics suite of contracts on two chains.
  *
  * @notice `gov` has the governance capability after setup
@@ -501,6 +523,10 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
+  if (gov.config.governor) {
+    await appointGovernor(gov);
+  }
+
   if (!isTestDeploy) {
     writeDeployOutput([gov, non]);
   }
@@ -528,6 +554,10 @@ export async function deployHubAndSpokes(
     await transferGovernorship(gov, non);
 
     await relinquish(non);
+  }
+
+  if (gov.config.governor) {
+    await appointGovernor(gov);
   }
 
   await relinquish(gov);
@@ -622,7 +652,7 @@ export function writeDeployOutput(deploys: CoreDeploy[]) {
     );
     fs.writeFileSync(
       `${dir}/${name}_contracts.json`,
-      local.contracts.toJsonPretty(),
+      JSON.stringify(local.contractOutput, null, 2),
     );
     fs.writeFileSync(
       `${dir}/${name}_verification.json`,

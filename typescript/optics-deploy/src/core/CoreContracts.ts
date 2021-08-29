@@ -1,6 +1,7 @@
 import * as contracts from '../../../typechain/optics-core';
 import { BeaconProxy, ProxyAddresses } from '../proxyUtils';
 import { Contracts } from '../contracts';
+import { CoreContractAddresses } from '../chain';
 
 export class CoreContracts extends Contracts {
   upgradeBeaconController?: contracts.UpgradeBeaconController;
@@ -15,18 +16,18 @@ export class CoreContracts extends Contracts {
     this.replicas = {};
   }
 
-  toObject(): Object {
+  toObject(): CoreContractAddresses {
     const replicas: Record<string, ProxyAddresses> = {};
     Object.entries(this.replicas).forEach(([k, v]) => {
       replicas[k] = v.toObject();
     });
 
     return {
-      upgradeBeaconController: this.upgradeBeaconController?.address,
-      xAppConnectionManager: this.xAppConnectionManager?.address,
-      updaterManager: this.updaterManager?.address,
-      governance: this.governance?.toObject(),
-      home: this.home?.toObject(),
+      upgradeBeaconController: this.upgradeBeaconController!.address,
+      xAppConnectionManager: this.xAppConnectionManager!.address,
+      updaterManager: this.updaterManager!.address,
+      governance: this.governance!.toObject(),
+      home: this.home!.toObject(),
       replicas,
     };
   }

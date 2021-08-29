@@ -2,16 +2,23 @@ import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
 import { NonceManager } from '@ethersproject/experimental';
 import { ProxyAddresses } from './proxyUtils';
+import { Address } from '../../optics-tests/lib/types';
 
 export type DeployEnvironment = 'dev' | 'staging' | 'prod';
 
-export type CoreContractDeployOutput = {
-  upgradeBeaconController: string;
-  xAppConnectionManager: string;
-  updaterManager: string;
+export type CoreContractAddresses = {
+  upgradeBeaconController: Address;
+  xAppConnectionManager: Address;
+  updaterManager: Address;
   governance: ProxyAddresses;
   home: ProxyAddresses;
   replicas?: Record<string, ProxyAddresses>;
+};
+
+export type CoreDeployAddresses = CoreContractAddresses & {
+  recoveryManager: Address;
+  updater: Address;
+  governor?: { address: Address; domain: number };
 };
 
 export interface ChainJson {
