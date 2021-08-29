@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 ethers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", default-features = false, features = ['legacy'] }
 ethers-signers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", features=["aws"] }
+ethers-providers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", features=["ws", "rustls"] }
 hex = "0.4.3"
 sha3 = "0.9.1"
 lazy_static = "*"
