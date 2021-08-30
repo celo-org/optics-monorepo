@@ -98,7 +98,8 @@ export function getVerificationInputFromDeploy(path: any, network: any) {
  * */
 export function getPathToLatestBridgeDeploy(): string {
   const latestCoreDeployPath = getPathToLatestDeploy();
-  return getPathToLatestConfig(latestCoreDeployPath);
+  const bridgeConfigPath = `${latestCoreDeployPath}/bridge`;
+  return getPathToLatestConfig(bridgeConfigPath);
 }
 
 /*

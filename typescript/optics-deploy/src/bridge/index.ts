@@ -10,10 +10,6 @@ import assert from 'assert';
 
 type Deploy = BridgeDeploy | TestBridgeDeploy;
 
-export type BridgeDeployOutput = {
-  bridgeRouter?: string;
-};
-
 /**
  * Deploy and configure a cross-chain token bridge system
  * with one BridgeRouter on each of the provided chains
