@@ -40,7 +40,8 @@ required_keys = [
     "updater-signer",
     "updater-attestation",
     "processor-signer",
-    "relayer-signer"
+    "relayer-signer",
+    "kathy-signer"
 ]
 
 # nAgentKeys * nEnvironments
