@@ -1,15 +1,20 @@
 import * as dotenv from 'dotenv';
 
-import { ChainJson, toChain } from '../src/chain';
-import { CoreConfig } from '../src/core/CoreDeploy';
-import { BridgeConfig } from '../src/bridge/BridgeDeploy';
+import { ChainJson, toChain } from '../../src/chain';
+import { CoreConfig } from '../../src/core/CoreDeploy';
+import { BridgeConfig } from '../../src/bridge/BridgeDeploy';
 import { BigNumber } from 'ethers';
 
 dotenv.config();
 
+const rpc = process.env.KOVAN_RPC;
+if (!rpc) {
+  throw new Error('Missing RPC URI');
+}
+
 const chainJson: ChainJson = {
   name: 'kovan',
-  rpc: 'https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60',
+  rpc,
   deployerKey: process.env.KOVAN_DEPLOYER_KEY,
   domain: 3000,
   gasPrice: BigNumber.from(10_000_000_000),

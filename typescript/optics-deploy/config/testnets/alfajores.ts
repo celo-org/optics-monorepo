@@ -2,11 +2,17 @@ import { ChainJson, toChain } from '../../src/chain';
 import * as dotenv from 'dotenv';
 import { CoreConfig } from '../../src/core/CoreDeploy';
 import { BridgeConfig } from '../../src/bridge/BridgeDeploy';
+
 dotenv.config();
+
+const rpc = process.env.ALFAJORES_RPC;
+if (!rpc) {
+  throw new Error('Missing RPC URI');
+}
 
 export const chainJson: ChainJson = {
   name: 'alfajores',
-  rpc: 'https://alfajores-forno.celo-testnet.org',
+  rpc,
   deployerKey: process.env.ALFAJORES_DEPLOYER_KEY,
   domain: 1000,
 };
