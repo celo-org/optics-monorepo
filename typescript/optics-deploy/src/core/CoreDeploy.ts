@@ -11,6 +11,10 @@ import { CoreContracts } from './CoreContracts';
 import { Deploy } from '../deploy';
 import { Address } from '../../../optics-tests/lib/types';
 
+type Governor = {
+  domain: number,
+  address: Address
+}
 export type CoreConfig = {
   environment: DeployEnvironment;
   updater: Address;
@@ -18,7 +22,7 @@ export type CoreConfig = {
   recoveryManager: Address;
   optimisticSeconds: number;
   watchers: string[];
-  governor?: Address;
+  governor?: Governor;
 };
 
 export class CoreDeploy extends Deploy<CoreContracts> {
@@ -37,7 +41,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
     };
     if (this.config.governor) {
       addresses.governor = {
-        address: this.config.governor,
+        address: this.config.governor.address,
         domain: this.chain.domain,
       };
     }
@@ -49,7 +53,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
   }
 
   async governor(): Promise<Address> {
-    return this.config.governor ?? (await this.deployer.getAddress());
+    return this.config.governor?.address ?? (await this.deployer.getAddress());
   }
 
   static parseCoreConfig(config: ChainJson & CoreConfig): [Chain, CoreConfig] {
