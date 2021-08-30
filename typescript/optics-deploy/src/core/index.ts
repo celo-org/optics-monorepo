@@ -50,7 +50,7 @@ export async function deployUpgradeBeaconController(deploy: CoreDeploy) {
  *
  * @param deploy - The deploy instance
  */
- export async function deployUpdaterManager(deploy: CoreDeploy) {
+export async function deployUpdaterManager(deploy: CoreDeploy) {
   let factory = new contracts.UpdaterManager__factory(deploy.deployer);
   deploy.contracts.updaterManager = await factory.deploy(
     deploy.config.updater,
@@ -74,7 +74,7 @@ export async function deployUpgradeBeaconController(deploy: CoreDeploy) {
  *
  * @param deploy - The deploy instance
  */
- export async function deployXAppConnectionManager(deploy: CoreDeploy) {
+export async function deployXAppConnectionManager(deploy: CoreDeploy) {
   const isTestDeploy: boolean = deploy.test;
   if (isTestDeploy) warn('deploying test XAppConnectionManager');
 
