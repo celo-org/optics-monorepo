@@ -2,6 +2,7 @@ import { getPathToLatestDeploy } from '../src/verification/readDeployOutput';
 import { deployBridges } from '../src/bridge';
 import * as alfajores from '../config/alfajores';
 import * as kovan from '../config/kovan';
+import * as rinkeby from '../config/rinkeby';
 import { BridgeDeploy } from '../src/bridge/BridgeDeploy';
 
 // get the path to the latest core system deploy
@@ -13,5 +14,10 @@ const alfajoresDeploy = new BridgeDeploy(
   path,
 );
 const kovanDeploy = new BridgeDeploy(kovan.chain, kovan.bridgeConfig, path);
+const rinkebyDeploy = new BridgeDeploy(
+  rinkeby.chain,
+  rinkeby.bridgeConfig,
+  path,
+);
 
-deployBridges([alfajoresDeploy, kovanDeploy]);
+deployBridges([alfajoresDeploy, kovanDeploy, rinkebyDeploy]);

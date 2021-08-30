@@ -1,8 +1,8 @@
-import { deployTwoChains } from '../src/core';
-import * as alfajores from '../config/alfajores';
-import * as kovan from '../config/kovan';
-import { CoreDeploy } from '../src/core/CoreDeploy';
-import { deployEnvironment } from '../src/chain';
+import { deployTwoChains } from '../../src/core';
+import * as alfajores from '../../config/alfajores';
+import * as kovan from '../../config/kovan';
+import { CoreDeploy } from '../../src/core/CoreDeploy';
+import { deployEnvironment } from '../../src/chain';
 
 let environment = deployEnvironment();
 

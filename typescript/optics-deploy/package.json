@@ -13,8 +13,8 @@
   "scripts": {
     "prettier": "prettier --write ./src ./config ./scripts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy-core": "npx ts-node ./scripts/alfajoresKovan.ts",
-    "deploy-bridge": "npx ts-node ./scripts/bridgeAlfajoresKovan.ts"
+    "deploy-core": "npx ts-node ./scripts/alfajoresKovan/core.ts",
+    "deploy-bridge": "npx ts-node ./scripts/alfajoresKovan/bridge.ts"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0",
