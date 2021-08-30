@@ -12,7 +12,7 @@ data:
   AWS_SECRET_ACCESS_KEY: {{ .Values.optics.aws.secretAccessKey }}
   {{- end }}
   RUST_BACKTRACE: {{ .Values.optics.rustBacktrace }}
-  OPT_BASE_DBPATH: {{ .Values.optics.dbPath }}
+  OPT_BASE_DB: {{ .Values.optics.dbPath }}
   OPT_BASE_TRACING_FMT: {{ .Values.optics.tracing.format }}
   OPT_BASE_TRACING_LEVEL: {{ .Values.optics.tracing.level }}
   {{- if .Values.optics.homeChain.connectionUrl }}
