@@ -460,12 +460,12 @@ export async function transferGovernorship(gov: CoreDeploy, non: CoreDeploy) {
 }
 
 /**
- * Installs the intended ultimate governor in that domain's Governance Router.
+ * Appints the intended ultimate governor in that domain's Governance Router.
  * If the governor address is not configured, it will remain the deployer
  * address.
  * @param gov - The governor chain deploy instance
  */
-export async function installGovernor(gov: CoreDeploy) {
+export async function appointGovernor(gov: CoreDeploy) {
   let governor = gov.config.governor;
   if (governor) {
     log(
