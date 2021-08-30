@@ -1,7 +1,7 @@
-import { ChainJson, toChain } from '../src/chain';
+import { ChainJson, toChain } from '../../src/chain';
 import * as dotenv from 'dotenv';
-import { CoreConfig } from '../src/core/CoreDeploy';
-import { BridgeConfig } from '../src/bridge/BridgeDeploy';
+import { CoreConfig } from '../../src/core/CoreDeploy';
+import { BridgeConfig } from '../../src/bridge/BridgeDeploy';
 dotenv.config();
 
 export const chainJson: ChainJson = {

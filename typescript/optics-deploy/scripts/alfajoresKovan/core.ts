@@ -1,6 +1,6 @@
 import { deployTwoChains } from '../../src/core';
-import * as alfajores from '../../config/alfajores';
-import * as kovan from '../../config/kovan';
+import * as alfajores from '../../config/testnets/alfajores';
+import * as kovan from '../../config/testnets/kovan';
 import { CoreDeploy } from '../../src/core/CoreDeploy';
 import { deployEnvironment } from '../../src/chain';
 

@@ -1,9 +1,9 @@
-import { deployNChains } from '../src/core';
-import * as alfajores from '../config/alfajores';
-import * as kovan from '../config/kovan';
-import * as rinkeby from '../config/rinkeby';
-import { CoreDeploy } from '../src/core/CoreDeploy';
-import { deployEnvironment } from '../src/chain';
+import { deployNChains } from '../../src/core';
+import * as alfajores from '../../config/testnets/alfajores';
+import * as kovan from '../../config/testnets/kovan';
+import * as rinkeby from '../../config/testnets/rinkeby';
+import { CoreDeploy } from '../../src/core/CoreDeploy';
+import { deployEnvironment } from '../../src/chain';
 
 let environment = deployEnvironment();
 
