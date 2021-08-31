@@ -6,14 +6,13 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title UpgradeBeaconProxy
- *
  * @notice
- * This contract delegates all logic, including initialization, to an implementation contract.
- * The implementation contract is stored within the Upgrade Beacon contract;
+ * Proxy contract which delegates all logic, including initialization,
+ * to an implementation contract.
+ * The implementation contract is stored within an Upgrade Beacon contract;
  * the implementation contract can be changed by performing an upgrade on the Upgrade Beacon contract.
  * The Upgrade Beacon contract for this Proxy is immutably specified at deployment.
- *
- * This implementation combines the gas savings of keeping the UpgradeBeacon address outside of contract storage
+ * @dev This implementation combines the gas savings of keeping the UpgradeBeacon address outside of contract storage
  * found in 0age's implementation:
  * https://github.com/dharma-eng/dharma-smart-wallet/blob/master/contracts/proxies/smart-wallet/UpgradeBeaconProxyV1.sol
  * With the added safety checks that the UpgradeBeacon and implementation are contracts at time of deployment
@@ -21,8 +20,12 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/beacon/BeaconProxy.sol
  */
 contract UpgradeBeaconProxy {
+    // ============ Immutables ============
+
     // Upgrade Beacon address is immutable (therefore not kept in contract storage)
     address private immutable upgradeBeacon;
+
+    // ============ Constructor ============
 
     /**
      * @notice Validate that the Upgrade Beacon is a contract, then set its
@@ -31,32 +34,29 @@ contract UpgradeBeaconProxy {
      * Then call the initialization function defined at the implementation.
      * The deployment will revert and pass along the
      * revert reason if the initialization function reverts.
-     *
-     * @param _upgradeBeacon - Address of the Upgrade Beacon to be stored immutably in the contract
-     * @param _initializationCalldata - Calldata supplied when calling the initialization function
+     * @param _upgradeBeacon Address of the Upgrade Beacon to be stored immutably in the contract
+     * @param _initializationCalldata Calldata supplied when calling the initialization function
      */
     constructor(address _upgradeBeacon, bytes memory _initializationCalldata)
         payable
     {
         // Validate the Upgrade Beacon is a contract
         require(Address.isContract(_upgradeBeacon), "beacon !contract");
-
         // set the Upgrade Beacon
         upgradeBeacon = _upgradeBeacon;
-
         // Validate the implementation is a contract
         address _implementation = _getImplementation(_upgradeBeacon);
-
         require(
             Address.isContract(_implementation),
             "beacon implementation !contract"
         );
-
         // Call the initialization function on the implementation
         if (_initializationCalldata.length > 0) {
             _initialize(_implementation, _initializationCalldata);
         }
     }
+
+    // ============ External Functions ============
 
     /**
      * @notice Forwards all calls with data to _fallback()
@@ -73,6 +73,8 @@ contract UpgradeBeaconProxy {
         _fallback();
     }
 
+    // ============ Private Functions ============
+
     /**
      * @notice Call the initialization function on the implementation
      * Used at deployment to initialize the proxy
@@ -87,7 +89,6 @@ contract UpgradeBeaconProxy {
     ) private {
         // Delegatecall into the implementation, supplying initialization calldata.
         (bool _ok, ) = _implementation.delegatecall(_initializationCalldata);
-
         // Revert and include revert data if delegatecall to implementation reverts.
         if (!_ok) {
             assembly {
@@ -120,7 +121,6 @@ contract UpgradeBeaconProxy {
             // block because it will not return to Solidity code. We overwrite the
             // Solidity scratch pad at memory position 0.
             calldatacopy(0, 0, calldatasize())
-
             // Delegatecall to the implementation, supplying calldata and gas.
             // Out and outsize are set to zero - instead, use the return buffer.
             let result := delegatecall(
@@ -131,10 +131,8 @@ contract UpgradeBeaconProxy {
                 0,
                 0
             )
-
             // Copy the returned data from the return buffer.
             returndatacopy(0, 0, returndatasize())
-
             switch result
             // Delegatecall returns 0 on error.
             case 0 {
@@ -148,8 +146,7 @@ contract UpgradeBeaconProxy {
 
     /**
      * @notice Call the Upgrade Beacon to get the current implementation contract address
-     *
-     * @return _implementation - Address of the current implementation.
+     * @return _implementation Address of the current implementation.
      */
     function _getImplementation()
         private
@@ -161,12 +158,11 @@ contract UpgradeBeaconProxy {
 
     /**
      * @notice Call the Upgrade Beacon to get the current implementation contract address
-     *
-     * Note: we pass in the _upgradeBeacon so we can also use this function at
-     * deployment, when the upgradeBeacon variable hasn't been set yet.
-     *
-     * @param _upgradeBeacon - Address of the UpgradeBeacon storing the current implementation
-     * @return _implementation - Address of the current implementation.
+     * @dev _upgradeBeacon is passed as a parameter so that
+     * we can also use this function in the constructor,
+     * where we can't access immutable variables.
+     * @param _upgradeBeacon Address of the UpgradeBeacon storing the current implementation
+     * @return _implementation Address of the current implementation.
      */
     function _getImplementation(address _upgradeBeacon)
         private
@@ -175,10 +171,8 @@ contract UpgradeBeaconProxy {
     {
         // Get the current implementation address from the upgrade beacon.
         (bool _ok, bytes memory _returnData) = _upgradeBeacon.staticcall("");
-
         // Revert and pass along revert message if call to upgrade beacon reverts.
         require(_ok, string(_returnData));
-
         // Set the implementation to the address returned from the upgrade beacon.
         _implementation = abi.decode(_returnData, (address));
     }
