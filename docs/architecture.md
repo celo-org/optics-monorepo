@@ -24,9 +24,10 @@ The home contract is responsible for managing production of the message tree and
 3. Commit messages to the message tree
 4. Maintain a queue of tree roots
 5. Hold the updater bond
-6. Slash on double-update proofs
-7. Slash on improper update proofs
-8. Future: manage updater rotation
+6. Slash on double-update proofs (not implemented)
+7. Slash on improper update proofs (not implemented)
+8. Future: manage updater rotation/bond
+9. Future: recover from `FAILED` state
 
 #### Replica
 
@@ -39,7 +40,8 @@ The replica contract is responsible for managing optimistic replication and disp
 5. Enforce the message format
 6. Ensure messages are processed in order
 7. Dispatch messages to their destination
-8. Expose a "disconnect" feature 
+8. Expose a "disconnect" feature
+9. Future: recover from `FAILED` state
 
 ### Off-chain (Agents)
 
@@ -49,7 +51,8 @@ The updater is responsible for signing attestations of new roots. It is an off-c
 
 1. Observe the home chain contract
 2. Sign attestations to new roots
-3. Publish the signed attestation to the home chain 
+3. Publish the signed attestation to the home chain
+4. Future: manage Updater bond
 
 #### Watcher
 

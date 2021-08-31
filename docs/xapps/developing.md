@@ -34,6 +34,8 @@ For each type of action,
 
 ### Ping Pong xApp
 
+**Important!** The Ping Pong xApp is for reference only. Please do not deploy!
+
 [The PingPong xApp](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps/contracts/ping-pong) is capable of initiating PingPong "matches" between two chains. A match consists of "volleys" sent back-and-forth between the two chains via Optics.
 
 The first volley in a match is always a Ping volley.
@@ -43,7 +45,7 @@ The first volley in a match is always a Ping volley.
 
 The Routers keep track of the number of volleys in a given match, and emit events for each Sent and Received volley so that spectators can watch.
 
-### Token Bridge xApp 
+### Token Bridge xApp
 
 See the full-length [Token Bridge Documentation](#TODO) for in-depth details on Token Bridge operation and construction.
 

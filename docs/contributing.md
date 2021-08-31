@@ -54,3 +54,4 @@ Before approving and merging please do the following:
 6. Give an approval
 7. Ensure that any issues the PR addresses are properly linked
 8. If any changes are needed to local environments (e.g. re-installing the build script, or installing new tooling) please record it in the documentation folder.
+9. Resolve conficts by rebasing onto target branch
