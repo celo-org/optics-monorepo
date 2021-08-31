@@ -16,8 +16,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 /**
  * @title Home
  * @author Celo Labs Inc.
- * @notice Contract responsible for managing production of the message tree and
- * holding custody of the updater bond.
+ * @notice Accepts messages to be dispatched to remote chains,
+ * constructs a Merkle tree of the messages,
+ * and accepts signatures from a bonded Updater
+ * which notarize the Merkle tree roots.
+ * Accepts submissions of fraudulent signatures
+ * by the Updater and slashes the Updater in this case.
  */
 contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     // ============ Libraries ============

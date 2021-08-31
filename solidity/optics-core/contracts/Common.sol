@@ -11,7 +11,7 @@ import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @title Common
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
- **/
+ */
 abstract contract Common is QueueManager {
     // ============ Enums ============
 

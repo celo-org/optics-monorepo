@@ -7,20 +7,32 @@ import {MerkleLib} from "../libs/Merkle.sol";
 /**
  * @title MerkleTreeManager
  * @author Celo Labs Inc.
- * @notice Contract containing a merkle tree instance and view operations on
- * the tree.
- **/
+ * @notice Contains a Merkle tree instance and
+ * exposes view functions for the tree.
+ */
 contract MerkleTreeManager {
+    // ============ Libraries ============
+
     using MerkleLib for MerkleLib.Tree;
     MerkleLib.Tree public tree;
-    uint256[49] private __GAP; // gap for upgrade safety
 
-    /// @notice Calculates and returns`tree`'s current root
+    // ============ Upgrade Gap ============
+
+    // gap for upgrade safety
+    uint256[49] private __GAP;
+
+    // ============ Public Functions ============
+
+    /**
+     * @notice Calculates and returns tree's current root
+     */
     function root() public view returns (bytes32) {
         return tree.root();
     }
 
-    /// @notice Returns the number of inserted leaves in the tree (current index)
+    /**
+     * @notice Returns the number of inserted leaves in the tree (current index)
+     */
     function count() public view returns (uint256) {
         return tree.count;
     }
