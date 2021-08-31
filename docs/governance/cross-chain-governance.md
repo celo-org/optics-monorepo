@@ -32,7 +32,7 @@ Each `GovernanceRouter` is programmed to accept messages ***only*** from the `go
 
 The system receives orders from the `governor` and carries out their effects across chains; it is agnostic to how the `governor` chooses to operate. This maintains flexibility to design the governance proposal process in the future.
 
-At launch, the core functionality that will be delegated to the `GovernanceRouter` on each chain is  the power to upgrade the implementation of the `Home` and `Replica` contracts. This way, the `governor` will have the power to conduct upgrades of the Optics system on every chain. More details on the upgradability system can be found [here](https://www.notion.so/Upgrade-Setup-6853fbbd99c54e2981b9e5b767045231).
+At launch, the core functionality that will be delegated to the `GovernanceRouter` on each chain is  the power to upgrade the implementation of the `Home` and `Replica` contracts. This way, the `governor` will have the power to conduct upgrades of the Optics system on every chain. More details on the upgradability system can be found [here](../upgrade-setup.md).
 
 At launch, the `governor` will be a multisig of trusted team and community members. In the near future, the `governor` role will most likely be transferred to a more fully-featured set of contracts capable of accepting proposals, tallying votes, and executing successful proposals.
 
