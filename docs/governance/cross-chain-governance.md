@@ -38,7 +38,7 @@ At launch, the `governor` will be a multisig of trusted team and community membe
 
 ## Message Flow Diagram
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c6d0c8c1-0ebd-4a79-a5d9-00c5f8007421/Governance_xApp.jpg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c6d0c8c1-0ebd-4a79-a5d9-00c5f8007421/Governance_xApp.jpg)
+<img src="../images/Governance-XApp.jpeg" alt="Governance xApp Diagram" style="max-width:400px;" />
 
 1. `governor` sends message to its local `GovernanceRouter`
 2. `GovernanceRouter` dispatches the message...
