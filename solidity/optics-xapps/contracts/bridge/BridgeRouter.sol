@@ -19,14 +19,30 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  * @title BridgeRouter
  */
 contract BridgeRouter is Version0, Router, TokenRegistry {
+    // ============ Libraries ============
+
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
     using SafeERC20 for IERC20;
 
+    // ============ Constants ============
+
     /// @notice 5 bps (0.05%) hardcoded fee. Can be changed by contract upgrade
     uint256 public constant PRE_FILL_FEE_NUMERATOR = 9995;
     uint256 public constant PRE_FILL_FEE_DENOMINATOR = 10000;
+
+    // ============ Public Storage ============
+
+    /// @notice A mapping that stores the LP that pre-filled a token transfer
+    /// message
+    mapping(bytes32 => address) public liquidityProvider;
+
+    // ============ Upgrade Gap ============
+
+    // gap for upgrade safety
+    uint256[49] private __GAP;
+
     // ======== Events =========
 
     event Migrate(
@@ -37,12 +53,6 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
         address oldToken,
         address newToken
     );
-
-    /// @notice A mapping that stores the LP that pre-filled a token transfer
-    /// message
-    mapping(bytes32 => address) public liquidityProvider;
-    // gap for upgrade safety
-    uint256[49] private __GAP;
 
     // ======== Initializer ========
 

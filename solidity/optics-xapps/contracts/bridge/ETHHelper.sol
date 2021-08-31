@@ -8,17 +8,22 @@ import {IWeth} from "../../interfaces/bridge/IWeth.sol";
 import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.sol";
 
 contract ETHHelper {
-    /// @dev wrapped Ether
-    IWeth public immutable weth;
+    // ============ Immutables ============
 
-    /// @dev the bridge we will use
+    // wrapped Ether contract
+    IWeth public immutable weth;
+    // bridge router contract
     BridgeRouter public immutable bridge;
+
+    // ============ Constructor ============
 
     constructor(address _weth, address _bridge) {
         weth = IWeth(_weth);
         bridge = BridgeRouter(_bridge);
         IWeth(_weth).approve(_bridge, uint256(-1));
     }
+
+    // ============ External Functions ============
 
     /**
      * @notice Sends ETH over the Optics Bridge. Sends to a full-width Optics

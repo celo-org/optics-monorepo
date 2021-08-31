@@ -10,6 +10,8 @@ import {TypeCasts} from "@celo-org/optics-sol/contracts/XAppConnectionManager.so
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
+    // ============ Immutables ============
+
     // Immutables used in EIP 712 structured data hashing & signing
     // https://eips.ethereum.org/EIPS/eip-712
     bytes32 public immutable _PERMIT_TYPEHASH =
@@ -20,34 +22,29 @@ contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
         keccak256(bytes("1"));
     uint16 private immutable _EIP712_PREFIX_AND_VERSION = uint16(0x1901);
 
+    // ============ Public Storage ============
+
     mapping(address => uint256) public nonces;
+
+    // ============ Upgrade Gap ============
+
     uint256[49] private __GAP; // gap for upgrade safety
+
+    // ============ Initializer ============
 
     function initialize() public override initializer {
         __Ownable_init();
     }
 
-    /// @dev silence the compiler being dumb
-    function balanceOf(address _account)
-        public
-        view
-        override(IBridgeToken, ERC20)
-        returns (uint256)
-    {
-        return ERC20.balanceOf(_account);
-    }
+    // ============ External Functions ============
 
     /**
      * @notice Destroys `_amnt` tokens from `_from`, reducing the
      * total supply.
-     *
      * @dev Emits a {Transfer} event with `to` set to the zero address.
-     *
      * Requirements:
-     *
      * - `_from` cannot be the zero address.
      * - `_from` must have at least `_amnt` tokens.
-     *
      * @param _from The address from which to destroy the tokens
      * @param _amnt The amount of tokens to be destroyed
      */
@@ -57,13 +54,9 @@ contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
 
     /** @notice Creates `_amnt` tokens and assigns them to `_to`, increasing
      * the total supply.
-     *
      * @dev Emits a {Transfer} event with `from` set to the zero address.
-     *
      * Requirements:
-     *
      * - `to` cannot be the zero address.
-     *
      * @param _to The destination address
      * @param _amnt The amount of tokens to be minted
      */
@@ -137,6 +130,20 @@ contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
         _approve(_owner, _spender, _value);
     }
 
+    // ============ Public Functions ============
+
+    /**
+     * @dev silence the compiler being dumb
+     */
+    function balanceOf(address _account)
+        public
+        view
+        override(IBridgeToken, ERC20)
+        returns (uint256)
+    {
+        return ERC20.balanceOf(_account);
+    }
+
     /**
      * @dev Returns the name of the token.
      */
@@ -156,11 +163,9 @@ contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
      * @dev Returns the number of decimals used to get its user representation.
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
      * be displayed to a user as `5,05` (`505 / 10 ** 2`).
-     *
      * Tokens usually opt for a value of 18, imitating the relationship between
      * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
      * called.
-     *
      * NOTE: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
@@ -169,10 +174,10 @@ contract BridgeToken is Version0, IBridgeToken, OwnableUpgradeable, ERC20 {
         return token.decimals;
     }
 
-    // ======= PERMIT =======
-
-    /// @dev This is ALWAYS calculated at runtime because the token name may
-    /// change.
+    /**
+     * @dev This is ALWAYS calculated at runtime
+     * because the token name may change
+     */
     function domainSeparator() public view returns (bytes32) {
         uint256 _chainId;
         assembly {

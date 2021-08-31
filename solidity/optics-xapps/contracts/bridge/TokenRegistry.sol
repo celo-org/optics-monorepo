@@ -30,6 +30,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/Initializ
  * Note that locally originating tokens should NEVER be represented in these lookup tables.
  */
 abstract contract TokenRegistry is Initializable {
+    // ============ Libraries ============
+
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using BridgeMessage for bytes29;
@@ -46,13 +48,10 @@ abstract contract TokenRegistry is Initializable {
 
     // ============ Public Storage ============
 
-    /// @dev The UpgradeBeacon that new tokens proxies will read implementation
-    /// from
+    // UpgradeBeacon from which new token proxies will get their implementation
     address public tokenBeacon;
-
     // local representation token address => token ID
     mapping(address => TokenId) public representationToCanonical;
-
     // hash of the tightly-packed TokenId => local representation token address
     // If the token is of local origin, this MUST map to address(0).
     mapping(bytes32 => address) public canonicalToRepresentation;
@@ -89,8 +88,7 @@ abstract contract TokenRegistry is Initializable {
 
     /**
      * @notice Looks up the canonical identifier for a local representation.
-     * @dev If no such canonical ID is known, this instead returns
-     *      (0, bytes32(0)).
+     * @dev If no such canonical ID is known, this instead returns (0, bytes32(0))
      * @param _local The local address of the representation
      */
     function getCanonicalAddress(address _local)
@@ -106,8 +104,8 @@ abstract contract TokenRegistry is Initializable {
     /**
      * @notice Looks up the local address corresponding to a domain/id pair.
      * @dev If the token is local, it will return the local address.
-     *      If the token is non-local and no local representation exists, this
-     *      will return `address(0)`.
+     * If the token is non-local and no local representation exists, this
+     * will return `address(0)`.
      * @param _domain the domain of the canonical version.
      * @param _id the identifier of the canonical version in its domain.
      * @return _token the local address of the token contract
@@ -125,8 +123,8 @@ abstract contract TokenRegistry is Initializable {
     /**
      * @notice Looks up the local address corresponding to a domain/id pair.
      * @dev If the token is local, it will return the local address.
-     *      If the token is non-local and no local representation exists, this
-     *      will return `address(0)`.
+     * If the token is non-local and no local representation exists, this
+     * will return `address(0)`.
      * @param _domain the domain of the canonical version.
      * @param _id the identifier of the canonical version in its domain.
      * @return _token the local address of the token contract
