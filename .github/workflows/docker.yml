@@ -29,7 +29,8 @@ jobs:
     # uses check-env to determine if secrets.GCLOUD_SERVICE_KEY is defined
     needs: [check-env]
     if: needs.check-env.outputs.gcloud-service-key == 'true'
-
+    env: 
+      BUILD_CACHE: /home/runner/.docker/buildkit
     steps:
       - uses: actions/checkout@v2
       -
@@ -52,6 +53,14 @@ jobs:
           registry: gcr.io
           username: _json_key
           password: ${{ secrets.GCLOUD_SERVICE_KEY }}
+      - 
+        name: Cache docker layers
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.BUILD_CACHE }}
+          key: cache-${{ hashFiles('./rust/Cargo.toml') }}
+          restore-keys: |
+            cache-
       -
         name: Build and push
         uses: docker/build-push-action@v2
