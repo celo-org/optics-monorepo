@@ -120,7 +120,7 @@ describe('Home', async () => {
           optics.ethersAddressToBytes32(recipient.address),
           message,
         ),
-    ).to.be.revertedWith('!too big');
+    ).to.be.revertedWith('msg too long');
   });
 
   it('Enqueues a message', async () => {
@@ -249,7 +249,7 @@ describe('Home', async () => {
     );
     await expect(
       home.update(currentRoot, newRoot, fakeSignature),
-    ).to.be.revertedWith('bad sig');
+    ).to.be.revertedWith('!updater sig');
   });
 
   it('Fails on valid double update proof', async () => {

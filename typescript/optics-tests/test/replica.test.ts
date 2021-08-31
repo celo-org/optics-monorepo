@@ -159,7 +159,7 @@ describe('Replica', async () => {
 
     await expect(
       replica.update(firstNewRoot, secondNewRoot, fakeSignature),
-    ).to.be.revertedWith('bad sig');
+    ).to.be.revertedWith('!updater sig');
   });
 
   it('Rejects initial update not building off initial root', async () => {
