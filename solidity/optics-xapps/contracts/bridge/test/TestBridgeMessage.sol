@@ -36,7 +36,7 @@ contract TestBridgeMessage {
 
     function getMessageType(bytes memory _message)
         internal
-        view
+        pure
         returns (uint40)
     {
         return uint40(uint8(_message[TOKEN_ID_LEN]));
@@ -44,7 +44,7 @@ contract TestBridgeMessage {
 
     function testIsValidAction(bytes memory _action, BridgeMessage.Types _t)
         external
-        view
+        pure
         returns (bool)
     {
         return BridgeMessage.isValidAction(_action.ref(uint40(_t)));
@@ -52,7 +52,7 @@ contract TestBridgeMessage {
 
     function testIsValidMessageLength(bytes memory _message)
         external
-        view
+        pure
         returns (bool)
     {
         uint40 _t = getMessageType(_message);
@@ -72,7 +72,7 @@ contract TestBridgeMessage {
 
     function testMessageType(bytes memory _message)
         external
-        view
+        pure
         returns (BridgeMessage.Types)
     {
         uint40 _t = getMessageType(_message);
@@ -130,7 +130,7 @@ contract TestBridgeMessage {
 
     function testSplitTokenId(bytes memory _tokenId)
         external
-        view
+        pure
         returns (
             uint32,
             bytes32,
@@ -146,7 +146,7 @@ contract TestBridgeMessage {
 
     function testSplitTransfer(bytes memory _transfer)
         external
-        view
+        pure
         returns (
             uint8,
             bytes32,
@@ -164,7 +164,7 @@ contract TestBridgeMessage {
 
     function testSplitDetails(bytes memory _details)
         external
-        view
+        pure
         returns (
             uint8,
             bytes32,

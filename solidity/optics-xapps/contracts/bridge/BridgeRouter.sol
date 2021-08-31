@@ -112,7 +112,8 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
         uint32 _destination,
         bytes32 _recipient
     ) external {
-        require(_amount > 0, "cannot send 0");
+        require(_amount > 0, "!amnt");
+        require(_recipient != bytes32(0), "!recip");
         // get remote BridgeRouter address; revert if not found
         bytes32 _remote = _mustHaveRemote(_destination);
         // remove tokens from circulation on this chain

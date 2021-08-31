@@ -59,17 +59,6 @@ describe('BridgeRouter', async () => {
       deploy = await TestBridgeDeploy.deploy(deployer);
     });
 
-    it('errors when missing a remote router', async () => {
-      expect(
-        deploy.bridgeRouter!.send(
-          ethers.constants.AddressZero,
-          10,
-          12378,
-          `0x${'00'.repeat(32)}`,
-        ),
-      ).to.be.revertedWith('!remote');
-    });
-
     describe('remotely-originating asset roundtrup', async () => {
       let transferMessage: BytesLike;
       let repr: IERC20;
@@ -83,9 +72,9 @@ describe('BridgeRouter', async () => {
           action: {
             type: BridgeMessageTypes.TRANSFER,
             recipient: deployerId,
-            amount: TOKEN_VALUE
-          }
-        }
+            amount: TOKEN_VALUE,
+          },
+        };
         transferMessage = bridge.serializeMessage(transferMessageObj);
       });
 
@@ -104,19 +93,15 @@ describe('BridgeRouter', async () => {
         const requestDetailsObj: types.Message = {
           tokenId: deploy.testTokenId,
           action: {
-            type: BridgeMessageTypes.REQUEST_DETAILS
-          }
-        }
+            type: BridgeMessageTypes.REQUEST_DETAILS,
+          },
+        };
         const requestDetails = bridge.serializeMessage(requestDetailsObj);
 
         await expect(handleTx).to.emit(deploy.bridgeRouter!, 'TokenDeployed');
         await expect(handleTx)
           .to.emit(deploy.mockCore, 'Enqueue')
-          .withArgs(
-            deploy.remoteDomain,
-            deployerId,
-            requestDetails,
-          );
+          .withArgs(deploy.remoteDomain, deployerId, requestDetails);
         expect(await repr!.balanceOf(deployer.address)).to.equal(
           BigNumber.from(TOKEN_VALUE),
         );
@@ -136,6 +121,28 @@ describe('BridgeRouter', async () => {
         );
       });
 
+      it('errors when missing a remote router', async () => {
+        expect(
+          deploy.bridgeRouter!.send(
+            repr!.address,
+            TOKEN_VALUE * 10,
+            121234,
+            deployerId,
+          ),
+        ).to.be.revertedWith('!remote');
+      });
+
+      it('errors on send when recipient is the 0 address', async () => {
+        expect(
+          deploy.bridgeRouter!.send(
+            repr!.address,
+            TOKEN_VALUE * 10,
+            deploy.remoteDomain,
+            `0x${'00'.repeat(32)}`,
+          ),
+        ).to.be.revertedWith('!recip');
+      });
+
       it('errors on send if ERC20 amount is zero', async () => {
         const zeroTx = deploy.bridgeRouter!.send(
           repr!.address,
@@ -144,7 +151,7 @@ describe('BridgeRouter', async () => {
           deployerId,
         );
 
-        await expect(zeroTx).to.be.revertedWith('cannot send 0');
+        await expect(zeroTx).to.be.revertedWith('!amnt');
       });
 
       it('errors on send if remote router is unknown', async () => {
@@ -203,14 +210,14 @@ describe('BridgeRouter', async () => {
         const transferMessageObj: types.Message = {
           tokenId: {
             domain: deploy.localDomain,
-            id: toBytes32(localToken.address)
+            id: toBytes32(localToken.address),
           },
           action: {
             type: BridgeMessageTypes.TRANSFER,
             recipient: deployerId,
-            amount: TOKEN_VALUE
-          }
-        }
+            amount: TOKEN_VALUE,
+          },
+        };
         transferMessage = bridge.serializeMessage(transferMessageObj);
 
         expect(await localToken.balanceOf(deployerAddress)).to.equal(
@@ -309,9 +316,9 @@ describe('BridgeRouter', async () => {
         action: {
           type: BridgeMessageTypes.TRANSFER,
           recipient: deployerId,
-          amount: TOKEN_VALUE
-        }
-      }
+          amount: TOKEN_VALUE,
+        },
+      };
       const transferMessage = bridge.serializeMessage(transferMessageObj);
 
       expect(deploy.bridgeRouter!.preFill(transferMessage)).to.be.revertedWith(
@@ -339,9 +346,9 @@ describe('BridgeRouter', async () => {
           action: {
             type: BridgeMessageTypes.TRANSFER,
             recipient: recipientId,
-            amount: TOKEN_VALUE
-          }
-        }
+            amount: TOKEN_VALUE,
+          },
+        };
         transferMessage = bridge.serializeMessage(transferMessageObj);
 
         // setup message
@@ -350,9 +357,9 @@ describe('BridgeRouter', async () => {
           action: {
             type: BridgeMessageTypes.TRANSFER,
             recipient: deployerId,
-            amount: TOKEN_VALUE
-          }
-        }
+            amount: TOKEN_VALUE,
+          },
+        };
         setupMessage = bridge.serializeMessage(setupMessageObj);
 
         // perform setup
@@ -433,14 +440,14 @@ describe('BridgeRouter', async () => {
         const transferMessageObj: types.Message = {
           tokenId: {
             domain: deploy.localDomain,
-            id: toBytes32(localToken.address)
+            id: toBytes32(localToken.address),
           },
           action: {
             type: BridgeMessageTypes.TRANSFER,
             recipient: recipientId,
-            amount: TOKEN_VALUE
-          }
-        }
+            amount: TOKEN_VALUE,
+          },
+        };
         transferMessage = bridge.serializeMessage(transferMessageObj);
       });
 
@@ -490,26 +497,26 @@ describe('BridgeRouter', async () => {
       const requestMessageObj: types.Message = {
         tokenId: {
           domain: deploy.localDomain,
-          id: toBytes32(localToken.address)
+          id: toBytes32(localToken.address),
         },
         action: {
-          type: BridgeMessageTypes.REQUEST_DETAILS
-        }
-      }
+          type: BridgeMessageTypes.REQUEST_DETAILS,
+        },
+      };
       requestMessage = bridge.serializeMessage(requestMessageObj);
 
       const outgoingDetailsObj: types.Message = {
         tokenId: {
           domain: deploy.localDomain,
-          id: toBytes32(localToken.address)
+          id: toBytes32(localToken.address),
         },
         action: {
           type: BridgeMessageTypes.DETAILS,
           name: stringToBytes32(TEST_NAME),
           symbol: stringToBytes32(TEST_SYMBOL),
-          decimals: TEST_DECIMALS
-        }
-      }
+          decimals: TEST_DECIMALS,
+        },
+      };
       outgoingDetails = bridge.serializeMessage(outgoingDetailsObj);
 
       // generate transfer action
@@ -518,9 +525,9 @@ describe('BridgeRouter', async () => {
         action: {
           type: BridgeMessageTypes.TRANSFER,
           recipient: deployerId,
-          amount: TOKEN_VALUE
-        }
-      }
+          amount: TOKEN_VALUE,
+        },
+      };
       transferMessage = bridge.serializeMessage(transferMessageObj);
 
       const incomingDetailsObj: types.Message = {
@@ -529,9 +536,9 @@ describe('BridgeRouter', async () => {
           type: BridgeMessageTypes.DETAILS,
           name: stringToBytes32(TEST_NAME),
           symbol: stringToBytes32(TEST_SYMBOL),
-          decimals: TEST_DECIMALS
-        }
-      }
+          decimals: TEST_DECIMALS,
+        },
+      };
       incomingDetails = bridge.serializeMessage(incomingDetailsObj);
 
       // first send in a transfer to create the repr
@@ -555,18 +562,14 @@ describe('BridgeRouter', async () => {
       const requestDetailsObj: types.Message = {
         tokenId: deploy.testTokenId,
         action: {
-          type: BridgeMessageTypes.REQUEST_DETAILS
-        }
-      }
+          type: BridgeMessageTypes.REQUEST_DETAILS,
+        },
+      };
       const requestDetails = bridge.serializeMessage(requestDetailsObj);
 
       await expect(requestTx)
         .to.emit(deploy.mockCore, 'Enqueue')
-        .withArgs(
-          deploy.remoteDomain,
-          deployerId,
-          requestDetails,
-        );
+        .withArgs(deploy.remoteDomain, deployerId, requestDetails);
     });
 
     it('handles incoming requestDetails by dispatching a details message', async () => {
@@ -585,12 +588,12 @@ describe('BridgeRouter', async () => {
       const badRequestObj: types.Message = {
         tokenId: {
           domain: deploy.localDomain,
-          id: toBytes32(repr.address)
+          id: toBytes32(repr.address),
         },
         action: {
-          type: BridgeMessageTypes.REQUEST_DETAILS
-        }
-      }
+          type: BridgeMessageTypes.REQUEST_DETAILS,
+        },
+      };
       const badRequest = bridge.serializeMessage(badRequestObj);
 
       let badRequestTx = deploy.bridgeRouter?.handle(
@@ -606,12 +609,12 @@ describe('BridgeRouter', async () => {
       const badRequestObj: types.Message = {
         tokenId: {
           domain: deploy.localDomain,
-          id: toBytes32(localToken.address)
+          id: toBytes32(localToken.address),
         },
         action: {
-          type: BridgeMessageTypes.REQUEST_DETAILS
-        }
-      }
+          type: BridgeMessageTypes.REQUEST_DETAILS,
+        },
+      };
       const badRequest = bridge.serializeMessage(badRequestObj);
 
       let badRequestTx = deploy.bridgeRouter?.handle(
@@ -656,9 +659,9 @@ describe('BridgeRouter', async () => {
         action: {
           type: BridgeMessageTypes.TRANSFER,
           recipient: deployerId,
-          amount: VALUE
-        }
-      }
+          amount: VALUE,
+        },
+      };
       transferMessage = bridge.serializeMessage(transferMessageObj);
 
       // first send in a transfer to create the repr
@@ -760,9 +763,9 @@ describe('BridgeRouter', async () => {
         action: {
           type: BridgeMessageTypes.TRANSFER,
           recipient: deployerId,
-          amount: TOKEN_VALUE
-        }
-      }
+          amount: TOKEN_VALUE,
+        },
+      };
       const smallTransferMessage = bridge.serializeMessage(smallTransfer);
 
       const defaultSendTx = await deploy.bridgeRouter!.send(
