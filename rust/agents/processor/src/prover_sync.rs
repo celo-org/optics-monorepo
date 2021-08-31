@@ -6,10 +6,13 @@ use optics_core::{
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
-use std::{ops::Range, sync::Arc};
-use tokio::sync::{
-    oneshot::{error::TryRecvError, Receiver},
-    RwLock,
+use std::{ops::Range, sync::Arc, time::Duration};
+use tokio::{
+    sync::{
+        oneshot::{error::TryRecvError, Receiver},
+        RwLock,
+    },
+    time::sleep,
 };
 use tracing::{debug, info, instrument};
 
@@ -113,6 +116,9 @@ impl ProverSync {
             Ok(leaf)
         } else {
             debug!("Retrieving leaf from chain.");
+            // slight rate limit
+            // TODO(James): make this not so kludgy
+            sleep(Duration::from_millis(100)).await;
             match self.home.leaf_by_tree_index(leaf_index).await? {
                 Some(leaf) => {
                     debug!("Retrieved leaf from chain.");
