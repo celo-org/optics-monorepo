@@ -1,3 +1,4 @@
+import fs from "fs";
 import * as alfajores from '../config/alfajores';
 import * as kovan from '../config/kovan';
 import {Contract} from 'ethers';
@@ -58,9 +59,28 @@ async function getProcessEvents(replica: contracts.Replica, home: contracts.Home
     const dispatches = await getParsedEvents(home, home.filters.Dispatch());
     console.log("Num dispatch on Alfa: ", dispatches.length);
 
+    const dispatchedLeaves = dispatches.map(event => event["args"][2]);
+
     const processSuccesses = await getParsedEvents(replica, replica.filters.ProcessSuccess());
     console.log("Num process successes on Kovan: ", processSuccesses.length);
 
-    console.log("example dispatch: ", JSON.stringify(dispatches.slice(0, 2), null, 2));
+    const processedLeaves = processSuccesses.map(event => event["args"][0]);
+
+    const dispatchedNotProcessedLeaves = dispatchedLeaves.filter(leaf => !processedLeaves.includes(leaf));
+
+    console.log("Num dispatched not processed leaves: ", dispatchedNotProcessedLeaves.length);
+
+    fs.writeFileSync(
+        `dispatchedLeaves.json`,
+        JSON.stringify(dispatchedLeaves, null, 2),
+    );
+    fs.writeFileSync(
+        `processedLeaves.json`,
+        JSON.stringify(processedLeaves, null, 2),
+    );
+    fs.writeFileSync(
+        `dispatchedNotProcessedLeaves.json`,
+        JSON.stringify(dispatchedNotProcessedLeaves, null, 2),
+    );
 }
 
