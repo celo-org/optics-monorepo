@@ -6,13 +6,10 @@ use optics_core::{
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;
-use std::{ops::Range, sync::Arc, time::Duration};
-use tokio::{
-    sync::{
-        oneshot::{error::TryRecvError, Receiver},
-        RwLock,
-    },
-    time::sleep,
+use std::{ops::Range, sync::Arc};
+use tokio::sync::{
+    oneshot::{error::TryRecvError, Receiver},
+    RwLock,
 };
 use tracing::{debug, info, instrument};
 
@@ -133,6 +130,7 @@ impl ProverSync {
     // expensive and poorly done
     async fn get_leaf_range(&mut self, range: Range<usize>) -> Result<Vec<H256>, ProverSyncError> {
         let mut leaves = vec![];
+
         for i in range {
             let leaf = self.fetch_leaf(i).await?;
             if leaf.is_none() {
@@ -293,8 +291,6 @@ impl ProverSync {
                 info!("ProverSync: Parent task has shut down.");
                 break;
             }
-
-            sleep(Duration::from_secs(2)).await;
         }
 
         Ok(())
