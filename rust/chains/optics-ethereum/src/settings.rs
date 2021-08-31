@@ -1,6 +1,5 @@
 use color_eyre::{Report, Result};
 use ethers::prelude::{Address, Middleware};
-use std::convert::TryFrom;
 
 use optics_core::{
     traits::{ConnectionManager, Home, Replica},
@@ -64,8 +63,9 @@ macro_rules! construct_ws_box_contract {
 
 macro_rules! construct_http_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
+        let json_rpc: $crate::provider::RetryingJsonRPC = $url.parse()?;
         let provider =
-            ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
+            ethers::providers::Provider::<$crate::provider::RetryingJsonRPC>::new(json_rpc);
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
 }

@@ -20,3 +20,7 @@ color-eyre = "0.5.0"
 optics-core = { path = "../../optics-core" }
 tokio = "1.7.1"
 hex = "0.4.3"
+thiserror = "1.0.28"
+reqwest = "0.11.4"
+ethers-providers = "0.5.1"
+url = "2.2.2"

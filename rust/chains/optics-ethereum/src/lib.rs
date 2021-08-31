@@ -23,3 +23,6 @@ pub mod settings;
 
 #[cfg(not(doctest))]
 pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};
+
+/// Retrying Provider
+pub mod provider;
