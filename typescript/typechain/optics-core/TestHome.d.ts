@@ -587,16 +587,16 @@ export class TestHome extends BaseContract {
     Dispatch(
       leafIndex?: BigNumberish | null,
       destinationAndSequence?: BigNumberish | null,
-      messageHash?: BytesLike | null,
-      latestUpdatedRoot?: null,
+      leaf?: BytesLike | null,
+      current?: null,
       message?: null
     ): TypedEventFilter<
       [BigNumber, BigNumber, string, string, string],
       {
         leafIndex: BigNumber;
         destinationAndSequence: BigNumber;
-        messageHash: string;
-        latestUpdatedRoot: string;
+        leaf: string;
+        current: string;
         message: string;
       }
     >;

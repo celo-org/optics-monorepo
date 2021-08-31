@@ -28,13 +28,13 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "messageHash",
+        "name": "leaf",
         "type": "bytes32"
       },
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "latestUpdatedRoot",
+        "name": "current",
         "type": "bytes32"
       },
       {

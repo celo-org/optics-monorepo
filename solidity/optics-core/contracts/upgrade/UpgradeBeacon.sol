@@ -54,7 +54,6 @@ contract UpgradeBeacon {
      * to the address passed in the calldata.
      * Note: this requires inline assembly because Solidity fallback functions
      * do not natively take arguments or return values.
-     * @return implementation address, if not called by the controller
      */
     fallback() external payable {
         if (msg.sender != controller) {

@@ -79,7 +79,6 @@ contract UpgradeBeaconProxy {
      * @notice Call the initialization function on the implementation
      * Used at deployment to initialize the proxy
      * based on the logic for initialization defined at the implementation
-     *
      * @param _implementation - Contract to which the initalization is delegated
      * @param _initializationCalldata - Calldata supplied when calling the initialization function
      */
@@ -107,12 +106,10 @@ contract UpgradeBeaconProxy {
 
     /**
      * @notice Delegate function execution to the implementation contract
-     *
-     * This is a low level function that doesn't return to its internal
+     * @dev This is a low level function that doesn't return to its internal
      * call site. It will return whatever is returned by the implementation to the
      * external caller, reverting and returning the revert data if implementation
      * reverts.
-     *
      * @param _implementation - Address to which the function execution is delegated
      */
     function _delegate(address _implementation) private {
