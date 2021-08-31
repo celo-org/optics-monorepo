@@ -65,10 +65,12 @@ interface UpdaterManagerInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "updater", data: BytesLike): Result;
 
   events: {
+    "FakeSlashed(address)": EventFragment;
     "NewHome(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "FakeSlashed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewHome"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
@@ -197,6 +199,10 @@ export class UpdaterManager extends BaseContract {
   };
 
   filters: {
+    FakeSlashed(
+      reporter?: null
+    ): TypedEventFilter<[string], { reporter: string }>;
+
     NewHome(home?: null): TypedEventFilter<[string], { home: string }>;
 
     OwnershipTransferred(

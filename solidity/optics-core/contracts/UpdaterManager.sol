@@ -8,27 +8,59 @@ import {Home} from "./Home.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
+/**
+ * @title UpdaterManager
+ * @author Celo Labs Inc.
+ * @notice MVP / centralized version of contract
+ * that will manage Updater bonding, slashing,
+ * selection and rotation
+ */
 contract UpdaterManager is IUpdaterManager, Ownable {
-    address private _updater;
+    // ============ Internal Storage ============
+
+    // address of home contract
     address internal home;
 
+    // ============ Private Storage ============
+
+    // address of the current updater
+    address private _updater;
+
+    // ============ Events ============
+
     /**
-     * @notice Event emitted when a new home is set
+     * @notice Emitted when a new home is set
      * @param home The address of the new home contract
      */
     event NewHome(address home);
 
-    constructor(address _updaterAddress) payable Ownable() {
-        _updater = _updaterAddress;
-    }
+    /**
+     * @notice Emitted when slashUpdater is called
+     */
+    event FakeSlashed(address reporter);
 
+    // ============ Modifiers ============
+
+    /**
+     * @notice Require that the function is called
+     * by the Home contract
+     */
     modifier onlyHome() {
         require(msg.sender == home, "!home");
         _;
     }
 
+    // ============ Constructor ============
+
+    constructor(address _updaterAddress) payable Ownable() {
+        _updater = _updaterAddress;
+    }
+
+    // ============ External Functions ============
+
     /**
-     * @notice Permissioned function that sets the address of the new home contract
+     * @notice Set the address of the a new home contract
+     * @dev only callable by trusted owner
      * @param _home The address of the new home contract
      */
     function setHome(address _home) external onlyOwner {
@@ -39,8 +71,9 @@ contract UpdaterManager is IUpdaterManager, Ownable {
     }
 
     /**
-     * @notice Permissioned function that sets the address of the new updater contract
-     * @param _updaterAddress The address of the new updater contract
+     * @notice Set the address of a new updater
+     * @dev only callable by trusted owner
+     * @param _updaterAddress The address of the new updater
      */
     function setUpdater(address _updaterAddress) external onlyOwner {
         _updater = _updaterAddress;
@@ -49,17 +82,22 @@ contract UpdaterManager is IUpdaterManager, Ownable {
 
     /**
      * @notice Slashes the updater
-     * @dev Currently only emits Slashed event, functionality will come later
+     * @dev Currently does nothing, functionality will be implemented later
+     * when updater bonding and rotation are also implemented
      * @param _reporter The address of the entity that reported the updater fraud
      */
-    // solhint-disable-next-line no-unused-vars
     function slashUpdater(address payable _reporter)
         external
         override
         onlyHome
-    {} // solhint-disable-line no-empty-blocks
+    {
+        emit FakeSlashed(_reporter);
+    }
 
-    /// @notice Returns the address of the current updater
+    /**
+     * @notice Get address of current updater
+     * @return the updater address
+     */
     function updater() external view override returns (address) {
         return _updater;
     }

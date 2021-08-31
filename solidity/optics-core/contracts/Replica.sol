@@ -108,8 +108,8 @@ contract Replica is Version0, Common {
             require(current == _oldRoot, "not current update");
         }
         require(
-            Common._isUpdaterSignature(_oldRoot, _newRoot, _signature),
-            "bad sig"
+            _isUpdaterSignature(_oldRoot, _newRoot, _signature),
+            "!updater sig"
         );
 
         // Hook for future use
