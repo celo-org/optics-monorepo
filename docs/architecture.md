@@ -8,7 +8,6 @@ Optics has several logical components:
 
 - Home - The on-chain contract responsible for producing the message tree
 - Replica - The on-chain contract responsible for replicating the message root on some other chain
-
 - Updater - The off-chain participant responsible for submitting updates to the home chain
 - Watcher - The off-chain participant responsible for observing a replica, and submitting fraud proofs to the home chain
 - Relayer - The off-chain participant responsible for submitting updates to a replica
