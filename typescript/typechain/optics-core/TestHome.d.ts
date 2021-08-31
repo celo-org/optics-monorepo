@@ -214,7 +214,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
   events: {
     "Dispatch(uint256,uint64,bytes32,bytes32,bytes)": EventFragment;
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "ImproperUpdate()": EventFragment;
+    "ImproperUpdate(bytes32,bytes32,bytes)": EventFragment;
     "NewUpdater(address)": EventFragment;
     "NewUpdaterManager(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
@@ -291,9 +291,9 @@ export class TestHome extends BaseContract {
     ): Promise<ContractTransaction>;
 
     enqueue(
-      _destination: BigNumberish,
-      _recipient: BytesLike,
-      _body: BytesLike,
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -372,7 +372,7 @@ export class TestHome extends BaseContract {
     ): Promise<[BigNumber] & { count: BigNumber }>;
 
     update(
-      _oldRoot: BytesLike,
+      _currentRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -398,9 +398,9 @@ export class TestHome extends BaseContract {
   ): Promise<ContractTransaction>;
 
   enqueue(
-    _destination: BigNumberish,
-    _recipient: BytesLike,
-    _body: BytesLike,
+    _destinationDomain: BigNumberish,
+    _recipientAddress: BytesLike,
+    _messageBody: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -474,7 +474,7 @@ export class TestHome extends BaseContract {
   tree(overrides?: CallOverrides): Promise<BigNumber>;
 
   update(
-    _oldRoot: BytesLike,
+    _currentRoot: BytesLike,
     _newRoot: BytesLike,
     _signature: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -500,9 +500,9 @@ export class TestHome extends BaseContract {
     ): Promise<void>;
 
     enqueue(
-      _destination: BigNumberish,
-      _recipient: BytesLike,
-      _body: BytesLike,
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -572,7 +572,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<BigNumber>;
 
     update(
-      _oldRoot: BytesLike,
+      _currentRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: CallOverrides
@@ -587,16 +587,16 @@ export class TestHome extends BaseContract {
     Dispatch(
       leafIndex?: BigNumberish | null,
       destinationAndSequence?: BigNumberish | null,
-      leaf?: BytesLike | null,
-      current?: null,
+      messageHash?: BytesLike | null,
+      latestUpdatedRoot?: null,
       message?: null
     ): TypedEventFilter<
       [BigNumber, BigNumber, string, string, string],
       {
         leafIndex: BigNumber;
         destinationAndSequence: BigNumber;
-        leaf: string;
-        current: string;
+        messageHash: string;
+        latestUpdatedRoot: string;
         message: string;
       }
     >;
@@ -616,7 +616,14 @@ export class TestHome extends BaseContract {
       }
     >;
 
-    ImproperUpdate(): TypedEventFilter<[], {}>;
+    ImproperUpdate(
+      oldRoot?: null,
+      newRoot?: null,
+      signature?: null
+    ): TypedEventFilter<
+      [string, string, string],
+      { oldRoot: string; newRoot: string; signature: string }
+    >;
 
     NewUpdater(updater?: null): TypedEventFilter<[string], { updater: string }>;
 
@@ -672,9 +679,9 @@ export class TestHome extends BaseContract {
     ): Promise<BigNumber>;
 
     enqueue(
-      _destination: BigNumberish,
-      _recipient: BytesLike,
-      _body: BytesLike,
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -752,7 +759,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<BigNumber>;
 
     update(
-      _oldRoot: BytesLike,
+      _currentRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -781,9 +788,9 @@ export class TestHome extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     enqueue(
-      _destination: BigNumberish,
-      _recipient: BytesLike,
-      _body: BytesLike,
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -863,7 +870,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     update(
-      _oldRoot: BytesLike,
+      _currentRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }

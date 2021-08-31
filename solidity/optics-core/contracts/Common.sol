@@ -13,22 +13,40 @@ import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * @notice Shared utilities between Home and Replica.
  **/
 abstract contract Common is QueueManager {
+    // ============ Enums ============
+
+    // States:
+    //   (0) UNINITIALIZED before initialize function is called
+    //   note: the contract is initialized at deploy time, so it should never be in this state
+    //   (1) ACTIVE as long as the contract has not become fraudulent
+    //   (2) FAILED after a valid fraud proof has been submitted;
+    //   contract will no longer accept updates or new messages
     enum States {
         UNINITIALIZED,
         ACTIVE,
         FAILED
     }
 
-    /// @notice Domain of owning contract
+    // ============ Immutable Variables ============
+
+    // Domain of chain on which the contract is deployed
     uint32 public immutable localDomain;
-    /// @notice Address of bonded updater
+
+    // ============ Public Variables ============
+
+    // Address of bonded Updater
     address public updater;
-    /// @notice Current state of contract
+    // Current state of contract
     States public state;
-    /// @notice Current root
-    bytes32 public current;
+    // The latest root that has been signed by the Updater
+    bytes32 public current; // TODO: "latestUpdatedRoot"
+
+    // ============ Upgrade Gap ============
+
     // gap for upgrade safety
     uint256[47] private __GAP;
+
+    // ============ Events ============
 
     /**
      * @notice Event emitted when update is made on Home or unconfirmed update
@@ -37,7 +55,7 @@ abstract contract Common is QueueManager {
      * @param oldRoot Old merkle root
      * @param newRoot New merkle root
      * @param signature Updater's signature on `oldRoot` and `newRoot`
-     **/
+     */
     event Update(
         uint32 indexed homeDomain,
         bytes32 indexed oldRoot,
@@ -46,13 +64,13 @@ abstract contract Common is QueueManager {
     );
 
     /**
-     * @notice Event emitted when valid double update proof is provided to
-     * contract
+     * @notice Emitted when proof of a double update is submitted,
+     * which sets the contract to FAILED state
      * @param oldRoot Old root shared between two conflicting updates
      * @param newRoot Array containing two conflicting new roots
      * @param signature Signature on `oldRoot` and `newRoot`[0]
      * @param signature2 Signature on `oldRoot` and `newRoot`[1]
-     **/
+     */
     event DoubleUpdate(
         bytes32 oldRoot,
         bytes32[2] newRoot,
@@ -60,9 +78,23 @@ abstract contract Common is QueueManager {
         bytes signature2
     );
 
+    // ============ Modifiers ============
+
+    /**
+     * @notice Ensures that contract state != FAILED when the function is called
+     */
+    modifier notFailed() {
+        require(state != States.FAILED, "failed state");
+        _;
+    }
+
+    // ============ Constructor ============
+
     constructor(uint32 _localDomain) {
         localDomain = _localDomain;
     }
+
+    // ============ Initializer ============
 
     function __Common_initialize(address _updater) internal initializer {
         __QueueManager_intialize();
@@ -70,11 +102,7 @@ abstract contract Common is QueueManager {
         state = States.ACTIVE;
     }
 
-    /// @notice Ensures that contract state != FAILED
-    modifier notFailed() {
-        require(state != States.FAILED, "failed state");
-        _;
-    }
+    // ============ External Functions ============
 
     /**
      * @notice Called by external agent. Checks that signatures on two sets of
@@ -86,7 +114,7 @@ abstract contract Common is QueueManager {
      * @param _newRoot Array containing two conflicting new roots
      * @param _signature Signature on `_oldRoot` and `_newRoot`[0]
      * @param _signature2 Signature on `_oldRoot` and `_newRoot`[1]
-     **/
+     */
     function doubleUpdate(
         bytes32 _oldRoot,
         bytes32[2] calldata _newRoot,
@@ -103,33 +131,48 @@ abstract contract Common is QueueManager {
         }
     }
 
-    /// @notice Hash of Home domain concatenated with "OPTICS"
+    // ============ Public Functions ============
+
+    /**
+     * @notice Hash of Home domain concatenated with "OPTICS"
+     */
     function homeDomainHash() public view virtual returns (bytes32);
 
-    /// @notice Hash of Home's domain concatenated with "OPTICS"
-    function _homeDomainHash(uint32 homeDomain)
+    // ============ Internal Functions ============
+
+    /**
+     * @notice Hash of Home domain concatenated with "OPTICS"
+     * @param _homeDomain the Home domain to hash
+     */
+    function _homeDomainHash(uint32 _homeDomain)
         internal
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked(homeDomain, "OPTICS"));
+        return keccak256(abi.encodePacked(_homeDomain, "OPTICS"));
     }
 
-    /// @notice Sets contract state to FAILED
+    /**
+     * @notice Set contract state to FAILED
+     * @dev Called when a valid fraud proof is submitted
+     */
     function _setFailed() internal {
         state = States.FAILED;
     }
 
-    /// @notice Called when a double update or fraudulent update is detected
+    /**
+     * @notice Performs the state modifications necessary
+     * to move the contract into failed state
+     * @dev Called when a double update or fraudulent update is detected
+     */
     function _fail() internal virtual;
 
     /**
-     * @notice Called internally. Checks that signature is valid (belongs to
-     * updater).
+     * @notice Checks that signature was signed by Updater
      * @param _oldRoot Old merkle root
      * @param _newRoot New merkle root
      * @param _signature Signature on `_oldRoot` and `_newRoot`
-     * @return Returns true if signature is valid and false if otherwise
+     * @return TRUE iff signature is valid signed by updater
      **/
     function _isUpdaterSignature(
         bytes32 _oldRoot,

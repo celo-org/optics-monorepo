@@ -28,13 +28,13 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "leaf",
+        "name": "messageHash",
         "type": "bytes32"
       },
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "current",
+        "name": "latestUpdatedRoot",
         "type": "bytes32"
       },
       {
@@ -80,7 +80,26 @@
   },
   {
     "anonymous": false,
-    "inputs": [],
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "oldRoot",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "newRoot",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
     "name": "ImproperUpdate",
     "type": "event"
   },
@@ -250,17 +269,17 @@
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "_destination",
+        "name": "_destinationDomain",
         "type": "uint32"
       },
       {
         "internalType": "bytes32",
-        "name": "_recipient",
+        "name": "_recipientAddress",
         "type": "bytes32"
       },
       {
         "internalType": "bytes",
-        "name": "_body",
+        "name": "_messageBody",
         "type": "bytes"
       }
     ],
@@ -521,7 +540,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_oldRoot",
+        "name": "_currentRoot",
         "type": "bytes32"
       },
       {
