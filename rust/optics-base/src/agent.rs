@@ -10,12 +10,14 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
 /// Properties shared across all agents
 #[derive(Debug)]
+#[derive(serde::Serialize)]
 pub struct AgentCore {
     /// A boxed Home
     pub home: Arc<Homes>,
     /// A map of boxed Replicas
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
+    #[serde(skip)]
     pub db: Arc<DB>,
 }
 

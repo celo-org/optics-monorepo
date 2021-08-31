@@ -22,6 +22,14 @@ pub enum Homes {
     Other(Box<dyn Home>),
 }
 
+impl serde::Serialize for Homes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+        serializer.serialize_str(&format!("{:?}", self))
+    }
+}
+
 impl Homes {
     /// Calls checkpoint on mock variant. Should
     /// only be used during tests.

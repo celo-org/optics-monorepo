@@ -246,6 +246,12 @@ decl_agent!(
     }
 );
 
+impl std::fmt::Debug for Processor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self))
+    }
+}
+
 impl Processor {
     /// Instantiate a new processor
     pub fn new(

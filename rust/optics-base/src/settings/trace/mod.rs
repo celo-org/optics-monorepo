@@ -78,7 +78,7 @@ impl TracingConfig {
 
         let subscriber = tracing_subscriber::Registry::default()
             .with(self.level.to_filter())
-            .with(fmt_layer)
+            .with(fmt_layer) // TODO: if fmt == Json, interpose stdout & rewrite the `span` fields
             .with(err_layer);
 
         match self.jaeger {

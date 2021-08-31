@@ -9,7 +9,7 @@ edition = "2018"
 # Main block
 tokio = { version = "1.0.1", features = ["rt", "macros"] }
 config = "0.10"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = { version = "1.0", default-features = false }
 ethers = { git = "https://github.com/gakonst/ethers-rs", branch = "master" }
 thiserror = { version = "1.0.22", default-features = false }

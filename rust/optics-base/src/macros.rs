@@ -33,7 +33,6 @@ macro_rules! decl_agent {
         }) => {
 
         $(#[$outer])*
-        #[derive(Debug)]
         pub struct $name {
             $($prop: $type,)*
             core: optics_base::agent::AgentCore,
