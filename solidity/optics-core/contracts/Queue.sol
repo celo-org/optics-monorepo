@@ -39,15 +39,15 @@ contract QueueManager is Initializable {
     }
 
     /**
-    * @notice Returns TRUE iff `_item` is in the queue
-    */
+     * @notice Returns TRUE iff `_item` is in the queue
+     */
     function queueContains(bytes32 _item) external view returns (bool) {
         return queue.contains(_item);
     }
 
     /**
-    * @notice Returns last item enqueued to the queue
-    */
+     * @notice Returns last item enqueued to the queue
+     */
     function queueEnd() external view returns (bytes32) {
         return queue.lastItem();
     }
