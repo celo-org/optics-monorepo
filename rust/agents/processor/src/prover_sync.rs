@@ -14,7 +14,7 @@ use tokio::{
     },
     time::sleep,
 };
-use tracing::info;
+use tracing::{debug, info, instrument};
 
 /// Struct to sync prover.
 #[derive(Debug)]
@@ -108,17 +108,24 @@ impl ProverSync {
     }
 
     // simple caching
-    async fn fetch_leaf(&mut self, index: usize) -> Result<Option<H256>, ProverSyncError> {
-        let leaf = self.retrieve_leaf(index);
+    #[instrument(err)]
+    async fn fetch_leaf(&mut self, leaf_index: usize) -> Result<Option<H256>, ProverSyncError> {
+        let leaf = self.retrieve_leaf(leaf_index);
         if leaf.is_some() {
+            debug!("Retrieved leaf from db.");
             Ok(leaf)
         } else {
-            match self.home.leaf_by_tree_index(index).await? {
+            debug!("Retrieving leaf from chain.");
+            match self.home.leaf_by_tree_index(leaf_index).await? {
                 Some(leaf) => {
-                    self.store_leaf(index, leaf);
+                    debug!("Retrieved leaf from chain.");
+                    self.store_leaf(leaf_index, leaf);
                     Ok(Some(leaf))
                 }
-                None => Ok(None),
+                None => {
+                    debug!("Chain does not contain leaf.");
+                    Ok(None)
+                }
             }
         }
     }
@@ -215,7 +222,7 @@ impl ProverSync {
         info!("Local root is {}, goingt to root {}", local_root, new_root);
 
         while local_root != new_root {
-            info!("Polling Chain for leaf at index {}", tree_size);
+            info!("Retrieving leaf at index {}", tree_size);
 
             // As we fill the incremental merkle, its tree_size will always be
             // equal to the index of the next leaf we want (e.g. if tree_size
