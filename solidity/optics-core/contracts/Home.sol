@@ -34,7 +34,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     // ============ Public Storage Variables ============
 
     // domain => next available nonce for a message destined to that domain
-    mapping(uint32 => uint32) public sequences; // TODO: "nonces" or "domainNonce"
+    mapping(uint32 => uint32) public sequences;
     // contract responsible for Updater bonding, slashing and rotation
     IUpdaterManager public updaterManager;
 
@@ -58,7 +58,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         uint256 indexed leafIndex,
         uint64 indexed destinationAndSequence,
         bytes32 indexed messageHash,
-        bytes32 latestUpdatedRoot, // TODO: indexed
+        bytes32 latestUpdatedRoot,
         bytes message
     );
 
@@ -138,7 +138,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         _setUpdaterManager(IUpdaterManager(_updaterManager));
     }
 
-    // ============ External: Enqueue Message  ============
+    // ============ External Functions  ============
 
     /**
      * @notice Dispatch the message it to the destination domain & recipient
@@ -148,7 +148,6 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
      * @param _recipientAddress Address of recipient on destination chain as bytes32
      * @param _messageBody Raw bytes content of message
      */
-    // TODO: rename "dispatch" -- enqueue is a implementation detail, dispatching message is the functionality
     function enqueue(
         uint32 _destinationDomain,
         bytes32 _recipientAddress,
@@ -231,23 +230,41 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         }
     }
 
-    /// @notice Hash of home's domain concatenated with "OPTICS"
+    // ============ Public Functions  ============
+
+    /**
+     * @notice Hash of Home domain concatenated with "OPTICS"
+     */
     function homeDomainHash() public view override returns (bytes32) {
         return _homeDomainHash(localDomain);
     }
 
     /**
-     * @notice Checks that `_newRoot` in update currently exists in queue. If
-     * `_newRoot` doesn't exist in queue, update is fraudulent, causing
-     * updater to be slashed and home to be failed.
-     * Improper Updates signed by the Updater and submitted to a Replica contract
-     * can also be submitted by anyone here, in order to slash the Updater.
+     * @notice Check if an Update is an Improper Update;
+     * if so, slash the Updater and set the contract to FAILED state.
+     *
+     * An Improper Update is an update building off of the Home's `current` root
+     * for which the `_newRoot` does not currently exist in the Home's queue.
+     * This would mean that message(s) that were not truly
+     * dispatched on Home were falsely included in the signed root.
+     *
+     * An Improper Update will only be accepted as valid by the Replica
+     * If an Improper Update is attempted on Home,
+     * the Updater will be slashed immediately.
+     * If an Improper Update is submitted to the Replica,
+     * it should be relayed to the Home contract using this function
+     * in order to slash the Updater with an Improper Update.
+     *
+     * An Improper Update submitted to the Replica is only valid
+     * while the `_oldRoot` is still equal to the `current` root on Home;
+     * if the `current` root on Home has already been updated with a valid Update,
+     * then the Updater should be slashed with a Double Update.
      * @dev Reverts (and doesn't slash updater) if signature is invalid or
      * update not current
      * @param _oldRoot Old merkle tree root (should equal home's current root)
      * @param _newRoot New merkle tree root
-     * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
-     * @return Returns true if update was fraudulent
+     * @param _signature Updater signature on `_oldRoot` and `_newRoot`
+     * @return TRUE if update was an Improper Update (implying Updater was slashed)
      */
     function improperUpdate(
         bytes32 _oldRoot,
@@ -259,49 +276,58 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
             "!updater sig"
         );
         require(_oldRoot == current, "not a current update");
+        // if the _newRoot is not currently contained in the queue,
+        // slash the Updater and set the contract to FAILED state
         if (!queue.contains(_newRoot)) {
             _fail();
             emit ImproperUpdate(_oldRoot, _newRoot, _signature);
             return true;
         }
+        // if the _newRoot is contained in the queue,
+        // this is not an improper update
         return false;
     }
 
+    // ============ Internal Functions  ============
+
     /**
-     * @notice sets a new updaterManager
-     * @param _updaterManager Address of new UpdaterManager
+     * @notice Set the UpdaterManager
+     * @param _updaterManager Address of the UpdaterManager
      */
     function _setUpdaterManager(IUpdaterManager _updaterManager) internal {
         require(
             Address.isContract(address(_updaterManager)),
             "!contract updaterManager"
         );
-
         updaterManager = IUpdaterManager(_updaterManager);
         emit NewUpdaterManager(address(_updaterManager));
     }
 
     /**
-     * @notice sets a new updater
-     * @param _updater Address of new Updater
+     * @notice Set the Updater
+     * @param _updater Address of the Updater
      */
     function _setUpdater(address _updater) internal {
         updater = _updater;
         emit NewUpdater(_updater);
     }
 
-    /// @notice Sets contract state to FAILED and slashes updater
+    /**
+     * @notice Slash the Updater and set contract state to FAILED
+     * @dev Called when fraud is proven (Improper Update or Double Update)
+     */
     function _fail() internal override {
+        // set contract to FAILED
         _setFailed();
+        // slash Updater
         updaterManager.slashUpdater(msg.sender);
-
         emit UpdaterSlashed(updater, msg.sender);
     }
 
     /**
-     * @notice Internal utility function that combines provided `_destination`
-     * and `_sequence`.
-     * @dev Both destination and sequence should be < 2^32 - 1
+     * @notice Internal utility function that combines
+     * `_destination` and `_sequence`.
+     * @dev Both destination and sequence should be less than 2^32 - 1
      * @param _destination Domain of destination chain
      * @param _sequence Current sequence for given destination chain
      * @return Returns (`_destination` << 32) & `_sequence`
