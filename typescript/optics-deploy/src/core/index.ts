@@ -380,14 +380,20 @@ export async function enrollGovernanceRouter(
   remote: CoreDeploy,
 ) {
   const isTestDeploy = local.test;
-  log(isTestDeploy, `${local.chain.name}: starting governance enrollment`);
+  log(
+    isTestDeploy,
+    `${local.chain.name}: starting enroll ${remote.chain.name} governance router`,
+  );
   let tx = await local.contracts.governance!.proxy.setRouter(
     remote.chain.domain,
     toBytes32(remote.contracts.governance!.proxy.address),
     local.overrides,
   );
   await tx.wait(local.chain.confirmations);
-  log(isTestDeploy, `${local.chain.name}: governance enrollment done`);
+  log(
+    isTestDeploy,
+    `${local.chain.name}: enrolled ${remote.chain.name} governance router`,
+  );
 }
 
 /**
@@ -508,20 +514,13 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
  * @param spokes - An array of remote chain deploy instances
  */
 async function deployHubAndSpokes(gov: CoreDeploy, spokes: CoreDeploy[]) {
-  console.log('awaiting provider ready');
-  await Promise.all([gov.ready(), ...spokes.map((spoke) => spoke.ready())]);
-  console.log('done readying');
-
   await deployOptics(gov);
 
   await Promise.all(
     spokes.map(async (non) => {
       await deployOptics(non);
-
       await enrollRemote(gov, non);
       await enrollRemote(non, gov);
-
-      await transferGovernorship(gov, non);
     }),
   );
 }
@@ -552,24 +551,33 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   const govChain = deploys[0];
   const nonGovChains = deploys.slice(1);
 
+  // ensure providers are connected
+  console.log('awaiting provider ready');
+  await Promise.all(deploys.map(async (deploy) => await deploy.ready()));
+  console.log('done readying');
+
   // enroll all spokes with the governance chain
   await deployHubAndSpokes(govChain, nonGovChains);
 
   // enroll all spokes with eachother
   await Promise.all(
     nonGovChains.map(async (local) => {
+      // deploy replicas for all OTHER non-gov domains
+      // (gov replicas were already deployed in hubAndSpokes)
       await Promise.all(
-        nonGovChains.map(async (remote) => {
-          log(
-            isTestDeploy,
-            `enrolling ${remote.chain.domain} on ${local.chain.domain}`,
-          );
-          await enrollRemote(local, remote);
-          log(
-            isTestDeploy,
-            `enrolled ${remote.chain.domain} on ${local.chain.domain}`,
-          );
-        }),
+        nonGovChains
+          .filter((deploy) => deploy.chain.domain !== local.chain.domain)
+          .map(async (remote) => {
+            log(
+              isTestDeploy,
+              `connecting ${remote.chain.name} on ${local.chain.name}`,
+            );
+            await enrollRemote(local, remote);
+            log(
+              isTestDeploy,
+              `connected ${remote.chain.name} on ${local.chain.name}`,
+            );
+          }),
       );
     }),
   );
@@ -578,6 +586,12 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   if (govChain.config.governor) {
     await appointGovernor(govChain);
   }
+
+  await Promise.all(
+    nonGovChains.map(async (non) => {
+      await transferGovernorship(govChain, non);
+    }),
+  );
 
   // relinquish control of all chains
   await Promise.all(deploys.map(relinquish));
