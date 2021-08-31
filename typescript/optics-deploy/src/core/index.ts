@@ -404,7 +404,7 @@ export async function enrollRemote(local: CoreDeploy, remote: CoreDeploy) {
 }
 
 /**
- * Transfers governorship to the Governor Router.
+ * Transfers governorship to the governing chain's GovernanceRouter.
  *
  * @param gov - The governor chain deploy instance
  * @param non - The non-governor chain deploy instance
@@ -460,6 +460,11 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
   console.log(`Updater for ${non.chain.name} Home is ${non.config.updater}`);
 
   const isTestDeploy: boolean = gov.test || non.test;
+
+  console.log('awaiting provider ready');
+  await Promise.all([gov.ready(), non.ready()]);
+  console.log('done readying');
+
   await Promise.all([deployOptics(gov), deployOptics(non)]);
 
   log(isTestDeploy, 'initial deploys done');
@@ -502,28 +507,23 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
  * @param gov - The governing chain deploy instance
  * @param spokes - An array of remote chain deploy instances
  */
-export async function deployHubAndSpokes(
-  gov: CoreDeploy,
-  spokes: CoreDeploy[],
-) {
+async function deployHubAndSpokes(gov: CoreDeploy, spokes: CoreDeploy[]) {
+  console.log('awaiting provider ready');
+  await Promise.all([gov.ready(), ...spokes.map((spoke) => spoke.ready())]);
+  console.log('done readying');
+
   await deployOptics(gov);
 
-  for (const non of spokes) {
-    await deployOptics(non);
+  await Promise.all(
+    spokes.map(async (non) => {
+      await deployOptics(non);
 
-    await enrollRemote(gov, non);
-    await enrollRemote(non, gov);
+      await enrollRemote(gov, non);
+      await enrollRemote(non, gov);
 
-    await transferGovernorship(gov, non);
-
-    await relinquish(non);
-  }
-
-  if (gov.config.governor) {
-    await appointGovernor(gov);
-  }
-
-  await relinquish(gov);
+      await transferGovernorship(gov, non);
+    }),
+  );
 }
 
 /**
@@ -552,19 +552,37 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   const govChain = deploys[0];
   const nonGovChains = deploys.slice(1);
 
+  // enroll all spokes with the governance chain
   await deployHubAndSpokes(govChain, nonGovChains);
-  for (let local of nonGovChains) {
-    for (let remote of nonGovChains) {
-      if (remote.chain.domain != local.chain.domain) {
-        log(
-          isTestDeploy,
-          `enrolling ${remote.chain.domain} on ${local.chain.domain}`,
-        );
-        await enrollRemote(local, remote);
-      }
-    }
+
+  // enroll all spokes with eachother
+  await Promise.all(
+    nonGovChains.map(async (local) => {
+      await Promise.all(
+        nonGovChains.map(async (remote) => {
+          log(
+            isTestDeploy,
+            `enrolling ${remote.chain.domain} on ${local.chain.domain}`,
+          );
+          await enrollRemote(local, remote);
+          log(
+            isTestDeploy,
+            `enrolled ${remote.chain.domain} on ${local.chain.domain}`,
+          );
+        }),
+      );
+    }),
+  );
+
+  // appoint the configured governance account as governor
+  if (govChain.config.governor) {
+    await appointGovernor(govChain);
   }
 
+  // relinquish control of all chains
+  await Promise.all(deploys.map(relinquish));
+
+  // write config outputs
   if (!isTestDeploy) {
     writeDeployOutput(deploys);
   }

@@ -32,7 +32,7 @@ export interface ChainJson {
 
 export type Chain = {
   name: string;
-  provider: ethers.providers.Provider;
+  provider: ethers.providers.JsonRpcProvider;
   deployer: ethers.Signer;
   gasPrice: ethers.BigNumber;
   config: ChainJson;

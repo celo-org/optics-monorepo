@@ -28,7 +28,11 @@ export abstract class Deploy<T extends Contracts> {
     return this.chain.deployer;
   }
 
-  get provider(): ethers.providers.Provider {
+  async ready(): Promise<ethers.providers.Network> {
+    return await this.provider.ready;
+  }
+
+  get provider(): ethers.providers.JsonRpcProvider {
     return this.chain.provider;
   }
 
@@ -40,13 +44,19 @@ export abstract class Deploy<T extends Contracts> {
   // this is currently a kludge to account for ethers issues
   get overrides(): ethers.Overrides {
     let overrides: ethers.Overrides = {
-      type: this.supports1559 ? 2 : 0,
+      type: 0,
+      gasPrice: this.chain.gasPrice,
+      gasLimit: 6_000_000,
     };
 
-    if (!this.supports1559) {
-      overrides.gasPrice = this.chain.gasPrice;
-      overrides.gasLimit = 6_000_000;
-    }
+    // let overrides: ethers.Overrides = {
+    //   type: this.supports1559 ? 2 : 0,
+    // };
+
+    // if (!this.supports1559) {
+    //   overrides.gasPrice = this.chain.gasPrice;
+    //   overrides.gasLimit = 6_000_000;
+    // }
 
     return overrides;
   }
