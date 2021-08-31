@@ -8,24 +8,74 @@ import {
     getPathToLatestDeploy,
     parseFileFromDeploy
 } from "../src/verification/readDeployOutput";
-import {CoreContractDeployOutput} from "../src/chain";
+import {Chain, CoreContractDeployOutput} from "../src/chain";
 import {EventFilter} from "@ethersproject/contracts/src.ts/index";
 
-const homeChain = kovan.chain;
-const remoteChain = alfajores.chain;
-const homeAddresses = getDeployedAddresses(homeChain.config.name);
-const remoteAddresses = getDeployedAddresses(remoteChain.config.name);
-
-const replicaAddress = homeAddresses.replicas![remoteChain.config.domain].proxy;
-const replica: contracts.Replica = contracts.Replica__factory.connect(replicaAddress, homeChain.provider);
-
-const homeAddress = remoteAddresses.home.proxy;
-const alfaHome: contracts.Home = contracts.Home__factory.connect(homeAddress, remoteChain.provider);
-
-getProcessEvents(replica, alfaHome).then(() => {
-    console.log("Done!");
-    process.exit();
+checkEvents(kovan.chain, alfajores.chain).then(() => {
+    console.log("");
+    checkEvents(alfajores.chain, kovan.chain).then(() => {
+        console.log("Done!");
+        process.exit();
+    });
 });
+
+async function checkEvents(homeChain: Chain, replicaChain: Chain) {
+    const home = getHome(homeChain);
+    const homeName = homeChain.config.name;
+    const dispatches = await getLogs(home, home.filters.Dispatch());
+    console.log(`Num dispatch on ${homeName} Home:`, dispatches.length);
+
+    const replica = getReplicaForHome(homeChain, replicaChain);
+    const replicaName = replicaChain.config.name;
+    const processSuccesses = await getLogs(replica, replica.filters.ProcessSuccess());
+    console.log(`Num process success on ${replicaName} Replica:`, processSuccesses.length);
+    const processErrors = await getLogs(replica, replica.filters.ProcessError());
+    console.log(`Num process error on ${replicaName} Replica:`, processErrors.length);
+
+    const dispatchedLeaves = dispatches.map(event => event["args"][2]);
+    const processSuccessLeaves = processSuccesses.map(event => event["args"][0]);
+    const processFailLeaves = processErrors.map(event => event["args"][0]);
+    const processedLeaves = processSuccessLeaves.concat(processFailLeaves);
+    const unprocessedLeaves = dispatchedLeaves.filter(leaf => !processedLeaves.includes(leaf));
+    console.log(`Backlog ${homeName} => ${replicaName}: `, unprocessedLeaves.length);
+
+    writeQueryResults(homeName, replicaName, dispatchedLeaves, processSuccessLeaves, processErrors, unprocessedLeaves);
+}
+
+function writeQueryResults(homeName: string, replicaName: string, dispatchedLeaves: any[], processSuccessLeaves: any[], processErrors: any[], unprocessedLeaves: any[]) {
+    const dir = `query/${Date.now()}-${homeName}-to-${replicaName}`;
+    fs.mkdirSync(dir, {recursive: true});
+    fs.writeFileSync(
+        `${dir}/dispatchedLeaves-${homeName}.json`,
+        JSON.stringify(dispatchedLeaves, null, 2),
+    );
+    fs.writeFileSync(
+        `${dir}/processSuccessLeaves-${replicaName}.json`,
+        JSON.stringify(processSuccessLeaves, null, 2),
+    );
+    fs.writeFileSync(
+        `${dir}/processErrors-${replicaName}.json`,
+        JSON.stringify(processErrors, null, 2),
+    );
+    fs.writeFileSync(
+        `${dir}/unprocessedLeaves-${homeName}.json`,
+        JSON.stringify(unprocessedLeaves, null, 2),
+    );
+}
+
+function getReplicaForHome(homeChain: Chain, replicaChain: Chain): contracts.Replica {
+    const deployedAddresses = getDeployedAddresses(replicaChain.config.name);
+    const replicaAddress = deployedAddresses.replicas![homeChain.config.domain].proxy;
+    const replica: contracts.Replica = contracts.Replica__factory.connect(replicaAddress, replicaChain.provider);
+    return replica;
+}
+
+function getHome(homeChain: Chain): contracts.Home {
+    const deployedAddresses = getDeployedAddresses(homeChain.config.name);
+    const homeAddress = deployedAddresses.home.proxy;
+    const home: contracts.Home = contracts.Home__factory.connect(homeAddress, homeChain.provider);
+    return home;
+}
 
 function getDeployedAddresses(name: string) {
     const corePath = getPathToLatestDeploy();
@@ -49,38 +99,14 @@ function getDeployedAddresses(name: string) {
     };
 }
 
-async function getParsedEvents(contract: Contract, filter: EventFilter) {
+async function getLogs(contract: Contract, filter: EventFilter) {
     const logs = await contract.queryFilter(filter);
-    const parsedLogs = logs.map((log) => contract.interface.parseLog(log));
-    return parsedLogs;
+    const fullLogs = logs.map((log) => {
+        const parsedLog = contract.interface.parseLog(log);
+        return {
+            ...log,
+            ...parsedLog,
+        };
+    });
+    return fullLogs;
 }
-
-async function getProcessEvents(replica: contracts.Replica, home: contracts.Home) {
-    const dispatches = await getParsedEvents(home, home.filters.Dispatch());
-    console.log("Num dispatch on Alfa: ", dispatches.length);
-
-    const dispatchedLeaves = dispatches.map(event => event["args"][2]);
-
-    const processSuccesses = await getParsedEvents(replica, replica.filters.ProcessSuccess());
-    console.log("Num process successes on Kovan: ", processSuccesses.length);
-
-    const processedLeaves = processSuccesses.map(event => event["args"][0]);
-
-    const dispatchedNotProcessedLeaves = dispatchedLeaves.filter(leaf => !processedLeaves.includes(leaf));
-
-    console.log("Num dispatched not processed leaves: ", dispatchedNotProcessedLeaves.length);
-
-    fs.writeFileSync(
-        `dispatchedLeaves.json`,
-        JSON.stringify(dispatchedLeaves, null, 2),
-    );
-    fs.writeFileSync(
-        `processedLeaves.json`,
-        JSON.stringify(processedLeaves, null, 2),
-    );
-    fs.writeFileSync(
-        `dispatchedNotProcessedLeaves.json`,
-        JSON.stringify(dispatchedNotProcessedLeaves, null, 2),
-    );
-}
-
