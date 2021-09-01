@@ -260,7 +260,12 @@ contract Replica is Version0, Common {
         if (_success) {
             emit ProcessSuccess(_messageHash);
         } else {
-            emit ProcessError(_messageHash, _m.sequence(), _recipient, _returnData);
+            emit ProcessError(
+                _messageHash,
+                _m.sequence(),
+                _recipient,
+                _returnData
+            );
         }
         // reset re-entrancy guard
         entered = 1;
