@@ -176,7 +176,7 @@ impl JsonRpcClient for RetryingJsonRPC {
             let e = res.unwrap_err();
             if let Some(status) = e.status() {
                 if status.as_u16() >= 500 && status.as_u16() < 600 {
-                    sleep(Duration::from_secs(20)).await;
+                    sleep(Duration::from_secs(30)).await;
                     continue;
                 }
             }
