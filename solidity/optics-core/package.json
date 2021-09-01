@@ -34,7 +34,9 @@
     "lint": "solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint --fix 'contracts/*.sol' && solhint --fix 'contracts/**/*.sol'",
     "deploy": "npm run compile && cd ../../typescript/optics-deploy && npm run deploy-core",
-    "verify": "hardhat clean && hardhat --network kovan verify-latest-deploy",
+    "verify:kovan": "hardhat clean && hardhat --network kovan verify-latest-deploy",
+    "verify:mainnet": "hardhat clean && hardhat --network mainnet verify-latest-deploy",
+    "verify:rinkeby": "hardhat clean && hardhat --network rinkeby verify-latest-deploy",
     "deploy-verify": "npm run deploy && npm run verify"
   },
   "author": "James Prestwich",

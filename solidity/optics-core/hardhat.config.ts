@@ -49,6 +49,13 @@ module.exports = {
     kovan: {
       url: "https://kovan.infura.io/v3/5c456d7844fa40a683e934df60534c60",
     },
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/5c456d7844fa40a683e934df60534c60",
+    },
+    mainnet: {
+      url: "https://mainnet.infura.io/v3/5c456d7844fa40a683e934df60534c60",
+    },
+    // TODO: add Ropsten
   },
   typechain: {
     outDir: "../../typescript/typechain/optics-core",
