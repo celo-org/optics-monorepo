@@ -15,6 +15,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "messageHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "leafIndex",
         "type": "uint256"
@@ -24,12 +30,6 @@
         "internalType": "uint64",
         "name": "destinationAndNonce",
         "type": "uint64"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "leaf",
-        "type": "bytes32"
       },
       {
         "indexed": false,

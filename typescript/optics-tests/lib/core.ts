@@ -104,7 +104,7 @@ function formatSetRouter(domain: types.Domain, address: types.Address): string {
   );
 }
 
-function messageToLeaf(message: types.HexString): string {
+function messageHash(message: types.HexString): string {
   return ethers.utils.solidityKeccak256(['bytes'], [message]);
 }
 
@@ -193,7 +193,7 @@ export const optics: types.HardhatOpticsHelpers = {
     formatSetRouter,
     formatCalls,
   },
-  messageToLeaf,
+  messageHash,
   ethersAddressToBytes32,
   destinationAndNonce,
   domainHash,

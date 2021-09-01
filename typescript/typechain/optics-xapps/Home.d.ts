@@ -188,7 +188,7 @@ interface HomeInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "Dispatch(uint256,uint64,bytes32,bytes32,bytes)": EventFragment;
+    "Dispatch(bytes32,uint256,uint64,bytes32,bytes)": EventFragment;
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
     "ImproperUpdate(bytes32,bytes32,bytes)": EventFragment;
     "NewUpdater(address)": EventFragment;
@@ -521,17 +521,17 @@ export class Home extends BaseContract {
 
   filters: {
     Dispatch(
+      messageHash?: BytesLike | null,
       leafIndex?: BigNumberish | null,
       destinationAndNonce?: BigNumberish | null,
-      leaf?: BytesLike | null,
       committedRoot?: null,
       message?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, string, string, string],
+      [string, BigNumber, BigNumber, string, string],
       {
+        messageHash: string;
         leafIndex: BigNumber;
         destinationAndNonce: BigNumber;
-        leaf: string;
         committedRoot: string;
         message: string;
       }

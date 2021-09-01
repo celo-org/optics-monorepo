@@ -238,7 +238,7 @@ where
             .query()
             .await?
             .first()
-            .map(|event| event.leaf.into()))
+            .map(|event| event.message_hash.into()))
     }
 
     #[tracing::instrument(err, skip(self))]

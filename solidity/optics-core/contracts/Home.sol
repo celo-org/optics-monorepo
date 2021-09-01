@@ -54,14 +54,14 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
      * @param leafIndex Index of message's leaf in merkle tree
      * @param destinationAndNonce Destination and destination-specific
      * nonce combined in single field ((destination << 32) & nonce)
-     * @param leaf Hash of message; the leaf inserted to the Merkle tree for the message
+     * @param messageHash Hash of message; the leaf inserted to the Merkle tree for the message
      * @param committedRoot the latest notarized root submitted in the last signed Update
      * @param message Raw bytes of message
      */
     event Dispatch(
+        bytes32 indexed messageHash,
         uint256 indexed leafIndex,
         uint64 indexed destinationAndNonce,
-        bytes32 indexed leaf,
         bytes32 committedRoot,
         bytes message
     );
@@ -178,9 +178,9 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         // Emit Dispatch event with message information
         // note: leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
+            _messageHash,
             count() - 1,
             _destinationAndNonce(_destinationDomain, _nonce),
-            _messageHash,
             committedRoot,
             _message
         );

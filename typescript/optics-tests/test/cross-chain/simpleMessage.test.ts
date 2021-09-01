@@ -185,11 +185,11 @@ describe('SimpleCrossChainMessage', async () => {
 
     // get merkle proof
     const { path, index } = proveAndProcessTestCases[0];
-    const leaf = optics.messageToLeaf(opticsMessage);
+    const messageHash = optics.messageHash(opticsMessage);
 
     // set root
     const proofRoot = await replica.testBranchRoot(
-      leaf,
+      messageHash,
       path as BytesArray,
       index,
     );
@@ -200,6 +200,6 @@ describe('SimpleCrossChainMessage', async () => {
 
     // expect call to have been processed
     expect(await TestRecipient.processed()).to.be.true;
-    expect(await replica.messages(leaf)).to.equal(MessageStatus.PROCESSED);
+    expect(await replica.messages(messageHash)).to.equal(MessageStatus.PROCESSED);
   });
 });

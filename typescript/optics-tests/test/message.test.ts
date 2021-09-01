@@ -70,7 +70,7 @@ describe('Message', async () => {
       destination: testDestination,
       recipient: testRecipient,
       body: testBody,
-      leaf,
+      messageHash,
     } = testCases[0];
 
     expect(await messageLib.origin(opticsMessage)).to.equal(testOrigin);
@@ -83,7 +83,7 @@ describe('Message', async () => {
     expect(await messageLib.body(opticsMessage)).to.equal(
       ethers.utils.hexlify(testBody),
     );
-    expect(await messageLib.leaf(opticsMessage)).to.equal(leaf);
-    expect(optics.messageToLeaf(opticsMessage)).to.equal(leaf);
+    expect(await messageLib.leaf(opticsMessage)).to.equal(messageHash);
+    expect(optics.messageHash(opticsMessage)).to.equal(messageHash);
   });
 });

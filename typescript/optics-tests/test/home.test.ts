@@ -141,7 +141,7 @@ describe('Home', async () => {
       recipient.address,
       message,
     );
-    const leaf = optics.messageToLeaf(opticsMessage);
+    const messageHash = optics.messageHash(opticsMessage);
     const leafIndex = await home.nextLeafIndex();
     const committedRoot = await home.committedRoot();
 
@@ -157,9 +157,9 @@ describe('Home', async () => {
     )
       .to.emit(home, 'Dispatch')
       .withArgs(
+        messageHash,
         leafIndex,
         destinationAndNonce,
-        leaf,
         committedRoot,
         opticsMessage,
       );

@@ -333,7 +333,7 @@ describe('Replica', async () => {
     const processTx = replica.process(opticsMessage);
     await expect(processTx)
       .to.emit(replica, 'ProcessSuccess')
-      .withArgs(optics.messageToLeaf(opticsMessage));
+      .withArgs(optics.messageHash(opticsMessage));
   });
 
   it('Fails to process an unproved message', async () => {
@@ -482,7 +482,7 @@ describe('Replica', async () => {
 
     // Assert above message and test case have matching leaves
     const { path, index } = proveAndProcessTestCases[0];
-    const messageLeaf = optics.messageToLeaf(opticsMessage);
+    const messageHash = optics.messageHash(opticsMessage);
 
     // Set replica's current root to match newly computed root that includes
     // the new leaf (normally root will have already been computed and path
@@ -490,7 +490,7 @@ describe('Replica', async () => {
     // impossible to find the inputs that create a pre-determined root, we
     // simply recalculate root with the leaf using branchRoot)
     const proofRoot = await replica.testBranchRoot(
-      messageLeaf,
+      messageHash,
       path as BytesArray,
       index,
     );
@@ -498,7 +498,7 @@ describe('Replica', async () => {
 
     await replica.proveAndProcess(opticsMessage, path as BytesArray, index);
 
-    expect(await replica.messages(messageLeaf)).to.equal(
+    expect(await replica.messages(messageHash)).to.equal(
       MessageStatus.PROCESSED,
     );
   });
