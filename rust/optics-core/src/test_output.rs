@@ -45,7 +45,7 @@ pub mod output_functions {
             "recipient": optics_message.recipient,
             "nonce": optics_message.nonce,
             "body": optics_message.body,
-            "leaf": optics_message.to_leaf(),
+            "messageHash": optics_message.to_leaf(),
         });
         let json = json!([message_json]).to_string();
 
