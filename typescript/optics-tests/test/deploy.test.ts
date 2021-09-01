@@ -73,7 +73,7 @@ export async function deployCorrect(
 /*
  * Deploy the full Optics suite on two chains
  */
-describe.only('DeployNChains', async () => {
+describe('DeployNChains', async () => {
   let deploys: Deploy[] = [];
 
   let signer: Signer,
