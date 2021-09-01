@@ -38,23 +38,21 @@ library Encoding {
         returns (uint256 _firstHalf, uint256 _secondHalf)
     {
         for (uint8 i = 31; i > 15; i -= 1) {
-            uint8 _byte = uint8(_byte >> (i * 8));
-            _firstHalf |= _byteHex(_byte);
+            uint8 _b = uint8(_byte >> (i * 8));
+            _firstHalf |= _byteHex(_b);
             if (i != 16) {
                 _firstHalf <<= 16;
             }
         }
         // abusing underflow here =_=
         for (uint8 i = 15; i < 255; i -= 1) {
-            uint8 _byte = uint8(_byte >> (i * 8));
-            _secondHalf |= _byteHex(_byte);
+            uint8 _b = uint8(_byte >> (i * 8));
+            _secondHalf |= _byteHex(_b);
             if (i != 0) {
                 _secondHalf <<= 16;
             }
         }
     }
-
-    // ============ Private Functions ============
 
     /**
      * @notice Returns the encoded hex character that represents the lower 4 bits of the argument.

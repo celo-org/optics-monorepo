@@ -16,11 +16,11 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/Initializ
 /**
  * @title TokenRegistry
  * @notice manages a registry of token contracts on this chain
- *
+ * -
  * We sort token types as "representation token" or "locally originating token".
  * Locally originating - a token contract that was originally deployed on the local chain
  * Representation (repr) - a token that was originally deployed on some other chain
- *
+ * -
  * When the router handles an incoming message, it determines whether the
  * transfer is for an asset of local origin. If not, it checks for an existing
  * representation contract. If no such representation exists, it deploys a new
@@ -38,7 +38,7 @@ abstract contract TokenRegistry is Initializable {
 
     // ============ Structs ============
 
-    // We identify tokens by a TokenId:
+    // Tokens are identified by a TokenId:
     // domain - 4 byte chain ID of the chain from which the token originates
     // id - 32 byte identifier of the token address on the origin chain, in that chain's address format
     struct TokenId {
@@ -68,10 +68,10 @@ abstract contract TokenRegistry is Initializable {
 
     /**
      * @notice Initialize the TokenRegistry with UpgradeBeaconController and
-     *         XappConnectionManager.
+     * XappConnectionManager.
      * @dev This method deploys two new contracts, and may be expensive to call.
      * @param _tokenBeacon The address of the upgrade beacon for bridge token
-     *        proxies
+     * proxies
      */
     function __TokenRegistry_initialize(address _tokenBeacon)
         internal
@@ -79,10 +79,6 @@ abstract contract TokenRegistry is Initializable {
     {
         tokenBeacon = _tokenBeacon;
     }
-
-    // ======== Modifiers =========
-
-    function _localDomain() internal view virtual returns (uint32);
 
     // ======== External: Token Lookup Convenience =========
 
@@ -139,6 +135,14 @@ abstract contract TokenRegistry is Initializable {
 
     // ======== Internal Functions =========
 
+    function _localDomain() internal view virtual returns (uint32);
+
+    /**
+     * @notice Get default name and details for a token
+     * Sets name to "optics.[domain].[id]"
+     * and symbol to
+     * @param _tokenId the tokenId for the token
+     */
     function _defaultDetails(bytes29 _tokenId)
         internal
         pure
@@ -165,16 +169,17 @@ abstract contract TokenRegistry is Initializable {
         }
     }
 
-    /// @dev Deploy and init a new token contract
-    function _cloneTokenContract() internal returns (address) {
-        address _newProxy = address(new UpgradeBeaconProxy(tokenBeacon, ""));
-        IBridgeToken(_newProxy).initialize();
-        return _newProxy;
-    }
-
+    /**
+     * @notice Deploy and initialize a new token contract
+     * @dev Each token contract is a proxy which
+     * points to the token upgrade beacon
+     * @return _token the address of the token contract
+     */
     function _deployToken(bytes29 _tokenId) internal returns (address _token) {
-        // deploy the token contract
-        _token = _cloneTokenContract();
+        // deploy and initialize the token contract
+        _token = address(new UpgradeBeaconProxy(tokenBeacon, ""));
+        // initialize the token separately from the
+        IBridgeToken(_token).initialize();
         // set the default token name & symbol
         string memory _name;
         string memory _symbol;
@@ -188,8 +193,14 @@ abstract contract TokenRegistry is Initializable {
         emit TokenDeployed(_tokenId.domain(), _tokenId.id(), _token);
     }
 
-    /// @dev Gets the local address corresponding to the canonical ID, or
-    /// address(0)
+    /**
+     * @notice Get the local token address
+     * for the canonical token represented by tokenID
+     * Returns address(0) if canonical token is of remote origin
+     * and no representation token has been deployed locally
+     * @param _tokenId the token id of the canonical token
+     * @return _local the local token address
+     */
     function _getTokenAddress(bytes29 _tokenId)
         internal
         view
@@ -204,13 +215,23 @@ abstract contract TokenRegistry is Initializable {
         }
     }
 
-    /// @dev returns the token corresponding to the canonical ID, or errors.
+    /**
+     * @notice Return the local token contract for the
+     * canonical tokenId; revert if there is no local token
+     * @param _tokenId the token id of the canonical token
+     * @return the IERC20 token contract
+     */
     function _mustHaveToken(bytes29 _tokenId) internal view returns (IERC20) {
         address _local = _getTokenAddress(_tokenId);
         require(_local != address(0), "!token");
         return IERC20(_local);
     }
 
+    /**
+     * @notice Return tokenId for a local token address
+     * @param _token local token address (representation or canonical)
+     * @return _id local token address (representation or canonical)
+     */
     function _tokenIdFor(address _token)
         internal
         view
@@ -223,10 +244,18 @@ abstract contract TokenRegistry is Initializable {
         }
     }
 
+    /**
+     * @notice Determine if token is of local origin
+     * @return TRUE if token is locally originating
+     */
     function _isLocalOrigin(IERC20 _token) internal view returns (bool) {
         return _isLocalOrigin(address(_token));
     }
 
+    /**
+     * @notice Determine if token is of local origin
+     * @return TRUE if token is locally originating
+     */
     function _isLocalOrigin(address _token) internal view returns (bool) {
         // If the contract WAS deployed by the TokenRegistry,
         // it will be stored in this mapping.
@@ -245,27 +274,49 @@ abstract contract TokenRegistry is Initializable {
         return _codeSize != 0;
     }
 
-    /// @dev Find the local representation of a canonical token. May return 0
-    function _reprFor(bytes29 _tokenId) internal view returns (IBridgeToken) {
-        return IBridgeToken(canonicalToRepresentation[_tokenId.keccak()]);
-    }
-
-    /// @dev Find the local representation of a canonical token. May return 0
-    function _reprFor(TokenId memory _tokenId)
+    /**
+     * @notice Get the local representation contract for a canonical token
+     * @dev Returns contract with null address if tokenId has no representation
+     * @param _tokenId the tokenId of the canonical token
+     * @return representation token contract
+     */
+    function _representationForCanonical(bytes29 _tokenId)
         internal
         view
         returns (IBridgeToken)
     {
-        return _reprFor(_serializeId(_tokenId));
+        return IBridgeToken(canonicalToRepresentation[_tokenId.keccak()]);
     }
 
-    /// @dev downcast an IERC20 to an IBridgeToken. Unsafe. Please know what
-    /// you're doing.
+    /**
+     * @notice Get the local representation contract for a canonical token
+     * @dev Returns contract with null address if tokenId has no representation
+     * @param _tokenId the tokenId of the canonical token
+     * @return representation token contract
+     */
+    function _representationForCanonical(TokenId memory _tokenId)
+        internal
+        view
+        returns (IBridgeToken)
+    {
+        return _representationForCanonical(_serializeId(_tokenId));
+    }
+
+    /**
+     * @notice downcast an IERC20 to an IBridgeToken
+     * @dev Unsafe. Please know what you're doing
+     * @param _token the IERC20 contract
+     * @return the IBridgeToken contract
+     */
     function _downcast(IERC20 _token) internal pure returns (IBridgeToken) {
         return IBridgeToken(address(_token));
     }
 
-    /// @dev serialize a TokenId struct and return the memory view
+    /**
+     * @notice serialize a TokenId struct into a bytes view
+     * @param _id the tokenId
+     * @return serialized bytes of tokenId
+     */
     function _serializeId(TokenId memory _id) internal pure returns (bytes29) {
         return BridgeMessage.formatTokenId(_id.domain, _id.id);
     }

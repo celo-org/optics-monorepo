@@ -5,14 +5,12 @@ pragma solidity >=0.6.11;
 import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 
 library BridgeMessage {
+    // ============ Libraries ============
+
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
 
-    uint256 private constant TOKEN_ID_LEN = 36; // 4 bytes domain + 32 bytes id
-    uint256 private constant IDENTIFIER_LEN = 1;
-    uint256 private constant TRANSFER_LEN = 65; // 1 byte identifier + 32 bytes recipient + 32 bytes amount
-    uint256 private constant DETAILS_LEN = 66; // 1 byte identifier + 32 bytes name + 32 bytes symbol + 1 byte decimals
-    uint256 private constant REQUEST_DETAILS_LEN = 1; // 1 byte identifier
+    // ============ Enums ============
 
     // WARNING: do NOT re-write the numbers / order
     // of message types in an upgrade;
@@ -26,6 +24,16 @@ library BridgeMessage {
         RequestDetails // 5
     }
 
+    // ============ Constants ============
+
+    uint256 private constant TOKEN_ID_LEN = 36; // 4 bytes domain + 32 bytes id
+    uint256 private constant IDENTIFIER_LEN = 1;
+    uint256 private constant TRANSFER_LEN = 65; // 1 byte identifier + 32 bytes recipient + 32 bytes amount
+    uint256 private constant DETAILS_LEN = 66; // 1 byte identifier + 32 bytes name + 32 bytes symbol + 1 byte decimals
+    uint256 private constant REQUEST_DETAILS_LEN = 1; // 1 byte identifier
+
+    // ============ Modifiers ============
+
     /**
      * @notice Asserts a message is of type `_t`
      * @param _view The message
@@ -35,6 +43,8 @@ library BridgeMessage {
         _view.assertType(uint40(_t));
         _;
     }
+
+    // ============ Internal Functions ============
 
     /**
      * @notice Checks that Action is valid type
