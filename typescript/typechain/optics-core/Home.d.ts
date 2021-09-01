@@ -24,8 +24,8 @@ interface HomeInterface extends ethers.utils.Interface {
     "MAX_MESSAGE_BODY_BYTES()": FunctionFragment;
     "count()": FunctionFragment;
     "current()": FunctionFragment;
+    "dispatch(uint32,bytes32,bytes)": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
-    "enqueue(uint32,bytes32,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "improperUpdate(bytes32,bytes32,bytes)": FunctionFragment;
     "initialize(address)": FunctionFragment;
@@ -55,12 +55,12 @@ interface HomeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "count", values?: undefined): string;
   encodeFunctionData(functionFragment: "current", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "doubleUpdate",
-    values: [BytesLike, [BytesLike, BytesLike], BytesLike, BytesLike]
+    functionFragment: "dispatch",
+    values: [BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "enqueue",
-    values: [BigNumberish, BytesLike, BytesLike]
+    functionFragment: "doubleUpdate",
+    values: [BytesLike, [BytesLike, BytesLike], BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "homeDomainHash",
@@ -125,11 +125,11 @@ interface HomeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "count", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "dispatch", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "doubleUpdate",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "enqueue", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "homeDomainHash",
     data: BytesLike
@@ -252,18 +252,18 @@ export class Home extends BaseContract {
 
     current(overrides?: CallOverrides): Promise<[string]>;
 
+    dispatch(
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     doubleUpdate(
       _oldRoot: BytesLike,
       _newRoot: [BytesLike, BytesLike],
       _signature: BytesLike,
       _signature2: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    enqueue(
-      _destinationDomain: BigNumberish,
-      _recipientAddress: BytesLike,
-      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -345,18 +345,18 @@ export class Home extends BaseContract {
 
   current(overrides?: CallOverrides): Promise<string>;
 
+  dispatch(
+    _destinationDomain: BigNumberish,
+    _recipientAddress: BytesLike,
+    _messageBody: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   doubleUpdate(
     _oldRoot: BytesLike,
     _newRoot: [BytesLike, BytesLike],
     _signature: BytesLike,
     _signature2: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  enqueue(
-    _destinationDomain: BigNumberish,
-    _recipientAddress: BytesLike,
-    _messageBody: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -433,18 +433,18 @@ export class Home extends BaseContract {
 
     current(overrides?: CallOverrides): Promise<string>;
 
+    dispatch(
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     doubleUpdate(
       _oldRoot: BytesLike,
       _newRoot: [BytesLike, BytesLike],
       _signature: BytesLike,
       _signature2: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    enqueue(
-      _destinationDomain: BigNumberish,
-      _recipientAddress: BytesLike,
-      _messageBody: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -600,18 +600,18 @@ export class Home extends BaseContract {
 
     current(overrides?: CallOverrides): Promise<BigNumber>;
 
+    dispatch(
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     doubleUpdate(
       _oldRoot: BytesLike,
       _newRoot: [BytesLike, BytesLike],
       _signature: BytesLike,
       _signature2: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    enqueue(
-      _destinationDomain: BigNumberish,
-      _recipientAddress: BytesLike,
-      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -695,18 +695,18 @@ export class Home extends BaseContract {
 
     current(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    dispatch(
+      _destinationDomain: BigNumberish,
+      _recipientAddress: BytesLike,
+      _messageBody: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     doubleUpdate(
       _oldRoot: BytesLike,
       _newRoot: [BytesLike, BytesLike],
       _signature: BytesLike,
       _signature2: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    enqueue(
-      _destinationDomain: BigNumberish,
-      _recipientAddress: BytesLike,
-      _messageBody: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -40,22 +40,22 @@ contract Replica is Version0, Common {
 
     // ============ Constants ============
 
-    /// @notice Minimum gas for message processing
+    // Minimum gas for message processing
     uint256 public constant PROCESS_GAS = 850000;
-    /// @notice Reserved gas (to ensure tx completes in case message processing runs out)
+    // Reserved gas (to ensure tx completes in case message processing runs out)
     uint256 public constant RESERVE_GAS = 15000;
 
     // ============ Public Storage ============
 
-    /// @notice Domain of home chain
+    // Domain of home chain
     uint32 public remoteDomain;
-    /// @notice Number of seconds to wait before enqueued root becomes confirmable
+    // Number of seconds to wait before root becomes confirmable
     uint256 public optimisticSeconds;
-    /// @dev re-entrancy guard
+    // re-entrancy guard
     uint8 private entered;
-    /// @notice Mapping of enqueued roots to allowable confirmation times
+    // Mapping of roots to allowable confirmation times
     mapping(bytes32 => uint256) public confirmAt;
-    /// @notice Mapping of message leaves to MessageStatus
+    // Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
 
     // ============ Upgrade Gap ============
@@ -109,7 +109,7 @@ contract Replica is Version0, Common {
     // ============ External Functions ============
 
     /**
-     * @notice Called by external agent. Enqueues signed update's new root,
+     * @notice Called by external agent. Submits the signed update's new root,
      * marks root's allowable confirmation time, and emits an `Update` event.
      * @dev Reverts if update doesn't build off queue's last root or replica's
      * current root if queue is empty. Also reverts if signature is invalid.

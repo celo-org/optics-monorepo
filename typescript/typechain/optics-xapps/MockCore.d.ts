@@ -23,7 +23,7 @@ interface MockCoreInterface extends ethers.utils.Interface {
   functions: {
     "MAX_MESSAGE_BODY_BYTES()": FunctionFragment;
     "count()": FunctionFragment;
-    "enqueue(uint32,bytes32,bytes)": FunctionFragment;
+    "dispatch(uint32,bytes32,bytes)": FunctionFragment;
     "home()": FunctionFragment;
     "isReplica(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
@@ -41,7 +41,7 @@ interface MockCoreInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "count", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "enqueue",
+    functionFragment: "dispatch",
     values: [BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "home", values?: undefined): string;
@@ -71,7 +71,7 @@ interface MockCoreInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "count", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "enqueue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "dispatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "home", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isReplica", data: BytesLike): Result;
   decodeFunctionResult(
@@ -148,7 +148,7 @@ export class MockCore extends BaseContract {
 
     count(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    enqueue(
+    dispatch(
       _destination: BigNumberish,
       _recipient: BytesLike,
       _body: BytesLike,
@@ -183,7 +183,7 @@ export class MockCore extends BaseContract {
 
   count(overrides?: CallOverrides): Promise<BigNumber>;
 
-  enqueue(
+  dispatch(
     _destination: BigNumberish,
     _recipient: BytesLike,
     _body: BytesLike,
@@ -213,7 +213,7 @@ export class MockCore extends BaseContract {
 
     count(overrides?: CallOverrides): Promise<BigNumber>;
 
-    enqueue(
+    dispatch(
       _destination: BigNumberish,
       _recipient: BytesLike,
       _body: BytesLike,
@@ -273,7 +273,7 @@ export class MockCore extends BaseContract {
 
     count(overrides?: CallOverrides): Promise<BigNumber>;
 
-    enqueue(
+    dispatch(
       _destination: BigNumberish,
       _recipient: BytesLike,
       _body: BytesLike,
@@ -312,7 +312,7 @@ export class MockCore extends BaseContract {
 
     count(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    enqueue(
+    dispatch(
       _destination: BigNumberish,
       _recipient: BytesLike,
       _body: BytesLike,

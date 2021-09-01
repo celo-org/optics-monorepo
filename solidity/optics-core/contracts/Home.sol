@@ -50,13 +50,13 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     // ============ Events ============
 
     /**
-     * @notice Emitted when a new message is enqueued
+     * @notice Emitted when a new message is dispatched via Optics
      * @param leafIndex Index of message's leaf in merkle tree
      * @param destinationAndSequence Destination and destination-specific
      * sequence combined in single field ((destination << 32) & sequence)
      * @param leaf Hash of message; the leaf inserted to the Merkle tree for the message
      * @param current the latest notarized root submitted in the last signed Update
-     * @param message Raw bytes of enqueued message
+     * @param message Raw bytes of message
      */
     event Dispatch(
         uint256 indexed leafIndex,
@@ -152,7 +152,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
      * @param _recipientAddress Address of recipient on destination chain as bytes32
      * @param _messageBody Raw bytes content of message
      */
-    function enqueue(
+    function dispatch(
         uint32 _destinationDomain,
         bytes32 _recipientAddress,
         bytes memory _messageBody
@@ -187,7 +187,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     }
 
     /**
-     * @notice Submit a signature from the Updater "notarizing" an enqueued root,
+     * @notice Submit a signature from the Updater "notarizing" a root,
      * which updates the Home contract's `current` root,
      * and publishes the signature which will be relayed to Replica contracts
      * @dev emits Update event
@@ -221,7 +221,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
      * @dev If queue is empty, null bytes returned for both
      * (No update is necessary because no messages have been dispatched since the last update)
      * @return _current Latest updated root
-     * @return _new Latest enqueued root
+     * @return _new Latest enqueued Merkle root
      */
     function suggestUpdate()
         external

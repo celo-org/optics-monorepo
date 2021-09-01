@@ -232,7 +232,11 @@ contract GovernanceRouter is Version0, Initializable, IMessageRecipient {
         // format call message
         bytes memory _msg = GovernanceMessage.formatCalls(_calls);
         // dispatch call message using Optics
-        Home(xAppConnectionManager.home()).enqueue(_destination, _router, _msg);
+        Home(xAppConnectionManager.home()).dispatch(
+            _destination,
+            _router,
+            _msg
+        );
     }
 
     /**
@@ -419,7 +423,7 @@ contract GovernanceRouter is Version0, Initializable, IMessageRecipient {
 
         for (uint256 i = 0; i < domains.length; i++) {
             if (domains[i] != uint32(0)) {
-                _home.enqueue(domains[i], routers[domains[i]], _msg);
+                _home.dispatch(domains[i], routers[domains[i]], _msg);
             }
         }
     }

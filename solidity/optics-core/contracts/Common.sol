@@ -50,7 +50,7 @@ abstract contract Common is QueueManager {
 
     /**
      * @notice Emitted when update is made on Home
-     * or unconfirmed update root is enqueued on Replica
+     * or unconfirmed update root is submitted on Replica
      * @param homeDomain Domain of home contract
      * @param oldRoot Old merkle root
      * @param newRoot New merkle root

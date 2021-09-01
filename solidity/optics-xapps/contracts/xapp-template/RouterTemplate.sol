@@ -53,7 +53,6 @@ contract RouterTemplate is Router {
         bytes memory _message
     ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0);
-
         // route message to appropriate _handle function
         // based on what type of message is encoded
         if (_msg.isTypeA()) {
@@ -73,7 +72,6 @@ contract RouterTemplate is Router {
     function _handleTypeA(bytes29 _message) internal {
         // parse the information from the message
         uint256 _number = _message.number();
-
         // implement the logic for executing the action
         // (in this example case, emit an event with the number that was sent)
         emit TypeAReceived(_number);
@@ -95,12 +93,10 @@ contract RouterTemplate is Router {
     {
         // get the xApp Router at the destinationDomain
         bytes32 _remoteRouterAddress = _mustHaveRemote(_destinationDomain);
-
         // encode a message to send to the remote xApp Router
         bytes memory _outboundMessage = Message.formatTypeA(_number);
-
         // send the message to the xApp Router
-        _home().enqueue(
+        _home().dispatch(
             _destinationDomain,
             _remoteRouterAddress,
             _outboundMessage

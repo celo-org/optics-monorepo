@@ -240,6 +240,29 @@
   {
     "inputs": [
       {
+        "internalType": "uint32",
+        "name": "_destinationDomain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_recipientAddress",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_messageBody",
+        "type": "bytes"
+      }
+    ],
+    "name": "dispatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "_oldRoot",
         "type": "bytes32"
@@ -261,29 +284,6 @@
       }
     ],
     "name": "doubleUpdate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "_destinationDomain",
-        "type": "uint32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_recipientAddress",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_messageBody",
-        "type": "bytes"
-      }
-    ],
-    "name": "enqueue",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

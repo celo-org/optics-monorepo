@@ -64,7 +64,6 @@ contract PingPongRouter is Router {
         bytes memory _message
     ) external override onlyReplica onlyRemoteRouter(_origin, _sender) {
         bytes29 _msg = _message.ref(0);
-
         if (_msg.isPing()) {
             _handlePing(_origin, _msg);
         } else if (_msg.isPong()) {
@@ -109,10 +108,8 @@ contract PingPongRouter is Router {
         // get the volley count for this game
         uint256 _count = _message.count();
         uint32 _match = _message.matchId();
-
         // emit a Received event
         emit Received(_origin, _match, _count, _isPing);
-
         // send the opposite volley back
         _send(_origin, !_isPing, _match, _count + 1);
     }
@@ -127,11 +124,9 @@ contract PingPongRouter is Router {
     function initiatePingPongMatch(uint32 _destinationDomain) external {
         // the PingPong match always begins with a Ping volley
         bool _isPing = true;
-
         // increment match counter
         uint32 _match = nextMatch;
         nextMatch = _match + 1;
-
         // send the first volley to the destination domain
         _send(_destinationDomain, _isPing, _match, 0);
     }
@@ -150,15 +145,12 @@ contract PingPongRouter is Router {
     ) internal {
         // get the xApp Router at the destinationDomain
         bytes32 _remoteRouterAddress = _mustHaveRemote(_destinationDomain);
-
         // format the ping message
         bytes memory _message = _isPing
             ? PingPongMessage.formatPing(_match, _count)
             : PingPongMessage.formatPong(_match, _count);
-
         // send the message to the xApp Router
-        (_home()).enqueue(_destinationDomain, _remoteRouterAddress, _message);
-
+        (_home()).dispatch(_destinationDomain, _remoteRouterAddress, _message);
         // emit a Sent event
         emit Sent(_destinationDomain, _match, _count, _isPing);
     }

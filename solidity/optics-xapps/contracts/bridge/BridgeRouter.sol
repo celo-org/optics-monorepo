@@ -139,7 +139,7 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
         // format Transfer Tokens action
         bytes29 _action = BridgeMessage.formatTransfer(_recipient, _amount);
         // send message to remote chain via Optics
-        Home(xAppConnectionManager.home()).enqueue(
+        Home(xAppConnectionManager.home()).dispatch(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_formatTokenId(_token), _action)
@@ -346,7 +346,7 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
             _bridgeToken.decimals()
         );
         // send message to remote chain via Optics
-        Home(xAppConnectionManager.home()).enqueue(
+        Home(xAppConnectionManager.home()).dispatch(
             _messageOrigin,
             _messageRemoteRouter,
             BridgeMessage.formatMessage(_tokenId, _updateDetailsAction)
@@ -384,7 +384,7 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
         // format Request Details message
         bytes29 _action = BridgeMessage.formatRequestDetails();
         // send message to remote chain via Optics
-        Home(xAppConnectionManager.home()).enqueue(
+        Home(xAppConnectionManager.home()).dispatch(
             _destination,
             _remote,
             BridgeMessage.formatMessage(_tokenId, _action)

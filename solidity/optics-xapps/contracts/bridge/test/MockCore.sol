@@ -9,7 +9,7 @@ import {MerkleLib} from "@celo-org/optics-sol/libs/Merkle.sol";
 import {QueueLib} from "@celo-org/optics-sol/libs/Queue.sol";
 
 // We reproduce a significant amount of logic from `Home` to ensure that
-// calling enqueue here is AT LEAST AS EXPENSIVE as calling it on home
+// calling dispatch here is AT LEAST AS EXPENSIVE as calling it on home
 contract MockCore is MerkleTreeManager, QueueManager {
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
@@ -39,7 +39,7 @@ contract MockCore is MerkleTreeManager, QueueManager {
     }
 
     // We reproduce the logic here to simulate
-    function enqueue(
+    function dispatch(
         uint32 _destination,
         bytes32 _recipient,
         bytes calldata _body
