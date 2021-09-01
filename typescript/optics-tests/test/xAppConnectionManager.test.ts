@@ -64,14 +64,7 @@ describe('XAppConnectionManager', async () => {
       connectionManager.connect(nonOwner).setHome(nonHome.address),
     ).to.be.revertedWith(ONLY_OWNER_REVERT_MSG);
   });
-
-  it('isOwner returns true for owner and false for non-owner', async () => {
-    const [newOwner, nonOwner] = await ethers.getSigners();
-    await connectionManager.transferOwnership(newOwner.address);
-    expect(await connectionManager.isOwner(newOwner.address)).to.be.true;
-    expect(await connectionManager.isOwner(nonOwner.address)).to.be.false;
-  });
-
+  
   it('isReplica returns true for enrolledReplica and false for non-enrolled Replica', async () => {
     const [nonEnrolledReplica] = await ethers.getSigners();
     expect(await connectionManager.isReplica(enrolledReplica.address)).to.be
