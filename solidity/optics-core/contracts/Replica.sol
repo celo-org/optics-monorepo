@@ -18,16 +18,23 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
  * and dispatching messages on Replica to end recipients.
  */
 contract Replica is Version0, Common {
+    // ============ Libraries ============
+
     using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
     using Message for bytes29;
 
-    /// @notice Status of message
+    // ============ Enums ============
+
+    // Status of Message:
+    //   0 - None - message does not exist
+    //   1 - Proven - message proof has been submitted
+    //   2 - Processed - message has been dispatched to recipient
     enum MessageStatus {
         None,
-        Pending,
+        Proven,
         Processed
     }
 
@@ -217,7 +224,7 @@ contract Replica is Version0, Common {
 
         uint32 _sequence = _m.sequence();
         require(_m.destination() == localDomain, "!destination");
-        require(messages[_messageHash] == MessageStatus.Pending, "!pending");
+        require(messages[_messageHash] == MessageStatus.Proven, "!pending");
 
         require(entered == 1, "!reentrant");
         entered = 0;
@@ -279,7 +286,7 @@ contract Replica is Version0, Common {
         // For convenience, we allow proving against any previous root.
         // This means that witnesses never need to be updated for the new root
         if (acceptableRoot(_actual)) {
-            messages[_leaf] = MessageStatus.Pending;
+            messages[_leaf] = MessageStatus.Proven;
             return true;
         }
         return false;

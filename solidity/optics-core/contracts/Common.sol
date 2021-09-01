@@ -16,15 +16,15 @@ abstract contract Common is QueueManager {
     // ============ Enums ============
 
     // States:
-    //   (0) UNINITIALIZED before initialize function is called
+    //   0 - UnInitialized - before initialize function is called
     //   note: the contract is initialized at deploy time, so it should never be in this state
-    //   (1) ACTIVE as long as the contract has not become fraudulent
-    //   (2) FAILED after a valid fraud proof has been submitted;
+    //   1 - Active - as long as the contract has not become fraudulent
+    //   2 - Failed - after a valid fraud proof has been submitted;
     //   contract will no longer accept updates or new messages
     enum States {
-        UNINITIALIZED,
-        ACTIVE,
-        FAILED
+        UnInitialized,
+        Active,
+        Failed
     }
 
     // ============ Immutable Variables ============
@@ -84,7 +84,7 @@ abstract contract Common is QueueManager {
      * @notice Ensures that contract state != FAILED when the function is called
      */
     modifier notFailed() {
-        require(state != States.FAILED, "failed state");
+        require(state != States.Failed, "failed state");
         _;
     }
 
@@ -99,7 +99,7 @@ abstract contract Common is QueueManager {
     function __Common_initialize(address _updater) internal initializer {
         __QueueManager_intialize();
         updater = _updater;
-        state = States.ACTIVE;
+        state = States.Active;
     }
 
     // ============ External Functions ============
@@ -157,7 +157,7 @@ abstract contract Common is QueueManager {
      * @dev Called when a valid fraud proof is submitted
      */
     function _setFailed() internal {
-        state = States.FAILED;
+        state = States.Failed;
     }
 
     /**
