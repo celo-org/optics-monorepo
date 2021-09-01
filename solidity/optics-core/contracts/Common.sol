@@ -49,8 +49,8 @@ abstract contract Common is QueueManager {
     // ============ Events ============
 
     /**
-     * @notice Event emitted when update is made on Home or unconfirmed update
-     * root is enqueued on Replica
+     * @notice Emitted when update is made on Home
+     * or unconfirmed update root is enqueued on Replica
      * @param homeDomain Domain of home contract
      * @param oldRoot Old merkle root
      * @param newRoot New merkle root
@@ -161,9 +161,10 @@ abstract contract Common is QueueManager {
     }
 
     /**
-     * @notice Performs the state modifications necessary
-     * to move the contract into failed state
-     * @dev Called when a double update or fraudulent update is detected
+     * @notice Moves the contract into failed state
+     * @dev Called when fraud is proven
+     * (Double Update is submitted on Home or Replica,
+     * or Improper Update is submitted on Home)
      */
     function _fail() internal virtual;
 

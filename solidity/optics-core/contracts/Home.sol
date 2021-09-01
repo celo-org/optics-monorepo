@@ -37,7 +37,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
 
     // ============ Public Storage Variables ============
 
-    // domain => next available nonce
+    // domain => next available nonce for the domain
     mapping(uint32 => uint32) public sequences;
     // contract responsible for Updater bonding, slashing and rotation
     IUpdaterManager public updaterManager;
@@ -54,7 +54,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
      * @param leafIndex Index of message's leaf in merkle tree
      * @param destinationAndSequence Destination and destination-specific
      * sequence combined in single field ((destination << 32) & sequence)
-     * @param leaf Hash of formatted message; the leaf inserted to the Merkle tree for the message
+     * @param leaf Hash of message; the leaf inserted to the Merkle tree for the message
      * @param current the latest notarized root submitted in the last signed Update
      * @param message Raw bytes of enqueued message
      */
