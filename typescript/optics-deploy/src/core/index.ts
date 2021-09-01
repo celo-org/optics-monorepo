@@ -5,7 +5,7 @@ import * as proxyUtils from '../proxyUtils';
 import { CoreDeploy } from './CoreDeploy';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import * as contracts from '../../../typechain/optics-core';
-import { assert } from 'console';
+import { checkDeploy } from '../../../optics-tests/test/deploy.test';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
@@ -509,6 +509,11 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
   }
 
   if (!isTestDeploy) {
+    const govDomain = gov.chain.domain;
+    const nonDomain = non.chain.domain;
+    await checkDeploy(gov, [nonDomain], govDomain);
+    await checkDeploy(non, [govDomain], govDomain);
+
     writeDeployOutput([gov, non]);
   }
 }
@@ -608,6 +613,15 @@ export async function deployNChains(deploys: CoreDeploy[]) {
 
   // write config outputs
   if (!isTestDeploy) {
+    const govDomain = deploys[0].chain.domain;
+    for (var i = 0; i < deploys.length; i++) {
+      const localDomain = deploys[i].chain.domain;
+      const remoteDomains = deploys.map(deploy => deploy.chain.domain).filter(domain => {
+        return domain != localDomain
+      });
+      await checkDeploy(deploys[i], remoteDomains, govDomain);
+    }
+
     writeDeployOutput(deploys);
   }
 }

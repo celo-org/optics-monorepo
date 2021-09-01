@@ -17,7 +17,7 @@ function assertBeaconProxy(beaconProxy: BeaconProxy<types.Contract>) {
   expect(beaconProxy.implementation).to.not.be.undefined;
 }
 
-export async function deployCorrect(
+export async function checkDeploy(
   deploy: Deploy,
   remoteDomains: number[],
   governorDomain: number
@@ -102,9 +102,9 @@ describe.only('DeployNChains', async () => {
     // deploy the entire Optics suite on each chain
     await deployNChains(deploys);
 
-    await deployCorrect(deploys[0], [domains[1], domains[2]], domains[0]);
-    await deployCorrect(deploys[1], [domains[0], domains[2]], domains[0]);
-    await deployCorrect(deploys[2], [domains[0], domains[1]], domains[0]);
+    await checkDeploy(deploys[0], [domains[1], domains[2]], domains[0]);
+    await checkDeploy(deploys[1], [domains[0], domains[2]], domains[0]);
+    await checkDeploy(deploys[2], [domains[0], domains[1]], domains[0]);
   });
 
   it('asserts all elements in two-chain deploy are correct', async () => {
@@ -115,7 +115,7 @@ describe.only('DeployNChains', async () => {
 
     await deployTwoChains(deploys[0], deploys[1]);
 
-    await deployCorrect(deploys[0], [domains[1]], domains[0]);
-    await deployCorrect(deploys[1], [domains[0]], domains[0]);
+    await checkDeploy(deploys[0], [domains[1]], domains[0]);
+    await checkDeploy(deploys[1], [domains[0]], domains[0]);
   })
 });
