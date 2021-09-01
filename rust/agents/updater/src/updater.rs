@@ -229,8 +229,8 @@ impl OpticsAgent for Updater {
         Self: Sized,
     {
         let signer = settings.updater.try_into_signer().await?;
-        let interval_seconds = settings.polling_interval.parse().expect("invalid uint");
-        let update_pause = settings.update_pause.parse().expect("invalid uint");
+        let interval_seconds = settings.interval.parse().expect("invalid uint");
+        let update_pause = settings.pause.parse().expect("invalid uint");
         let core = settings.as_ref().try_into_core().await?;
         Ok(Self::new(signer, interval_seconds, update_pause, core))
     }

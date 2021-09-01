@@ -6,7 +6,10 @@ use optics_base::{
 };
 
 decl_settings!(Watcher {
+    /// The watcher's attestation signer
     watcher: SignerConf,
+    /// The connection managers to notify of failure
     connection_managers: Vec<ChainSetup>,
-    polling_interval: String,
+    /// The polling interval (in seconds)
+    interval: String,
 });

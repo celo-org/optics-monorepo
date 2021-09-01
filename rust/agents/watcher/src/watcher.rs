@@ -349,7 +349,7 @@ impl OpticsAgent for Watcher {
 
         Ok(Self::new(
             settings.watcher.try_into_signer().await?,
-            settings.polling_interval.parse().expect("invalid uint"),
+            settings.interval.parse().expect("invalid uint"),
             connection_managers,
             core,
         ))

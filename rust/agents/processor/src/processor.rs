@@ -275,7 +275,7 @@ impl OpticsAgent for Processor {
         Self: Sized,
     {
         Ok(Self::new(
-            settings.polling_interval.parse().expect("invalid integer"),
+            settings.interval.parse().expect("invalid integer"),
             settings.as_ref().try_into_core().await?,
             settings.allowed,
             settings.denied,

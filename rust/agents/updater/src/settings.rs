@@ -2,7 +2,12 @@
 use optics_base::{decl_settings, settings::SignerConf};
 
 decl_settings!(Updater {
+    /// The updater attestation signer
     updater: SignerConf,
-    polling_interval: String,
-    update_pause: String,
+    /// The polling interval (in seconds)
+    interval: String,
+    /// The delay (in seconds) before an updater will attempt to submit a
+    /// signed update. This prevents accidental slashing due to reorgs on
+    /// chains with slow or probabilistic finality
+    pause: String,
 });
