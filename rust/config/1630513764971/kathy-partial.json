@@ -1,5 +1,5 @@
 {
-  "messageInterval": "100",
+  "interval": "100",
   "chat": {
     "message": "static message",
     "recipient": "0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",

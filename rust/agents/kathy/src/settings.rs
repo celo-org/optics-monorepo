@@ -46,7 +46,9 @@ impl From<ChatGenConfig> for ChatGenerator {
 }
 
 decl_settings!(Kathy {
-    message_interval: String,
+    /// The message interval (in seconds)
+    interval: String,
+    /// Chat generation configuration
     #[serde(default)]
     chat: ChatGenConfig,
 });

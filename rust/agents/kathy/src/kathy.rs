@@ -42,7 +42,7 @@ impl OpticsAgent for Kathy {
 
     async fn from_settings(settings: Settings) -> Result<Self> {
         Ok(Self::new(
-            settings.message_interval.parse().expect("invalid u64"),
+            settings.interval.parse().expect("invalid u64"),
             settings.chat.into(),
             settings.base.try_into_core().await?,
         ))
