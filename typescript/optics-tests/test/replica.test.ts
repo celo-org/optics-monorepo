@@ -350,7 +350,7 @@ describe('Replica', async () => {
       body,
     );
 
-    await expect(replica.process(opticsMessage)).to.be.revertedWith('!pending');
+    await expect(replica.process(opticsMessage)).to.be.revertedWith('!proven');
   });
 
   for (let i = 0; i < badRecipientFactories.length; i++) {
