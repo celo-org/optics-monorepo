@@ -19,7 +19,6 @@ export const chainJson: ChainJson = {
 
 export const chain = toChain(chainJson);
 
-// TODO
 export const config: CoreConfig = {
   environment: 'prod',
   updater: '0xDB2091535eb0Ee447Ce170DDC25204FEA822dd81',
