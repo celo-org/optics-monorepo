@@ -82,7 +82,7 @@ impl OpticsAgent for Kathy {
                             destination = message.destination,
                             recipient = message.recipient
                         );
-                        home.enqueue(&message).await?;
+                        home.dispatch(&message).await?;
                     }
                     _ => {
                         info!("Reached the end of the static message queue. Shutting down.");

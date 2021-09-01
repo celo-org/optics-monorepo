@@ -120,8 +120,8 @@ impl Home<Waiting> {
         }
     }
 
-    /// Enqueue a message
-    pub fn enqueue(&mut self, sender: H256, destination: u32, recipient: H256, body: &[u8]) {
+    /// Dispatch a message
+    pub fn dispatch(&mut self, sender: H256, destination: u32, recipient: H256, body: &[u8]) {
         let message = format_message(self.local, sender, destination, recipient, body);
         let message_hash = hash(&message);
         self.state.accumulator.ingest(message_hash);

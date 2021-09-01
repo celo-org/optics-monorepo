@@ -38,7 +38,7 @@ mock! {
 
         pub fn _sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {}
 
-        pub fn _enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {}
+        pub fn _dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {}
 
@@ -121,8 +121,8 @@ impl Home for MockHomeContract {
         self._sequences(destination)
     }
 
-    async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
-        self._enqueue(message)
+    async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
+        self._dispatch(message)
     }
 
     async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {

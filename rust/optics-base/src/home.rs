@@ -125,11 +125,11 @@ impl Home for Homes {
     }
 
     #[instrument(level = "trace", err)]
-    async fn enqueue(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
+    async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.enqueue(message).await,
-            Homes::Mock(mock_home) => mock_home.enqueue(message).await,
-            Homes::Other(home) => home.enqueue(message).await,
+            Homes::Ethereum(home) => home.dispatch(message).await,
+            Homes::Mock(mock_home) => mock_home.dispatch(message).await,
+            Homes::Other(home) => home.dispatch(message).await,
         }
     }
 
