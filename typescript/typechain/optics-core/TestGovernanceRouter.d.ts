@@ -567,10 +567,10 @@ export class TestGovernanceRouter extends BaseContract {
 
     InitiateRecovery(
       recoveryManager?: string | null,
-      endBlock?: null
+      recoveryActiveAt?: null
     ): TypedEventFilter<
       [string, BigNumber],
-      { recoveryManager: string; endBlock: BigNumber }
+      { recoveryManager: string; recoveryActiveAt: BigNumber }
     >;
 
     SetRouter(

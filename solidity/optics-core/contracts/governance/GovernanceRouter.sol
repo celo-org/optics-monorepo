@@ -90,9 +90,12 @@ contract GovernanceRouter is Version0, Initializable, IMessageRecipient {
     /**
      * @notice Emitted when recovery state is initiated by the RecoveryManager
      * @param recoveryManager the address of the current RecoveryManager who initiated the transition
-     * @param endBlock the block at which recovery state will be active
+     * @param recoveryActiveAt the block at which recovery state will be active
      */
-    event InitiateRecovery(address indexed recoveryManager, uint256 endBlock);
+    event InitiateRecovery(
+        address indexed recoveryManager,
+        uint256 recoveryActiveAt
+    );
 
     /**
      * @notice Emitted when recovery state is exited by the RecoveryManager
