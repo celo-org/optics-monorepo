@@ -12,8 +12,6 @@ mock! {
     pub ConnectionManagerContract {
         pub fn _local_domain(&self) -> u32 {}
 
-        pub fn _is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {}
-
         pub fn _is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {}
 
         pub fn _watcher_permission(
@@ -59,10 +57,6 @@ impl std::fmt::Debug for MockConnectionManagerContract {
 impl ConnectionManager for MockConnectionManagerContract {
     fn local_domain(&self) -> u32 {
         self._local_domain()
-    }
-
-    async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
-        self._is_owner(address)
     }
 
     async fn is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {

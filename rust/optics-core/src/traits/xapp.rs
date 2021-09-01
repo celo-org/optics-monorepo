@@ -10,9 +10,6 @@ pub trait ConnectionManager: Send + Sync + std::fmt::Debug {
     /// Return the contract's local domain ID
     fn local_domain(&self) -> u32;
 
-    /// Return true if provided address is the contract's owner
-    async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError>;
-
     /// Returns true if provided address is enrolled replica
     async fn is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError>;
 

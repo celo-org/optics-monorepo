@@ -62,20 +62,6 @@ impl ConnectionManager for ConnectionManagers {
         }
     }
 
-    async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
-        match self {
-            ConnectionManagers::Ethereum(connection_manager) => {
-                connection_manager.is_owner(address).await
-            }
-            ConnectionManagers::Mock(connection_manager) => {
-                connection_manager.is_owner(address).await
-            }
-            ConnectionManagers::Other(connection_manager) => {
-                connection_manager.is_owner(address).await
-            }
-        }
-    }
-
     async fn is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
         match self {
             ConnectionManagers::Ethereum(connection_manager) => {

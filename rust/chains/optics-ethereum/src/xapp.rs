@@ -54,15 +54,6 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn is_owner(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
-        Ok(self
-            .contract
-            .is_owner(address.as_ethereum_address())
-            .call()
-            .await?)
-    }
-
-    #[tracing::instrument(err)]
     async fn is_replica(&self, address: OpticsIdentifier) -> Result<bool, ChainCommunicationError> {
         Ok(self
             .contract
