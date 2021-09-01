@@ -55,6 +55,9 @@ module.exports = {
     mainnet: {
       url: "https://mainnet.infura.io/v3/5c456d7844fa40a683e934df60534c60",
     },
+    arbitrum_rinkeby: {
+      url: "rinkeby.arbitrum.io/rpc",
+    },
     // TODO: add Ropsten
   },
 

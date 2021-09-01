@@ -37,6 +37,7 @@
     "verify:kovan": "hardhat clean && hardhat --network kovan verify-latest-deploy",
     "verify:mainnet": "hardhat clean && hardhat --network mainnet verify-latest-deploy",
     "verify:rinkeby": "hardhat clean && hardhat --network rinkeby verify-latest-deploy",
+    "verify:arbitrum_rinkeby": "hardhat clean && hardhat --network arbitrum_rinkeby verify-latest-deploy",
     "deploy-verify": "npm run deploy && npm run verify"
   },
   "author": "James Prestwich",
