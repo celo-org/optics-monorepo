@@ -58,7 +58,7 @@ mock! {
 
         pub fn _state(&self) -> Result<State, ChainCommunicationError> {}
 
-        pub fn _current_root(&self) -> Result<H256, ChainCommunicationError> {}
+        pub fn _committed_root(&self) -> Result<H256, ChainCommunicationError> {}
 
         pub fn _signed_update_by_old_root(
             &self,
@@ -159,8 +159,8 @@ impl Common for MockHomeContract {
         self._state()
     }
 
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
-        self._current_root()
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
+        self._committed_root()
     }
 
     async fn signed_update_by_old_root(

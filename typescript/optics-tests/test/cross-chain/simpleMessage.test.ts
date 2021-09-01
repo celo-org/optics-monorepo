@@ -57,8 +57,8 @@ describe('SimpleCrossChainMessage', async () => {
     let length = await governorHome.queueLength();
     expect(length).to.equal(1);
 
-    let [suggestedCurrent, suggestedNew] = await governorHome.suggestUpdate();
-    expect(suggestedCurrent).to.equal(nullRoot);
+    let [suggestedCommitted, suggestedNew] = await governorHome.suggestUpdate();
+    expect(suggestedCommitted).to.equal(nullRoot);
     expect(suggestedNew).to.not.equal(nullRoot);
 
     // nonGovernorHome has 2 updates
@@ -67,8 +67,8 @@ describe('SimpleCrossChainMessage', async () => {
     length = await nonGovernorHome.queueLength();
     expect(length).to.equal(2);
 
-    [suggestedCurrent, suggestedNew] = await nonGovernorHome.suggestUpdate();
-    expect(suggestedCurrent).to.equal(nullRoot);
+    [suggestedCommitted, suggestedNew] = await nonGovernorHome.suggestUpdate();
+    expect(suggestedCommitted).to.equal(nullRoot);
     expect(suggestedNew).to.not.equal(nullRoot);
   });
 
@@ -82,7 +82,7 @@ describe('SimpleCrossChainMessage', async () => {
         expect(length).to.equal(0);
 
         const [pending, confirmAt] = await replica.nextPending();
-        expect(pending).to.equal(await replica.current());
+        expect(pending).to.equal(await replica.committedRoot());
         expect(confirmAt).to.equal(1);
       }
     }
@@ -150,7 +150,7 @@ describe('SimpleCrossChainMessage', async () => {
 
     // after confirming, current root should be equal to the last submitted update
     const { newRoot } = latestUpdate;
-    expect(await replica.current()).to.equal(newRoot);
+    expect(await replica.committedRoot()).to.equal(newRoot);
   });
 
   it('Proves and processes a message on Replica', async () => {
@@ -193,7 +193,7 @@ describe('SimpleCrossChainMessage', async () => {
       path as BytesArray,
       index,
     );
-    await replica.setCurrentRoot(proofRoot);
+    await replica.setCommittedRoot(proofRoot);
 
     // prove and process message
     await replica.proveAndProcess(opticsMessage, path as BytesArray, index);

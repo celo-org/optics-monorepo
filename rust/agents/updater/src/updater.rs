@@ -86,23 +86,23 @@ impl UpdateHandler {
     async fn acceptable(&self, update: &Update) -> Result<bool> {
         // Poll chain API to see if queue still contains new root
         // and old root still equals home's current root
-        let (in_queue, current_root) = tokio::join!(
+        let (in_queue, committed_root) = tokio::join!(
             self.home.queue_contains(update.new_root),
-            self.home.current_root()
+            self.home.committed_root()
         );
 
         if in_queue.is_err() {
             info!("Update no longer in queue");
         }
-        if current_root.is_err() {
+        if committed_root.is_err() {
             error!("Connection gone");
         }
 
         let in_queue = in_queue?;
-        let current_root = current_root?;
+        let committed_root = committed_root?;
 
         let old_root = update.previous_root;
-        Ok(in_queue && current_root == old_root)
+        Ok(in_queue && committed_root == old_root)
     }
 
     #[tracing::instrument(err, skip(self), fields(self = %self))]

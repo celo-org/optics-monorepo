@@ -48,7 +48,7 @@ impl UpdatePoller {
         // If the replica has a queue of pending updates, we use the last queue
         // root instead
         let (old_root_res, queue_end_res) =
-            join!(self.replica.current_root(), self.replica.queue_end());
+            join!(self.replica.committed_root(), self.replica.queue_end());
 
         let old_root = {
             if let Some(end) = queue_end_res? {

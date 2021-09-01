@@ -42,7 +42,7 @@ where
     C: Common + ?Sized + 'static,
 {
     interval: u64,
-    current_root: H256,
+    committed_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
 }
@@ -59,7 +59,7 @@ where
     ) -> Self {
         Self {
             interval,
-            current_root: from,
+            committed_root: from,
             tx,
             contract,
         }
@@ -68,7 +68,7 @@ where
     async fn poll_and_send_update(&mut self) -> Result<()> {
         let update_opt = self
             .contract
-            .signed_update_by_old_root(self.current_root)
+            .signed_update_by_old_root(self.committed_root)
             .await?;
 
         if update_opt.is_none() {
@@ -76,7 +76,7 @@ where
         }
 
         let new_update = update_opt.unwrap();
-        self.current_root = new_update.update.new_root;
+        self.committed_root = new_update.update.new_root;
 
         self.tx.send(new_update).await?;
         Ok(())
@@ -99,7 +99,7 @@ where
     C: Common + ?Sized + 'static,
 {
     interval: u64,
-    current_root: H256,
+    committed_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
 }
@@ -115,7 +115,7 @@ where
         contract: Arc<C>,
     ) -> Self {
         Self {
-            current_root: from,
+            committed_root: from,
             tx,
             contract,
             interval,
@@ -125,7 +125,7 @@ where
     async fn update_history(&mut self) -> Result<()> {
         let previous_update = self
             .contract
-            .signed_update_by_new_root(self.current_root)
+            .signed_update_by_new_root(self.committed_root)
             .await?;
 
         if previous_update.is_none() {
@@ -137,9 +137,9 @@ where
         let previous_update = previous_update.unwrap();
 
         // set up for next loop iteration
-        self.current_root = previous_update.update.previous_root;
+        self.committed_root = previous_update.update.previous_root;
         self.tx.send(previous_update).await?;
-        if self.current_root.is_zero() {
+        if self.committed_root.is_zero() {
             // Task finished
             return Err(Report::new(WatcherError::SyncingFinished));
         }
@@ -216,7 +216,7 @@ impl UpdateHandler {
                 let update = update.unwrap();
                 let old_root = update.update.previous_root;
 
-                if old_root == self.home.current_root().await? {
+                if old_root == self.home.committed_root().await? {
                     // It is okay if tx reverts
                     let _ = self.home.update(&update).await;
                 }
@@ -372,7 +372,7 @@ impl OpticsAgent for Watcher {
             let replica = self
                 .replica_by_name(name)
                 .ok_or_else(|| eyre!("No replica named {}", name))?;
-            let from = replica.current_root().await?;
+            let from = replica.committed_root().await?;
 
             self.watch_tasks.write().await.insert(
                 (*name).to_owned(),
@@ -389,7 +389,7 @@ impl OpticsAgent for Watcher {
         }
 
         let home = self.home();
-        let from = home.current_root().await?;
+        let from = home.committed_root().await?;
 
         let home_watcher =
             ContractWatcher::new(self.interval_seconds, from, tx.clone(), home.clone())
@@ -486,7 +486,7 @@ mod test {
                 .await
                 .expect("Should have received Ok(())");
 
-            assert_eq!(contract_watcher.current_root, second_root);
+            assert_eq!(contract_watcher.committed_root, second_root);
             assert_eq!(rx.recv().await.unwrap(), signed_update);
         }
 
@@ -556,7 +556,7 @@ mod test {
                 .await
                 .expect("Should have received Ok(())");
 
-            assert_eq!(history_sync.current_root, first_root);
+            assert_eq!(history_sync.committed_root, first_root);
             assert_eq!(rx.recv().await.unwrap(), second_signed_update);
 
             // Second update_history call returns zero -> first update
@@ -566,7 +566,7 @@ mod test {
                 .await
                 .expect_err("Should have received WatcherError::SyncingFinished");
 
-            assert_eq!(history_sync.current_root, zero_root);
+            assert_eq!(history_sync.committed_root, zero_root);
             assert_eq!(rx.recv().await.unwrap(), first_signed_update)
         }
 

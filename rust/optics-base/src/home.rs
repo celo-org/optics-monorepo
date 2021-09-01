@@ -192,11 +192,11 @@ impl Common for Homes {
         }
     }
 
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.current_root().await,
-            Homes::Mock(mock_home) => mock_home.current_root().await,
-            Homes::Other(home) => home.current_root().await,
+            Homes::Ethereum(home) => home.committed_root().await,
+            Homes::Mock(mock_home) => mock_home.committed_root().await,
+            Homes::Other(home) => home.committed_root().await,
         }
     }
 

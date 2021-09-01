@@ -113,7 +113,7 @@ describe('GovernanceRouter', async () => {
       implementation2.address,
     ]);
 
-    const currentRoot = await governorHome.current();
+    const committedRoot = await governorHome.committedRoot();
 
     // dispatch call on local governorRouter
     let tx = await governorRouter.callRemote(nonGovernorDomain, [call]);
@@ -125,17 +125,17 @@ describe('GovernanceRouter', async () => {
     const [, latestRoot] = await governorHome.suggestUpdate();
     expect(latestRoot).to.equal(helpers.root);
 
-    const { signature } = await updater.signUpdate(currentRoot, latestRoot);
+    const { signature } = await updater.signUpdate(committedRoot, latestRoot);
 
-    await expect(governorHome.update(currentRoot, latestRoot, signature))
+    await expect(governorHome.update(committedRoot, latestRoot, signature))
       .to.emit(governorHome, 'Update')
-      .withArgs(governorDomain, currentRoot, latestRoot, signature);
+      .withArgs(governorDomain, committedRoot, latestRoot, signature);
 
-    expect(await governorHome.current()).to.equal(latestRoot);
+    expect(await governorHome.committedRoot()).to.equal(latestRoot);
     expect(await governorHome.queueContains(latestRoot)).to.be.false;
 
     await updateReplica(
-      { oldRoot: currentRoot, newRoot: latestRoot, signature },
+      { oldRoot: committedRoot, newRoot: latestRoot, signature },
       governorReplicaOnNonGovernorChain,
     );
 
@@ -154,8 +154,8 @@ describe('GovernanceRouter', async () => {
 
     await governorReplicaOnNonGovernorChain.confirm();
 
-    // after confirming, current root should be equal to the last submitted update
-    expect(await governorReplicaOnNonGovernorChain.current()).to.equal(
+    // after confirming, committedRoot should be equal to the last submitted update
+    expect(await governorReplicaOnNonGovernorChain.committedRoot()).to.equal(
       latestRoot,
     );
 
@@ -331,7 +331,7 @@ describe('GovernanceRouter', async () => {
   it('Transfers governorship', async () => {
     // Transfer governor on current governor chain
     // get root on governor chain before transferring governor
-    const currentRoot = await governorHome.current();
+    const committedRoot = await governorHome.committedRoot();
 
     // Governor HAS NOT been transferred on original governor domain
     await expectGovernor(governorRouter, governorDomain, firstGovernor);
@@ -361,10 +361,10 @@ describe('GovernanceRouter', async () => {
     // get new root and signed update
     const newRoot = await governorHome.queueEnd();
 
-    const { signature } = await updater.signUpdate(currentRoot, newRoot);
+    const { signature } = await updater.signUpdate(committedRoot, newRoot);
 
     // update governor chain home
-    await governorHome.update(currentRoot, newRoot, signature);
+    await governorHome.update(committedRoot, newRoot, signature);
 
     const transferGovernorMessage = optics.governance.formatTransferGovernor(
       nonGovernorDomain,
@@ -379,7 +379,7 @@ describe('GovernanceRouter', async () => {
     );
 
     // Set current root on replica
-    await governorReplicaOnNonGovernorChain.setCurrentRoot(newRoot);
+    await governorReplicaOnNonGovernorChain.setCommittedRoot(newRoot);
 
     // Governor HAS been transferred on original governor domain
     await expectGovernor(

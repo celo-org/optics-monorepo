@@ -87,8 +87,8 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
-        Ok(self.contract.current().call().await?.into())
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
+        Ok(self.contract.committed_root().call().await?.into())
     }
 
     #[tracing::instrument(err)]

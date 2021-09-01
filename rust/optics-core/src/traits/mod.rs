@@ -103,7 +103,7 @@ pub trait Common: Sync + Send + std::fmt::Debug {
     async fn state(&self) -> Result<State, ChainCommunicationError>;
 
     /// Fetch the current root.
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError>;
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError>;
 
     /// Fetch the first signed update building off of `old_root`. If `old_root`
     /// was never accepted or has never been updated, this will return `Ok(None )`.
@@ -123,8 +123,8 @@ pub trait Common: Sync + Send + std::fmt::Debug {
 
     /// Fetch most recent signed_update.
     async fn poll_signed_update(&self) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        let current_root = self.current_root().await?;
-        self.signed_update_by_new_root(current_root).await
+        let committed_root = self.committed_root().await?;
+        self.signed_update_by_new_root(committed_root).await
     }
 
     /// Submit a signed update for inclusion

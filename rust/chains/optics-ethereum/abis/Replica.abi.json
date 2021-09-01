@@ -176,6 +176,19 @@
   },
   {
     "inputs": [],
+    "name": "committedRoot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "confirm",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -195,19 +208,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "current",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -268,7 +268,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "_current",
+        "name": "_committedRoot",
         "type": "bytes32"
       },
       {

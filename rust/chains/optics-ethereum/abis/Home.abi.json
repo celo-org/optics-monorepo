@@ -34,7 +34,7 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "current",
+        "name": "committedRoot",
         "type": "bytes32"
       },
       {
@@ -213,12 +213,12 @@
   },
   {
     "inputs": [],
-    "name": "count",
+    "name": "committedRoot",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bytes32",
         "name": "",
-        "type": "uint256"
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -226,12 +226,12 @@
   },
   {
     "inputs": [],
-    "name": "current",
+    "name": "count",
     "outputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "uint256",
         "name": "",
-        "type": "bytes32"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -498,7 +498,7 @@
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "_current",
+        "name": "_committedRoot",
         "type": "bytes32"
       },
       {
@@ -540,7 +540,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_currentRoot",
+        "name": "_committedRoot",
         "type": "bytes32"
       },
       {

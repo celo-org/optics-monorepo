@@ -71,7 +71,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "current",
+    name: "committedRoot",
     outputs: [
       {
         internalType: "bytes32",

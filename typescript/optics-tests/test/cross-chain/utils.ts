@@ -65,7 +65,7 @@ export async function dispatchMessagesAndUpdateHome(
 ): Promise<Update> {
   const homeDomain = await home.localDomain();
 
-  const oldRoot = await home.current();
+  const oldRoot = await home.committedRoot();
 
   // dispatch each message from Home and get the intermediate root
   const roots = [];
@@ -91,7 +91,7 @@ export async function dispatchMessagesAndUpdateHome(
     .withArgs(homeDomain, oldRoot, newRoot, signature);
 
   // ensure that Home root is now newRoot
-  expect(await home.current()).to.equal(newRoot);
+  expect(await home.committedRoot()).to.equal(newRoot);
 
   // ensure that Home queue no longer contains
   // any of the roots we just enqueued -

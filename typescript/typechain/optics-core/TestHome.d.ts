@@ -22,8 +22,8 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface TestHomeInterface extends ethers.utils.Interface {
   functions: {
     "MAX_MESSAGE_BODY_BYTES()": FunctionFragment;
+    "committedRoot()": FunctionFragment;
     "count()": FunctionFragment;
-    "current()": FunctionFragment;
     "dispatch(uint32,bytes32,bytes)": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
@@ -56,8 +56,11 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "MAX_MESSAGE_BODY_BYTES",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "committedRoot",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "count", values?: undefined): string;
-  encodeFunctionData(functionFragment: "current", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "dispatch",
     values: [BigNumberish, BytesLike, BytesLike]
@@ -140,8 +143,11 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "MAX_MESSAGE_BODY_BYTES",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "committedRoot",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "count", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "dispatch", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "doubleUpdate",
@@ -278,9 +284,9 @@ export class TestHome extends BaseContract {
   functions: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    count(overrides?: CallOverrides): Promise<[BigNumber]>;
+    committedRoot(overrides?: CallOverrides): Promise<[string]>;
 
-    current(overrides?: CallOverrides): Promise<[string]>;
+    count(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     dispatch(
       _destinationDomain: BigNumberish,
@@ -352,7 +358,7 @@ export class TestHome extends BaseContract {
 
     suggestUpdate(
       overrides?: CallOverrides
-    ): Promise<[string, string] & { _current: string; _new: string }>;
+    ): Promise<[string, string] & { _committedRoot: string; _new: string }>;
 
     testDestinationAndNonce(
       _destination: BigNumberish,
@@ -372,7 +378,7 @@ export class TestHome extends BaseContract {
     ): Promise<[BigNumber] & { count: BigNumber }>;
 
     update(
-      _currentRoot: BytesLike,
+      _committedRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -385,9 +391,9 @@ export class TestHome extends BaseContract {
 
   MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
-  count(overrides?: CallOverrides): Promise<BigNumber>;
+  committedRoot(overrides?: CallOverrides): Promise<string>;
 
-  current(overrides?: CallOverrides): Promise<string>;
+  count(overrides?: CallOverrides): Promise<BigNumber>;
 
   dispatch(
     _destinationDomain: BigNumberish,
@@ -456,7 +462,7 @@ export class TestHome extends BaseContract {
 
   suggestUpdate(
     overrides?: CallOverrides
-  ): Promise<[string, string] & { _current: string; _new: string }>;
+  ): Promise<[string, string] & { _committedRoot: string; _new: string }>;
 
   testDestinationAndNonce(
     _destination: BigNumberish,
@@ -474,7 +480,7 @@ export class TestHome extends BaseContract {
   tree(overrides?: CallOverrides): Promise<BigNumber>;
 
   update(
-    _currentRoot: BytesLike,
+    _committedRoot: BytesLike,
     _newRoot: BytesLike,
     _signature: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -487,9 +493,9 @@ export class TestHome extends BaseContract {
   callStatic: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
-    count(overrides?: CallOverrides): Promise<BigNumber>;
+    committedRoot(overrides?: CallOverrides): Promise<string>;
 
-    current(overrides?: CallOverrides): Promise<string>;
+    count(overrides?: CallOverrides): Promise<BigNumber>;
 
     dispatch(
       _destinationDomain: BigNumberish,
@@ -554,7 +560,7 @@ export class TestHome extends BaseContract {
 
     suggestUpdate(
       overrides?: CallOverrides
-    ): Promise<[string, string] & { _current: string; _new: string }>;
+    ): Promise<[string, string] & { _committedRoot: string; _new: string }>;
 
     testDestinationAndNonce(
       _destination: BigNumberish,
@@ -572,7 +578,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<BigNumber>;
 
     update(
-      _currentRoot: BytesLike,
+      _committedRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: CallOverrides
@@ -588,7 +594,7 @@ export class TestHome extends BaseContract {
       leafIndex?: BigNumberish | null,
       destinationAndNonce?: BigNumberish | null,
       leaf?: BytesLike | null,
-      current?: null,
+      committedRoot?: null,
       message?: null
     ): TypedEventFilter<
       [BigNumber, BigNumber, string, string, string],
@@ -596,7 +602,7 @@ export class TestHome extends BaseContract {
         leafIndex: BigNumber;
         destinationAndNonce: BigNumber;
         leaf: string;
-        current: string;
+        committedRoot: string;
         message: string;
       }
     >;
@@ -666,9 +672,9 @@ export class TestHome extends BaseContract {
   estimateGas: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
-    count(overrides?: CallOverrides): Promise<BigNumber>;
+    committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
-    current(overrides?: CallOverrides): Promise<BigNumber>;
+    count(overrides?: CallOverrides): Promise<BigNumber>;
 
     dispatch(
       _destinationDomain: BigNumberish,
@@ -756,7 +762,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<BigNumber>;
 
     update(
-      _currentRoot: BytesLike,
+      _committedRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -772,9 +778,9 @@ export class TestHome extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    count(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    current(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    count(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     dispatch(
       _destinationDomain: BigNumberish,
@@ -867,7 +873,7 @@ export class TestHome extends BaseContract {
     tree(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     update(
-      _currentRoot: BytesLike,
+      _committedRoot: BytesLike,
       _newRoot: BytesLike,
       _signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }

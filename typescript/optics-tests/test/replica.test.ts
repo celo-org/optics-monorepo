@@ -42,7 +42,7 @@ describe('Replica', async () => {
   const submitValidUpdate = async (newRoot: string) => {
     let oldRoot;
     if ((await replica.queueLength()).isZero()) {
-      oldRoot = await replica.current();
+      oldRoot = await replica.committedRoot();
     } else {
       oldRoot = await replica.queueEnd();
     }
@@ -143,7 +143,7 @@ describe('Replica', async () => {
 
   it('Returns the current value when the queue is empty', async () => {
     const [pending, confirmAt] = await replica.nextPending();
-    expect(pending).to.equal(await replica.current());
+    expect(pending).to.equal(await replica.committedRoot());
     expect(confirmAt).to.equal(1);
   });
 
@@ -189,7 +189,7 @@ describe('Replica', async () => {
   });
 
   it('Accepts a double update proof', async () => {
-    const firstRoot = await replica.current();
+    const firstRoot = await replica.committedRoot();
     const secondRoot = ethers.utils.formatBytes32String('second root');
     const thirdRoot = ethers.utils.formatBytes32String('third root');
 
@@ -219,7 +219,7 @@ describe('Replica', async () => {
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
-    expect(await replica.current()).to.equal(newRoot);
+    expect(await replica.committedRoot()).to.equal(newRoot);
   });
 
   it('Batch-confirms several ready updates', async () => {
@@ -234,7 +234,7 @@ describe('Replica', async () => {
 
     expect(await replica.canConfirm()).to.be.true;
     await replica.confirm();
-    expect(await replica.current()).to.equal(secondNewRoot);
+    expect(await replica.committedRoot()).to.equal(secondNewRoot);
   });
 
   it('Rejects confirmation attempt on empty queue', async () => {
@@ -262,7 +262,7 @@ describe('Replica', async () => {
     const testCase = merkleTestCases[0];
     let { leaf, index, path } = testCase.proofs[0];
 
-    await replica.setCurrentRoot(testCase.expectedRoot);
+    await replica.setCommittedRoot(testCase.expectedRoot);
 
     // Ensure proper static call return value
     expect(await replica.callStatic.prove(leaf, path as BytesArray, index)).to
@@ -276,7 +276,7 @@ describe('Replica', async () => {
     const testCase = merkleTestCases[0];
     let { leaf, index, path } = testCase.proofs[0];
 
-    await replica.setCurrentRoot(testCase.expectedRoot);
+    await replica.setCommittedRoot(testCase.expectedRoot);
 
     // Prove message, which changes status to MessageStatus.Pending
     await replica.prove(leaf, path as BytesArray, index);
@@ -298,7 +298,7 @@ describe('Replica', async () => {
     path[0] = path[1];
     path[1] = firstHash;
 
-    await replica.setCurrentRoot(testCase.expectedRoot);
+    await replica.setCommittedRoot(testCase.expectedRoot);
 
     expect(await replica.callStatic.prove(leaf, path as BytesArray, index)).to
       .be.false;
@@ -494,7 +494,7 @@ describe('Replica', async () => {
       path as BytesArray,
       index,
     );
-    await replica.setCurrentRoot(proofRoot);
+    await replica.setCommittedRoot(proofRoot);
 
     await replica.proveAndProcess(opticsMessage, path as BytesArray, index);
 
@@ -523,7 +523,7 @@ describe('Replica', async () => {
 
     // Ensure root given in proof and actual root don't match so that
     // replica.prove(...) will fail
-    const actualRoot = await replica.current();
+    const actualRoot = await replica.committedRoot();
     const proofRoot = await replica.testBranchRoot(
       leaf,
       path as BytesArray,

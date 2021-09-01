@@ -83,8 +83,8 @@ where
     }
 
     #[tracing::instrument(err, skip(self))]
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
-        Ok(self.contract.current().call().await?.into())
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
+        Ok(self.contract.committed_root().call().await?.into())
     }
 
     #[tracing::instrument(err, skip(self))]
@@ -201,7 +201,7 @@ where
 
         Ok(events.into_iter().next().map(|f| RawCommittedMessage {
             leaf_index: f.leaf_index.as_u32(),
-            current_root: f.current.into(),
+            committed_root: f.committed_root.into(),
             message: f.message,
         }))
     }
@@ -221,7 +221,7 @@ where
 
         Ok(events.into_iter().next().map(|f| RawCommittedMessage {
             leaf_index: f.leaf_index.as_u32(),
-            current_root: f.current.into(),
+            committed_root: f.committed_root.into(),
             message: f.message,
         }))
     }

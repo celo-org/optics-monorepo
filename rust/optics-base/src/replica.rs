@@ -186,11 +186,11 @@ impl Common for Replicas {
         }
     }
 
-    async fn current_root(&self) -> Result<H256, ChainCommunicationError> {
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.current_root().await,
-            Replicas::Mock(mock_replica) => mock_replica.current_root().await,
-            Replicas::Other(replica) => replica.current_root().await,
+            Replicas::Ethereum(replica) => replica.committed_root().await,
+            Replicas::Mock(mock_replica) => mock_replica.committed_root().await,
+            Replicas::Other(replica) => replica.committed_root().await,
         }
     }
 

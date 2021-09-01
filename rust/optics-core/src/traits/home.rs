@@ -15,7 +15,7 @@ pub struct RawCommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,
     /// The home's current root when the message was committed.
-    pub current_root: H256,
+    pub committed_root: H256,
     /// The fully detailed message that was committed
     pub message: Vec<u8>,
 }
@@ -27,7 +27,7 @@ pub struct CommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,
     /// The home's current root when the message was committed.
-    pub current_root: H256,
+    pub committed_root: H256,
     /// The fully detailed message that was committed
     pub message: OpticsMessage,
 }
@@ -51,7 +51,7 @@ impl TryFrom<RawCommittedMessage> for CommittedMessage {
     fn try_from(raw: RawCommittedMessage) -> Result<Self, Self::Error> {
         Ok(Self {
             leaf_index: raw.leaf_index,
-            current_root: raw.current_root,
+            committed_root: raw.committed_root,
             message: OpticsMessage::read_from(&mut &raw.message[..])?,
         })
     }

@@ -95,14 +95,14 @@ contract Replica is Version0, Common {
     function initialize(
         uint32 _remoteDomain,
         address _updater,
-        bytes32 _current,
+        bytes32 _committedRoot,
         uint256 _optimisticSeconds
     ) public initializer {
         __Common_initialize(_updater);
         entered = 1;
         remoteDomain = _remoteDomain;
-        current = _current;
-        confirmAt[_current] = 1;
+        committedRoot = _committedRoot;
+        confirmAt[_committedRoot] = 1;
         optimisticSeconds = _optimisticSeconds;
     }
 
@@ -112,7 +112,7 @@ contract Replica is Version0, Common {
      * @notice Called by external agent. Submits the signed update's new root,
      * marks root's allowable confirmation time, and emits an `Update` event.
      * @dev Reverts if update doesn't build off queue's last root or replica's
-     * current root if queue is empty. Also reverts if signature is invalid.
+     * committedRoot if queue is empty. Also reverts if signature is invalid.
      * @param _oldRoot Old merkle root
      * @param _newRoot New merkle root
      * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
@@ -126,7 +126,7 @@ contract Replica is Version0, Common {
         if (queue.length() > 0) {
             require(_oldRoot == queue.lastItem(), "not end of queue");
         } else {
-            require(_oldRoot == current, "not current update");
+            require(_oldRoot == committedRoot, "not current update");
         }
         // validate updater signature
         require(
@@ -144,7 +144,7 @@ contract Replica is Version0, Common {
 
     /**
      * @notice Called by external agent. Confirms as many confirmable roots in
-     * queue as possible, updating replica's current root to be the last
+     * queue as possible, updating replica's committedRoot to be the last
      * confirmed root.
      * @dev Reverts if queue started as empty (i.e. no roots to confirm)
      */
@@ -163,8 +163,8 @@ contract Replica is Version0, Common {
         require(_pending != bytes32(0), "!time");
         // Hook for future use
         _beforeConfirm();
-        // Update current root to last confirmed root
-        current = _pending;
+        // Update committedRoot to last confirmed root
+        committedRoot = _pending;
     }
 
     /**
@@ -200,8 +200,8 @@ contract Replica is Version0, Common {
             _pending = queue.peek();
             _confirmAt = confirmAt[_pending];
         } else {
-            _pending = current;
-            _confirmAt = confirmAt[current];
+            _pending = committedRoot;
+            _confirmAt = confirmAt[committedRoot];
         }
     }
 

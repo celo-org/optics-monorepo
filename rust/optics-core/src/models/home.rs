@@ -65,7 +65,7 @@ fn format_message(
 pub struct Home<S> {
     local: u32,
     updater: Address,
-    current_root: H256,
+    committed_root: H256,
     state: S,
 }
 
@@ -95,7 +95,7 @@ impl From<Home<Waiting>> for Home<Failed> {
         Self {
             local: h.local,
             updater: h.updater,
-            current_root: h.current_root,
+            committed_root: h.committed_root,
             state: Failed {
                 accumulator: h.state.accumulator,
                 queue: h.state.queue,
@@ -115,7 +115,7 @@ impl Home<Waiting> {
         Self {
             local,
             updater,
-            current_root: Default::default(),
+            committed_root: Default::default(),
             state: Waiting::default(),
         }
     }
@@ -129,10 +129,10 @@ impl Home<Waiting> {
     }
 
     fn _update(&mut self, update: &Update) -> Result<(), OpticsError> {
-        if update.previous_root != self.current_root {
+        if update.previous_root != self.committed_root {
             return Err(OpticsError::WrongCurrentRoot {
                 actual: update.previous_root,
-                expected: self.current_root,
+                expected: self.committed_root,
             });
         }
 
@@ -152,7 +152,7 @@ impl Home<Waiting> {
     pub fn produce_update(&self) -> Update {
         Update {
             home_domain: self.local,
-            previous_root: self.current_root,
+            previous_root: self.committed_root,
             new_root: self.state.accumulator.root(),
         }
     }

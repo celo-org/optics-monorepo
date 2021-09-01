@@ -21,7 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CommonInterface extends ethers.utils.Interface {
   functions: {
-    "current()": FunctionFragment;
+    "committedRoot()": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "localDomain()": FunctionFragment;
@@ -32,7 +32,10 @@ interface CommonInterface extends ethers.utils.Interface {
     "updater()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "current", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "committedRoot",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "doubleUpdate",
     values: [BytesLike, [BytesLike, BytesLike], BytesLike, BytesLike]
@@ -57,7 +60,10 @@ interface CommonInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "current", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "committedRoot",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "doubleUpdate",
     data: BytesLike
@@ -135,7 +141,7 @@ export class Common extends BaseContract {
   interface: CommonInterface;
 
   functions: {
-    current(overrides?: CallOverrides): Promise<[string]>;
+    committedRoot(overrides?: CallOverrides): Promise<[string]>;
 
     doubleUpdate(
       _oldRoot: BytesLike,
@@ -163,7 +169,7 @@ export class Common extends BaseContract {
     updater(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  current(overrides?: CallOverrides): Promise<string>;
+  committedRoot(overrides?: CallOverrides): Promise<string>;
 
   doubleUpdate(
     _oldRoot: BytesLike,
@@ -188,7 +194,7 @@ export class Common extends BaseContract {
   updater(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    current(overrides?: CallOverrides): Promise<string>;
+    committedRoot(overrides?: CallOverrides): Promise<string>;
 
     doubleUpdate(
       _oldRoot: BytesLike,
@@ -249,7 +255,7 @@ export class Common extends BaseContract {
   };
 
   estimateGas: {
-    current(overrides?: CallOverrides): Promise<BigNumber>;
+    committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     doubleUpdate(
       _oldRoot: BytesLike,
@@ -278,7 +284,7 @@ export class Common extends BaseContract {
   };
 
   populateTransaction: {
-    current(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     doubleUpdate(
       _oldRoot: BytesLike,
