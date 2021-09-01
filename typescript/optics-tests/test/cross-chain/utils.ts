@@ -18,11 +18,11 @@ type MessageDetails = {
 };
 
 /*
- * Enqueue a message to the specified Home contract
+ * Dispatch a message from the specified Home contract
  * and return the updated root
  *
  * @param chainDetails - ChainDetails type containing every deployed domain
- * @param homeDomain - domain of the Home contract to which we will enqueue the message
+ * @param homeDomain - domain of the Home contract
  * @param messageDetails - Message type containing
  *   the message string,
  *   the destination domain to which the message will be sent,
@@ -30,14 +30,14 @@ type MessageDetails = {
  *
  * @return newRoot - bytes32 of the latest root
  */
-export async function enqueueMessageToHome(
+export async function dispatchMessage(
   home: Home,
   messageDetails: MessageDetails,
 ): Promise<string> {
   const { message, destinationDomain, recipientAddress } = messageDetails;
 
   // Send message with random signer address as msg.sender
-  await home.enqueue(
+  await home.dispatch(
     destinationDomain,
     optics.ethersAddressToBytes32(recipientAddress),
     ethers.utils.formatBytes32String(message),
@@ -49,16 +49,16 @@ export async function enqueueMessageToHome(
 }
 
 /*
- * Enqueue a set of messages to the specified Home contract,
+ * Dispatch a set of messages to the specified Home contract,
  * then sign and submit an update to the Home contract
  *
  * @param chainDetails - ChainDetails type containing every deployed domain
- * @param homeDomain - domain of the Home contract to which we will enqueue all of messages / submit the update
+ * @param homeDomain - domain of the Home contract
  * @param messages - Message[]
  *
  * @return update - Update type
  */
-export async function enqueueMessagesAndUpdateHome(
+export async function dispatchMessagesAndUpdateHome(
   home: Home,
   messages: MessageDetails[],
   updater: Updater,
@@ -67,22 +67,22 @@ export async function enqueueMessagesAndUpdateHome(
 
   const oldRoot = await home.current();
 
-  // enqueue each message to Home and get the intermediate root
-  const enqueuedRoots = [];
+  // dispatch each message from Home and get the intermediate root
+  const roots = [];
   for (let message of messages) {
-    const newRoot = await enqueueMessageToHome(home, message);
+    const newRoot = await dispatchMessage(home, message);
 
-    enqueuedRoots.push(newRoot);
+    roots.push(newRoot);
   }
 
   // ensure that Home queue contains
   // all of the roots we just enqueued
-  for (let root of enqueuedRoots) {
+  for (let root of roots) {
     expect(await home.queueContains(root)).to.be.true;
   }
 
   // sign & submit an update from oldRoot to newRoot
-  const newRoot = enqueuedRoots[enqueuedRoots.length - 1];
+  const newRoot = roots[roots.length - 1];
 
   const { signature } = await updater.signUpdate(oldRoot, newRoot);
 
@@ -96,7 +96,7 @@ export async function enqueueMessagesAndUpdateHome(
   // ensure that Home queue no longer contains
   // any of the roots we just enqueued -
   // they should be removed from queue when update is submitted
-  for (let root of enqueuedRoots) {
+  for (let root of roots) {
     expect(await home.queueContains(root)).to.be.false;
   }
 
@@ -108,16 +108,16 @@ export async function enqueueMessagesAndUpdateHome(
 }
 
 /*
- * Enqueue a signed update to the Replica contract
+ * Submit a signed update to the Replica contract
  *
  * @param chainDetails - ChainDetails type containing every deployed domain
  * @param latestUpdateOnOriginChain - Update type, the last Update submitted to the Home chain for this Replica
  * @param homeDomain - domain of the Home contract from which the update originated
  * @param replicaDomain - domain of the Replica contract where the update will be submitted
  *
- * @return finalRoot - updated state root enqueued to the Replica
+ * @return finalRoot - updated state root submitted to the Replica
  */
-export async function enqueueUpdateToReplica(
+export async function updateReplica(
   latestUpdateOnOriginChain: Update,
   replica: Replica,
 ): Promise<string> {

@@ -21,7 +21,7 @@ const remoteDomain = domains[1];
 
 /*
  * Deploy the full Optics suite on two chains
- * enqueue messages to Home
+ * dispatch messages to Home
  * sign and submit updates to Home
  * relay updates to Replica
  * confirm updates on Replica
@@ -33,7 +33,7 @@ describe('SimpleCrossChainMessage', async () => {
   let deploys: Deploy[] = [];
 
   let randomSigner: Signer,
-    firstRootEnqueuedToReplica: string,
+    firstRootSubmittedToReplica: string,
     updater: Updater,
     latestRoot: string,
     latestUpdate: Update;
@@ -92,7 +92,7 @@ describe('SimpleCrossChainMessage', async () => {
     const messages = ['message'].map((message) =>
       utils.formatMessage(message, remoteDomain, randomSigner.address),
     );
-    const update = await utils.enqueueMessagesAndUpdateHome(
+    const update = await utils.dispatchMessagesAndUpdateHome(
       deploys[0].contracts.home?.proxy!,
       messages,
       updater,
@@ -103,7 +103,7 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Destination Replica Accepts the first update', async () => {
-    firstRootEnqueuedToReplica = await utils.enqueueUpdateToReplica(
+    firstRootSubmittedToReplica = await utils.updateReplica(
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy!,
     );
@@ -113,7 +113,7 @@ describe('SimpleCrossChainMessage', async () => {
     const messages = ['message1', 'message2', 'message3'].map((message) =>
       utils.formatMessage(message, remoteDomain, randomSigner.address),
     );
-    const update = await utils.enqueueMessagesAndUpdateHome(
+    const update = await utils.dispatchMessagesAndUpdateHome(
       deploys[0].contracts.home?.proxy!,
       messages,
       updater,
@@ -124,7 +124,7 @@ describe('SimpleCrossChainMessage', async () => {
   });
 
   it('Destination Replica Accepts the second update', async () => {
-    await utils.enqueueUpdateToReplica(
+    await utils.updateReplica(
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy,
     );
@@ -133,7 +133,7 @@ describe('SimpleCrossChainMessage', async () => {
   it('Destination Replica shows first update as the next pending', async () => {
     const replica = deploys[1].contracts.replicas[localDomain].proxy;
     const [pending] = await replica.nextPending();
-    expect(pending).to.equal(firstRootEnqueuedToReplica);
+    expect(pending).to.equal(firstRootSubmittedToReplica);
   });
 
   it('Destination Replica Batch-confirms several ready updates', async () => {

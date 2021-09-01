@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { providers } from 'ethers';
 
 import {
-  enqueueUpdateToReplica,
+  updateReplica,
   formatCall,
   formatOpticsMessage,
 } from './utils';
@@ -134,7 +134,7 @@ describe('GovernanceRouter', async () => {
     expect(await governorHome.current()).to.equal(latestRoot);
     expect(await governorHome.queueContains(latestRoot)).to.be.false;
 
-    await enqueueUpdateToReplica(
+    await updateReplica(
       { oldRoot: currentRoot, newRoot: latestRoot, signature },
       governorReplicaOnNonGovernorChain,
     );

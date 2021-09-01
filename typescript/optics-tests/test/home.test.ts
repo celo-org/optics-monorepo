@@ -29,11 +29,11 @@ describe('Home', async () => {
     fakeUpdater: Updater,
     fakeUpdaterManager: UpdaterManager;
 
-  // Helper function that enqueues message and returns its root.
-  // The message recipient is the same for all messages enqueued.
-  const enqueueMessageAndGetRoot = async (message: string) => {
+  // Helper function that dispatches message and returns intermediate root.
+  // The message recipient is the same for all messages dispatched.
+  const dispatchMessageAndGetRoot = async (message: string) => {
     message = ethers.utils.formatBytes32String(message);
-    await home.enqueue(
+    await home.dispatch(
       destDomain,
       optics.ethersAddressToBytes32(recipient.address),
       message,
@@ -82,7 +82,7 @@ describe('Home', async () => {
 
     const message = ethers.utils.formatBytes32String('message');
     await expect(
-      home.enqueue(
+      home.dispatch(
         destDomain,
         optics.ethersAddressToBytes32(recipient.address),
         message,
@@ -110,12 +110,12 @@ describe('Home', async () => {
     }
   });
 
-  it('Does not enqueue large messages', async () => {
+  it('Does not dispatch too large messages', async () => {
     const message = `0x${Buffer.alloc(3000).toString('hex')}`;
     await expect(
       home
         .connect(signer)
-        .enqueue(
+        .dispatch(
           destDomain,
           optics.ethersAddressToBytes32(recipient.address),
           message,
@@ -123,7 +123,7 @@ describe('Home', async () => {
     ).to.be.revertedWith('msg too long');
   });
 
-  it('Enqueues a message', async () => {
+  it('Dispatches a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
     const sequence = await home.sequences(localDomain);
 
@@ -149,7 +149,7 @@ describe('Home', async () => {
     await expect(
       home
         .connect(signer)
-        .enqueue(
+        .dispatch(
           destDomain,
           optics.ethersAddressToBytes32(recipient.address),
           message,
@@ -168,7 +168,7 @@ describe('Home', async () => {
   it('Suggests current root and latest root on suggestUpdate', async () => {
     const currentRoot = await home.current();
     const message = ethers.utils.formatBytes32String('message');
-    await home.enqueue(
+    await home.dispatch(
       destDomain,
       optics.ethersAddressToBytes32(recipient.address),
       message,
@@ -190,7 +190,7 @@ describe('Home', async () => {
 
   it('Accepts a valid update', async () => {
     const currentRoot = await home.current();
-    const newRoot = await enqueueMessageAndGetRoot('message');
+    const newRoot = await dispatchMessageAndGetRoot('message');
     const { signature } = await updater.signUpdate(currentRoot, newRoot);
 
     await expect(home.update(currentRoot, newRoot, signature))
@@ -202,9 +202,9 @@ describe('Home', async () => {
 
   it('Batch-accepts several updates', async () => {
     const currentRoot = await home.current();
-    const newRoot1 = await enqueueMessageAndGetRoot('message1');
-    const newRoot2 = await enqueueMessageAndGetRoot('message2');
-    const newRoot3 = await enqueueMessageAndGetRoot('message3');
+    const newRoot1 = await dispatchMessageAndGetRoot('message1');
+    const newRoot2 = await dispatchMessageAndGetRoot('message2');
+    const newRoot3 = await dispatchMessageAndGetRoot('message3');
     const { signature } = await updater.signUpdate(currentRoot, newRoot3);
 
     await expect(home.update(currentRoot, newRoot3, signature))
@@ -218,8 +218,8 @@ describe('Home', async () => {
 
   it('Rejects update that does not build off of current root', async () => {
     // First root is current root
-    const secondRoot = await enqueueMessageAndGetRoot('message');
-    const thirdRoot = await enqueueMessageAndGetRoot('message2');
+    const secondRoot = await dispatchMessageAndGetRoot('message');
+    const thirdRoot = await dispatchMessageAndGetRoot('message2');
 
     // Try to submit update that skips the current (first) root
     const { signature } = await updater.signUpdate(secondRoot, thirdRoot);
@@ -242,7 +242,7 @@ describe('Home', async () => {
 
   it('Rejects update from non-updater address', async () => {
     const currentRoot = await home.current();
-    const newRoot = await enqueueMessageAndGetRoot('message');
+    const newRoot = await dispatchMessageAndGetRoot('message');
     const { signature: fakeSignature } = await fakeUpdater.signUpdate(
       currentRoot,
       newRoot,
@@ -254,8 +254,8 @@ describe('Home', async () => {
 
   it('Fails on valid double update proof', async () => {
     const firstRoot = await home.current();
-    const secondRoot = await enqueueMessageAndGetRoot('message');
-    const thirdRoot = await enqueueMessageAndGetRoot('message2');
+    const secondRoot = await dispatchMessageAndGetRoot('message');
+    const thirdRoot = await dispatchMessageAndGetRoot('message2');
     const { signature } = await updater.signUpdate(firstRoot, secondRoot);
     const { signature: signature2 } = await updater.signUpdate(
       firstRoot,

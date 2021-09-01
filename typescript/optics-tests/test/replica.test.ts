@@ -39,7 +39,7 @@ describe('Replica', async () => {
     updater: Updater,
     fakeUpdater: Updater;
 
-  const enqueueValidUpdate = async (newRoot: string) => {
+  const submitValidUpdate = async (newRoot: string) => {
     let oldRoot;
     if ((await replica.queueLength()).isZero()) {
       oldRoot = await replica.current();
@@ -91,7 +91,7 @@ describe('Replica', async () => {
     expect(await replica.state()).to.equal(OpticsState.FAILED);
 
     const newRoot = ethers.utils.formatBytes32String('new root');
-    await expect(enqueueValidUpdate(newRoot)).to.be.revertedWith(
+    await expect(submitValidUpdate(newRoot)).to.be.revertedWith(
       'failed state',
     );
   });
@@ -120,21 +120,21 @@ describe('Replica', async () => {
 
   it('Enqueues pending updates', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
     expect(await replica.queueEnd()).to.equal(firstNewRoot);
 
     const secondNewRoot = ethers.utils.formatBytes32String('second next root');
-    await enqueueValidUpdate(secondNewRoot);
+    await submitValidUpdate(secondNewRoot);
     expect(await replica.queueEnd()).to.equal(secondNewRoot);
   });
 
   it('Returns the earliest pending update', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
 
     const beforeTimestamp = await replica.timestamp();
     const secondNewRoot = ethers.utils.formatBytes32String('second next root');
-    await enqueueValidUpdate(secondNewRoot);
+    await submitValidUpdate(secondNewRoot);
 
     const [pending, confirmAt] = await replica.nextPending();
     expect(pending).to.equal(firstNewRoot);
@@ -149,7 +149,7 @@ describe('Replica', async () => {
 
   it('Rejects update with invalid signature', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
 
     const secondNewRoot = ethers.utils.formatBytes32String('second new root');
     const { signature: fakeSignature } = await fakeUpdater.signUpdate(
@@ -174,7 +174,7 @@ describe('Replica', async () => {
 
   it('Rejects updates not building off latest enqueued root', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
 
     const fakeLatestRoot = ethers.utils.formatBytes32String('fake root');
     const secondNewRoot = ethers.utils.formatBytes32String('second new root');
@@ -213,7 +213,7 @@ describe('Replica', async () => {
 
   it('Confirms a ready update', async () => {
     const newRoot = ethers.utils.formatBytes32String('new root');
-    await enqueueValidUpdate(newRoot);
+    await submitValidUpdate(newRoot);
 
     await increaseTimestampBy(ethers.provider, optimisticSeconds);
 
@@ -224,10 +224,10 @@ describe('Replica', async () => {
 
   it('Batch-confirms several ready updates', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
 
     const secondNewRoot = ethers.utils.formatBytes32String('second next root');
-    await enqueueValidUpdate(secondNewRoot);
+    await submitValidUpdate(secondNewRoot);
 
     // Increase time enough for both updates to be confirmable
     await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
@@ -246,10 +246,10 @@ describe('Replica', async () => {
 
   it('Rejects an early confirmation attempt', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await enqueueValidUpdate(firstNewRoot);
+    await submitValidUpdate(firstNewRoot);
 
     // Don't increase time enough for update to be confirmable.
-    // Note that we use optimisticSeconds - 2 because the call to enqueue
+    // Note that we use optimisticSeconds - 2 because the call to submit
     // the valid root has already increased the timestamp by 1.
     await increaseTimestampBy(ethers.provider, optimisticSeconds - 2);
 
