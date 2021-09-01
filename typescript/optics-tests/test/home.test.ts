@@ -13,7 +13,7 @@ import {
 } from '../../typechain/optics-core';
 
 import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
-import destinationSequenceTestCases from '../../../vectors/destinationSequence.json';
+import destinationNonceTestCases from '../../../vectors/destinationNonce.json';
 
 const localDomain = 1000;
 const destDomain = 2000;
@@ -125,18 +125,18 @@ describe('Home', async () => {
 
   it('Dispatches a message', async () => {
     const message = ethers.utils.formatBytes32String('message');
-    const sequence = await home.sequences(localDomain);
+    const nonce = await home.nonces(localDomain);
 
     // Format data that will be emitted from Dispatch event
-    const destinationAndSequence = optics.destinationAndSequence(
+    const destinationAndNonce = optics.destinationAndNonce(
       destDomain,
-      sequence,
+        nonce,
     );
 
     const opticsMessage = optics.formatMessage(
       localDomain,
       signer.address,
-      sequence,
+        nonce,
       destDomain,
       recipient.address,
       message,
@@ -158,7 +158,7 @@ describe('Home', async () => {
       .to.emit(home, 'Dispatch')
       .withArgs(
         leafIndex,
-        destinationAndSequence,
+        destinationAndNonce,
         leaf,
         current,
         opticsMessage,
@@ -272,13 +272,13 @@ describe('Home', async () => {
     expect(await home.state()).to.equal(OpticsState.FAILED);
   });
 
-  it('Correctly calculates destinationAndSequence', async () => {
-    for (let testCase of destinationSequenceTestCases) {
-      let { destination, sequence, expectedDestinationAndSequence } = testCase;
-      const solidityDestinationAndSequence =
-        await home.testDestinationAndSequence(destination, sequence);
-      expect(solidityDestinationAndSequence).to.equal(
-        expectedDestinationAndSequence,
+  it('Correctly calculates destinationAndNonce', async () => {
+    for (let testCase of destinationNonceTestCases) {
+      let { destination, nonce, expectedDestinationAndNonce } = testCase;
+      const solidityDestinationAndNonce =
+        await home.testDestinationAndNonce(destination, nonce);
+      expect(solidityDestinationAndNonce).to.equal(
+          expectedDestinationAndNonce,
       );
     }
   });

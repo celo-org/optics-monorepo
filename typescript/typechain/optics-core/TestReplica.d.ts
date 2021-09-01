@@ -1105,14 +1105,14 @@ export class TestReplica extends BaseContract {
 
     ProcessError(
       messageHash?: BytesLike | null,
-      sequence?: BigNumberish | null,
+      nonce?: BigNumberish | null,
       recipient?: string | null,
       returnData?: null
     ): TypedEventFilter<
       [string, number, string, string],
       {
         messageHash: string;
-        sequence: number;
+        nonce: number;
         recipient: string;
         returnData: string;
       }

@@ -17,12 +17,12 @@ contract TestHome is Home {
         return homeDomainHash();
     }
 
-    function testDestinationAndSequence(uint32 _destination, uint32 _sequence)
+    function testDestinationAndNonce(uint32 _destination, uint32 _nonce)
         external
         pure
         returns (uint64)
     {
-        return _destinationAndSequence(_destination, _sequence);
+        return _destinationAndNonce(_destination, _nonce);
     }
 
     function setFailed() public {

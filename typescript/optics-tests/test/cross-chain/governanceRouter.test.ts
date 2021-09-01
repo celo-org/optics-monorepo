@@ -161,11 +161,11 @@ describe('GovernanceRouter', async () => {
 
     const callMessage = optics.governance.formatCalls([call]);
 
-    const sequence = await governorHome.sequences(nonGovernorDomain);
+    const nonce = await governorHome.nonces(nonGovernorDomain);
     const opticsMessage = optics.formatMessage(
       governorDomain,
       governorRouter.address,
-      sequence - 1,
+      nonce - 1,
       nonGovernorDomain,
       nonGovernorRouter.address,
       callMessage,

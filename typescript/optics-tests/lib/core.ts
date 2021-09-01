@@ -114,7 +114,7 @@ function ethersAddressToBytes32(address: types.Address): string {
     .toLowerCase();
 }
 
-function destinationAndSequence(
+function destinationAndNonce(
   destination: types.Domain,
   sequence: number,
 ): ethers.BigNumber {
@@ -195,7 +195,7 @@ export const optics: types.HardhatOpticsHelpers = {
   },
   messageToLeaf,
   ethersAddressToBytes32,
-  destinationAndSequence,
+  destinationAndNonce,
   domainHash,
   signedFailureNotification,
 };

@@ -38,7 +38,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     // ============ Public Storage Variables ============
 
     // domain => next available nonce for the domain
-    mapping(uint32 => uint32) public sequences;
+    mapping(uint32 => uint32) public nonces;
     // contract responsible for Updater bonding, slashing and rotation
     IUpdaterManager public updaterManager;
 
@@ -52,15 +52,15 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     /**
      * @notice Emitted when a new message is dispatched via Optics
      * @param leafIndex Index of message's leaf in merkle tree
-     * @param destinationAndSequence Destination and destination-specific
-     * sequence combined in single field ((destination << 32) & sequence)
+     * @param destinationAndNonce Destination and destination-specific
+     * nonce combined in single field ((destination << 32) & nonce)
      * @param leaf Hash of message; the leaf inserted to the Merkle tree for the message
      * @param current the latest notarized root submitted in the last signed Update
      * @param message Raw bytes of message
      */
     event Dispatch(
         uint256 indexed leafIndex,
-        uint64 indexed destinationAndSequence,
+        uint64 indexed destinationAndNonce,
         bytes32 indexed leaf,
         bytes32 current,
         bytes message
@@ -158,14 +158,14 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         bytes memory _messageBody
     ) external notFailed {
         require(_messageBody.length <= MAX_MESSAGE_BODY_BYTES, "msg too long");
-        // get the next sequence for the destination domain, then increment it
-        uint32 _sequence = sequences[_destinationDomain];
-        sequences[_destinationDomain] = _sequence + 1;
+        // get the next nonce for the destination domain, then increment it
+        uint32 _nonce = nonces[_destinationDomain];
+        nonces[_destinationDomain] = _nonce + 1;
         // format the message into packed bytes
         bytes memory _message = Message.formatMessage(
             localDomain,
             bytes32(uint256(uint160(msg.sender))),
-            _sequence,
+            _nonce,
             _destinationDomain,
             _recipientAddress,
             _messageBody
@@ -179,7 +179,7 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
         // note: leafIndex is count() - 1 since new leaf has already been inserted
         emit Dispatch(
             count() - 1,
-            _destinationAndSequence(_destinationDomain, _sequence),
+            _destinationAndNonce(_destinationDomain, _nonce),
             _messageHash,
             current,
             _message
@@ -330,17 +330,17 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
 
     /**
      * @notice Internal utility function that combines
-     * `_destination` and `_sequence`.
-     * @dev Both destination and sequence should be less than 2^32 - 1
+     * `_destination` and `_nonce`.
+     * @dev Both destination and nonce should be less than 2^32 - 1
      * @param _destination Domain of destination chain
-     * @param _sequence Current sequence for given destination chain
-     * @return Returns (`_destination` << 32) & `_sequence`
+     * @param _nonce Current nonce for given destination chain
+     * @return Returns (`_destination` << 32) & `_nonce`
      */
-    function _destinationAndSequence(uint32 _destination, uint32 _sequence)
+    function _destinationAndNonce(uint32 _destination, uint32 _nonce)
         internal
         pure
         returns (uint64)
     {
-        return (uint64(_destination) << 32) | _sequence;
+        return (uint64(_destination) << 32) | _nonce;
     }
 }

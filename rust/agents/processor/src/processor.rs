@@ -107,7 +107,7 @@ impl Replica {
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
-                        sequence = next_to_inspect,
+                        nonce = next_to_inspect,
                         replica_domain = self.replica.local_domain(),
                         home_domain = self.home.local_domain(),
                     );
@@ -148,7 +148,7 @@ impl Replica {
     async fn try_msg_by_domain_and_seq(&self, domain: u32, current_seq: u32) -> Result<bool> {
         use optics_core::traits::Replica;
 
-        let message = match self.home.message_by_sequence(domain, current_seq).await {
+        let message = match self.home.message_by_nonce(domain, current_seq).await {
             Ok(Some(m)) => m,
             Ok(None) => {
                 info!("Message not yet found");

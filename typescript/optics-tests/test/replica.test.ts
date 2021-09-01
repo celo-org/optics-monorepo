@@ -313,11 +313,11 @@ describe('Replica', async () => {
     const testRecipientFactory = new contracts.TestRecipient__factory(signer);
     const testRecipient = await testRecipientFactory.deploy();
 
-    const sequence = 0;
+    const nonce = 0;
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+      nonce,
       localDomain,
       testRecipient.address,
       '0x',
@@ -338,13 +338,13 @@ describe('Replica', async () => {
 
   it('Fails to process an unproved message', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = 0;
+    const nonce = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+      nonce,
       localDomain,
       recipient.address,
       body,
@@ -361,11 +361,11 @@ describe('Replica', async () => {
       const factory = new badRecipientFactories[i](signer);
       const badRecipient = await factory.deploy();
 
-      const sequence = 0;
+      const nonce = 0;
       const opticsMessage = optics.formatMessage(
         remoteDomain,
         sender.address,
-        sequence,
+          nonce,
         localDomain,
         badRecipient.address,
         '0x',
@@ -379,13 +379,13 @@ describe('Replica', async () => {
 
   it('Fails to process message with wrong destination Domain', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = 0;
+    const nonce = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+        nonce,
       // Wrong destination Domain
       localDomain + 5,
       recipient.address,
@@ -398,13 +398,13 @@ describe('Replica', async () => {
   });
 
   it('Processes message sent to a non-existent contract address', async () => {
-    const sequence = 0;
+    const nonce = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       opticsMessageSender.address,
-      sequence,
+        nonce,
       localDomain,
       '0x1234567890123456789012345678901234567890', // non-existent contract address
       body,
@@ -417,13 +417,13 @@ describe('Replica', async () => {
 
   it('Fails to process an undergased transaction', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = 0;
+    const nonce = 0;
     const body = ethers.utils.formatBytes32String('message');
 
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+        nonce,
       localDomain,
       recipient.address,
       body,
@@ -444,11 +444,11 @@ describe('Replica', async () => {
     const factory = new contracts.BadRecipientHandle__factory(recipient);
     const testRecipient = await factory.deploy();
 
-    const sequence = 0;
+    const nonce = 0;
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+        nonce,
       localDomain,
       testRecipient.address,
       '0x',
@@ -467,14 +467,14 @@ describe('Replica', async () => {
     const testRecipientFactory = new contracts.TestRecipient__factory(signer);
     const testRecipient = await testRecipientFactory.deploy();
 
-    const sequence = 0;
+    const nonce = 0;
 
     // Note that hash of this message specifically matches leaf of 1st
     // proveAndProcess test case
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+        nonce,
       localDomain,
       testRecipient.address,
       '0x',
@@ -505,7 +505,7 @@ describe('Replica', async () => {
 
   it('Has proveAndProcess fail if prove fails', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = 0;
+    const nonce = 0;
 
     // Use 1st proof of 1st merkle vector test case
     const testCase = merkleTestCases[0];
@@ -515,7 +515,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+        nonce,
       localDomain,
       recipient.address,
       '0x',

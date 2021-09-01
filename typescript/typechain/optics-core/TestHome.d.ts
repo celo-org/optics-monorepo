@@ -31,19 +31,19 @@ interface TestHomeInterface extends ethers.utils.Interface {
     "initialize(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
     "nextLeafIndex()": FunctionFragment;
+    "nonces(uint32)": FunctionFragment;
     "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "root()": FunctionFragment;
-    "sequences(uint32)": FunctionFragment;
     "setFailed()": FunctionFragment;
     "setUpdater(address)": FunctionFragment;
     "setUpdaterManager(address)": FunctionFragment;
     "state()": FunctionFragment;
     "suggestUpdate()": FunctionFragment;
-    "testDestinationAndSequence(uint32,uint32)": FunctionFragment;
+    "testDestinationAndNonce(uint32,uint32)": FunctionFragment;
     "testHomeDomainHash()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "tree()": FunctionFragment;
@@ -83,6 +83,10 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "nextLeafIndex",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "nonces",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
@@ -98,10 +102,6 @@ interface TestHomeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "root", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "sequences",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "setFailed", values?: undefined): string;
   encodeFunctionData(functionFragment: "setUpdater", values: [string]): string;
   encodeFunctionData(
@@ -114,7 +114,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "testDestinationAndSequence",
+    functionFragment: "testDestinationAndNonce",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -164,6 +164,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "nextLeafIndex",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
@@ -179,7 +180,6 @@ interface TestHomeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sequences", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setFailed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUpdater", data: BytesLike): Result;
   decodeFunctionResult(
@@ -192,7 +192,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "testDestinationAndSequence",
+    functionFragment: "testDestinationAndNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -315,6 +315,8 @@ export class TestHome extends BaseContract {
 
     nextLeafIndex(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     queueContains(
@@ -331,8 +333,6 @@ export class TestHome extends BaseContract {
     ): Promise<ContractTransaction>;
 
     root(overrides?: CallOverrides): Promise<[string]>;
-
-    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
     setFailed(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -354,9 +354,9 @@ export class TestHome extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string, string] & { _current: string; _new: string }>;
 
-    testDestinationAndSequence(
+    testDestinationAndNonce(
       _destination: BigNumberish,
-      _sequence: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -422,6 +422,8 @@ export class TestHome extends BaseContract {
 
   nextLeafIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
+  nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -435,8 +437,6 @@ export class TestHome extends BaseContract {
   ): Promise<ContractTransaction>;
 
   root(overrides?: CallOverrides): Promise<string>;
-
-  sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   setFailed(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -458,9 +458,9 @@ export class TestHome extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[string, string] & { _current: string; _new: string }>;
 
-  testDestinationAndSequence(
+  testDestinationAndNonce(
     _destination: BigNumberish,
-    _sequence: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -524,6 +524,8 @@ export class TestHome extends BaseContract {
 
     nextLeafIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     queueContains(
@@ -538,8 +540,6 @@ export class TestHome extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     root(overrides?: CallOverrides): Promise<string>;
-
-    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
     setFailed(overrides?: CallOverrides): Promise<void>;
 
@@ -556,9 +556,9 @@ export class TestHome extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string, string] & { _current: string; _new: string }>;
 
-    testDestinationAndSequence(
+    testDestinationAndNonce(
       _destination: BigNumberish,
-      _sequence: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -586,7 +586,7 @@ export class TestHome extends BaseContract {
   filters: {
     Dispatch(
       leafIndex?: BigNumberish | null,
-      destinationAndSequence?: BigNumberish | null,
+      destinationAndNonce?: BigNumberish | null,
       leaf?: BytesLike | null,
       current?: null,
       message?: null
@@ -594,7 +594,7 @@ export class TestHome extends BaseContract {
       [BigNumber, BigNumber, string, string, string],
       {
         leafIndex: BigNumber;
-        destinationAndSequence: BigNumber;
+        destinationAndNonce: BigNumber;
         leaf: string;
         current: string;
         message: string;
@@ -703,6 +703,8 @@ export class TestHome extends BaseContract {
 
     nextLeafIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueContains(
@@ -719,11 +721,6 @@ export class TestHome extends BaseContract {
     ): Promise<BigNumber>;
 
     root(overrides?: CallOverrides): Promise<BigNumber>;
-
-    sequences(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     setFailed(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -743,9 +740,9 @@ export class TestHome extends BaseContract {
 
     suggestUpdate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    testDestinationAndSequence(
+    testDestinationAndNonce(
       _destination: BigNumberish,
-      _sequence: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -812,6 +809,11 @@ export class TestHome extends BaseContract {
 
     nextLeafIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    nonces(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueContains(
@@ -828,11 +830,6 @@ export class TestHome extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    sequences(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     setFailed(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -852,9 +849,9 @@ export class TestHome extends BaseContract {
 
     suggestUpdate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    testDestinationAndSequence(
+    testDestinationAndNonce(
       _destination: BigNumberish,
-      _sequence: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

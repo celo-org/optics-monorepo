@@ -173,11 +173,11 @@ describe('SimpleCrossChainMessage', async () => {
 
     // Create Optics message that is sent from the governor domain and governor
     // to the nonGovernorRouter on the nonGovernorDomain
-    const sequence = 0;
+    const nonce = 0;
     const opticsMessage = optics.formatMessage(
       1000,
       governorRouter.address,
-      sequence,
+      nonce,
       2000,
       nonGovernorRouter.address,
       callMessage,

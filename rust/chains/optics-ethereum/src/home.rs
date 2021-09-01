@@ -184,12 +184,12 @@ where
     }
 
     #[tracing::instrument(err, skip(self))]
-    async fn raw_message_by_sequence(
+    async fn raw_message_by_nonce(
         &self,
         destination: u32,
-        sequence: u32,
+        nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        let dest_and_seq = utils::destination_and_sequence(destination, sequence);
+        let dest_and_seq = utils::destination_and_nonce(destination, nonce);
 
         let events = self
             .contract
@@ -242,8 +242,8 @@ where
     }
 
     #[tracing::instrument(err, skip(self))]
-    async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
-        Ok(self.contract.sequences(destination).call().await?)
+    async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
+        Ok(self.contract.nonces(destination).call().await?)
     }
 
     #[tracing::instrument(err, skip(self))]

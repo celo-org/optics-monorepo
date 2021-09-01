@@ -69,24 +69,24 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         home_domain_hash(self.local_domain())
     }
 
-    /// Fetch the message to destination at the sequence number (or error).
+    /// Fetch the message to destination at the nonce (or error).
     /// This should fetch events from the chain API.
     ///
     /// Used by processors to get messages in order
-    async fn raw_message_by_sequence(
+    async fn raw_message_by_nonce(
         &self,
         destination: u32,
-        sequence: u32,
+        nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
 
-    /// Fetch the message to destination at the sequence number (or error).
+    /// Fetch the message to destination at the nonce (or error).
     /// This should fetch events from the chain API
-    async fn message_by_sequence(
+    async fn message_by_nonce(
         &self,
         destination: u32,
-        sequence: u32,
+        nonce: u32,
     ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
-        self.raw_message_by_sequence(destination, sequence)
+        self.raw_message_by_nonce(destination, nonce)
             .await?
             .map(CommittedMessage::try_from)
             .transpose()
@@ -124,8 +124,8 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError>;
 
-    /// Fetch the sequence
-    async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
+    /// Fetch the nonce
+    async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
 
     /// Dispatch a message.
     async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;

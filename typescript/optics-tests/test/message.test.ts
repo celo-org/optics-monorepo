@@ -19,13 +19,13 @@ describe('Message', async () => {
 
   it('Returns fields from a message', async () => {
     const [sender, recipient] = await ethers.getSigners();
-    const sequence = 1;
+    const nonce = 1;
     const body = ethers.utils.formatBytes32String('message');
 
     const message = optics.formatMessage(
       remoteDomain,
       sender.address,
-      sequence,
+      nonce,
       localDomain,
       recipient.address,
       body,
@@ -35,7 +35,7 @@ describe('Message', async () => {
     expect(await messageLib.sender(message)).to.equal(
       optics.ethersAddressToBytes32(sender.address),
     );
-    expect(await messageLib.sequence(message)).to.equal(sequence);
+    expect(await messageLib.nonce(message)).to.equal(nonce);
     expect(await messageLib.destination(message)).to.equal(localDomain);
     expect(await messageLib.recipient(message)).to.equal(
       optics.ethersAddressToBytes32(recipient.address),
@@ -49,7 +49,7 @@ describe('Message', async () => {
   it('Matches Rust-output OpticsMessage and leaf', async () => {
     const origin = 1000;
     const sender = '0x1111111111111111111111111111111111111111';
-    const sequence = 1;
+    const nonce = 1;
     const destination = 2000;
     const recipient = '0x2222222222222222222222222222222222222222';
     const body = ethers.utils.arrayify('0x1234');
@@ -57,7 +57,7 @@ describe('Message', async () => {
     const opticsMessage = optics.formatMessage(
       origin,
       sender,
-      sequence,
+      nonce,
       destination,
       recipient,
       body,
@@ -66,7 +66,7 @@ describe('Message', async () => {
     const {
       origin: testOrigin,
       sender: testSender,
-      sequence: testSequence,
+      nonce: testNonce,
       destination: testDestination,
       recipient: testRecipient,
       body: testBody,
@@ -75,7 +75,7 @@ describe('Message', async () => {
 
     expect(await messageLib.origin(opticsMessage)).to.equal(testOrigin);
     expect(await messageLib.sender(opticsMessage)).to.equal(testSender);
-    expect(await messageLib.sequence(opticsMessage)).to.equal(testSequence);
+    expect(await messageLib.nonce(opticsMessage)).to.equal(testNonce);
     expect(await messageLib.destination(opticsMessage)).to.equal(
       testDestination,
     );

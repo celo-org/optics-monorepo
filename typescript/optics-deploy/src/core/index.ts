@@ -532,7 +532,7 @@ async function deployHubAndSpokes(gov: CoreDeploy, spokes: CoreDeploy[]) {
  * that have been deployed, initialized, and configured
  * according to the deployOptics script
  *
- * @dev The first chain in the sequence will be the governing chain
+ * @dev The first chain in the array will be the governing chain
  *
  * @param deploys - An array of chain deploys
  */

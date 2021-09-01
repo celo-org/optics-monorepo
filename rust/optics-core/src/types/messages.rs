@@ -12,7 +12,7 @@ pub struct OpticsMessage {
     /// 32  Address in home convention
     pub sender: H256,
     /// 4   Count of all previous messages to destination
-    pub sequence: u32,
+    pub nonce: u32,
     /// 4   SLIP-44 ID
     pub destination: u32,
     /// 32  Address in destination convention
@@ -39,7 +39,7 @@ impl Encode for OpticsMessage {
     {
         writer.write_all(&self.origin.to_be_bytes())?;
         writer.write_all(self.sender.as_ref())?;
-        writer.write_all(&self.sequence.to_be_bytes())?;
+        writer.write_all(&self.nonce.to_be_bytes())?;
         writer.write_all(&self.destination.to_be_bytes())?;
         writer.write_all(self.recipient.as_ref())?;
         writer.write_all(&self.body)?;
@@ -58,8 +58,8 @@ impl Decode for OpticsMessage {
         let mut sender = H256::zero();
         reader.read_exact(sender.as_mut())?;
 
-        let mut sequence = [0u8; 4];
-        reader.read_exact(&mut sequence)?;
+        let mut nonce = [0u8; 4];
+        reader.read_exact(&mut nonce)?;
 
         let mut destination = [0u8; 4];
         reader.read_exact(&mut destination)?;
@@ -75,7 +75,7 @@ impl Decode for OpticsMessage {
             sender,
             destination: u32::from_be_bytes(destination),
             recipient,
-            sequence: u32::from_be_bytes(sequence),
+            nonce: u32::from_be_bytes(nonce),
             body,
         })
     }
@@ -95,7 +95,7 @@ impl std::fmt::Display for OpticsMessage {
         write!(
             f,
             "OpticsMessage {}->{}:{}",
-            self.origin, self.destination, self.sequence,
+            self.origin, self.destination, self.nonce,
         )
     }
 }

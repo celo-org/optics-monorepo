@@ -160,7 +160,7 @@ export async function formatOpticsMessage(
   destinationRouter: TestGovernanceRouter,
   message: string,
 ): Promise<string> {
-  const sequence = 0;
+  const nonce = 0;
   const governorDomain = await governorRouter.localDomain();
   const destinationDomain = await destinationRouter.localDomain();
 
@@ -169,7 +169,7 @@ export async function formatOpticsMessage(
   const opticsMessage = optics.formatMessage(
     governorDomain,
     governorRouter.address,
-    sequence,
+    nonce,
     destinationDomain,
     destinationRouter.address,
     message,

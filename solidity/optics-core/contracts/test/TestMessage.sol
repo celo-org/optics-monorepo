@@ -21,8 +21,8 @@ contract TestMessage {
         return _message.ref(0).sender();
     }
 
-    function sequence(bytes memory _message) external pure returns (uint32) {
-        return _message.ref(0).sequence();
+    function nonce(bytes memory _message) external pure returns (uint32) {
+        return _message.ref(0).nonce();
     }
 
     function destination(bytes memory _message) external pure returns (uint32) {

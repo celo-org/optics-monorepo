@@ -13,7 +13,7 @@ export interface HardhatOpticsHelpers {
   };
   messageToLeaf: Function;
   ethersAddressToBytes32: Function;
-  destinationAndSequence: Function;
+  destinationAndNonce: Function;
   domainHash: Function;
   signedFailureNotification: Function;
 }

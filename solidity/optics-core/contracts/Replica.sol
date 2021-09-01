@@ -74,13 +74,13 @@ contract Replica is Version0, Common {
     /**
      * @notice Emitted when processing message reverts
      * @param messageHash Hash of message that failed to process
-     * @param sequence nonce of the message, set for each domain by remote Home
+     * @param nonce nonce of the message, set for each domain by remote Home
      * @param recipient the intended recipient of the failed message
      * @param returnData the return data from the failed message
      */
     event ProcessError(
         bytes32 indexed messageHash,
-        uint32 indexed sequence,
+        uint32 indexed nonce,
         address indexed recipient,
         bytes returnData
     );
@@ -262,7 +262,7 @@ contract Replica is Version0, Common {
         } else {
             emit ProcessError(
                 _messageHash,
-                _m.sequence(),
+                _m.nonce(),
                 _recipient,
                 _returnData
             );

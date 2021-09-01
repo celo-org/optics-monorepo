@@ -28,12 +28,12 @@ pub fn home_domain_hash(home_domain: u32) -> H256 {
     )
 }
 
-/// Destination and destination-specific sequence combined in single field (
-/// (destination << 32) & sequence)
-pub fn destination_and_sequence(destination: u32, sequence: u32) -> u64 {
+/// Destination and destination-specific nonce combined in single field (
+/// (destination << 32) & nonce)
+pub fn destination_and_nonce(destination: u32, nonce: u32) -> u64 {
     assert!(destination < u32::MAX);
-    assert!(sequence < u32::MAX);
-    ((destination as u64) << 32) | sequence as u64
+    assert!(nonce < u32::MAX);
+    ((destination as u64) << 32) | nonce as u64
 }
 
 /// A Hex String of length `N` representing bytes of length `N / 2`

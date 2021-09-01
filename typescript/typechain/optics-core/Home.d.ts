@@ -30,13 +30,13 @@ interface HomeInterface extends ethers.utils.Interface {
     "improperUpdate(bytes32,bytes32,bytes)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
+    "nonces(uint32)": FunctionFragment;
     "owner()": FunctionFragment;
     "queueContains(bytes32)": FunctionFragment;
     "queueEnd()": FunctionFragment;
     "queueLength()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "root()": FunctionFragment;
-    "sequences(uint32)": FunctionFragment;
     "setUpdater(address)": FunctionFragment;
     "setUpdaterManager(address)": FunctionFragment;
     "state()": FunctionFragment;
@@ -75,6 +75,10 @@ interface HomeInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "nonces",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueContains",
@@ -90,10 +94,6 @@ interface HomeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "root", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "sequences",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "setUpdater", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setUpdaterManager",
@@ -143,6 +143,7 @@ interface HomeInterface extends ethers.utils.Interface {
     functionFragment: "localDomain",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueContains",
@@ -158,7 +159,6 @@ interface HomeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sequences", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUpdater", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setUpdaterManager",
@@ -283,6 +283,8 @@ export class Home extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     queueContains(
@@ -299,8 +301,6 @@ export class Home extends BaseContract {
     ): Promise<ContractTransaction>;
 
     root(overrides?: CallOverrides): Promise<[string]>;
-
-    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
     setUpdater(
       _updater: string,
@@ -376,6 +376,8 @@ export class Home extends BaseContract {
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
+  nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -389,8 +391,6 @@ export class Home extends BaseContract {
   ): Promise<ContractTransaction>;
 
   root(overrides?: CallOverrides): Promise<string>;
-
-  sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   setUpdater(
     _updater: string,
@@ -464,6 +464,8 @@ export class Home extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     queueContains(
@@ -478,8 +480,6 @@ export class Home extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     root(overrides?: CallOverrides): Promise<string>;
-
-    sequences(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
     setUpdater(_updater: string, overrides?: CallOverrides): Promise<void>;
 
@@ -516,7 +516,7 @@ export class Home extends BaseContract {
   filters: {
     Dispatch(
       leafIndex?: BigNumberish | null,
-      destinationAndSequence?: BigNumberish | null,
+      destinationAndNonce?: BigNumberish | null,
       leaf?: BytesLike | null,
       current?: null,
       message?: null
@@ -524,7 +524,7 @@ export class Home extends BaseContract {
       [BigNumber, BigNumber, string, string, string],
       {
         leafIndex: BigNumber;
-        destinationAndSequence: BigNumber;
+        destinationAndNonce: BigNumber;
         leaf: string;
         current: string;
         message: string;
@@ -631,6 +631,8 @@ export class Home extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonces(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     queueContains(
@@ -647,11 +649,6 @@ export class Home extends BaseContract {
     ): Promise<BigNumber>;
 
     root(overrides?: CallOverrides): Promise<BigNumber>;
-
-    sequences(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     setUpdater(
       _updater: string,
@@ -726,6 +723,11 @@ export class Home extends BaseContract {
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    nonces(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     queueContains(
@@ -742,11 +744,6 @@ export class Home extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    sequences(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     setUpdater(
       _updater: string,

@@ -23,11 +23,11 @@ interface TestMessageInterface extends ethers.utils.Interface {
     "body(bytes)": FunctionFragment;
     "destination(bytes)": FunctionFragment;
     "leaf(bytes)": FunctionFragment;
+    "nonce(bytes)": FunctionFragment;
     "origin(bytes)": FunctionFragment;
     "recipient(bytes)": FunctionFragment;
     "recipientAddress(bytes)": FunctionFragment;
     "sender(bytes)": FunctionFragment;
-    "sequence(bytes)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "body", values: [BytesLike]): string;
@@ -36,6 +36,7 @@ interface TestMessageInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "leaf", values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: "nonce", values: [BytesLike]): string;
   encodeFunctionData(functionFragment: "origin", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "recipient",
@@ -46,7 +47,6 @@ interface TestMessageInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "sender", values: [BytesLike]): string;
-  encodeFunctionData(functionFragment: "sequence", values: [BytesLike]): string;
 
   decodeFunctionResult(functionFragment: "body", data: BytesLike): Result;
   decodeFunctionResult(
@@ -54,6 +54,7 @@ interface TestMessageInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "leaf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "origin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "recipient", data: BytesLike): Result;
   decodeFunctionResult(
@@ -61,7 +62,6 @@ interface TestMessageInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "sender", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sequence", data: BytesLike): Result;
 
   events: {};
 }
@@ -119,6 +119,8 @@ export class TestMessage extends BaseContract {
 
     leaf(_message: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
+    nonce(_message: BytesLike, overrides?: CallOverrides): Promise<[number]>;
+
     origin(_message: BytesLike, overrides?: CallOverrides): Promise<[number]>;
 
     recipient(
@@ -132,8 +134,6 @@ export class TestMessage extends BaseContract {
     ): Promise<[string]>;
 
     sender(_message: BytesLike, overrides?: CallOverrides): Promise<[string]>;
-
-    sequence(_message: BytesLike, overrides?: CallOverrides): Promise<[number]>;
   };
 
   body(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -141,6 +141,8 @@ export class TestMessage extends BaseContract {
   destination(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
   leaf(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  nonce(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
   origin(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
@@ -153,8 +155,6 @@ export class TestMessage extends BaseContract {
 
   sender(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  sequence(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
-
   callStatic: {
     body(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -164,6 +164,8 @@ export class TestMessage extends BaseContract {
     ): Promise<number>;
 
     leaf(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+    nonce(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     origin(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
 
@@ -175,8 +177,6 @@ export class TestMessage extends BaseContract {
     ): Promise<string>;
 
     sender(_message: BytesLike, overrides?: CallOverrides): Promise<string>;
-
-    sequence(_message: BytesLike, overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {};
@@ -191,6 +191,8 @@ export class TestMessage extends BaseContract {
 
     leaf(_message: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonce(_message: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
     origin(_message: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     recipient(
@@ -204,11 +206,6 @@ export class TestMessage extends BaseContract {
     ): Promise<BigNumber>;
 
     sender(_message: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    sequence(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -223,6 +220,11 @@ export class TestMessage extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     leaf(
+      _message: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    nonce(
       _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -243,11 +245,6 @@ export class TestMessage extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     sender(
-      _message: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    sequence(
       _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

@@ -19,10 +19,10 @@ mock! {
 
         pub fn _home_domain_hash(&self) -> H256 {}
 
-        pub fn _raw_message_by_sequence(
+        pub fn _raw_message_by_nonce(
             &self,
             destination: u32,
-            sequence: u32,
+            nonce: u32,
         ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
 
         pub fn _raw_message_by_leaf(
@@ -36,7 +36,7 @@ mock! {
             tree_index: usize,
         ) -> Result<Option<H256>, ChainCommunicationError> {}
 
-        pub fn _sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {}
+        pub fn _nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {}
 
         pub fn _dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {}
 
@@ -95,12 +95,12 @@ impl Home for MockHomeContract {
         self._home_domain_hash()
     }
 
-    async fn raw_message_by_sequence(
+    async fn raw_message_by_nonce(
         &self,
         destination: u32,
-        sequence: u32,
+        nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_sequence(destination, sequence)
+        self._raw_message_by_nonce(destination, nonce)
     }
 
     async fn raw_message_by_leaf(
@@ -117,8 +117,8 @@ impl Home for MockHomeContract {
         self._leaf_by_tree_index(tree_index)
     }
 
-    async fn sequences(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
-        self._sequences(destination)
+    async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
+        self._nonces(destination)
     }
 
     async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {

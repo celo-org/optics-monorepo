@@ -4,7 +4,7 @@ use crate::{
         TREE_DEPTH,
     },
     test_utils::find_vector,
-    utils::{destination_and_sequence, home_domain_hash},
+    utils::{destination_and_nonce, home_domain_hash},
     FailureNotification, OpticsMessage, Update,
 };
 use ethers::{
@@ -30,7 +30,7 @@ pub mod output_functions {
             sender: H256::from(
                 H160::from_str("0x1111111111111111111111111111111111111111").unwrap(),
             ),
-            sequence: 1,
+            nonce: 1,
             destination: 2000,
             recipient: H256::from(
                 H160::from_str("0x2222222222222222222222222222222222222222").unwrap(),
@@ -43,7 +43,7 @@ pub mod output_functions {
             "sender": optics_message.sender,
             "destination": optics_message.destination,
             "recipient": optics_message.recipient,
-            "sequence": optics_message.sequence,
+            "nonce": optics_message.nonce,
             "body": optics_message.body,
             "leaf": optics_message.to_leaf(),
         });
@@ -121,15 +121,15 @@ pub mod output_functions {
             .expect("Failed to write to file");
     }
 
-    /// Outputs combined destination and sequence test cases in /vector/
-    /// destinationSequence.json
-    pub fn output_destination_and_sequences() {
+    /// Outputs combined destination and nonce test cases in /vector/
+    /// destinationNonce.json
+    pub fn output_destination_and_nonces() {
         let test_cases: Vec<Value> = (1..=5)
             .map(|i| {
                 json!({
                     "destination": i,
-                    "sequence": i + 1,
-                    "expectedDestinationAndSequence": destination_and_sequence(i, i + 1)
+                    "nonce": i + 1,
+                    "expectedDestinationAndNonce": destination_and_nonce(i, i + 1)
                 })
             })
             .collect();
@@ -140,7 +140,7 @@ pub mod output_functions {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(find_vector("destinationSequence.json"))
+            .open(find_vector("destinationNonce.json"))
             .expect("Failed to open/create file");
 
         file.write_all(json.as_bytes())
