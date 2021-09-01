@@ -248,7 +248,7 @@ where
 
     #[tracing::instrument(err, skip(self))]
     async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
-        let tx = self.contract.disapatch(
+        let tx = self.contract.dispatch(
             message.destination,
             message.recipient.to_fixed_bytes(),
             message.body.clone(),
