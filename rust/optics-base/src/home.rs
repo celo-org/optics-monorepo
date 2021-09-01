@@ -82,11 +82,7 @@ impl Home for Homes {
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         match self {
             Homes::Ethereum(home) => home.raw_message_by_nonce(destination, nonce).await,
-            Homes::Mock(mock_home) => {
-                mock_home
-                    .raw_message_by_nonce(destination, nonce)
-                    .await
-            }
+            Homes::Mock(mock_home) => mock_home.raw_message_by_nonce(destination, nonce).await,
             Homes::Other(home) => home.raw_message_by_nonce(destination, nonce).await,
         }
     }
