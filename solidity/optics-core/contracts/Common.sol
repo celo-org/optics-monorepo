@@ -39,7 +39,7 @@ abstract contract Common is QueueManager {
     // Current state of contract
     States public state;
     // The latest root that has been signed by the Updater
-    bytes32 public current; // TODO: "latestUpdatedRoot"
+    bytes32 public current;
 
     // ============ Upgrade Gap ============
 

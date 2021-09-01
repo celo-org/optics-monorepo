@@ -22,28 +22,28 @@ library Message {
     /**
      * @notice Returns formatted (packed) message with provided fields
      * @param _originDomain Domain of home chain
-     * @param _senderAddress Address of sender as bytes32
+     * @param _sender Address of sender as bytes32
      * @param _sequence Destination-specific sequence number
      * @param _destinationDomain Domain of destination chain
-     * @param _recipientAddress Address of recipient on destination chain as bytes32
+     * @param _recipient Address of recipient on destination chain as bytes32
      * @param _messageBody Raw bytes of message body
      * @return Formatted message
      **/
     function formatMessage(
         uint32 _originDomain,
-        bytes32 _senderAddress,
+        bytes32 _sender,
         uint32 _sequence,
         uint32 _destinationDomain,
-        bytes32 _recipientAddress,
+        bytes32 _recipient,
         bytes memory _messageBody
     ) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
                 _originDomain,
-                _senderAddress,
+                _sender,
                 _sequence,
                 _destinationDomain,
-                _recipientAddress,
+                _recipient,
                 _messageBody
             );
     }
