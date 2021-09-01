@@ -36,13 +36,13 @@ async function checkEvents(homeChain: Chain, replicaChain: Chain) {
     const processSuccessLeaves = processSuccesses.map(event => event["args"][0]);
     const processFailLeaves = processErrors.map(event => event["args"][0]);
     const processedLeaves = processSuccessLeaves.concat(processFailLeaves);
-    const unprocessedLeaves = dispatchedLeaves.filter(leaf => !processedLeaves.includes(leaf));
-    console.log(`Backlog ${homeName} => ${replicaName}: `, unprocessedLeaves.length);
+    const unprocessedDispatches = dispatches.filter(dispatch => !processedLeaves.includes(dispatch["args"][2]));
+    console.log(`Backlog ${homeName} => ${replicaName}: `, unprocessedDispatches.length);
 
-    writeQueryResults(homeName, replicaName, dispatchedLeaves, processSuccessLeaves, processErrors, unprocessedLeaves);
+    writeQueryResults(homeName, replicaName, dispatchedLeaves, processSuccessLeaves, processErrors, unprocessedDispatches);
 }
 
-function writeQueryResults(homeName: string, replicaName: string, dispatchedLeaves: any[], processSuccessLeaves: any[], processErrors: any[], unprocessedLeaves: any[]) {
+function writeQueryResults(homeName: string, replicaName: string, dispatchedLeaves: any[], processSuccessLeaves: any[], processErrors: any[], unprocessedDispatches: any[]) {
     const dir = `query/${Date.now()}-${homeName}-to-${replicaName}`;
     fs.mkdirSync(dir, {recursive: true});
     fs.writeFileSync(
@@ -58,8 +58,8 @@ function writeQueryResults(homeName: string, replicaName: string, dispatchedLeav
         JSON.stringify(processErrors, null, 2),
     );
     fs.writeFileSync(
-        `${dir}/unprocessedLeaves-${homeName}.json`,
-        JSON.stringify(unprocessedLeaves, null, 2),
+        `${dir}/unprocessedDispatches-${homeName}.json`,
+        JSON.stringify(unprocessedDispatches, null, 2),
     );
 }
 
