@@ -52,7 +52,7 @@ spec:
             name: {{ include "optics-agent.fullname" . }}
         env: 
           {{- if .Values.optics.processor.pollingInterval }}
-          - name: OPT_BASE_POLLINGINTERVAL
+          - name: OPT_PROCESSOR_INTERVAL
             value: {{ .Values.optics.processor.pollingInterval | quote }}
           {{- end }}
           {{- range .Values.optics.processor.transactionSigners }}

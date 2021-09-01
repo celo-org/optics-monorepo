@@ -52,7 +52,7 @@ spec:
             name: {{ include "optics-agent.fullname" . }}
         env: 
           {{- if .Values.optics.kathy.messageInterval }}
-          - name: OPT_BASE_MESSAGEINTERVAL
+          - name: OPT_KATHY_INTERVAL
             value: {{ .Values.optics.kathy.messageInterval | quote }}
           {{- end }}
           {{- range .Values.optics.kathy.transactionSigners }}

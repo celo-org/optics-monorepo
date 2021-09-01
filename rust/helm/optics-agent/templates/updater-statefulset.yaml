@@ -52,8 +52,12 @@ spec:
             name: {{ include "optics-agent.fullname" . }}
         env: 
           {{- if .Values.optics.updater.pollingInterval }}
-          - name: OPT_BASE_POLLINGINTERVAL
+          - name: OPT_UPDATER_INTERVAL
             value: {{ .Values.optics.updater.pollingInterval | quote }}
+          {{- end }}
+          {{- if .Values.optics.updater.updatePause }}
+          - name: OPT_UPDATER_PAUSE
+            value: {{ .Values.optics.updater.updatePause | quote }}
           {{- end }}
           {{- range .Values.optics.updater.transactionSigners }}
           {{- if .hexKey }}
