@@ -23,7 +23,6 @@ interface TestXAppConnectionManagerInterface extends ethers.utils.Interface {
   functions: {
     "domainToReplica(uint32)": FunctionFragment;
     "home()": FunctionFragment;
-    "isOwner(address)": FunctionFragment;
     "isReplica(address)": FunctionFragment;
     "localDomain()": FunctionFragment;
     "owner()": FunctionFragment;
@@ -44,7 +43,6 @@ interface TestXAppConnectionManagerInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "home", values?: undefined): string;
-  encodeFunctionData(functionFragment: "isOwner", values: [string]): string;
   encodeFunctionData(functionFragment: "isReplica", values: [string]): string;
   encodeFunctionData(
     functionFragment: "localDomain",
@@ -94,7 +92,6 @@ interface TestXAppConnectionManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "home", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isReplica", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "localDomain",
@@ -203,8 +200,6 @@ export class TestXAppConnectionManager extends BaseContract {
 
     home(overrides?: CallOverrides): Promise<[string]>;
 
-    isOwner(_owner: string, overrides?: CallOverrides): Promise<[boolean]>;
-
     isReplica(_replica: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
@@ -274,8 +269,6 @@ export class TestXAppConnectionManager extends BaseContract {
 
   home(overrides?: CallOverrides): Promise<string>;
 
-  isOwner(_owner: string, overrides?: CallOverrides): Promise<boolean>;
-
   isReplica(_replica: string, overrides?: CallOverrides): Promise<boolean>;
 
   localDomain(overrides?: CallOverrides): Promise<number>;
@@ -344,8 +337,6 @@ export class TestXAppConnectionManager extends BaseContract {
     ): Promise<string>;
 
     home(overrides?: CallOverrides): Promise<string>;
-
-    isOwner(_owner: string, overrides?: CallOverrides): Promise<boolean>;
 
     isReplica(_replica: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -441,8 +432,6 @@ export class TestXAppConnectionManager extends BaseContract {
 
     home(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isOwner(_owner: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     isReplica(_replica: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
@@ -515,11 +504,6 @@ export class TestXAppConnectionManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     home(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    isOwner(
-      _owner: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     isReplica(
       _replica: string,
