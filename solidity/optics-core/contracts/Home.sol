@@ -8,6 +8,7 @@ import {QueueLib} from "../libs/Queue.sol";
 import {MerkleLib} from "../libs/Merkle.sol";
 import {Message} from "../libs/Message.sol";
 import {MerkleTreeManager} from "./Merkle.sol";
+import {QueueManager} from "./Queue.sol";
 import {IUpdaterManager} from "../interfaces/IUpdaterManager.sol";
 // ============ External Imports ============
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -23,7 +24,13 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
  * Accepts submissions of fraudulent signatures
  * by the Updater and slashes the Updater in this case.
  */
-contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
+contract Home is
+    Version0,
+    QueueManager,
+    MerkleTreeManager,
+    Common,
+    OwnableUpgradeable
+{
     // ============ Libraries ============
 
     using QueueLib for QueueLib.Queue;
@@ -102,8 +109,9 @@ contract Home is Version0, MerkleTreeManager, Common, OwnableUpgradeable {
     // ============ Initializer ============
 
     function initialize(IUpdaterManager _updaterManager) public initializer {
-        // initialize owner
+        // initialize owner & queue
         __Ownable_init();
+        __QueueManager_initialize();
         // set Updater Manager contract and initialize Updater
         _setUpdaterManager(_updaterManager);
         address _updater = updaterManager.updater();

@@ -139,20 +139,12 @@ describe('GovernanceRouter', async () => {
       governorReplicaOnNonGovernorChain,
     );
 
-    const [pending] = await governorReplicaOnNonGovernorChain.nextPending();
-    expect(pending).to.equal(latestRoot);
-
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = deploy.config.optimisticSeconds;
     await increaseTimestampBy(
       deploy.chain.provider as providers.JsonRpcProvider,
       optimisticSeconds * 2,
     );
-
-    // Replica should be able to confirm updates
-    expect(await governorReplicaOnNonGovernorChain.canConfirm()).to.be.true;
-
-    await governorReplicaOnNonGovernorChain.confirm();
 
     // after confirming, committedRoot should be equal to the last submitted update
     expect(await governorReplicaOnNonGovernorChain.committedRoot()).to.equal(

@@ -2,17 +2,17 @@
 pragma solidity >=0.6.11;
 
 // ============ Internal Imports ============
-import {QueueManager} from "./Queue.sol";
 import {Message} from "../libs/Message.sol";
 // ============ External Imports ============
 import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 /**
  * @title Common
  * @author Celo Labs Inc.
  * @notice Shared utilities between Home and Replica.
  */
-abstract contract Common is QueueManager {
+abstract contract Common is Initializable {
     // ============ Enums ============
 
     // States:
@@ -97,7 +97,6 @@ abstract contract Common is QueueManager {
     // ============ Initializer ============
 
     function __Common_initialize(address _updater) internal initializer {
-        __QueueManager_intialize();
         updater = _updater;
         state = States.Active;
     }

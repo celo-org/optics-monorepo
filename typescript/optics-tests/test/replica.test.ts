@@ -40,12 +40,7 @@ describe('Replica', async () => {
     fakeUpdater: Updater;
 
   const submitValidUpdate = async (newRoot: string) => {
-    let oldRoot;
-    if ((await replica.queueLength()).isZero()) {
-      oldRoot = await replica.committedRoot();
-    } else {
-      oldRoot = await replica.queueEnd();
-    }
+    let oldRoot = await replica.committedRoot();
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
     await replica.update(oldRoot, newRoot, signature);
@@ -121,30 +116,11 @@ describe('Replica', async () => {
   it('Enqueues pending updates', async () => {
     const firstNewRoot = ethers.utils.formatBytes32String('first new root');
     await submitValidUpdate(firstNewRoot);
-    expect(await replica.queueEnd()).to.equal(firstNewRoot);
+    expect(await replica.committedRoot()).to.equal(firstNewRoot);
 
     const secondNewRoot = ethers.utils.formatBytes32String('second next root');
     await submitValidUpdate(secondNewRoot);
-    expect(await replica.queueEnd()).to.equal(secondNewRoot);
-  });
-
-  it('Returns the earliest pending update', async () => {
-    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await submitValidUpdate(firstNewRoot);
-
-    const beforeTimestamp = await replica.timestamp();
-    const secondNewRoot = ethers.utils.formatBytes32String('second next root');
-    await submitValidUpdate(secondNewRoot);
-
-    const [pending, confirmAt] = await replica.nextPending();
-    expect(pending).to.equal(firstNewRoot);
-    expect(confirmAt).to.equal(beforeTimestamp.add(optimisticSeconds));
-  });
-
-  it('Returns the current value when the queue is empty', async () => {
-    const [pending, confirmAt] = await replica.nextPending();
-    expect(pending).to.equal(await replica.committedRoot());
-    expect(confirmAt).to.equal(1);
+    expect(await replica.committedRoot()).to.equal(secondNewRoot);
   });
 
   it('Rejects update with invalid signature', async () => {
@@ -185,7 +161,7 @@ describe('Replica', async () => {
 
     await expect(
       replica.update(fakeLatestRoot, secondNewRoot, signature),
-    ).to.be.revertedWith('not end of queue');
+    ).to.be.revertedWith('not current update');
   });
 
   it('Accepts a double update proof', async () => {
@@ -209,52 +185,6 @@ describe('Replica', async () => {
     ).to.emit(replica, 'DoubleUpdate');
 
     expect(await replica.state()).to.equal(OpticsState.FAILED);
-  });
-
-  it('Confirms a ready update', async () => {
-    const newRoot = ethers.utils.formatBytes32String('new root');
-    await submitValidUpdate(newRoot);
-
-    await increaseTimestampBy(ethers.provider, optimisticSeconds);
-
-    expect(await replica.canConfirm()).to.be.true;
-    await replica.confirm();
-    expect(await replica.committedRoot()).to.equal(newRoot);
-  });
-
-  it('Batch-confirms several ready updates', async () => {
-    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await submitValidUpdate(firstNewRoot);
-
-    const secondNewRoot = ethers.utils.formatBytes32String('second next root');
-    await submitValidUpdate(secondNewRoot);
-
-    // Increase time enough for both updates to be confirmable
-    await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
-
-    expect(await replica.canConfirm()).to.be.true;
-    await replica.confirm();
-    expect(await replica.committedRoot()).to.equal(secondNewRoot);
-  });
-
-  it('Rejects confirmation attempt on empty queue', async () => {
-    const length = await replica.queueLength();
-    expect(length).to.equal(0);
-
-    await expect(replica.confirm()).to.be.revertedWith('!pending');
-  });
-
-  it('Rejects an early confirmation attempt', async () => {
-    const firstNewRoot = ethers.utils.formatBytes32String('first new root');
-    await submitValidUpdate(firstNewRoot);
-
-    // Don't increase time enough for update to be confirmable.
-    // Note that we use optimisticSeconds - 2 because the call to submit
-    // the valid root has already increased the timestamp by 1.
-    await increaseTimestampBy(ethers.provider, optimisticSeconds - 2);
-
-    expect(await replica.canConfirm()).to.be.false;
-    await expect(replica.confirm()).to.be.revertedWith('!time');
   });
 
   it('Proves a valid message', async () => {

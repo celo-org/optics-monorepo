@@ -24,23 +24,17 @@ interface ReplicaInterface extends ethers.utils.Interface {
     "PROCESS_GAS()": FunctionFragment;
     "RESERVE_GAS()": FunctionFragment;
     "acceptableRoot(bytes32)": FunctionFragment;
-    "canConfirm()": FunctionFragment;
     "committedRoot()": FunctionFragment;
-    "confirm()": FunctionFragment;
     "confirmAt(bytes32)": FunctionFragment;
     "doubleUpdate(bytes32,bytes32[2],bytes,bytes)": FunctionFragment;
     "homeDomainHash()": FunctionFragment;
     "initialize(uint32,address,bytes32,uint256)": FunctionFragment;
     "localDomain()": FunctionFragment;
     "messages(bytes32)": FunctionFragment;
-    "nextPending()": FunctionFragment;
     "optimisticSeconds()": FunctionFragment;
     "process(bytes)": FunctionFragment;
     "prove(bytes32,bytes32[32],uint256)": FunctionFragment;
     "proveAndProcess(bytes,bytes32[32],uint256)": FunctionFragment;
-    "queueContains(bytes32)": FunctionFragment;
-    "queueEnd()": FunctionFragment;
-    "queueLength()": FunctionFragment;
     "remoteDomain()": FunctionFragment;
     "state()": FunctionFragment;
     "update(bytes32,bytes32,bytes)": FunctionFragment;
@@ -60,14 +54,9 @@ interface ReplicaInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "canConfirm",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "committedRoot",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "confirm", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "confirmAt",
     values: [BytesLike]
@@ -89,10 +78,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "messages", values: [BytesLike]): string;
-  encodeFunctionData(
-    functionFragment: "nextPending",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "optimisticSeconds",
     values?: undefined
@@ -181,15 +166,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "queueContains",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "queueEnd", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "queueLength",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "remoteDomain",
     values?: undefined
   ): string;
@@ -212,12 +188,10 @@ interface ReplicaInterface extends ethers.utils.Interface {
     functionFragment: "acceptableRoot",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "canConfirm", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "committedRoot",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "confirm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "confirmAt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "doubleUpdate",
@@ -234,10 +208,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "messages", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "nextPending",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "optimisticSeconds",
     data: BytesLike
   ): Result;
@@ -245,15 +215,6 @@ interface ReplicaInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "prove", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proveAndProcess",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "queueContains",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "queueEnd", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "queueLength",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -330,13 +291,7 @@ export class Replica extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    canConfirm(overrides?: CallOverrides): Promise<[boolean]>;
-
     committedRoot(overrides?: CallOverrides): Promise<[string]>;
-
-    confirm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -361,12 +316,6 @@ export class Replica extends BaseContract {
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
     messages(arg0: BytesLike, overrides?: CallOverrides): Promise<[number]>;
-
-    nextPending(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
-    >;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -455,15 +404,6 @@ export class Replica extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    queueContains(
-      _item: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    queueEnd(overrides?: CallOverrides): Promise<[string]>;
-
-    queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     remoteDomain(overrides?: CallOverrides): Promise<[number]>;
 
     state(overrides?: CallOverrides): Promise<[number]>;
@@ -484,13 +424,7 @@ export class Replica extends BaseContract {
 
   acceptableRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  canConfirm(overrides?: CallOverrides): Promise<boolean>;
-
   committedRoot(overrides?: CallOverrides): Promise<string>;
-
-  confirm(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -515,10 +449,6 @@ export class Replica extends BaseContract {
   localDomain(overrides?: CallOverrides): Promise<number>;
 
   messages(arg0: BytesLike, overrides?: CallOverrides): Promise<number>;
-
-  nextPending(
-    overrides?: CallOverrides
-  ): Promise<[string, BigNumber] & { _pending: string; _confirmAt: BigNumber }>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -607,12 +537,6 @@ export class Replica extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
-
-  queueEnd(overrides?: CallOverrides): Promise<string>;
-
-  queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
   remoteDomain(overrides?: CallOverrides): Promise<number>;
 
   state(overrides?: CallOverrides): Promise<number>;
@@ -636,11 +560,7 @@ export class Replica extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    canConfirm(overrides?: CallOverrides): Promise<boolean>;
-
     committedRoot(overrides?: CallOverrides): Promise<string>;
-
-    confirm(overrides?: CallOverrides): Promise<void>;
 
     confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -665,12 +585,6 @@ export class Replica extends BaseContract {
     localDomain(overrides?: CallOverrides): Promise<number>;
 
     messages(arg0: BytesLike, overrides?: CallOverrides): Promise<number>;
-
-    nextPending(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { _pending: string; _confirmAt: BigNumber }
-    >;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -756,15 +670,6 @@ export class Replica extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    queueContains(
-      _item: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    queueEnd(overrides?: CallOverrides): Promise<string>;
-
-    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
     remoteDomain(overrides?: CallOverrides): Promise<number>;
 
     state(overrides?: CallOverrides): Promise<number>;
@@ -840,13 +745,7 @@ export class Replica extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    canConfirm(overrides?: CallOverrides): Promise<BigNumber>;
-
     committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
-
-    confirm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -871,8 +770,6 @@ export class Replica extends BaseContract {
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
     messages(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    nextPending(overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -961,15 +858,6 @@ export class Replica extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    queueContains(
-      _item: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    queueEnd(overrides?: CallOverrides): Promise<BigNumber>;
-
-    queueLength(overrides?: CallOverrides): Promise<BigNumber>;
-
     remoteDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
     state(overrides?: CallOverrides): Promise<BigNumber>;
@@ -994,13 +882,7 @@ export class Replica extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    canConfirm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    confirm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     confirmAt(
       arg0: BytesLike,
@@ -1031,8 +913,6 @@ export class Replica extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    nextPending(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1120,15 +1000,6 @@ export class Replica extends BaseContract {
       _index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    queueContains(
-      _item: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    queueEnd(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     remoteDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

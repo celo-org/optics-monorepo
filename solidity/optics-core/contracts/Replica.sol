@@ -5,7 +5,6 @@ pragma solidity >=0.6.11;
 import {Version0} from "./Version0.sol";
 import {Common} from "./Common.sol";
 import {MerkleLib} from "../libs/Merkle.sol";
-import {QueueLib} from "../libs/Queue.sol";
 import {Message} from "../libs/Message.sol";
 import {IMessageRecipient} from "../interfaces/IMessageRecipient.sol";
 // ============ External Imports ============
@@ -20,7 +19,6 @@ import {TypedMemView} from "@summa-tx/memview-sol/contracts/TypedMemView.sol";
 contract Replica is Version0, Common {
     // ============ Libraries ============
 
-    using QueueLib for QueueLib.Queue;
     using MerkleLib for MerkleLib.Tree;
     using TypedMemView for bytes;
     using TypedMemView for bytes29;
@@ -111,8 +109,8 @@ contract Replica is Version0, Common {
     /**
      * @notice Called by external agent. Submits the signed update's new root,
      * marks root's allowable confirmation time, and emits an `Update` event.
-     * @dev Reverts if update doesn't build off queue's last root or replica's
-     * committedRoot if queue is empty. Also reverts if signature is invalid.
+     * @dev Reverts if update doesn't build off latest committedRoot
+     * or if signature is invalid.
      * @param _oldRoot Old merkle root
      * @param _newRoot New merkle root
      * @param _signature Updater's signature on `_oldRoot` and `_newRoot`
@@ -123,11 +121,7 @@ contract Replica is Version0, Common {
         bytes memory _signature
     ) external notFailed {
         // ensure that update is building off the last submitted root
-        if (queue.length() > 0) {
-            require(_oldRoot == queue.lastItem(), "not end of queue");
-        } else {
-            require(_oldRoot == committedRoot, "not current update");
-        }
+        require(_oldRoot == committedRoot, "not current update");
         // validate updater signature
         require(
             _isUpdaterSignature(_oldRoot, _newRoot, _signature),
@@ -137,34 +131,9 @@ contract Replica is Version0, Common {
         _beforeUpdate();
         // set the new root's confirmation timer
         confirmAt[_newRoot] = block.timestamp + optimisticSeconds;
-        // add the new root to the queue of roots
-        queue.enqueue(_newRoot);
+        // update committedRoot
+        committedRoot = _newRoot;
         emit Update(remoteDomain, _oldRoot, _newRoot, _signature);
-    }
-
-    /**
-     * @notice Called by external agent. Confirms as many confirmable roots in
-     * queue as possible, updating replica's committedRoot to be the last
-     * confirmed root.
-     * @dev Reverts if queue started as empty (i.e. no roots to confirm)
-     */
-    function confirm() external notFailed {
-        require(queue.length() != 0, "!pending");
-        // Traverse the queue by peeking each iterm to see if it ought to be
-        // confirmed. If so, dequeue it
-        bytes32 _pending;
-        uint256 _remaining = queue.length();
-        while (_remaining > 0 && acceptableRoot(queue.peek())) {
-            _pending = queue.dequeue();
-            _remaining -= 1;
-        }
-        // This condition is hit if the while loop is never executed, because
-        // the first queue item has not hit its timer yet
-        require(_pending != bytes32(0), "!time");
-        // Hook for future use
-        _beforeConfirm();
-        // Update committedRoot to last confirmed root
-        committedRoot = _pending;
     }
 
     /**
@@ -183,34 +152,6 @@ contract Replica is Version0, Common {
     ) external {
         require(prove(keccak256(_message), _proof, _index), "!prove");
         process(_message);
-    }
-
-    /**
-     * @notice Called by external agent. Returns next pending root to be
-     * confirmed and its confirmation time.
-     * @return _pending Pending (unconfirmed) root
-     * @return _confirmAt Pending root's confirmation time
-     */
-    function nextPending()
-        external
-        view
-        returns (bytes32 _pending, uint256 _confirmAt)
-    {
-        if (queue.length() != 0) {
-            _pending = queue.peek();
-            _confirmAt = confirmAt[_pending];
-        } else {
-            _pending = committedRoot;
-            _confirmAt = confirmAt[committedRoot];
-        }
-    }
-
-    /**
-     * @notice Called by external agent. Returns true if there is a confirmable
-     * root in the queue and false if otherwise.
-     */
-    function canConfirm() external view returns (bool) {
-        return queue.length() != 0 && acceptableRoot(queue.peek());
     }
 
     /**
@@ -333,10 +274,6 @@ contract Replica is Version0, Common {
     function _fail() internal override {
         _setFailed();
     }
-
-    /// @notice Hook for potential future use
-    // solhint-disable-next-line no-empty-blocks
-    function _beforeConfirm() internal {}
 
     /// @notice Hook for potential future use
     // solhint-disable-next-line no-empty-blocks

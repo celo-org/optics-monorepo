@@ -72,22 +72,6 @@ describe('SimpleCrossChainMessage', async () => {
     expect(suggestedNew).to.not.equal(nullRoot);
   });
 
-  it('All Replicas have empty queue of pending updates', async () => {
-    for (let deploy of deploys) {
-      const replicas = deploy.contracts.replicas;
-      for (let domain in replicas) {
-        const replica = replicas[domain].proxy;
-
-        const length = await replica.queueLength();
-        expect(length).to.equal(0);
-
-        const [pending, confirmAt] = await replica.nextPending();
-        expect(pending).to.equal(await replica.committedRoot());
-        expect(confirmAt).to.equal(1);
-      }
-    }
-  });
-
   it('Origin Home Accepts one valid update', async () => {
     const messages = ['message'].map((message) =>
       utils.formatMessage(message, remoteDomain, randomSigner.address),
@@ -128,29 +112,6 @@ describe('SimpleCrossChainMessage', async () => {
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy,
     );
-  });
-
-  it('Destination Replica shows first update as the next pending', async () => {
-    const replica = deploys[1].contracts.replicas[localDomain].proxy;
-    const [pending] = await replica.nextPending();
-    expect(pending).to.equal(firstRootSubmittedToReplica);
-  });
-
-  it('Destination Replica Batch-confirms several ready updates', async () => {
-    const replica = deploys[1].contracts.replicas[localDomain].proxy;
-
-    // Increase time enough for both updates to be confirmable
-    const { optimisticSeconds } = deploys[0].config;
-    await increaseTimestampBy(ethers.provider, optimisticSeconds * 2);
-
-    // Replica should be able to confirm updates
-    expect(await replica.canConfirm()).to.be.true;
-
-    await replica.confirm();
-
-    // after confirming, current root should be equal to the last submitted update
-    const { newRoot } = latestUpdate;
-    expect(await replica.committedRoot()).to.equal(newRoot);
   });
 
   it('Proves and processes a message on Replica', async () => {

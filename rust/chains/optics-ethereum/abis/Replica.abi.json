@@ -163,19 +163,6 @@
   },
   {
     "inputs": [],
-    "name": "canConfirm",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "committedRoot",
     "outputs": [
       {
@@ -185,13 +172,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "confirm",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -316,24 +296,6 @@
   },
   {
     "inputs": [],
-    "name": "nextPending",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_pending",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_confirmAt",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "optimisticSeconds",
     "outputs": [
       {
@@ -414,51 +376,6 @@
     "name": "proveAndProcess",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_item",
-        "type": "bytes32"
-      }
-    ],
-    "name": "queueContains",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "queueEnd",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "queueLength",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
