@@ -118,15 +118,21 @@ impl CoreMetrics {
     pub fn run_http_server(self: Arc<CoreMetrics>) -> JoinHandle<()> {
         use warp::Filter;
         match self.listen_port {
-            None => tokio::spawn(std::future::ready(())),
-            Some(port) => tokio::spawn(async move {
-                warp::serve(
-                    warp::path!("metrics")
-                        .map(move || self.gather().expect("failed to encode metrics")),
-                )
-                .run(([0, 0, 0, 0], port))
-                .await;
-            }),
+            None => {
+                tracing::info!("not starting prometheus server");
+                tokio::spawn(std::future::ready(()))
+            }
+            Some(port) => {
+                tracing::info!("starting prometheus server on 0.0.0.0:{port}", port=port);
+                tokio::spawn(async move {
+                    warp::serve(
+                        warp::path!("metrics")
+                            .map(move || self.gather().expect("failed to encode metrics")),
+                    )
+                    .run(([0, 0, 0, 0], port))
+                    .await;
+                })
+            }
         }
     }
 }
