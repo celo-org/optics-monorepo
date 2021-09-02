@@ -41,6 +41,6 @@
     "level": "debug",
     "style": "pretty"
   },
-  "metricsport": "9090",
+  "metrics": "9090",
   "dbPath": "db_path"
 }

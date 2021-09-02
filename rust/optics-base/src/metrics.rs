@@ -123,7 +123,7 @@ impl CoreMetrics {
                 tokio::spawn(std::future::ready(()))
             }
             Some(port) => {
-                tracing::info!("starting prometheus server on 0.0.0.0:{port}", port=port);
+                tracing::info!("starting prometheus server on 0.0.0.0:{port}", port = port);
                 tokio::spawn(async move {
                     warp::serve(
                         warp::path!("metrics")
