@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use ethers::core::types::{H256, U256};
+use ethers::core::types::{H256};
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{
@@ -75,30 +75,6 @@ impl Replica for Replicas {
         }
     }
 
-    async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.next_pending().await,
-            Replicas::Mock(mock_replica) => mock_replica.next_pending().await,
-            Replicas::Other(replica) => replica.next_pending().await,
-        }
-    }
-
-    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.can_confirm().await,
-            Replicas::Mock(mock_replica) => mock_replica.can_confirm().await,
-            Replicas::Other(replica) => replica.can_confirm().await,
-        }
-    }
-
-    async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.confirm().await,
-            Replicas::Mock(mock_replica) => mock_replica.confirm().await,
-            Replicas::Other(replica) => replica.confirm().await,
-        }
-    }
-
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
             Replicas::Ethereum(replica) => replica.prove(proof).await,
@@ -112,14 +88,6 @@ impl Replica for Replicas {
             Replicas::Ethereum(replica) => replica.process(message).await,
             Replicas::Mock(mock_replica) => mock_replica.process(message).await,
             Replicas::Other(replica) => replica.process(message).await,
-        }
-    }
-
-    async fn queue_end(&self) -> Result<Option<H256>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.queue_end().await,
-            Replicas::Mock(mock_replica) => mock_replica.queue_end().await,
-            Replicas::Other(replica) => replica.queue_end().await,
         }
     }
 

@@ -107,6 +107,12 @@ describe('SimpleCrossChainMessage', async () => {
     latestRoot = update.newRoot;
   });
 
+  it('Destination Replica shows latest update as the committed root', async () => {
+    const replica = deploys[1].contracts.replicas[localDomain].proxy;
+    const { newRoot } = latestUpdate;
+    expect(await replica.committedRoot()).to.equal(newRoot);
+  });
+
   it('Destination Replica Accepts the second update', async () => {
     await utils.updateReplica(
       latestUpdate,

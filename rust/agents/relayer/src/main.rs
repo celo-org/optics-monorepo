@@ -1,10 +1,7 @@
-//! The relayer forwards signed updates from the home to chain to replicas and
-//! confirms pending replica updates.
+//! The relayer forwards signed updates from the home to chain to replicas
 //!
 //! At a regular interval, the relayer polls Home for signed updates and
-//! submits them as pending updates for the replica. The relayer also
-//! polls the Replica for pending updates that are ready to be confirmed
-//! and confirms them when available.
+//! submits them as updates with a pending timelock on the replica.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]

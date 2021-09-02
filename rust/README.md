@@ -69,7 +69,6 @@ Some agent sketches:
   - if configured, issue emergency stop transactions
 - `relayer`
   - Relays signed updates from the home to the replica
-  - Ensures updates are confirmed in a timely manner on the replica
 - `processor`
   - retrieve leaves from home chain
   - observe >=1 replica

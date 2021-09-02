@@ -223,7 +223,7 @@ impl Replica {
                     .prove_and_process(message.as_ref(), &proof)
                     .await?;
             }
-            MessageStatus::Pending => {
+            MessageStatus::Proven => {
                 self.replica.process(message.as_ref()).await?;
             }
             MessageStatus::Processed => {

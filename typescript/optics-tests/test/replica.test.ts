@@ -40,7 +40,7 @@ describe('Replica', async () => {
     fakeUpdater: Updater;
 
   const submitValidUpdate = async (newRoot: string) => {
-    let oldRoot = await replica.committedRoot();
+    const oldRoot = await replica.committedRoot();
 
     const { signature } = await updater.signUpdate(oldRoot, newRoot);
     await replica.update(oldRoot, newRoot, signature);

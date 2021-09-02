@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 use mockall::*;
 
-use ethers::core::types::{H256, U256};
+use ethers::core::types::{H256};
 
 use optics_core::{
     accumulator::merkle::Proof,
@@ -18,12 +18,6 @@ mock! {
 
         pub fn _remote_domain(&self) -> Result<u32, ChainCommunicationError> {}
 
-        pub fn _next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {}
-
-        pub fn _can_confirm(&self) -> Result<bool, ChainCommunicationError> {}
-
-        pub fn _confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {}
-
         pub fn _prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {}
@@ -36,8 +30,6 @@ mock! {
 
         // Common
         pub fn _name(&self) -> &str {}
-
-        pub fn _queue_end(&self) -> Result<Option<H256>, ChainCommunicationError> {}
 
         pub fn _status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {}
 
@@ -86,18 +78,6 @@ impl Replica for MockReplicaContract {
         self._remote_domain()
     }
 
-    async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
-        self._next_pending()
-    }
-
-    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError> {
-        self._can_confirm()
-    }
-
-    async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
-        self._confirm()
-    }
-
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         self._prove(proof)
     }
@@ -112,10 +92,6 @@ impl Replica for MockReplicaContract {
         proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self._prove_and_process(message, proof)
-    }
-
-    async fn queue_end(&self) -> Result<Option<H256>, ChainCommunicationError> {
-        self._queue_end()
     }
 
     async fn message_status(

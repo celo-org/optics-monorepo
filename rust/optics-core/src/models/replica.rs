@@ -97,7 +97,7 @@ impl Replica<Waiting> {
         }
     }
 
-    /// Queue a pending update
+    /// Submit an update
     pub fn update(
         self,
         update: &SignedUpdate,
@@ -125,23 +125,5 @@ impl Replica<Pending> {
     /// Get the current root
     pub fn root(&self) -> H256 {
         self.state().root
-    }
-
-    /// Confirm a queued update after the timer has elapsed
-    pub fn confirm_update(self, now: impl FnOnce() -> U256) -> Result<Replica<Waiting>, Self> {
-        if now() < self.state.timeout {
-            // timeout hasn't elapsed
-            return Err(self);
-        }
-
-        Ok(Replica {
-            remote: self.remote,
-            local: self.local,
-            updater: self.updater,
-            optimistic_wait: self.optimistic_wait,
-            state: Waiting {
-                root: self.state.new_root,
-            },
-        })
     }
 }

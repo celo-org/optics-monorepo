@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use color_eyre::{eyre::bail, Result};
-use futures_util::future::select_all;
 use std::{sync::Arc, time::Duration};
-use tokio::{join, sync::Mutex, task::JoinHandle, time::sleep};
+use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::{info, instrument::Instrumented, Instrument};
 
 use optics_base::{
@@ -10,7 +9,7 @@ use optics_base::{
     home::Homes,
     replica::Replicas,
 };
-use optics_core::traits::{Common, Replica};
+use optics_core::traits::{Common};
 
 use crate::settings::RelayerSettings as Settings;
 
@@ -45,18 +44,7 @@ impl UpdatePoller {
     #[tracing::instrument(err, skip(self), fields(self = %self))]
     async fn poll_and_relay_update(&self) -> Result<()> {
         // Get replica's current root.
-        // If the replica has a queue of pending updates, we use the last queue
-        // root instead
-        let (old_root_res, queue_end_res) =
-            join!(self.replica.committed_root(), self.replica.queue_end());
-
-        let old_root = {
-            if let Some(end) = queue_end_res? {
-                end
-            } else {
-                old_root_res?
-            }
-        };
+        let old_root = self.replica.committed_root().await?;
 
         info!(
             "Replica {} latest root is: {}",
@@ -98,61 +86,6 @@ impl UpdatePoller {
         tokio::spawn(async move {
             loop {
                 self.poll_and_relay_update().await?;
-                sleep(self.duration).await;
-            }
-        })
-    }
-}
-
-#[derive(Debug)]
-struct ConfirmPoller {
-    replica: Arc<Replicas>,
-    duration: Duration,
-    semaphore: Mutex<()>,
-}
-
-impl std::fmt::Display for ConfirmPoller {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ConfirmPoller: {{ replica: {:?} }}", self.replica)
-    }
-}
-
-impl ConfirmPoller {
-    fn new(replica: Arc<Replicas>, duration: u64) -> Self {
-        Self {
-            replica,
-            duration: Duration::from_secs(duration),
-            semaphore: Mutex::new(()),
-        }
-    }
-
-    #[tracing::instrument(err, skip(self), fields(self = %self))]
-    async fn poll_confirm(&self) -> Result<()> {
-        // Check for pending update that can be confirmed
-        let can_confirm = self.replica.can_confirm().await?;
-
-        // If valid pending update exists, confirm it
-        if can_confirm {
-            let lock = self.semaphore.try_lock();
-            if lock.is_err() {
-                // A tx is in-flight. Do nothing.
-                return Ok(());
-            }
-            info!("Can confirm. Confirming on replica {}", self.replica.name());
-            // don't care if it succeeds
-            let _ = self.replica.confirm().await;
-            // lock dropped here
-        } else {
-            info!("Can't confirm on replica {}", self.replica.name());
-        }
-
-        Ok(())
-    }
-
-    fn spawn(self) -> JoinHandle<Result<()>> {
-        tokio::spawn(async move {
-            loop {
-                self.poll_confirm().await?;
                 sleep(self.duration).await;
             }
         })
@@ -210,14 +143,7 @@ impl OpticsAgent for Relayer {
             let replica = replica_opt.unwrap();
 
             let update_poller = UpdatePoller::new(home, replica.clone(), duration);
-            let update_task = update_poller.spawn();
-
-            let confirm_poller = ConfirmPoller::new(replica, duration);
-            let confirm_task = confirm_poller.spawn();
-
-            let (res, _, _) = select_all(vec![confirm_task, update_task]).await;
-
-            res?
+            update_poller.spawn().await?
         })
         .in_current_span()
     }

@@ -1,7 +1,7 @@
-//! The processor observes replicas for confirmed updates and proves + processes them
+//! The processor observes replicas for updates and proves + processes them
 //!
-//! At a regular interval, the processor polls Replicas for confirmed updates.
-//! If there are confirmed updates, the processor submits a proof of their
+//! At a regular interval, the processor polls Replicas for updates.
+//! If there are updates, the processor submits a proof of their
 //! validity and processes on the Replica's chain
 
 #![forbid(unsafe_code)]

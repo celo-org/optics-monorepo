@@ -2,7 +2,7 @@
 
 use async_trait::async_trait;
 use ethers::contract::abigen;
-use ethers::core::types::{Address, Signature, H256, U256};
+use ethers::core::types::{Address, Signature, H256};
 use optics_core::traits::MessageStatus;
 use optics_core::{
     accumulator::merkle::Proof,
@@ -192,28 +192,6 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn next_pending(&self) -> Result<Option<(H256, U256)>, ChainCommunicationError> {
-        let (pending, confirm_at) = self.contract.next_pending().call().await?;
-
-        if confirm_at.is_zero() {
-            Ok(None)
-        } else {
-            Ok(Some((pending.into(), confirm_at)))
-        }
-    }
-
-    #[tracing::instrument(err)]
-    async fn can_confirm(&self) -> Result<bool, ChainCommunicationError> {
-        Ok(self.contract.can_confirm().call().await?)
-    }
-
-    #[tracing::instrument(err)]
-    async fn confirm(&self) -> Result<TxOutcome, ChainCommunicationError> {
-        let tx = self.contract.confirm();
-        Ok(report_tx!(tx).into())
-    }
-
-    #[tracing::instrument(err)]
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         let mut sol_proof: [[u8; 32]; 32] = Default::default();
         sol_proof
@@ -253,21 +231,11 @@ where
     }
 
     #[tracing::instrument(err)]
-    async fn queue_end(&self) -> Result<Option<H256>, ChainCommunicationError> {
-        let end: H256 = self.contract.queue_end().call().await?.into();
-        if end.is_zero() {
-            Ok(None)
-        } else {
-            Ok(Some(end))
-        }
-    }
-
-    #[tracing::instrument(err)]
     async fn message_status(&self, leaf: H256) -> Result<MessageStatus, ChainCommunicationError> {
         let status = self.contract.messages(leaf.into()).call().await?;
         match status {
             0 => Ok(MessageStatus::None),
-            1 => Ok(MessageStatus::Pending),
+            1 => Ok(MessageStatus::Proven),
             2 => Ok(MessageStatus::Processed),
             _ => panic!("Bad status from solidity"),
         }
