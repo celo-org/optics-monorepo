@@ -8,7 +8,7 @@ import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib/core';
 import { Signer } from '../../lib/types';
 import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
-import { deployTwoChains } from '../../../optics-deploy/src/core';
+import { deployNChains } from '../../../optics-deploy/src/core';
 import * as contracts from '../../../typechain/optics-core';
 
 async function expectNotInRecovery(
@@ -229,7 +229,7 @@ describe('RecoveryManager', async () => {
       ),
     );
 
-    await deployTwoChains(deploys[0], deploys[1]);
+    await deployNChains(deploys);
 
     governanceRouter = deploys[0].contracts.governance
       ?.proxy! as contracts.TestGovernanceRouter;

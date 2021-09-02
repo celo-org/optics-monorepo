@@ -13,7 +13,7 @@ import { Updater } from '../../lib/core';
 import { Address, Signer } from '../../lib/types';
 import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
 import {
-  deployTwoChains,
+  deployNChains,
   deployUnenrolledReplica,
 } from '../../../optics-deploy/src/core';
 import * as contracts from '../../../typechain/optics-core';
@@ -65,7 +65,7 @@ describe('GovernanceRouter', async () => {
 
   beforeEach(async () => {
     // deploy the entire Optics suite on each chain
-    await deployTwoChains(deploys[0], deploys[1]);
+    await deployNChains([deploys[0], deploys[1]]);
 
     // get both governanceRouters
     governorRouter = deploys[0].contracts.governance

@@ -11,7 +11,7 @@ const domains = [1000, 2000, 3000];
 /*
  * Deploy the full Optics suite on two chains
  */
-describe.only('DeployNChains', async () => {
+describe('DeployNChains', async () => {
   let signer: Signer,
     recoveryManager: Signer,
     updater: Updater;
