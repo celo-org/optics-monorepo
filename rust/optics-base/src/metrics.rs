@@ -125,10 +125,16 @@ impl CoreMetrics {
             Some(port) => {
                 tracing::info!("starting prometheus server on 0.0.0.0:{port}", port = port);
                 tokio::spawn(async move {
-                    warp::serve(
-                        warp::path!("metrics")
-                            .map(move || self.gather().expect("failed to encode metrics")),
-                    )
+                    warp::serve(warp::path!("metrics").map(move || {
+                        warp::reply::with_header(
+                            self.gather().expect("failed to encode metrics"),
+                            "Content-Type",
+                            // OpenMetrics specs demands "application/openmetrics-text; version=1.0.0; charset=utf-8"
+                            // but the prometheus scraper itself doesn't seem to care?
+                            // try text/plain to make web browsers happy.
+                            "text/plain; charset=utf-8",
+                        )
+                    }))
                     .run(([0, 0, 0, 0], port))
                     .await;
                 })
