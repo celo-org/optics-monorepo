@@ -144,7 +144,7 @@ pub struct Settings {
     /// The path to use for the DB file
     pub db: String,
     /// Port to listen for prometheus scrape requests
-    pub metrics: Option<u16>,
+    pub metrics: Option<String>,
     /// The home configuration
     pub home: ChainSetup,
     /// The replica configurations
@@ -196,7 +196,9 @@ impl Settings {
             db,
             metrics: Arc::new(crate::metrics::CoreMetrics::new(
                 name,
-                self.metrics,
+                self.metrics
+                    .as_ref()
+                    .map(|v| v.parse::<u16>().expect("metrics port must be u16")),
                 Arc::new(prometheus::Registry::new()),
             )?),
         })
