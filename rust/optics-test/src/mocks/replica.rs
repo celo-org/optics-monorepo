@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 use mockall::*;
 
-use ethers::core::types::{H256};
+use ethers::core::types::H256;
 
 use optics_core::{
     accumulator::merkle::Proof,

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use ethers::core::types::{H256};
+use ethers::core::types::H256;
 
 use crate::{
     accumulator::merkle::Proof,

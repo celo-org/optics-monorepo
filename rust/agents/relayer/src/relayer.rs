@@ -9,7 +9,7 @@ use optics_base::{
     home::Homes,
     replica::Replicas,
 };
-use optics_core::traits::{Common};
+use optics_core::traits::Common;
 
 use crate::settings::RelayerSettings as Settings;
 
