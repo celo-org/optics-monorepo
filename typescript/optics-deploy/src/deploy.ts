@@ -46,7 +46,7 @@ export abstract class Deploy<T extends Contracts> {
     let overrides: ethers.Overrides = {
       type: 0,
       gasPrice: this.chain.gasPrice,
-      gasLimit: 6_000_000,
+      gasLimit: this.chain.gasLimit,
     };
 
     return overrides;

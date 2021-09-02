@@ -16,6 +16,8 @@ const chainJson: ChainJson = {
   rpc,
   deployerKey: process.env.ARBITRUM_RINKEBY_DEPLOYER_KEY,
   domain: 4000,
+  gasPrice: 0,
+  gasLimit: 600_000_000,
 };
 
 export const chain = toChain(chainJson);

@@ -24,10 +24,11 @@ export type CoreDeployAddresses = CoreContractAddresses & {
 export interface ChainJson {
   name: string;
   rpc: string;
+  domain: number;
   deployerKey?: string;
+  gasLimit?: ethers.BigNumberish;
   gasPrice?: ethers.BigNumberish;
   confirmations?: number;
-  domain: number;
 }
 
 export type Chain = {
@@ -35,6 +36,7 @@ export type Chain = {
   provider: ethers.providers.JsonRpcProvider;
   deployer: ethers.Signer;
   gasPrice: ethers.BigNumber;
+  gasLimit: ethers.BigNumber;
   config: ChainJson;
   confirmations: number;
   domain: number;
@@ -63,6 +65,7 @@ export function toChain(config: ChainJson): Chain {
     deployer,
     confirmations: config.confirmations ?? 5,
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
+    gasLimit: BigNumber.from(config.gasLimit ?? 6_000_000),
     config,
   };
 }
