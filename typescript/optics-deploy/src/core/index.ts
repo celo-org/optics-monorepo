@@ -5,7 +5,7 @@ import * as proxyUtils from '../proxyUtils';
 import { CoreDeploy } from './CoreDeploy';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import * as contracts from '../../../typechain/optics-core';
-import { checkDeploy } from '../../../optics-tests/test/deploy.test';
+import { checkCoreDeploy } from '../test/core';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
@@ -508,12 +508,13 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
     await appointGovernor(gov);
   }
 
-  if (!isTestDeploy) {
-    const govDomain = gov.chain.domain;
-    const nonDomain = non.chain.domain;
-    await checkDeploy(gov, [nonDomain], govDomain);
-    await checkDeploy(non, [govDomain], govDomain);
+  // checks deploys are correct
+  const govDomain = gov.chain.domain;
+  const nonDomain = non.chain.domain;
+  await checkCoreDeploy(gov, [nonDomain], govDomain);
+  await checkCoreDeploy(non, [govDomain], govDomain);
 
+  if (!isTestDeploy) {
     writeDeployOutput([gov, non]);
   }
 }
@@ -611,17 +612,18 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   // relinquish control of all chains
   await Promise.all(deploys.map(relinquish));
 
+  // checks deploys are correct
+  const govDomain = deploys[0].chain.domain;
+  for (var i = 0; i < deploys.length; i++) {
+    const localDomain = deploys[i].chain.domain;
+    const remoteDomains = deploys.map(deploy => deploy.chain.domain).filter(domain => {
+      return domain != localDomain
+    });
+    await checkCoreDeploy(deploys[i], remoteDomains, govDomain);
+  }
+
   // write config outputs
   if (!isTestDeploy) {
-    const govDomain = deploys[0].chain.domain;
-    for (var i = 0; i < deploys.length; i++) {
-      const localDomain = deploys[i].chain.domain;
-      const remoteDomains = deploys.map(deploy => deploy.chain.domain).filter(domain => {
-        return domain != localDomain
-      });
-      await checkDeploy(deploys[i], remoteDomains, govDomain);
-    }
-
     writeDeployOutput(deploys);
   }
 }
