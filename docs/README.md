@@ -1,5 +1,21 @@
 # Optics: OPTimistic Interchain Communication
 
+## Table of Contents
+
+- [Frequently Asked Questions](./faq.md)
+- [Architecture](./architecture.md)
+- [Upgrade Setup](./upgrade-setup.md)
+- [Versioning](./versioning.md)
+- **xApps**
+  - [Developing xApps](./xapps/developing.md)
+  - [Token Bridge xApp](./xapps/token-bridge.md)
+- **Governance**
+  - [Cross-Chain Governance](./governance/cross-chain-governance.md)
+- **Agents**
+  - [Agent Operations](./agents/agent-operations.md)
+- [Failure Cases](./failure-cases.md)
+- [Contributing To This Repo](./contributing.md)
+
 ## What is Optics?
 
 Optics is a new design for radically cheaper cross-chain communication *without header verification.* We expect operating Optics to cut 90% of costs compared to a traditional header relay.
