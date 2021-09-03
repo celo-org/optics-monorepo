@@ -88,7 +88,6 @@ describe('XAppConnectionManager', async () => {
       updater.address,
       [],
     );
-    // await deploys.deployOptics(newRemoteDeploy);
     await deploys.deployUnenrolledReplica(localDeploy, newRemoteDeploy);
     const newReplicaProxy =
       localDeploy.contracts.replicas[newRemoteDomain].proxy;
