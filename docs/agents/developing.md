@@ -69,7 +69,7 @@ This will build the codebase and run the specified `<AGENT>` binary using the pr
 
 ## Production Builds
 
-It is important when making changes to the Rust codebase, to ensure the Docker build used in production builds still works. You can check this automatically in CI as it is built automatically on every PR, however you can check it much faster usually by attempting to build it locally. 
+It is important when making changes to the Rust codebase, to ensure the Docker build used in production environments still works. You can check this automatically in CI as it is built on every PR ([see docker workflow here](https://github.com/celo-org/optics-monorepo/blob/main/.github/workflows/docker.yml)), however you can check it much faster usually by attempting to build it locally. 
 
 You can build the docker image by running the following script in the `rust` directory: 
 
