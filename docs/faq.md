@@ -64,11 +64,11 @@ I am definitely missing some insight into what function the Updater serves in th
 
 2. The watcher notifies the Home contract, which halts (and slash the Updater's bond)
 
-3. The watcher warns the XApps of the fraudulent update by calling `unenrollReplica`
+3. The watcher warns the xApps of the fraudulent update by calling `unenrollReplica`
 
     - [link](https://github.com/celo-org/optics-monorepo/blob/main/solidity/optics-core/contracts/XAppConnectionManager.sol#L38-L42)
 
-4. When the fraudulent message is received, the XApp rejects it, because the Replica has been unenrolled
+4. When the fraudulent message is received, the xApp rejects it, because the Replica has been unenrolled
 
 -------
 
@@ -100,7 +100,7 @@ I am definitely missing some insight into what function the Updater serves in th
 
 -------
 
-**Q: How do XApps know what channels to listen to? And which Home to send messages to?**
+**Q: How do xApps know what channels to listen to? And which Home to send messages to?**
 
 **A:** xApps "know" both of these things by querying the xAppConnectionManager.
 
