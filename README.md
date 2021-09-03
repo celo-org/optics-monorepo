@@ -21,13 +21,13 @@ In other words, Optics is designed to prioritize:
 - Cost: No header verification or state management.
 - Speed of implementation: Requires only simple smart contracts, no complex
   cryptography.
-- Ease of use: Simple interface for maintaining XApp connections.
+- Ease of use: Simple interface for maintaining xApp connections.
 
 You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics).
 
 ## Integrating with Optics
 
-Optics establishes communication channels with other chains, but it's up to XApp (pronounced "zap", and short for "cross-chain applications")
+Optics establishes communication channels with other chains, but it's up to xApp (pronounced "zap", and short for "cross-chain applications")
 developers to use those. This repo provides a standard pattern for integrating
 Optics channels, and ensuring that communication is safe and secure.
 
@@ -35,33 +35,33 @@ Integrations require a few key components:
 
 - A `Home` and any number of `Replica` contracts deployed on the chain already.
   These contracts manage Optics communication channels. and will be used by the
-  XApp to send and receive messages.
+  xApp to send and receive messages.
 
 - A `XAppConnectionManager` (in `solidity/optics-core/contracts`). This
-  contract connects the XApp to Optics by allowing the XApp admin to enroll new
+  contract connects the xApp to Optics by allowing the xApp admin to enroll new
   `Home` and `Replica` contracts. Enrolling and unenrolling channels is the
-  primary way to ensure that your XApp handles messages correctly. XApps may
-  deploy their own connection manager, or share one with other XApps.
+  primary way to ensure that your xApp handles messages correctly. xApps may
+  deploy their own connection manager, or share one with other xApps.
 
-- A `Message` library. Optics sends raw byte arrays between chains. The XApp
+- A `Message` library. Optics sends raw byte arrays between chains. The xApp
   must define a message specification that can be serialized for sending, and
   deserialized for handling on the remote chain
 
 - A `Router` contract. The router translates between the Optics cross-chain
   message format, and the local chain's call contract. It also implements the
-  business logic of the XApp. It exposes the user-facing interface, handles
+  business logic of the xApp. It exposes the user-facing interface, handles
   messages coming in from other chains, and dispatches messages being sent to
   other chains.
 
 Solidity developers interested in implementing their own `Message` library and
 `Router` contract should check out the [optics-xapps](https://github.com/celo-org/optics-monorepo/tree/main/solidity/optics-xapps)
-package. It contains several example XApps.
+package. It contains several example xApps.
 
 You can find current testnet deploy configurations in the `rust/config/`
 directory. These deployments happen frequently and are unstable. Please feel
 free to try out integrations using the deployed contracts in the LATEST config.
 
-It is **Strongly Recommended** that XApp admins run a `watcher` daemon to
+It is **Strongly Recommended** that xApp admins run a `watcher` daemon to
 maintain their `XAppConnectionManager` and guard from fraud. Please see the
 documentation in the `rust/` directory and the
 [Optics architecture documentation](https://docs.celo.org/celo-codebase/protocol/optics)
@@ -95,14 +95,14 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    cd ../optics-xapps
    npm i
    ```
-   
+
 2. Setup your `.env` files
    ```bash
    cd typescript/optics-deploy
    touch .env && cat .env.example > .env
    cd ../../solidity/optics-core
    touch .env && cat .env.example > .env
-   cd ../optics-xapps
+   cd ../optics-xApps
    touch .env && cat .env.example > .env
    ```
    Then, add values to the keys in the newly created `.env` files.
@@ -134,7 +134,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
 
 #### Building Agent Images
 
-There exists a docker build for the agent binaries. These docker images are used for deploying the agents in a production environment. 
+There exists a docker build for the agent binaries. These docker images are used for deploying the agents in a production environment.
 
 ```
 $ cd rust
