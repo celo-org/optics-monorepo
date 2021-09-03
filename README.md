@@ -102,7 +102,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    touch .env && cat .env.example > .env
    cd ../../solidity/optics-core
    touch .env && cat .env.example > .env
-   cd ../optics-xApps
+   cd ../optics-xapps
    touch .env && cat .env.example > .env
    ```
    Then, add values to the keys in the newly created `.env` files.
@@ -144,7 +144,7 @@ $ ./release.sh <image_tag>
 
 # What is Optics?
 
-We present Optics - a system for sending messages between consensus systems
+We present Optics — a system for sending messages between consensus systems
 without paying header validation costs by creating the illusion of cross-chain
 communication. Similar to an atomic swap, Optics uses non-global protocol
 validation to simulate cross-chain communication. Optics can carry arbitrary
