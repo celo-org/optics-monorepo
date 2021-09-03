@@ -452,9 +452,9 @@ dependencies = [
 
 [[package]]
 name = "clang-sys"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81cf2cc85830eae84823884db23c5306442a6c3d5bfd3beb2f2a2c829faa1816"
+checksum = "10612c0ec0e0a1ff0e97980647cb058a6e7aedb913d01d009c406b8b7d0b26ee"
 dependencies = [
  "glob",
  "libc",
@@ -681,9 +681,9 @@ checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
 
 [[package]]
 name = "crypto-bigint"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc209804a22c34a98fe26a32d997ac64d4284816f65cf1a529c4e31a256218a0"
+checksum = "8658c15c5d921ddf980f7fe25b1e82f4b7a4083b2c4985fea4922edb8e43e07d"
 dependencies = [
  "generic-array 0.14.4",
  "rand_core 0.6.3",
@@ -897,7 +897,7 @@ dependencies = [
 [[package]]
 name = "ethers"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "ethers-contract",
  "ethers-core",
@@ -909,7 +909,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-contract-derive",
@@ -927,7 +927,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -949,7 +949,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-core",
@@ -963,7 +963,7 @@ dependencies = [
 [[package]]
 name = "ethers-core"
 version = "0.5.2"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "arrayvec 0.7.1",
  "bytes",
@@ -988,7 +988,7 @@ dependencies = [
 [[package]]
 name = "ethers-middleware"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "async-trait",
  "ethers-contract",
@@ -1011,7 +1011,7 @@ dependencies = [
 [[package]]
 name = "ethers-providers"
 version = "0.5.2"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1044,7 +1044,7 @@ dependencies = [
 [[package]]
 name = "ethers-signers"
 version = "0.5.1"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#664ccfe9d686265a04a439d6d419a059cc7b1447"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#32ad5a6abd38aa86f33b074881a1d15252c5c9de"
 dependencies = [
  "async-trait",
  "coins-bip32",
@@ -1716,7 +1716,7 @@ dependencies = [
 [[package]]
 name = "librocksdb-sys"
 version = "6.20.3"
-source = "git+https://github.com/rust-rocksdb/rust-rocksdb#e6407ed4057623f195be941b93e74cd70e6c9372"
+source = "git+https://github.com/rust-rocksdb/rust-rocksdb#e2e8834975cc9f2cef63ae85d7ea376e7cdc816d"
 dependencies = [
  "bindgen",
  "cc",
@@ -2808,7 +2808,7 @@ dependencies = [
 [[package]]
 name = "rocksdb"
 version = "0.17.0"
-source = "git+https://github.com/rust-rocksdb/rust-rocksdb#e6407ed4057623f195be941b93e74cd70e6c9372"
+source = "git+https://github.com/rust-rocksdb/rust-rocksdb#e2e8834975cc9f2cef63ae85d7ea376e7cdc816d"
 dependencies = [
  "libc",
  "librocksdb-sys",
@@ -3397,9 +3397,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.75"
+version = "1.0.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7f58f7e8eaa0009c5fec437aabf511bd9933e4b2d7407bd05273c01a8906ea7"
+checksum = "c6f107db402c2c2055242dbf4d2af0e69197202e9faacbef9571bbe47f5a1b84"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3674,9 +3674,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.6.7"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1caa0b0c8d94a049db56b5acf8cba99dc0623aab1b26d5b5f5e2d945846b3592"
+checksum = "08d3725d3efa29485e87311c5b699de63cde14b00ed4d256b8318aa30ca452cd"
 dependencies = [
  "bytes",
  "futures-core",
