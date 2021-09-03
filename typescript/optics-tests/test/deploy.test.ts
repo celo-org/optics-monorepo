@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+import { expect } from 'chai';
 
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib/core';
@@ -48,5 +49,20 @@ describe('deploy scripts', async () => {
         await deployNChains(deploys);
       });
     }
+
+    it(`asserts there is at least one deploy config`, async () => {
+      const deploys: Deploy[] = [];
+      const errMsg = 'Must pass at least one deploy config'
+
+      try {
+        await deployNChains(deploys);
+        // `deployNChains` should error and skip to catch block. If it didn't, we need to make it fail
+        // here (same as `expect(true).to.be.false`, but more explicit)
+        expect('no error').to.equal(errMsg);
+      } catch(e) {
+        // expect correct error message
+        expect(e.message).to.equal(errMsg);
+      }
+    })
   });
 });

@@ -531,17 +531,22 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
  * @param deploys - An array of chain deploys
  */
 export async function deployNChains(deploys: CoreDeploy[]) {
-  console.log(`Beginning ${deploys.length} Chain deploy process`);
-  console.log(`Deploy env is ${deploys[0].config.environment}`);
-  console.log(`${deploys[0].chain.name} is governing`);
+  if (deploys.length == 0) {
+    throw new Error('Must pass at least one deploy config');
+  }
+
+  // there exists any chain marked test
+  const isTestDeploy: boolean = deploys.filter((c) => c.test).length > 0;
+
+  log(isTestDeploy, `Beginning ${deploys.length} Chain deploy process`);
+  log(isTestDeploy, `Deploy env is ${deploys[0].config.environment}`);
+  log(isTestDeploy, `${deploys[0].chain.name} is governing`);
   deploys.forEach((deploy) => {
-    console.log(
+    log(isTestDeploy,
       `Updater for ${deploy.chain.name} Home is ${deploy.config.updater}`,
     );
   });
 
-  // there exists any chain marked test
-  const isTestDeploy: boolean = deploys.filter((c) => c.test).length > 0;
   const govChain = deploys[0];
   const nonGovChains = deploys.slice(1);
 
