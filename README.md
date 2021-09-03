@@ -95,8 +95,9 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    cd ../optics-xapps
    npm i
    ```
-   
+
 2. Setup your `.env` files
+
    ```bash
    cd typescript/optics-deploy
    touch .env && cat .env.example > .env
@@ -105,6 +106,7 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
    cd ../optics-xapps
    touch .env && cat .env.example > .env
    ```
+
    Then, add values to the keys in the newly created `.env` files.
 
 3. Install jq
@@ -136,10 +138,10 @@ Note: In the event you need to bypass the pre-commit hooks, pass the
 
 There exists a docker build for the agent binaries. These docker images are used for deploying the agents in a production environment. 
 
-```
-$ cd rust
-$ ./build.sh <image_tag>
-$ ./release.sh <image_tag>
+```bash
+cd rust
+./build.sh <image_tag>
+./release.sh <image_tag>
 ```
 
 # What is Optics?
@@ -208,4 +210,24 @@ The timeout on new updates to the replica serves two purposes:
 2. It gives message recipients a chance to opt-out of message processing for
    the update. If an incorrect update is published, recipients always have the
    information necessary to take defensive measures before any messages can be
-   processed.
+   processed.\
+
+## Deploy Procedure
+
+The contract addresses of each deploy can be found in `rust/config`. The latest
+deploy will be at `rust/config/[latest timestamp]` with bridge contracts within
+that same folder under `/bridge/[latest timestamp]`.
+
+The agents are setup to point at 2 environments at a time: `deployment` and
+`staging`.
+
+When agents are deployed to point at a new environment, they cease to
+point at the old ones. We **do not** continue to operate off-chain agents on
+old contract deploys. Contracts not supported by the agents will cease to
+function (i.e. messages will not be relayed between chains).
+
+Off-chain agents are **not** automatically re-deployed when new contract
+deploys are merged. Auto-redeploys will be implemented at some future date.
+
+**Coming soon**: The Optics team will maintain a document that will specify the
+contracts supported by the rust agents.
