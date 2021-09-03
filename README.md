@@ -221,13 +221,13 @@ that same folder under `/bridge/[latest timestamp]`.
 The agents are setup to point at 2 environments at a time: `deployment` and
 `staging`.
 
-When agents are deployed to point at a new environment, they cease to
-point at the old ones. We **do not** continue to operate off-chain agents on
-old contract deploys. Contracts not supported by the agents will cease to
-function (i.e. messages will not be relayed between chains).
+When agents are deployed to point at a new environment, they cease to point at
+the old ones. We **do not** continue to operate off-chain agents on old contract
+deploys. Contracts not supported by the agents will cease to function (i.e.
+messages will not be relayed between chains).
 
-Off-chain agents are **not** automatically re-deployed when new contract
-deploys are merged. Auto-redeploys will be implemented at some future date.
+Off-chain agents are **not** automatically re-deployed when new contract deploys
+are merged. Auto-redeploys will be implemented at some future date.
 
-**Coming soon**: The Optics team will maintain a document that will specify the
-contracts supported by the rust agents.
+The Optics team will maintain a document [here](./docs/agents/agent-operations)
+that will specify the contracts supported by the rust agents.
