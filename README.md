@@ -23,7 +23,7 @@ In other words, Optics is designed to prioritize:
   cryptography.
 - Ease of use: Simple interface for maintaining XApp connections.
 
-You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics).
+You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics) or [within the docs folder of this repository](./docs/README.md).
 
 ## Integrating with Optics
 
