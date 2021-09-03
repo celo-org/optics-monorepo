@@ -2,7 +2,7 @@
 
 ## Components
 
-![Optics Architecture Diagram](./images/Optics-Architecture.svg)
+![Optics Architecture Diagram](./images/Optics-Architecture.png)
 
 Optics has several logical components:
 

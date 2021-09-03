@@ -17,6 +17,10 @@ Purpose: Allows us to test changes to contracts and agents. *Bugs should be foun
 - Agent Deployments: Automatic, continuous deployment
 - Contract Deployments: Automatic, with human intervention required for updating the **upgradeBeacon**.
 
+**Current Dev Contract Deployment:**
+
+[1630513764971](../rust/config/1630513764971/)
+
 ### Staging
 
 Purpose: Allows us to test the full-stack integration, specifically surrounding the KMS access control and federated secret management. *Issues with process should be found here.*
@@ -28,6 +32,10 @@ Purpose: Allows us to test the full-stack integration, specifically surrounding 
 - Agent Deployments: Determined by whoever is running the agents
 - Contract Deployments: Automatic, with human intervention required for updating the **upgradeBeacon**.
 
+**Current Staging Contract Deployment:**
+
+[1629743021549](../rust/config/1629743021549/)
+
 ### Production
 
 Purpose: Where the magic happens, **things should not break here.** 
@@ -38,6 +46,10 @@ Purpose: Where the magic happens, **things should not break here.**
 - Node Infrastructure: Node infrastructure will be decentralized
 - Agent Deployments: Determined by whoever is running the agents
 - Contract Deployments: ***Manual*** - Existing tooling can be used, but deploys will be gated and require approval as contract deployments are expensive on Mainnet.
+
+**Current Production Contract Deployment:**
+
+[Not Deployed](#)
 
 ## Key Material
 
