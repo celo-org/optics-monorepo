@@ -112,6 +112,13 @@ impl UpdateHandler {
     async fn handle_update(&self, update: Update) -> Result<()> {
         info!("Have an update, awaiting the tick");
 
+        // We poll acceptable immediately, to prevent waiting on
+        // any unacceptable updates that got into the channel
+        // We poll it AGAIN after sleeping to ensure that the update
+        // is still acceptable.
+
+        // TODO(james): later refactor this to only allow acceptable
+        // updates into the channel?
         if !self.acceptable(&update).await? {
             info!("Declined to submit update. No longer current");
             return Ok(());
