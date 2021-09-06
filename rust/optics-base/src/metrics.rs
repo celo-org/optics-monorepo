@@ -1,8 +1,8 @@
 //! Useful metrics that all agents should track.
 
-use std::sync::Arc;
-
+use color_eyre::Result;
 use prometheus::{Encoder, HistogramOpts, HistogramVec, IntGaugeVec, Opts, Registry};
+use std::sync::Arc;
 use tokio::task::JoinHandle;
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct CoreMetrics {
     rpc_latencies: Box<HistogramVec>,
     listen_port: Option<u16>,
     /// Metrics registry for adding new metrics and gathering reports
-    pub registry: Arc<Registry>,
+    registry: Arc<Registry>,
 }
 
 impl CoreMetrics {
@@ -77,6 +77,56 @@ impl CoreMetrics {
         Ok(metrics)
     }
 
+    /// Register an int gauge.
+    ///
+    /// If this metric is per-replica, use `new_replica_int_gauge`
+    pub fn new_int_gauge(&self, metric_name: &str, help: &str) -> Result<prometheus::IntGauge> {
+        let gauge = prometheus::IntGauge::new(metric_name, help)
+            .expect("metric description failed validation");
+
+        self.registry.register(Box::new(gauge.clone()))?;
+
+        Ok(gauge)
+    }
+
+    /// Register an int gauge for a specific replica.
+    ///
+    /// The name will be prefixed with the replica name to avoid accidental
+    /// duplication
+    pub fn new_replica_int_gauge(
+        &self,
+        replica_name: &str,
+        metric_name: &str,
+        help: &str,
+    ) -> Result<prometheus::IntGauge> {
+        self.new_int_gauge(&format!("{}_{}", replica_name, metric_name), help)
+    }
+
+    /// Register an int counter.
+    ///
+    /// If this metric is per-replica, use `new_replica_int_counter`
+    pub fn new_int_counter(&self, metric_name: &str, help: &str) -> Result<prometheus::IntCounter> {
+        let gauge = prometheus::IntCounter::new(metric_name, help)
+            .expect("metric description failed validation");
+
+        self.registry.register(Box::new(gauge.clone()))?;
+
+        Ok(gauge)
+    }
+
+    /// Register an int counter for a specific replica.
+    ///
+    /// The name will be prefixed with the replica name to avoid accidental
+    /// duplication
+    pub fn new_replica_int_counter(
+        &self,
+        replica_name: &str,
+        metric_name: &str,
+        help: &str,
+    ) -> Result<prometheus::IntCounter> {
+        self.new_int_counter(&format!("{}_{}", replica_name, metric_name), help)
+    }
+
     /// Call with the new balance when gas is spent.
     pub fn wallet_balance_changed(
         &self,
@@ -123,7 +173,11 @@ impl CoreMetrics {
                 tokio::spawn(std::future::ready(()))
             }
             Some(port) => {
-                tracing::info!("starting prometheus server on 0.0.0.0:{port}", port = port);
+                tracing::info!(
+                    port,
+                    "starting prometheus server on 0.0.0.0:{port}",
+                    port = port
+                );
                 tokio::spawn(async move {
                     warp::serve(warp::path!("metrics").map(move || {
                         warp::reply::with_header(

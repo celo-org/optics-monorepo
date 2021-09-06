@@ -227,15 +227,12 @@ impl AsRef<AgentCore> for Updater {
 impl Updater {
     /// Instantiate a new updater
     pub fn new(signer: Signers, interval_seconds: u64, update_pause: u64, core: AgentCore) -> Self {
-        let signed_attestation_count = IntCounter::new(
-            "optics_updater_signed_attestation_count",
-            "Number of attestations signed",
-        )
-        .expect("metric description failed validation");
-
-        core.metrics
-            .registry
-            .register(Box::new(signed_attestation_count.clone()))
+        let signed_attestation_count = core
+            .metrics
+            .new_int_counter(
+                "optics_updater_signed_attestation_count",
+                "Number of attestations signed",
+            )
             .expect("must be able to register agent metrics");
 
         Self {

@@ -299,16 +299,11 @@ impl OpticsAgent for Processor {
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
 
-            let next_to_inspect = prometheus::IntGauge::new(
+            let next_to_inspect = metrics.new_replica_int_gauge(
+                &name,
                 "optics_processor_next_to_inspect_idx",
                 "Index of the next message to inspect",
-            )
-            .expect("metric description failed validation");
-
-            metrics
-                .registry
-                .register(Box::new(next_to_inspect.clone()))
-                .expect("must be able to register agent metrics");
+            )?;
 
             Replica {
                 interval,
