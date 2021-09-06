@@ -22,6 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface TestHomeInterface extends ethers.utils.Interface {
   functions: {
     "MAX_MESSAGE_BODY_BYTES()": FunctionFragment;
+    "VERSION()": FunctionFragment;
     "committedRoot()": FunctionFragment;
     "count()": FunctionFragment;
     "dispatch(uint32,bytes32,bytes)": FunctionFragment;
@@ -56,6 +57,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "MAX_MESSAGE_BODY_BYTES",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "committedRoot",
     values?: undefined
@@ -143,6 +145,7 @@ interface TestHomeInterface extends ethers.utils.Interface {
     functionFragment: "MAX_MESSAGE_BODY_BYTES",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "committedRoot",
     data: BytesLike
@@ -284,6 +287,8 @@ export class TestHome extends BaseContract {
   functions: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    VERSION(overrides?: CallOverrides): Promise<[number]>;
+
     committedRoot(overrides?: CallOverrides): Promise<[string]>;
 
     count(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -391,6 +396,8 @@ export class TestHome extends BaseContract {
 
   MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
+  VERSION(overrides?: CallOverrides): Promise<number>;
+
   committedRoot(overrides?: CallOverrides): Promise<string>;
 
   count(overrides?: CallOverrides): Promise<BigNumber>;
@@ -492,6 +499,8 @@ export class TestHome extends BaseContract {
 
   callStatic: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
+
+    VERSION(overrides?: CallOverrides): Promise<number>;
 
     committedRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -672,6 +681,8 @@ export class TestHome extends BaseContract {
   estimateGas: {
     MAX_MESSAGE_BODY_BYTES(overrides?: CallOverrides): Promise<BigNumber>;
 
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     count(overrides?: CallOverrides): Promise<BigNumber>;
@@ -777,6 +788,8 @@ export class TestHome extends BaseContract {
     MAX_MESSAGE_BODY_BYTES(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

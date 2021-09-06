@@ -7,6 +7,7 @@ export type { MerkleTreeManager } from "./MerkleTreeManager";
 export type { QueueManager } from "./QueueManager";
 export type { Replica } from "./Replica";
 export type { UpgradeBeaconProxy } from "./UpgradeBeaconProxy";
+export type { Version0 } from "./Version0";
 export type { XAppConnectionManager } from "./XAppConnectionManager";
 export type { IMessageRecipient } from "./IMessageRecipient";
 export type { IUpdaterManager } from "./IUpdaterManager";
@@ -36,6 +37,7 @@ export { MerkleTreeManager__factory } from "./factories/MerkleTreeManager__facto
 export { QueueManager__factory } from "./factories/QueueManager__factory";
 export { Replica__factory } from "./factories/Replica__factory";
 export { UpgradeBeaconProxy__factory } from "./factories/UpgradeBeaconProxy__factory";
+export { Version0__factory } from "./factories/Version0__factory";
 export { XAppConnectionManager__factory } from "./factories/XAppConnectionManager__factory";
 export { IMessageRecipient__factory } from "./factories/IMessageRecipient__factory";
 export { IUpdaterManager__factory } from "./factories/IUpdaterManager__factory";

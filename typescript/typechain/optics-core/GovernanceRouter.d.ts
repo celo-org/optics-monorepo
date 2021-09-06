@@ -21,6 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface GovernanceRouterInterface extends ethers.utils.Interface {
   functions: {
+    "VERSION()": FunctionFragment;
     "callLocal(tuple[])": FunctionFragment;
     "callRemote(uint32,tuple[])": FunctionFragment;
     "domains(uint256)": FunctionFragment;
@@ -44,6 +45,7 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     "xAppConnectionManager()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "callLocal",
     values: [{ to: BytesLike; data: BytesLike }[]]
@@ -126,6 +128,7 @@ interface GovernanceRouterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "callLocal", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "callRemote", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "domains", data: BytesLike): Result;
@@ -243,6 +246,8 @@ export class GovernanceRouter extends BaseContract {
   interface: GovernanceRouterInterface;
 
   functions: {
+    VERSION(overrides?: CallOverrides): Promise<[number]>;
+
     callLocal(
       _calls: { to: BytesLike; data: BytesLike }[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -323,6 +328,8 @@ export class GovernanceRouter extends BaseContract {
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  VERSION(overrides?: CallOverrides): Promise<number>;
 
   callLocal(
     _calls: { to: BytesLike; data: BytesLike }[],
@@ -405,6 +412,8 @@ export class GovernanceRouter extends BaseContract {
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    VERSION(overrides?: CallOverrides): Promise<number>;
+
     callLocal(
       _calls: { to: BytesLike; data: BytesLike }[],
       overrides?: CallOverrides
@@ -529,6 +538,8 @@ export class GovernanceRouter extends BaseContract {
   };
 
   estimateGas: {
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     callLocal(
       _calls: { to: BytesLike; data: BytesLike }[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -611,6 +622,8 @@ export class GovernanceRouter extends BaseContract {
   };
 
   populateTransaction: {
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     callLocal(
       _calls: { to: BytesLike; data: BytesLike }[],
       overrides?: Overrides & { from?: string | Promise<string> }

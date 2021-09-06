@@ -23,6 +23,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   functions: {
     "PRE_FILL_FEE_DENOMINATOR()": FunctionFragment;
     "PRE_FILL_FEE_NUMERATOR()": FunctionFragment;
+    "VERSION()": FunctionFragment;
     "canonicalToRepresentation(bytes32)": FunctionFragment;
     "enrollCustom(uint32,bytes32,address)": FunctionFragment;
     "enrollRemoteRouter(uint32,bytes32)": FunctionFragment;
@@ -52,6 +53,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "canonicalToRepresentation",
     values: [BytesLike]
@@ -128,6 +130,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     functionFragment: "PRE_FILL_FEE_NUMERATOR",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "canonicalToRepresentation",
     data: BytesLike
@@ -246,6 +249,8 @@ export class BridgeRouter extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    VERSION(overrides?: CallOverrides): Promise<[number]>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -353,6 +358,8 @@ export class BridgeRouter extends BaseContract {
 
   PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
+  VERSION(overrides?: CallOverrides): Promise<number>;
+
   canonicalToRepresentation(
     arg0: BytesLike,
     overrides?: CallOverrides
@@ -459,6 +466,8 @@ export class BridgeRouter extends BaseContract {
     PRE_FILL_FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    VERSION(overrides?: CallOverrides): Promise<number>;
 
     canonicalToRepresentation(
       arg0: BytesLike,
@@ -598,6 +607,8 @@ export class BridgeRouter extends BaseContract {
 
     PRE_FILL_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     canonicalToRepresentation(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -709,6 +720,8 @@ export class BridgeRouter extends BaseContract {
     PRE_FILL_FEE_NUMERATOR(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     canonicalToRepresentation(
       arg0: BytesLike,

@@ -198,6 +198,8 @@ export async function deployUnenrolledReplica(
       new replica(local.deployer),
       initData,
       local.chain.domain,
+      local.config.processGas,
+      local.config.reserveGas,
     );
   } else {
     log(isTestDeploy, `${local.chain.name}: additional Replica deploy`);

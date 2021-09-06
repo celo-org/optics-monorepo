@@ -35,6 +35,8 @@ export async function getTestChain(
       updater,
       optimisticSeconds: 3,
       watchers,
+      processGas: 850_000,
+      reserveGas: 15_000,
     },
   ];
 }

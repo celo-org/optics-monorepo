@@ -141,6 +141,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UpgradeBeaconProxy__factory>;
     getContractFactory(
+      name: "Version0",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Version0__factory>;
+    getContractFactory(
       name: "XAppConnectionManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.XAppConnectionManager__factory>;

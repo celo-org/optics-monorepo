@@ -5,6 +5,16 @@
         "internalType": "uint32",
         "name": "_localDomain",
         "type": "uint32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_processGas",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_reserveGas",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -137,6 +147,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "VERSION",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",

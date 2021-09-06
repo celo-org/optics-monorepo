@@ -22,6 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface MockWethInterface extends ethers.utils.Interface {
   functions: {
+    "VERSION()": FunctionFragment;
     "_PERMIT_TYPEHASH()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -47,6 +48,7 @@ interface MockWethInterface extends ethers.utils.Interface {
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_PERMIT_TYPEHASH",
     values?: undefined
@@ -127,6 +129,7 @@ interface MockWethInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_PERMIT_TYPEHASH",
     data: BytesLike
@@ -230,6 +233,8 @@ export class MockWeth extends BaseContract {
   interface: MockWethInterface;
 
   functions: {
+    VERSION(overrides?: CallOverrides): Promise<[number]>;
+
     _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
@@ -336,6 +341,8 @@ export class MockWeth extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  VERSION(overrides?: CallOverrides): Promise<number>;
+
   _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
 
   allowance(
@@ -439,6 +446,8 @@ export class MockWeth extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    VERSION(overrides?: CallOverrides): Promise<number>;
+
     _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
 
     allowance(
@@ -565,6 +574,8 @@ export class MockWeth extends BaseContract {
   };
 
   estimateGas: {
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
@@ -669,6 +680,8 @@ export class MockWeth extends BaseContract {
   };
 
   populateTransaction: {
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     _PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(

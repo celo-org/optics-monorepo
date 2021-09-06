@@ -36,12 +36,12 @@ contract Replica is Version0, Common {
         Processed
     }
 
-    // ============ Constants ============
+    // ============ IMMUTABLES ============
 
     // Minimum gas for message processing
-    uint256 public constant PROCESS_GAS = 850000;
+    uint256 public immutable PROCESS_GAS;
     // Reserved gas (to ensure tx completes in case message processing runs out)
-    uint256 public constant RESERVE_GAS = 15000;
+    uint256 public immutable RESERVE_GAS;
 
     // ============ Public Storage ============
 
@@ -86,7 +86,16 @@ contract Replica is Version0, Common {
     // ============ Constructor ============
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(uint32 _localDomain) Common(_localDomain) {}
+    constructor(
+        uint32 _localDomain,
+        uint256 _processGas,
+        uint256 _reserveGas
+    ) Common(_localDomain) {
+        require(_processGas >= 850_000, "!process gas");
+        require(_reserveGas >= 15_000, "!reserve gas");
+        PROCESS_GAS = _processGas;
+        RESERVE_GAS = _reserveGas;
+    }
 
     // ============ Initializer ============
 

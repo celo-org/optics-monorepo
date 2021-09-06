@@ -10,11 +10,12 @@ import {
 import { CoreContracts } from './CoreContracts';
 import { Deploy } from '../deploy';
 import { Address } from '../../../optics-tests/lib/types';
+import { BigNumber } from '@ethersproject/bignumber';
 
 type Governor = {
-  domain: number,
-  address: Address
-}
+  domain: number;
+  address: Address;
+};
 export type CoreConfig = {
   environment: DeployEnvironment;
   updater: Address;
@@ -23,6 +24,8 @@ export type CoreConfig = {
   optimisticSeconds: number;
   watchers: string[];
   governor?: Governor;
+  processGas: number;
+  reserveGas: number;
 };
 
 export class CoreDeploy extends Deploy<CoreContracts> {
@@ -67,6 +70,8 @@ export class CoreDeploy extends Deploy<CoreContracts> {
         recoveryManager: config.recoveryManager,
         recoveryTimelock: config.recoveryTimelock,
         optimisticSeconds: config.optimisticSeconds,
+        processGas: config.processGas ?? 850_000,
+        reserveGas: config.reserveGas ?? 15_000,
       },
     ];
   }
