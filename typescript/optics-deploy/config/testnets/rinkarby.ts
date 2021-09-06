@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { ChainJson, toChain } from '../../src/chain';
 import { CoreConfig } from '../../src/core/CoreDeploy';
 import { BridgeConfig } from '../../src/bridge/BridgeDeploy';
+import { BigNumber } from '@ethersproject/bignumber';
 
 dotenv.config();
 
@@ -29,6 +30,8 @@ export const devConfig: CoreConfig = {
   recoveryManager: '0x24F6c874F56533d9a1422e85e5C7A806ED11c036',
   optimisticSeconds: 10,
   recoveryTimelock: 180,
+  processGas: 850_000 * 100,
+  reserveGas: 15_000 * 100,
 };
 
 export const stagingConfig: CoreConfig = {
@@ -38,6 +41,8 @@ export const stagingConfig: CoreConfig = {
   recoveryManager: '0x24F6c874F56533d9a1422e85e5C7A806ED11c036',
   optimisticSeconds: 10,
   recoveryTimelock: 180,
+  processGas: 850_000 * 100,
+  reserveGas: 15_000 * 100,
 };
 
 export const bridgeConfig: BridgeConfig = {

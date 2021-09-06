@@ -1,7 +1,7 @@
 import { getPathToLatestDeploy } from '../../src/verification/readDeployOutput';
 import { deployBridges } from '../../src/bridge';
 import * as alfajores from '../../config/testnets/alfajores';
-import * as arbitrum from '../../config/testnets/arbitrum';
+import * as rinkarby from '../../config/testnets/rinkarby';
 import { BridgeDeploy } from '../../src/bridge/BridgeDeploy';
 
 // get the path to the latest core system deploy
@@ -12,10 +12,10 @@ const alfajoresDeploy = new BridgeDeploy(
   alfajores.bridgeConfig,
   path,
 );
-const arbitrumDeploy = new BridgeDeploy(
-  arbitrum.chain,
-  arbitrum.bridgeConfig,
+const rinkarbyDeploy = new BridgeDeploy(
+  rinkarby.chain,
+  rinkarby.bridgeConfig,
   path,
 );
 
-deployBridges([alfajoresDeploy, arbitrumDeploy]);
+deployBridges([alfajoresDeploy, rinkarbyDeploy]);

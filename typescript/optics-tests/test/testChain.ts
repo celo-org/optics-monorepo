@@ -20,6 +20,7 @@ export async function getTestChain(
       provider: ethers.provider,
       deployer,
       gasPrice: BigNumber.from('20000000000'),
+      gasLimit: BigNumber.from('6_000_000'),
       confirmations: 0,
       domain,
       config: {

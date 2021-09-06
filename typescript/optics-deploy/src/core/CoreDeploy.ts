@@ -10,7 +10,7 @@ import {
 import { CoreContracts } from './CoreContracts';
 import { Deploy } from '../deploy';
 import { Address } from '../../../optics-tests/lib/types';
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 
 type Governor = {
   domain: number;
@@ -24,8 +24,8 @@ export type CoreConfig = {
   optimisticSeconds: number;
   watchers: string[];
   governor?: Governor;
-  processGas: number;
-  reserveGas: number;
+  processGas: BigNumberish;
+  reserveGas: BigNumberish;
 };
 
 export class CoreDeploy extends Deploy<CoreContracts> {
