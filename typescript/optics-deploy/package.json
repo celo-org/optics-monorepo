@@ -12,7 +12,7 @@
   "main": "src/index.ts",
   "scripts": {
     "prettier": "prettier --write ./src ./config ./scripts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0",
