@@ -1,0 +1,68 @@
+{
+  "environment": "dev",
+  "signers": {
+    "arbitrum rinkeby": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "kovan": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "alfajores": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "rinkeby": {
+      "key": "",
+      "type": "hexKey"
+    }
+  },
+  "replicas": {
+    "kovan": {
+      "address": "0xE7b0CAeF8ce27e4d70856131e3C2Aa4f62B82F1F",
+      "domain": "3000",
+      "name": "kovan",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": "https://eth-kovan.alchemyapi.io/v2/aJP38P1ZeHbXP3Td8vVh8vFmxkKT9pnR"
+      }
+    },
+    "alfajores": {
+      "address": "0xD7AAaCAb4d27043394151FaC200ADDa416E2b1b9",
+      "domain": "1000",
+      "name": "alfajores",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": "https://alfajores-forno.celo-testnet.org"
+      }
+    },
+    "rinkeby": {
+      "address": "0x434808fAED87eE5d60732Bbca6e061D53B34Af5C",
+      "domain": "2000",
+      "name": "rinkeby",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": "https://eth-rinkeby.alchemyapi.io/v2/uOf-lO18qM7rAT6NOgMAZQoyuS__lhqN"
+      }
+    }
+  },
+  "home": {
+    "address": "0xbffbf61c61929216EED0A30D7B824Ac2326A01C1",
+    "domain": "4000",
+    "name": "arbitrum rinkeby",
+    "rpcStyle": "ethereum",
+    "connection": {
+      "type": "http",
+      "url": "https://rinkeby.arbitrum.io/rpc"
+    }
+  },
+  "tracing": {
+    "level": "debug",
+    "fmt": "json"
+  },
+  "db": "db_path"
+}
