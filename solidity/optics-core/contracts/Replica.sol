@@ -36,7 +36,7 @@ contract Replica is Version0, Common {
         Processed
     }
 
-    // ============ IMMUTABLES ============
+    // ============ Immutables ============
 
     // Minimum gas for message processing
     uint256 public immutable PROCESS_GAS;
