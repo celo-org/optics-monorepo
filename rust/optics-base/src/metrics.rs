@@ -11,7 +11,6 @@ use tokio::task::JoinHandle;
 /// Metrics for a particular domain
 pub struct CoreMetrics {
     agent_name: String,
-    blockheight: Box<IntGaugeVec>,
     transactions: Box<IntGaugeVec>,
     wallet_balance: Box<IntGaugeVec>,
     rpc_latencies: Box<HistogramVec>,
@@ -29,15 +28,6 @@ impl CoreMetrics {
     ) -> prometheus::Result<CoreMetrics> {
         let metrics = CoreMetrics {
             agent_name: for_agent.into(),
-            blockheight: Box::new(IntGaugeVec::new(
-                Opts::new(
-                    "blockheight_max",
-                    "Height of the most recently observed block",
-                )
-                .namespace("optics")
-                .const_label("VERSION", env!("CARGO_PKG_VERSION")),
-                &["chain", "agent"],
-            )?),
             transactions: Box::new(IntGaugeVec::new(
                 Opts::new(
                     "transactions_total",
@@ -71,7 +61,6 @@ impl CoreMetrics {
 
         // TODO: only register these if they aren't already registered?
 
-        metrics.registry.register(metrics.blockheight.clone())?;
         metrics.registry.register(metrics.transactions.clone())?;
         metrics.registry.register(metrics.wallet_balance.clone())?;
         metrics.registry.register(metrics.rpc_latencies.clone())?;
@@ -130,13 +119,6 @@ impl CoreMetrics {
         self.wallet_balance
             .with_label_values(&[chain, &format!("{:x}", address), &self.agent_name])
             .set(current_balance.as_u64() as i64) // XXX: truncated data
-    }
-
-    /// Call with the height when a new block is observed.
-    pub fn observed_block(&self, chain: &str, height: u64) {
-        self.blockheight
-            .with_label_values(&[chain, &self.agent_name])
-            .set(height as i64) // XXX: truncated data
     }
 
     /// Call with RPC duration after it is complete

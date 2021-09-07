@@ -186,21 +186,35 @@ impl Settings {
 
     /// Try to generate an agent core for a named agent
     pub async fn try_into_core(&self, name: &str) -> Result<AgentCore, Report> {
+        let metrics = Arc::new(crate::metrics::CoreMetrics::new(
+            name,
+            self.metrics
+                .as_ref()
+                .map(|v| v.parse::<u16>().expect("metrics port must be u16")),
+            Arc::new(prometheus::Registry::new()),
+        )?);
+
+        let block_height = metrics
+            .new_int_gauge(
+                "block_height",
+                "Height of a recently observed block",
+                &["network", "agent"],
+            )
+            .expect("failed to register block_height metric");
+
         let home = Arc::new(self.try_home().await?);
+        self.home.track_block_height(name, block_height.clone());
         let replicas = self.try_replicas().await?;
+        self.replicas
+            .iter()
+            .for_each(|(_, setup)| setup.track_block_height(name, block_height.clone()));
         let db = Arc::new(db::from_path(&self.db)?);
 
         Ok(AgentCore {
             home,
             replicas,
             db,
-            metrics: Arc::new(crate::metrics::CoreMetrics::new(
-                name,
-                self.metrics
-                    .as_ref()
-                    .map(|v| v.parse::<u16>().expect("metrics port must be u16")),
-                Arc::new(prometheus::Registry::new()),
-            )?),
+            metrics,
         })
     }
 

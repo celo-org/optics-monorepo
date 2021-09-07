@@ -20,3 +20,4 @@ color-eyre = "0.5.0"
 optics-core = { path = "../../optics-core" }
 tokio = "1.7.1"
 hex = "0.4.3"
+prometheus = "0.12"

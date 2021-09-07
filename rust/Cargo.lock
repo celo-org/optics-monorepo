@@ -2171,6 +2171,7 @@ dependencies = [
  "ethers-signers",
  "hex",
  "optics-core",
+ "prometheus",
  "serde 1.0.130",
  "serde_json",
  "tokio",
