@@ -1,7 +1,9 @@
 //! Useful metrics that all agents should track.
 
 use color_eyre::Result;
-use prometheus::{Encoder, HistogramOpts, HistogramVec, IntGaugeVec, Opts, Registry};
+use prometheus::{
+    Encoder, HistogramOpts, HistogramVec, IntCounterVec, IntGaugeVec, Opts, Registry,
+};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 
@@ -80,51 +82,42 @@ impl CoreMetrics {
     /// Register an int gauge.
     ///
     /// If this metric is per-replica, use `new_replica_int_gauge`
-    pub fn new_int_gauge(&self, metric_name: &str, help: &str) -> Result<prometheus::IntGauge> {
-        let gauge = prometheus::IntGauge::new(metric_name, help)
-            .expect("metric description failed validation");
-
+    pub fn new_int_gauge(
+        &self,
+        metric_name: &str,
+        help: &str,
+        labels: &[&str],
+    ) -> Result<prometheus::IntGaugeVec> {
+        let gauge = IntGaugeVec::new(
+            Opts::new(metric_name, help)
+                .namespace("optics")
+                .const_label("VERSION", env!("CARGO_PKG_VERSION")),
+            labels,
+        )?;
         self.registry.register(Box::new(gauge.clone()))?;
 
         Ok(gauge)
-    }
-
-    /// Register an int gauge for a specific replica.
-    ///
-    /// The name will be prefixed with the replica name to avoid accidental
-    /// duplication
-    pub fn new_replica_int_gauge(
-        &self,
-        replica_name: &str,
-        metric_name: &str,
-        help: &str,
-    ) -> Result<prometheus::IntGauge> {
-        self.new_int_gauge(&format!("{}_{}", replica_name, metric_name), help)
     }
 
     /// Register an int counter.
     ///
     /// If this metric is per-replica, use `new_replica_int_counter`
-    pub fn new_int_counter(&self, metric_name: &str, help: &str) -> Result<prometheus::IntCounter> {
-        let gauge = prometheus::IntCounter::new(metric_name, help)
-            .expect("metric description failed validation");
-
-        self.registry.register(Box::new(gauge.clone()))?;
-
-        Ok(gauge)
-    }
-
-    /// Register an int counter for a specific replica.
-    ///
-    /// The name will be prefixed with the replica name to avoid accidental
-    /// duplication
-    pub fn new_replica_int_counter(
+    pub fn new_int_counter(
         &self,
-        replica_name: &str,
         metric_name: &str,
         help: &str,
-    ) -> Result<prometheus::IntCounter> {
-        self.new_int_counter(&format!("{}_{}", replica_name, metric_name), help)
+        labels: &[&str],
+    ) -> Result<prometheus::IntCounterVec> {
+        let counter = IntCounterVec::new(
+            Opts::new(metric_name, help)
+                .namespace("optics")
+                .const_label("VERSION", env!("CARGO_PKG_VERSION")),
+            labels,
+        )?;
+
+        self.registry.register(Box::new(counter.clone()))?;
+
+        Ok(counter)
     }
 
     /// Call with the new balance when gas is spent.
