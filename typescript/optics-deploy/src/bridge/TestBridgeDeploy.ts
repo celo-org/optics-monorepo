@@ -43,9 +43,9 @@ export default class TestBridgeDeploy {
 
   constructor(
     signer: Signer,
+    ubc: UpgradeBeaconController,
     mockCore: MockCore,
     mockWeth: MockWeth,
-    ubc: UpgradeBeaconController,
     contracts: BridgeContracts,
     domain: number,
     chain: Chain,
@@ -54,12 +54,12 @@ export default class TestBridgeDeploy {
     if (!callerKnowsWhatTheyAreDoing) {
       throw new Error("Don't instantiate via new.");
     }
-    this.verificationInput = [];
+    this.signer = signer;
     this.ubc = ubc;
     this.mockCore = mockCore;
     this.mockWeth = mockWeth;
     this.contracts = contracts;
-    this.signer = signer;
+    this.verificationInput = [];
     this.localDomain = domain;
     this.config.weth = mockWeth.address;
     this.chain = chain;
@@ -72,12 +72,13 @@ export default class TestBridgeDeploy {
     const contracts = new BridgeContracts();
     const domain = await mockCore.localDomain();
     const [chain] = await getTestChain(domain, '', []);
+    chain.deployer = signer;
 
     let deploy = new TestBridgeDeploy(
       signer,
+      ubc,
       mockCore,
       mockWeth,
-      ubc,
       contracts,
       domain,
       chain,

@@ -64,7 +64,10 @@ describe('BridgeRouter', async () => {
       let repr: IERC20;
 
       before(async () => {
+        console.log(1)
         deploy = await TestBridgeDeploy.deploy(deployer);
+        console.log(2)
+        console.log(deploy.chain)
 
         // generate transfer action
         const transferMessageObj: types.Message = {

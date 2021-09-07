@@ -142,7 +142,7 @@ describe('GovernanceRouter', async () => {
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = deploy.config.optimisticSeconds;
     await increaseTimestampBy(
-      deploy.chain.provider as providers.JsonRpcProvider,
+      deploy.chain.provider,
       optimisticSeconds * 2,
     );
 
