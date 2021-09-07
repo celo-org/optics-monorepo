@@ -4,11 +4,12 @@ import { expect } from 'chai';
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib/core';
 import { Signer } from '../lib/types';
+import { CoreContractAddresses } from '../../optics-deploy/src/chain';
 import { deployBridges } from '../../optics-deploy/src/bridge';
 import { BridgeDeploy } from '../../optics-deploy/src/bridge/BridgeDeploy';
-import { deployTwoChains, deployNChains } from '../../optics-deploy/src/core';
-import { CoreDeploy } from '../../optics-deploy/src/core/CoreDeploy';
 import { checkBridgeDeploy } from '../../optics-deploy/src/bridge/checks';
+import { deployTwoChains, deployNChains, deployOptics } from '../../optics-deploy/src/core';
+import { CoreDeploy } from '../../optics-deploy/src/core/CoreDeploy';
 import {
   MockWeth__factory,
 } from '../../typechain/optics-xapps';
@@ -93,6 +94,8 @@ describe('bridge deploy scripts', async () => {
 
   it('deploys bridge', async () => {
     const mockWeth = await new MockWeth__factory(signer).deploy();
+    await deployOptics(deploys[0]);
+    const coreAddresses: CoreContractAddresses = deploys[0].contracts.toObject();
 
     // must be set to find core contracts
     deploys[0].chain.config.name = 'alfajores';
@@ -102,9 +105,10 @@ describe('bridge deploy scripts', async () => {
       deploys[0].chain,
       {},
       '../../rust/config/1630513764971',
-      true
+      true,
+      coreAddresses
     );
-    const kovanDeploy = new BridgeDeploy(deploys[1].chain, { weth: mockWeth.address }, '../../rust/config/1630513764971', true);
+    const kovanDeploy = new BridgeDeploy(deploys[1].chain, { weth: mockWeth.address }, '../../rust/config/1630513764971', true, coreAddresses);
 
     await deployBridges([alfajoresDeploy, kovanDeploy]);
 

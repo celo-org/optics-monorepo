@@ -18,11 +18,12 @@ export class BridgeDeploy extends Deploy<BridgeContracts> {
     config: BridgeConfig,
     coreDeployPath: string,
     test: boolean = false,
+    coreContracts?: CoreContractAddresses
   ) {
     super(chain, new BridgeContracts(), test);
     this.config = config;
     this.coreDeployPath = coreDeployPath;
-    this.coreContractAddresses = parseFileFromDeploy(
+    this.coreContractAddresses = coreContracts || parseFileFromDeploy(
       coreDeployPath,
       chain.config.name,
       'contracts',
