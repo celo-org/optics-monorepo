@@ -32,7 +32,8 @@ use optics_core::{
 
 use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 
-static LAST_INSPECTED: &str = "lastInspected";
+const LAST_INSPECTED: &str = "lastInspected";
+const AGENT_NAME: &str = "processor";
 
 /// The replica processor is responsible for polling messages and waiting until they validate
 /// before proving/processing them.
@@ -44,7 +45,7 @@ pub(crate) struct Replica {
     db: Arc<DB>,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
-    next_to_inspect: prometheus::IntGauge,
+    next_message_index: prometheus::IntGaugeVec,
 }
 
 impl std::fmt::Display for Replica {
@@ -91,19 +92,23 @@ impl Replica {
                 //      - If not, wait and poll again
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
-                let mut next_to_inspect: u32 = match Self::db_get(&self.db, LAST_INSPECTED)? {
+                let mut next_message_index: u32 = match Self::db_get(&self.db, LAST_INSPECTED)? {
                     Some(n) => n + 1,
                     None => 0,
                 };
 
+                self.next_message_index
+                    .with_label_values(&[self.replica.name(), AGENT_NAME])
+                    .set(next_message_index as i64);
+
                 info!(
                     domain,
-                    nonce = next_to_inspect,
+                    nonce = next_message_index,
                     replica = self.replica.name(),
                     "Starting processor for {} {} at nonce {}",
                     domain,
                     self.replica.name(),
-                    next_to_inspect
+                    next_message_index
                 );
 
                 loop {
@@ -111,19 +116,19 @@ impl Replica {
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
-                        nonce = next_to_inspect,
+                        nonce = next_message_index,
                         replica_domain = self.replica.local_domain(),
                         home_domain = self.home.local_domain(),
                     );
 
                     match self
-                        .try_msg_by_domain_and_nonce(domain, next_to_inspect)
+                        .try_msg_by_domain_and_nonce(domain, next_message_index)
                         .instrument(seq_span)
                         .await
                     {
                         Ok(true) => {
-                            Self::db_put(&self.db, LAST_INSPECTED, next_to_inspect)?;
-                            next_to_inspect += 1;
+                            Self::db_put(&self.db, LAST_INSPECTED, next_message_index)?;
+                            next_message_index += 1;
                         }
                         Ok(false) => {
                             // there was some fault, let's wait and then try again later when state may have moved
@@ -244,6 +249,7 @@ decl_agent!(
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
         allowed: Option<Arc<HashSet<H256>>>,
         denied: Option<Arc<HashSet<H256>>>,
+        next_message_index: prometheus::IntGaugeVec,
     }
 );
 
@@ -255,6 +261,15 @@ impl Processor {
         allowed: Option<HashSet<H256>>,
         denied: Option<HashSet<H256>>,
     ) -> Self {
+        let next_message_index = core
+            .metrics
+            .new_int_gauge(
+                "next_message_index",
+                "Index of the next message to inspect",
+                &["replica", "agent"],
+            )
+            .expect("Processor metric alreadt registered -- should have be a singleton");
+
         Self {
             interval,
             prover: Arc::new(RwLock::new(Prover::from_disk(&core.db))),
@@ -262,6 +277,7 @@ impl Processor {
             replica_tasks: Default::default(),
             allowed: allowed.map(Arc::new),
             denied: denied.map(Arc::new),
+            next_message_index,
         }
     }
 }
@@ -277,7 +293,7 @@ impl OpticsAgent for Processor {
     {
         Ok(Self::new(
             settings.interval.parse().expect("invalid integer"),
-            settings.as_ref().try_into_core("processor").await?,
+            settings.as_ref().try_into_core(AGENT_NAME).await?,
             settings.allowed,
             settings.denied,
         ))
@@ -294,16 +310,10 @@ impl OpticsAgent for Processor {
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();
 
-        let metrics = self.core.metrics.clone();
+        let next_message_index = self.next_message_index.clone();
 
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
-
-            let next_to_inspect = metrics.new_replica_int_gauge(
-                &name,
-                "optics_processor_next_to_inspect_idx",
-                "Index of the next message to inspect",
-            )?;
 
             Replica {
                 interval,
@@ -312,7 +322,7 @@ impl OpticsAgent for Processor {
                 db,
                 allowed,
                 denied,
-                next_to_inspect,
+                next_message_index,
             }
             .main()
             .await?
