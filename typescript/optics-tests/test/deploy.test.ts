@@ -8,7 +8,7 @@ import { deployBridges } from '../../optics-deploy/src/bridge';
 import { BridgeDeploy } from '../../optics-deploy/src/bridge/BridgeDeploy';
 import { deployTwoChains, deployNChains } from '../../optics-deploy/src/core';
 import { CoreDeploy } from '../../optics-deploy/src/core/CoreDeploy';
-import { checkBridgeDeploy } from '../../optics-deploy/src/test/bridge';
+import { checkBridgeDeploy } from '../../optics-deploy/src/bridge/checks';
 import {
   MockWeth__factory,
 } from '../../typechain/optics-xapps';
@@ -38,7 +38,6 @@ describe('core deploy scripts', async () => {
       // deploy optics contracts on 2 chains
       // will test inside deploy function
       await deployTwoChains(deploys[0], deploys[1]);
-      console.log(deploys)
     });
   });
 
@@ -74,7 +73,7 @@ describe('core deploy scripts', async () => {
   });
 });
 
-describe.only('bridge deploy scripts', async () => {
+describe('bridge deploy scripts', async () => {
   let deploys: CoreDeploy[],
     signer: Signer,
     recoveryManager: Signer,
@@ -111,5 +110,5 @@ describe.only('bridge deploy scripts', async () => {
 
     await checkBridgeDeploy(alfajoresDeploy, [2000]);
     await checkBridgeDeploy(kovanDeploy, [1000]);
-  })
+  });
 });

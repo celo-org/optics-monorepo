@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 
-import { CoreDeploy as Deploy } from '../core/CoreDeploy';
+import { CoreDeploy as Deploy } from './CoreDeploy';
 import { BeaconProxy } from '../proxyUtils';
 
 const emptyAddr = '0x' + '00'.repeat(20);

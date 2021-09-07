@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
-import { assertBeaconProxy } from './core';
-import { BridgeDeploy as Deploy } from '../bridge/BridgeDeploy';
+import { assertBeaconProxy } from '../core/checks';
+import { BridgeDeploy as Deploy } from './BridgeDeploy';
 import { TestBridgeRouter } from '../../../typechain/optics-xapps';
 
 const emptyAddr = '0x' + '00'.repeat(32);

@@ -187,15 +187,8 @@ export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
     `enrolling ${remote.chain.name} BridgeRouter on ${local.chain.name}`,
   );
 
-  const remoteHome: contracts.Home = contracts.Home__factory.connect(
-    remote.coreContractAddresses.home.proxy,
-    remote.chain.deployer,
-  );
-  // console.log(remoteHome)
-  const remoteDomain = await remoteHome.localDomain();
-
   let tx = await local.contracts.bridgeRouter!.proxy.enrollRemoteRouter(
-    remoteDomain,
+    remote.chain.domain,
     toBytes32(remote.contracts.bridgeRouter!.proxy.address),
     local.overrides,
   );

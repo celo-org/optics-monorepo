@@ -5,7 +5,7 @@ import * as proxyUtils from '../proxyUtils';
 import { CoreDeploy } from './CoreDeploy';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import * as contracts from '../../../typechain/optics-core';
-import { checkCoreDeploy } from '../test/core';
+import { checkCoreDeploy } from './checks';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
