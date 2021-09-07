@@ -107,7 +107,7 @@ describe.only('bridge deploy scripts', async () => {
 
     await deployBridges([alfajoresDeploy, kovanDeploy]);
 
-    await checkBridgeDeploy(alfajoresDeploy, [1]);
-    await checkBridgeDeploy(kovanDeploy, [1]);
+    await checkBridgeDeploy(alfajoresDeploy, [2000]);
+    await checkBridgeDeploy(kovanDeploy, [1000]);
   })
 });

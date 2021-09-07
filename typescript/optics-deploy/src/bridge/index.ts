@@ -90,8 +90,10 @@ export async function deployTokenUpgradeBeacon(deploy: Deploy) {
 export async function deployBridgeRouter(deploy: Deploy) {
   console.log(`deploying ${deploy.chain.name} BridgeRouter`);
 
+  const factory = deploy.test? xAppContracts.TestBridgeRouter__factory : xAppContracts.BridgeRouter__factory;
+
   const initData =
-    xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
+    factory.createInterface().encodeFunctionData(
       'initialize',
       [
         deploy.contracts.bridgeToken!.beacon.address,
@@ -102,7 +104,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
   deploy.contracts.bridgeRouter =
     await proxyUtils.deployProxy<xAppContracts.BridgeRouter>(
       deploy,
-      new xAppContracts.BridgeRouter__factory(deploy.chain.deployer),
+      new factory(deploy.chain.deployer),
       initData,
     );
 
