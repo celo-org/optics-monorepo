@@ -100,7 +100,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
       rpcStyle: 'ethereum',
       connection: {
         type: 'http',
-        url: local.chain.config!.rpc,
+        url: '',
       },
     };
 
@@ -126,7 +126,7 @@ export class CoreDeploy extends Deploy<CoreContracts> {
         rpcStyle: 'ethereum',
         connection: {
           type: 'http',
-          url: remote.chain.config!.rpc,
+          url: '',
         },
       };
 

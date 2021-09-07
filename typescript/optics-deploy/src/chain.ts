@@ -76,8 +76,8 @@ export type RustSigner = {
 };
 
 export type RustConnection = {
-  url: string;
   type: string; // TODO
+  url: string;
 };
 
 export type RustContractBlock = {
