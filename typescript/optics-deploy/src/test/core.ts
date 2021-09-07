@@ -6,7 +6,7 @@ import { BeaconProxy } from '../proxyUtils';
 
 const emptyAddr = '0x' + '00'.repeat(20);
 
-function assertBeaconProxy(beaconProxy: BeaconProxy<Contract>) {
+export function assertBeaconProxy(beaconProxy: BeaconProxy<Contract>) {
   expect(beaconProxy.beacon).to.not.be.undefined;
   expect(beaconProxy.proxy).to.not.be.undefined;
   expect(beaconProxy.implementation).to.not.be.undefined;
@@ -74,4 +74,23 @@ export async function checkCoreDeploy(
   expect(xAppManagerOwner).to.equal(governorAddr);
   expect(beaconOwner).to.equal(governorAddr);
   expect(homeOwner).to.equal(governorAddr);
+
+  // check verification addresses
+  // TODO: give unique name or id in verification output
+  // expect(deploy.verificationInput[0].address).to.equal(deploy.contracts.upgradeBeaconController?.address);
+  // expect(deploy.verificationInput[1].address).to.equal(deploy.contracts.updaterManager?.address);
+  // expect(deploy.verificationInput[2].address).to.equal(deploy.contracts.xAppConnectionManager?.address);
+  // expect(deploy.verificationInput[3].address).to.equal(deploy.contracts.home?.implementation.address);
+  // expect(deploy.verificationInput[4].address).to.equal(deploy.contracts.home?.beacon.address);
+  // expect(deploy.verificationInput[5].address).to.equal(deploy.contracts.home?.proxy.address);
+  // expect(deploy.verificationInput[6].address).to.equal(deploy.contracts.governance?.implementation.address);
+  // expect(deploy.verificationInput[7].address).to.equal(deploy.contracts.governance?.beacon.address);
+  // expect(deploy.verificationInput[8].address).to.equal(deploy.contracts.governance?.proxy.address);
+  // for (let i = 0; i < remoteDomains.length; i++) {
+  //   const index = i + 9;
+  //   const replica = deploy.contracts.replicas[remoteDomains[i]]!;
+  //   expect(deploy.verificationInput[index].address).to.equal(replica.implementation.address);
+  //   expect(deploy.verificationInput[index + 1].address).to.equal(replica.beacon.address);
+  //   expect(deploy.verificationInput[index + 2].address).to.equal(replica.proxy.address);
+  // }
 }

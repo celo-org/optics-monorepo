@@ -177,7 +177,6 @@ export async function deployUnenrolledReplica(
   const replica = isTestDeploy
     ? contracts.TestReplica__factory
     : contracts.Replica__factory;
-  const factory = new replica(local.chain.deployer);
 
   let initData = replica.createInterface().encodeFunctionData('initialize', [
     remote.chain.domain,

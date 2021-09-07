@@ -36,6 +36,7 @@ export default class TestBridgeDeploy {
   contracts: BridgeContracts;
   verificationInput: ContractVerificationInput[];
   localDomain: number;
+  test: boolean = true;
 
   constructor(
     signer: Signer,

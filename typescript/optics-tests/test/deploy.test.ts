@@ -4,15 +4,21 @@ import { expect } from 'chai';
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib/core';
 import { Signer } from '../lib/types';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
+import { deployBridges } from '../../optics-deploy/src/bridge';
+import { BridgeDeploy } from '../../optics-deploy/src/bridge/BridgeDeploy';
 import { deployTwoChains, deployNChains } from '../../optics-deploy/src/core';
+import { CoreDeploy } from '../../optics-deploy/src/core/CoreDeploy';
+import { checkBridgeDeploy } from '../../optics-deploy/src/test/bridge';
+import {
+  MockWeth__factory,
+} from '../../typechain/optics-xapps';
 
 const domains = [1000, 2000, 3000, 4000];
 
 /*
  * Deploy the full Optics suite on two chains
  */
-describe('deploy scripts', async () => {
+describe('core deploy scripts', async () => {
   let signer: Signer,
     recoveryManager: Signer,
     updater: Updater;
@@ -24,7 +30,7 @@ describe('deploy scripts', async () => {
 
   describe('deployTwoChains', async () => {
     it('2-chain deploy', async () => {
-      let deploys: Deploy[] = [];
+      let deploys: CoreDeploy[] = [];
       for (var i = 0; i < 2; i++) {
         deploys.push(await getTestDeploy(domains[i], updater.address, [recoveryManager.address]));
       }
@@ -32,6 +38,7 @@ describe('deploy scripts', async () => {
       // deploy optics contracts on 2 chains
       // will test inside deploy function
       await deployTwoChains(deploys[0], deploys[1]);
+      console.log(deploys)
     });
   });
 
@@ -39,11 +46,11 @@ describe('deploy scripts', async () => {
     // tests deploys for up to 4 chains
     for (let i = 1; i <= 4; i++) {
       it(`${i}-chain deploy`, async () => {
-        let deploys: Deploy[] = [];
+        let deploys: CoreDeploy[] = [];
         for (let j = 0; j < i; j++) {
           deploys.push(await getTestDeploy(domains[j], updater.address, [recoveryManager.address]));
         }
-  
+
         // deploy optics contracts on `i` chains
         // will test inside deploy function
         await deployNChains(deploys);
@@ -51,7 +58,7 @@ describe('deploy scripts', async () => {
     }
 
     it(`asserts there is at least one deploy config`, async () => {
-      const deploys: Deploy[] = [];
+      const deploys: CoreDeploy[] = [];
       const errMsg = 'Must pass at least one deploy config'
 
       try {
@@ -65,4 +72,42 @@ describe('deploy scripts', async () => {
       }
     })
   });
+});
+
+describe.only('bridge deploy scripts', async () => {
+  let deploys: CoreDeploy[],
+    signer: Signer,
+    recoveryManager: Signer,
+    updater: Updater;
+
+  before(async () => {
+    [signer, recoveryManager] = await ethers.getSigners();
+    updater = await Updater.fromSigner(signer, domains[0]);
+  });
+
+  beforeEach(async () => {
+    deploys = [];
+    for (let i = 0; i < 2; i++) {
+      deploys.push(await getTestDeploy(domains[i], updater.address, [recoveryManager.address]));
+    }
+  });
+
+  it('deploys bridge', async () => {
+    const mockWeth = await new MockWeth__factory(signer).deploy();
+
+    deploys[0].chain.config.name = 'alfajores';
+    deploys[1].chain.config.name = 'kovan';
+    const alfajoresDeploy = new BridgeDeploy(
+      deploys[0].chain,
+      {},
+      '../../rust/config/1630513764971',
+      true
+    );
+    const kovanDeploy = new BridgeDeploy(deploys[1].chain, { weth: mockWeth.address }, '../../rust/config/1630513764971', true);
+
+    await deployBridges([alfajoresDeploy, kovanDeploy]);
+
+    await checkBridgeDeploy(alfajoresDeploy, [1]);
+    await checkBridgeDeploy(kovanDeploy, [1]);
+  })
 });

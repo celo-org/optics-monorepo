@@ -22,6 +22,8 @@ export type BridgeDeployOutput = {
  * @param deploys - The list of deploy instances for each chain
  */
 export async function deployBridges(deploys: Deploy[]) {
+  const isTestDeploy: boolean = deploys.filter((c) => c.test).length > 0;
+
   // deploy BridgeTokens & BridgeRouters
   await Promise.all(
     deploys.map(async (deploy) => {
@@ -49,9 +51,11 @@ export async function deployBridges(deploys: Deploy[]) {
     }),
   );
 
-  // output the Bridge deploy information to a subdirectory
-  // of the core system deploy config folder
-  writeBridgeDeployOutput(deploys);
+  if (!isTestDeploy) {
+    // output the Bridge deploy information to a subdirectory
+    // of the core system deploy config folder
+    writeBridgeDeployOutput(deploys);
+  }
 }
 
 /**
@@ -122,11 +126,12 @@ export async function deployBridgeRouter(deploy: Deploy) {
  * @param deploy - The deploy instance for the chain on which to deploy the contract
  */
 export async function deployEthHelper(deploy: Deploy) {
-  console.log(`deploying ${deploy.chain.name} EthHelper`);
-
   if (!deploy.config.weth) {
+    console.log(`skipping ${deploy.chain.name} EthHelper deploy`);
     return;
   }
+
+  console.log(`deploying ${deploy.chain.name} EthHelper`);
 
   const factory = new xAppContracts.ETHHelper__factory(deploy.chain.deployer);
 
@@ -194,7 +199,7 @@ export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
     local.overrides,
   );
 
-  await tx.wait(5);
+  await tx.wait(local.chain.confirmations);
 
   console.log(
     `enrolled ${remote.chain.name} BridgeRouter on ${local.chain.name}`,
@@ -215,7 +220,7 @@ export async function transferOwnershipToGovernance(deploy: Deploy) {
     deploy.overrides,
   );
 
-  await tx.wait(5);
+  await tx.wait(deploy.chain.confirmations);
 
   console.log(`transferred ownership of ${deploy.chain.name} BridgeRouter`);
 }
