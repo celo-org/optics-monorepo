@@ -7,7 +7,7 @@ use color_eyre::{
 };
 use ethers::{core::types::H256, signers::Signer, types::Address};
 use futures_util::future::select_all;
-use prometheus::IntCounter;
+use prometheus::IntCounterVec;
 use rocksdb::DB;
 use tokio::{
     sync::{
@@ -30,6 +30,8 @@ use optics_core::{
     SignedUpdate, Signers, Update,
 };
 
+const AGENT_NAME: &str = "updater";
+
 #[derive(Debug)]
 struct UpdateHandler {
     home: Arc<Homes>,
@@ -39,7 +41,7 @@ struct UpdateHandler {
     signer: Arc<Signers>,
     db: Arc<DB>,
     mutex: Arc<Mutex<()>>,
-    signed_attestation_count: IntCounter,
+    signed_attestation_count: IntCounterVec,
 }
 
 impl std::fmt::Display for UpdateHandler {
@@ -68,7 +70,7 @@ impl UpdateHandler {
         signer: Arc<Signers>,
         db: Arc<DB>,
         mutex: Arc<Mutex<()>>,
-        signed_attestation_count: IntCounter,
+        signed_attestation_count: IntCounterVec,
     ) -> Self {
         Self {
             home,
@@ -158,7 +160,9 @@ impl UpdateHandler {
             &signed.update.previous_root, &signed.update.new_root
         );
 
-        self.signed_attestation_count.inc();
+        self.signed_attestation_count
+            .with_label_values(&[self.home.name(), AGENT_NAME])
+            .inc();
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
@@ -215,7 +219,7 @@ pub struct Updater {
     interval_seconds: u64,
     update_pause: u64,
     pub(crate) core: AgentCore,
-    signed_attestation_count: IntCounter,
+    signed_attestation_count: IntCounterVec,
 }
 
 impl AsRef<AgentCore> for Updater {
@@ -230,8 +234,9 @@ impl Updater {
         let signed_attestation_count = core
             .metrics
             .new_int_counter(
-                "optics_updater_signed_attestation_count",
+                "optics_signed_attestation_count",
                 "Number of attestations signed",
+                &["network", "agent"],
             )
             .expect("must be able to register agent metrics");
 
@@ -259,7 +264,7 @@ impl OpticsAgent for Updater {
         let signer = settings.updater.try_into_signer().await?;
         let interval_seconds = settings.interval.parse().expect("invalid uint");
         let update_pause = settings.pause.parse().expect("invalid uint");
-        let core = settings.as_ref().try_into_core("updater").await?;
+        let core = settings.as_ref().try_into_core(AGENT_NAME).await?;
         Ok(Self::new(signer, interval_seconds, update_pause, core))
     }
 
