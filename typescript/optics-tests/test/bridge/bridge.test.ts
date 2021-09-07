@@ -628,8 +628,8 @@ describe('BridgeRouter', async () => {
 
     it('sets details during details message handling', async () => {
       // repr should not be configured
-      expect((await repr.name()).length).to.be.greaterThan(32);
-      expect((await repr.symbol()).length).to.equal(32);
+      expect((await repr.name()).length).to.equal(15);
+      expect((await repr.symbol()).length).to.equal(15);
       expect(await repr.decimals()).to.equal(18);
 
       await deploy.bridgeRouter!.handle(

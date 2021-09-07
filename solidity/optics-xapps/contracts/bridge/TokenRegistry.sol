@@ -149,21 +149,17 @@ abstract contract TokenRegistry is Initializable {
         returns (string memory _name, string memory _symbol)
     {
         // get the first and second half of the token ID
-        (uint256 _firstHalfId, uint256 _secondHalfId) = Encoding.encodeHex(
-            uint256(_tokenId.id())
-        );
-        // encode the default token name: "optics.[domain].[id]"
+        (, uint256 _secondHalfId) = Encoding.encodeHex(uint256(_tokenId.id()));
+        // encode the default token name: "[decimal domain].[hex 4 bytes of ID]"
         _name = string(
             abi.encodePacked(
-                "optics.",
-                Encoding.encodeUint32(_tokenId.domain()),
-                ".0x",
-                _firstHalfId,
-                _secondHalfId
+                Encoding.decimalUint32(_tokenId.domain()), // 10
+                ".", // 1
+                uint32(_secondHalfId) // 4
             )
         );
         // allocate the memory for a new 32-byte string
-        _symbol = new string(32);
+        _symbol = new string(10 + 1 + 4);
         assembly {
             mstore(add(_symbol, 0x20), mload(add(_name, 0x20)))
         }

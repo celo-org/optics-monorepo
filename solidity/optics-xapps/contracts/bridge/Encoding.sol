@@ -15,7 +15,11 @@ library Encoding {
      * @return _encoded The encoded number, suitable for use in abi.
      * encodePacked
      */
-    function encodeUint32(uint32 _num) internal pure returns (uint80 _encoded) {
+    function decimalUint32(uint32 _num)
+        internal
+        pure
+        returns (uint80 _encoded)
+    {
         uint80 ASCII_0 = 0x30;
         // all over/underflows are impossible
         // this will ALWAYS produce 10 decimal characters
@@ -28,17 +32,17 @@ library Encoding {
     /**
      * @notice Encodes the uint256 to hex. `first` contains the encoded top 16 bytes.
      * `second` contains the encoded lower 16 bytes.
-     * @param _byte The 32 bytes as uint256
+     * @param _bytes The 32 bytes as uint256
      * @return _firstHalf The top 16 bytes
      * @return _secondHalf The bottom 16 bytes
      */
-    function encodeHex(uint256 _byte)
+    function encodeHex(uint256 _bytes)
         internal
         pure
         returns (uint256 _firstHalf, uint256 _secondHalf)
     {
         for (uint8 i = 31; i > 15; i -= 1) {
-            uint8 _b = uint8(_byte >> (i * 8));
+            uint8 _b = uint8(_bytes >> (i * 8));
             _firstHalf |= _byteHex(_b);
             if (i != 16) {
                 _firstHalf <<= 16;
@@ -46,7 +50,7 @@ library Encoding {
         }
         // abusing underflow here =_=
         for (uint8 i = 15; i < 255; i -= 1) {
-            uint8 _b = uint8(_byte >> (i * 8));
+            uint8 _b = uint8(_bytes >> (i * 8));
             _secondHalf |= _byteHex(_b);
             if (i != 0) {
                 _secondHalf <<= 16;

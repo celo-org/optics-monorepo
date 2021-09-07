@@ -25,7 +25,7 @@ contract TestEncoding {
 
     function test() public pure {
         assertEq(
-            abi.encodePacked(Encoding.encodeUint32(1234)),
+            abi.encodePacked(Encoding.decimalUint32(1234)),
             bytes("0000001234"),
             "encode 1234"
         );
