@@ -69,6 +69,7 @@ export async function deployTokenUpgradeBeacon(deploy: Deploy) {
 
   deploy.contracts.bridgeToken =
     await proxyUtils.deployProxy<xAppContracts.BridgeToken>(
+      'BridgeToken',
       deploy,
       new xAppContracts.BridgeToken__factory(deploy.chain.deployer),
       initData,
@@ -97,6 +98,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
 
   deploy.contracts.bridgeRouter =
     await proxyUtils.deployProxy<xAppContracts.BridgeRouter>(
+      'BridgeRouter',
       deploy,
       new xAppContracts.BridgeRouter__factory(deploy.chain.deployer),
       initData,

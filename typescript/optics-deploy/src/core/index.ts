@@ -119,6 +119,7 @@ export async function deployHome(deploy: CoreDeploy) {
     .encodeFunctionData('initialize', [updaterManager!.address]);
 
   deploy.contracts.home = await proxyUtils.deployProxy<contracts.Home>(
+    'Home',
     deploy,
     new homeFactory(deploy.deployer),
     initData,
@@ -152,6 +153,7 @@ export async function deployGovernanceRouter(deploy: CoreDeploy) {
 
   deploy.contracts.governance =
     await proxyUtils.deployProxy<contracts.GovernanceRouter>(
+      'GovernanceRouter',
       deploy,
       new governanceRouter(deploy.deployer),
       initData,
@@ -195,6 +197,7 @@ export async function deployUnenrolledReplica(
       `${local.chain.name}: deploying initial Replica for ${remote.chain.name}`,
     );
     proxy = await proxyUtils.deployProxy<contracts.Replica>(
+      'Replica',
       local,
       new replica(local.deployer),
       initData,
@@ -209,6 +212,7 @@ export async function deployUnenrolledReplica(
     );
     const prev = Object.entries(local.contracts.replicas)[0][1];
     proxy = await proxyUtils.duplicate<contracts.Replica>(
+      'Replica',
       local,
       prev,
       initData,
