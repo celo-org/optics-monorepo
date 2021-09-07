@@ -168,13 +168,11 @@ export async function enrollAllBridgeRouters(
   deploy: Deploy,
   allDeploys: Deploy[],
 ) {
-  await Promise.all(
-    allDeploys
-      .filter((remoteDeploy) => remoteDeploy.chain.name !== deploy.chain.name)
-      .map(async (remoteDeploy) => {
-        await enrollBridgeRouter(deploy, remoteDeploy);
-      }),
-  );
+  for (let remoteDeploy of allDeploys) {
+    if (deploy.chain.domain != remoteDeploy.chain.domain) {
+      await enrollBridgeRouter(deploy, remoteDeploy);
+    }
+  }
 }
 
 /**
@@ -193,6 +191,7 @@ export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
     remote.coreContractAddresses.home.proxy,
     remote.chain.deployer,
   );
+  // console.log(remoteHome)
   const remoteDomain = await remoteHome.localDomain();
 
   let tx = await local.contracts.bridgeRouter!.proxy.enrollRemoteRouter(

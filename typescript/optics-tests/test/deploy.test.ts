@@ -95,8 +95,10 @@ describe.only('bridge deploy scripts', async () => {
   it('deploys bridge', async () => {
     const mockWeth = await new MockWeth__factory(signer).deploy();
 
+    // must be set to find core contracts
     deploys[0].chain.config.name = 'alfajores';
     deploys[1].chain.config.name = 'kovan';
+
     const alfajoresDeploy = new BridgeDeploy(
       deploys[0].chain,
       {},
