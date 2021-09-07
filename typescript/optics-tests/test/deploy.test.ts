@@ -8,9 +8,10 @@ import { CoreContractAddresses } from '../../optics-deploy/src/chain';
 import { deployBridges } from '../../optics-deploy/src/bridge';
 import { BridgeDeploy } from '../../optics-deploy/src/bridge/BridgeDeploy';
 import { checkBridgeDeploy } from '../../optics-deploy/src/bridge/checks';
-import { deployTwoChains, deployNChains, deployOptics } from '../../optics-deploy/src/core';
+import { deployTwoChains, deployNChains } from '../../optics-deploy/src/core';
 import { CoreDeploy } from '../../optics-deploy/src/core/CoreDeploy';
 import {
+  MockWeth,
   MockWeth__factory,
 } from '../../typechain/optics-xapps';
 
@@ -75,44 +76,86 @@ describe('core deploy scripts', async () => {
 });
 
 describe('bridge deploy scripts', async () => {
-  let deploys: CoreDeploy[],
-    signer: Signer,
+  const numChains = 3;
+
+  let signer: Signer,
     recoveryManager: Signer,
-    updater: Updater;
+    updater: Updater,
+    mockWeth: MockWeth,
+    deploys: CoreDeploy[] = [],
+    coreAddresses: CoreContractAddresses[] = [];
 
   before(async () => {
     [signer, recoveryManager] = await ethers.getSigners();
     updater = await Updater.fromSigner(signer, domains[0]);
-  });
+    mockWeth = await new MockWeth__factory(signer).deploy();
 
-  beforeEach(async () => {
-    deploys = [];
-    for (let i = 0; i < 2; i++) {
+    // deploy core contracts on 2 chains
+    for (let i = 0; i < numChains; i++) {
       deploys.push(await getTestDeploy(domains[i], updater.address, [recoveryManager.address]));
+    }
+    await deployNChains(deploys);
+
+    for (let i = 0; i < numChains; i++) {
+      coreAddresses.push(deploys[0].contracts.toObject());
     }
   });
 
-  it('deploys bridge', async () => {
-    const mockWeth = await new MockWeth__factory(signer).deploy();
-    await deployOptics(deploys[0]);
-    const coreAddresses: CoreContractAddresses = deploys[0].contracts.toObject();
-
-    // must be set to find core contracts
-    deploys[0].chain.config.name = 'alfajores';
-    deploys[1].chain.config.name = 'kovan';
-
+  it('2-chain bridge', async () => {
+    // instantiate alfajores and kovan bridge deploys
     const alfajoresDeploy = new BridgeDeploy(
       deploys[0].chain,
       {},
-      '../../rust/config/1630513764971',
+      '',
       true,
-      coreAddresses
+      coreAddresses[0]
     );
-    const kovanDeploy = new BridgeDeploy(deploys[1].chain, { weth: mockWeth.address }, '../../rust/config/1630513764971', true, coreAddresses);
+    const kovanDeploy = new BridgeDeploy(
+      deploys[1].chain,
+      { weth: mockWeth.address },
+      '',
+      true,
+      coreAddresses[1]
+    );
 
+    // deploy bridges
     await deployBridges([alfajoresDeploy, kovanDeploy]);
 
+    // check bridge deploys
     await checkBridgeDeploy(alfajoresDeploy, [2000]);
     await checkBridgeDeploy(kovanDeploy, [1000]);
+  });
+
+  it('3-chain bridge', async () => {
+    // instantiate 3 deploys: alfajores, kovan and rinkeby
+    const alfajoresDeploy = new BridgeDeploy(
+      deploys[0].chain,
+      {},
+      '',
+      true,
+      coreAddresses[0]
+    );
+    const kovanDeploy = new BridgeDeploy(
+      deploys[1].chain,
+      { weth: mockWeth.address },
+      '',
+      true,
+      coreAddresses[1]
+    );
+    const rinkebyDeploy = new BridgeDeploy(
+      deploys[2].chain,
+      { weth: mockWeth.address },
+      '',
+      true,
+      coreAddresses[2]
+    );
+
+    // deploy 3 bridges
+    await deployBridges([alfajoresDeploy, kovanDeploy, rinkebyDeploy]);
+
+    // check bridge deploys
+    await checkBridgeDeploy(alfajoresDeploy, [2000, 3000]);
+    await checkBridgeDeploy(kovanDeploy, [1000, 3000]);
+    await checkBridgeDeploy(rinkebyDeploy, [1000, 2000]);
   });
 });
