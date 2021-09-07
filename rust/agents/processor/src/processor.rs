@@ -268,7 +268,7 @@ impl Processor {
                 "Index of the next message to inspect",
                 &["replica", "agent"],
             )
-            .expect("Processor metric alreadt registered -- should have be a singleton");
+            .expect("Processor metric already registered -- should have be a singleton");
 
         Self {
             interval,

@@ -234,7 +234,7 @@ impl Updater {
         let signed_attestation_count = core
             .metrics
             .new_int_counter(
-                "optics_signed_attestation_count",
+                "signed_attestation_count",
                 "Number of attestations signed",
                 &["network", "agent"],
             )
