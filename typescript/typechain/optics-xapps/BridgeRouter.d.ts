@@ -197,13 +197,13 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "Migrate(uint32,bytes32,address,uint256,address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "Send(address,address,uint32,bytes32,uint256)": EventFragment;
     "TokenDeployed(uint32,bytes32,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "Migrate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Send"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenDeployed"): EventFragment;
 }
 
@@ -577,31 +577,29 @@ export class BridgeRouter extends BaseContract {
   };
 
   filters: {
-    Migrate(
-      domain?: BigNumberish | null,
-      id?: BytesLike | null,
-      tokenHolder?: string | null,
-      balance?: null,
-      oldToken?: null,
-      newToken?: null
-    ): TypedEventFilter<
-      [number, string, string, BigNumber, string, string],
-      {
-        domain: number;
-        id: string;
-        tokenHolder: string;
-        balance: BigNumber;
-        oldToken: string;
-        newToken: string;
-      }
-    >;
-
     OwnershipTransferred(
       previousOwner?: string | null,
       newOwner?: string | null
     ): TypedEventFilter<
       [string, string],
       { previousOwner: string; newOwner: string }
+    >;
+
+    Send(
+      token?: string | null,
+      from?: string | null,
+      toDomain?: BigNumberish | null,
+      toId?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, number, string, BigNumber],
+      {
+        token: string;
+        from: string;
+        toDomain: number;
+        toId: string;
+        amount: BigNumber;
+      }
     >;
 
     TokenDeployed(

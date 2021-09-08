@@ -45,21 +45,19 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
     // ======== Events =========
 
     /**
-     * @notice emitted when an old token implementation is swapped for a new implementation
-     * @param domain the domain of the canonical token being migrated
-     * @param id the bytes32 canonical address of the token being migrated
-     * @param tokenHolder the address migrating its token balance
-     * @param balance the amount of tokens migrated
-     * @param oldToken the local address of the old token implementation
-     * @param newToken the local address of the new token implementation
+     * @notice emitted when tokens are sent from this domain to another domain
+     * @param token the address of the token contract
+     * @param from the address sending tokens
+     * @param toDomain the domain of the chain the tokens are being sent to
+     * @param toId the bytes32 address of the recipient of the tokens
+     * @param amount the amount of tokens sent
      */
-    event Migrate(
-        uint32 indexed domain,
-        bytes32 indexed id,
-        address indexed tokenHolder,
-        uint256 balance,
-        address oldToken,
-        address newToken
+    event Send(
+        address indexed token,
+        address indexed from,
+        uint32 indexed toDomain,
+        bytes32 toId,
+        uint256 amount
     );
 
     // ======== Initializer ========
@@ -153,6 +151,14 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
             _remote,
             BridgeMessage.formatMessage(_formatTokenId(_token), _action)
         );
+        // emit Send event to record token sender
+        emit Send(
+            address(_bridgeToken),
+            msg.sender,
+            _destination,
+            _recipient,
+            _amount
+        );
     }
 
     // ======== External: Fast Liquidity =========
@@ -244,15 +250,6 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
         uint256 _bal = _old.balanceOf(msg.sender);
         _old.burn(msg.sender, _bal);
         _new.mint(msg.sender, _bal);
-        // emit event
-        emit Migrate(
-            _id.domain,
-            _id.id,
-            msg.sender,
-            _bal,
-            address(_old),
-            address(_new)
-        );
     }
 
     // ============ Internal: Send / UpdateDetails ============

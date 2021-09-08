@@ -795,16 +795,7 @@ describe('BridgeRouter', async () => {
 
       let migrateTx = deploy.bridgeRouter!.migrate(defaultRepr.address);
 
-      await expect(migrateTx)
-        .to.emit(deploy.bridgeRouter, 'Migrate')
-        .withArgs(
-          deploy.remoteDomain,
-          deploy.testToken,
-          deployerAddress,
-          defaultBalance,
-          defaultRepr.address,
-          customRepr.address,
-        );
+      await expect(migrateTx).to.not.be.reverted;
 
       expect(await defaultRepr.balanceOf(deployerAddress)).to.equal(
         ethers.constants.Zero,
