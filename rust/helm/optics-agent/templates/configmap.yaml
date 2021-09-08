@@ -16,10 +16,10 @@ data:
   OPT_BASE_TRACING_FMT: {{ .Values.optics.tracing.format }}
   OPT_BASE_TRACING_LEVEL: {{ .Values.optics.tracing.level }}
   {{- if .Values.optics.homeChain.connectionUrl }}
-  OPT_BASE_HOME_CONFIG_CONNECTION_URL: {{ .Values.optics.homeChain.connectionUrl }}
+  OPT_BASE_HOME_CONNECTION_URL: {{ .Values.optics.homeChain.connectionUrl }}
   {{- end }}
   {{- if .Values.optics.homeChain.connectionType }}
-  OPT_BASE_HOME_CONFIG_CONNECTION_TYPE: {{ .Values.optics.homeChain.connectionType }}
+  OPT_BASE_HOME_CONNECTION_TYPE: {{ .Values.optics.homeChain.connectionType }}
   {{- end }}
   {{- range .Values.optics.replicaChains }}
   {{- if .connectionUrl }}
