@@ -65,6 +65,8 @@ impl OpticsAgent for Kathy {
             let destination = replica.local_domain();
 
             loop {
+                sleep(duration).await;
+
                 let msg = generator.gen_chat();
                 let recipient = generator.gen_recipient();
 
@@ -89,8 +91,6 @@ impl OpticsAgent for Kathy {
                         return Ok(());
                     }
                 }
-
-                sleep(duration).await;
             }
         })
         .in_current_span()
