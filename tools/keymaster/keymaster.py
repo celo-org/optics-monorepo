@@ -20,8 +20,17 @@ import time
 def cli(ctx, debug, config_path):
     ctx.ensure_object(dict)
     ctx.obj['DEBUG'] = debug
-    ctx.obj['CONFIG'] = load_config(config_path)
 
+    conf = load_config(config_path)
+
+    if conf:
+        ctx.obj['CONFIG'] = conf
+    else: 
+        # Failed to load config, barf 
+        click.echo(f"Failed to load config from {config_path}, check the file and try again.")
+        sys.exit(1)
+
+    
     # Set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
