@@ -192,7 +192,7 @@ contract Replica is Version0, Common {
         uint256 _maxCopy = 256;
         uint256 _gas = PROCESS_GAS;
         // allocate memory for returndata
-        bytes memory _returnData = new bytes(0x100);
+        bytes memory _returnData = new bytes(_maxCopy);
         bytes memory _calldata = abi.encodeWithSignature(
             "handle(uint32,bytes32,bytes)",
             _m.origin(),
