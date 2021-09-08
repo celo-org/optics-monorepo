@@ -7,7 +7,7 @@ use crate::settings::trace::fmt::Style;
 /// Configure a `tracing_subscriber::fmt` Layer outputting to stdout
 pub mod fmt;
 
-use self::{fmt::LogOutputLayer, jaeger::JaegerConfig, zipkin::ZipkinConfig};
+use self::{jaeger::JaegerConfig, zipkin::ZipkinConfig};
 
 /// Configure a Layer using `tracing_opentelemtry` + `opentelemetry-jaeger`
 pub mod jaeger;
@@ -34,18 +34,6 @@ pub enum Level {
     Info,
 }
 
-impl Level {
-    fn to_filter(self) -> LevelFilter {
-        self.into()
-    }
-}
-
-impl Default for Level {
-    fn default() -> Self {
-        Level::Info
-    }
-}
-
 impl From<Level> for LevelFilter {
     fn from(level: Level) -> LevelFilter {
         match level {
@@ -56,6 +44,12 @@ impl From<Level> for LevelFilter {
             Level::Trace => LevelFilter::TRACE,
             Level::Info => LevelFilter::INFO,
         }
+    }
+}
+
+impl Default for Level {
+    fn default() -> Self {
+        Level::Info
     }
 }
 
@@ -73,13 +67,12 @@ pub struct TracingConfig {
 impl TracingConfig {
     /// Attempt to instantiate and register a tracing subscriber setup from settings.
     pub fn start_tracing(&self) -> Result<()> {
-        let fmt_layer: LogOutputLayer<_> = self.fmt.into();
         let err_layer = tracing_error::ErrorLayer::default();
 
-        let subscriber = tracing_subscriber::Registry::default()
-            .with(self.level.to_filter())
-            .with(fmt_layer)
-            .with(err_layer);
+        let subscriber = tracing_subscriber::fmt::fmt()
+            .with(LevelFilter::from(self.level))
+            .with(err_layer)
+            .with(self.fmt.layer());
 
         match self.jaeger {
             None => match self.zipkin {
