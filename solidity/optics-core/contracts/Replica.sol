@@ -189,6 +189,7 @@ contract Replica is Version0, Common {
         address _recipient = _m.recipientAddress();
         // set up for assembly call
         uint256 _toCopy;
+        uint256 _maxCopy = 256;
         uint256 _gas = PROCESS_GAS;
         // allocate memory for returndata
         bytes memory _returnData = new bytes(0x100);
@@ -214,8 +215,8 @@ contract Replica is Version0, Common {
             )
             // limit our copy to 256 bytes
             _toCopy := returndatasize()
-            if gt(_toCopy, 0x100) {
-                _toCopy := 0x100
+            if gt(_toCopy, _maxCopy) {
+                _toCopy := _maxCopy
             }
             // Store the length of the copied bytes
             mstore(_returnData, _toCopy)
