@@ -9,7 +9,7 @@ import {IMessageRecipient} from "@celo-org/optics-sol/interfaces/IMessageRecipie
 abstract contract Router is XAppConnectionClient, IMessageRecipient {
     // ============ Mutable Storage ============
 
-    mapping(uint32 => bytes32) internal remotes;
+    mapping(uint32 => bytes32) public remotes;
     uint256[49] private __GAP; // gap for upgrade safety
 
     // ============ Modifiers ============

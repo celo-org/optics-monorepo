@@ -25,6 +25,7 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
     "handle(uint32,bytes32,bytes)": FunctionFragment;
     "initiatePingPongMatch(uint32)": FunctionFragment;
     "owner()": FunctionFragment;
+    "remotes(uint32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setXAppConnectionManager(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -44,6 +45,10 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "remotes",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -71,6 +76,7 @@ interface PingPongRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "remotes", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -163,6 +169,8 @@ export class PingPongRouter extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -200,6 +208,8 @@ export class PingPongRouter extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
+  remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -236,6 +246,8 @@ export class PingPongRouter extends BaseContract {
     ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -303,6 +315,8 @@ export class PingPongRouter extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -340,6 +354,11 @@ export class PingPongRouter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    remotes(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }

@@ -35,6 +35,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
     "migrate(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "preFill(bytes)": FunctionFragment;
+    "remotes(uint32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representationToCanonical(address)": FunctionFragment;
     "requestDetails(uint32,bytes32)": FunctionFragment;
@@ -89,6 +90,10 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "migrate", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "preFill", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "remotes",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -160,6 +165,7 @@ interface BridgeRouterInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "migrate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "preFill", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "remotes", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -316,6 +322,8 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -425,6 +433,8 @@ export class BridgeRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -527,6 +537,8 @@ export class BridgeRouter extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     preFill(_message: BytesLike, overrides?: CallOverrides): Promise<void>;
+
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -674,6 +686,8 @@ export class BridgeRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -786,6 +800,11 @@ export class BridgeRouter extends BaseContract {
     preFill(
       _message: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    remotes(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
