@@ -69,7 +69,7 @@ impl TracingConfig {
     pub fn start_tracing(&self) -> Result<()> {
         let err_layer = tracing_error::ErrorLayer::default();
 
-        let subscriber = tracing_subscriber::fmt::fmt()
+        let subscriber = tracing_subscriber::registry()
             .with(LevelFilter::from(self.level))
             .with(err_layer)
             .with(self.fmt.layer());
