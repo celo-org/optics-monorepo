@@ -187,17 +187,41 @@ contract Replica is Version0, Common {
         require(gasleft() >= PROCESS_GAS + RESERVE_GAS, "!gas");
         // get the message recipient
         address _recipient = _m.recipientAddress();
-        // dispatch message to recipient
-        // by low-level calling "handle" function
-        bytes memory _returnData;
-        (_success, _returnData) = _recipient.call{gas: PROCESS_GAS}(
-            abi.encodeWithSignature(
-                "handle(uint32,bytes32,bytes)",
-                _m.origin(),
-                _m.sender(),
-                _m.body().clone()
-            )
+        // set up for assembly call
+        uint256 _toCopy;
+        uint256 _gas = PROCESS_GAS;
+        // allocate memory for returndata
+        bytes memory _returnData = new bytes(0x100);
+        bytes memory _calldata = abi.encodeWithSignature(
+            "handle(uint32,bytes32,bytes)",
+            _m.origin(),
+            _m.sender(),
+            _m.body().clone()
         );
+        // dispatch message to recipient
+        // by assembly calling "handle" function
+        // we call via assembly to avoid memcopying a very large returndata
+        // returned by a malicious contract
+        assembly {
+            _success := call(
+                _gas, // gas
+                _recipient, // recipient
+                0, // ether value
+                add(_calldata, 0x20), // inloc
+                mload(_calldata), // inlen
+                0, // outloc
+                0 // outlen
+            )
+            // limit our copy to 256 bytes
+            _toCopy := returndatasize()
+            if gt(_toCopy, 0x100) {
+                _toCopy := 0x100
+            }
+            // Store the length of the copied bytes
+            mstore(_returnData, _toCopy)
+            // copy the bytes from returndata[0:_toCopy]
+            returndatacopy(add(_returnData, 0x20), 0, _toCopy)
+        }
         // emit process results
         emit Process(_messageHash, _success, _returnData);
         // reset re-entrancy guard
