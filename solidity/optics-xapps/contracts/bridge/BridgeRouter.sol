@@ -34,7 +34,7 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
 
     // ============ Public Storage ============
 
-    // token transfer message => LP that pre-filled message to provide fast liquidity
+    // token transfer prefill ID => LP that pre-filled message to provide fast liquidity
     mapping(bytes32 => address) public liquidityProvider;
 
     // ============ Upgrade Gap ============
@@ -155,6 +155,9 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
      * Transfers tokens from the liquidity provider to the end recipient, minus the LP fee;
      * Records the liquidity provider, who receives
      * the full token amount when the transfer message is handled.
+     * @dev fast liquidity can only be provided for ONE token transfer
+     * with the same (recipient, amount) at a time.
+     * in the case that multiple token transfers with the same (recipient, amount)
      * @param _message The incoming transfer message to pre-fill
      */
     function preFill(bytes calldata _message) external {
