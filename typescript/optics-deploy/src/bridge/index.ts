@@ -1,6 +1,5 @@
 import * as proxyUtils from '../proxyUtils';
-
-import * as contracts from '../../../typechain/optics-core';
+import { checkBridgeDeploy } from './checks';
 import * as xAppContracts from '../../../typechain/optics-xapps';
 import { toBytes32 } from '../../../optics-tests/lib/utils';
 import fs from 'fs';
@@ -32,7 +31,7 @@ export async function deployBridges(deploys: Deploy[]) {
       await deployTokenUpgradeBeacon(deploy);
       await deployBridgeRouter(deploy);
       await deployEthHelper(deploy);
-    }),
+    })
   );
 
   // after all BridgeRouters have been deployed,
@@ -40,7 +39,7 @@ export async function deployBridges(deploys: Deploy[]) {
   await Promise.all(
     deploys.map(async (deploy) => {
       await enrollAllBridgeRouters(deploy, deploys);
-    }),
+    })
   );
 
   // after all peer BridgeRouters have been co-enrolled,
@@ -48,8 +47,17 @@ export async function deployBridges(deploys: Deploy[]) {
   await Promise.all(
     deploys.map(async (deploy) => {
       await transferOwnershipToGovernance(deploy);
-    }),
+    })
   );
+
+  await Promise.all(
+    deploys.map(async (local) => {
+      const remotes = deploys
+        .filter(remote => remote.chain.domain != local.chain.domain)
+        .map(remote => remote.chain.domain);
+      await checkBridgeDeploy(local, remotes);
+    })
+  )
 
   if (!isTestDeploy) {
     // output the Bridge deploy information to a subdirectory
@@ -90,10 +98,8 @@ export async function deployTokenUpgradeBeacon(deploy: Deploy) {
 export async function deployBridgeRouter(deploy: Deploy) {
   console.log(`deploying ${deploy.chain.name} BridgeRouter`);
 
-  const factory = deploy.test? xAppContracts.TestBridgeRouter__factory : xAppContracts.BridgeRouter__factory;
-
   const initData =
-    factory.createInterface().encodeFunctionData(
+    xAppContracts.BridgeRouter__factory.createInterface().encodeFunctionData(
       'initialize',
       [
         deploy.contracts.bridgeToken!.beacon.address,
@@ -104,7 +110,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
   deploy.contracts.bridgeRouter =
     await proxyUtils.deployProxy<xAppContracts.BridgeRouter>(
       deploy,
-      new factory(deploy.chain.deployer),
+      new xAppContracts.BridgeRouter__factory(deploy.chain.deployer),
       initData,
     );
 

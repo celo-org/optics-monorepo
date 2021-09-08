@@ -2,13 +2,13 @@ import { expect } from 'chai';
 
 import { assertBeaconProxy } from '../core/checks';
 import { BridgeDeploy as Deploy } from './BridgeDeploy';
-import { TestBridgeRouter } from '../../../typechain/optics-xapps';
+import TestBridgeDeploy from './TestBridgeDeploy';
 
 const emptyAddr = '0x' + '00'.repeat(32);
 
 export async function checkBridgeDeploy(
-  deploy: Deploy | Deploy,
-  remoteDomains: number[],
+  deploy: Deploy | TestBridgeDeploy,
+  remotes: number[],
 ) {
   assertBeaconProxy(deploy.contracts.bridgeToken!);
   assertBeaconProxy(deploy.contracts.bridgeRouter!);
@@ -19,9 +19,9 @@ export async function checkBridgeDeploy(
     expect(deploy.contracts.ethHelper).to.be.undefined;
   }
 
-  const bridgeRouter = deploy.contracts.bridgeRouter?.proxy as TestBridgeRouter;
-  await Promise.all(remoteDomains.map(async (domain) => {
-    const registeredRouter = await bridgeRouter.getRemoteRouter(domain);
+  const bridgeRouter = deploy.contracts.bridgeRouter?.proxy!;
+  await Promise.all(remotes.map(async (remoteDomain) => {
+    const registeredRouter = await bridgeRouter.remotes(remoteDomain);
     expect(registeredRouter).to.not.equal(emptyAddr);
   }))
 

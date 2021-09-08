@@ -120,10 +120,6 @@ describe('bridge deploy scripts', async () => {
 
     // deploy bridges
     await deployBridges([alfajoresDeploy, kovanDeploy]);
-
-    // check bridge deploys
-    await checkBridgeDeploy(alfajoresDeploy, [2000]);
-    await checkBridgeDeploy(kovanDeploy, [1000]);
   });
 
   it('3-chain bridge', async () => {
@@ -152,10 +148,5 @@ describe('bridge deploy scripts', async () => {
 
     // deploy 3 bridges
     await deployBridges([alfajoresDeploy, kovanDeploy, rinkebyDeploy]);
-
-    // check bridge deploys
-    await checkBridgeDeploy(alfajoresDeploy, [2000, 3000]);
-    await checkBridgeDeploy(kovanDeploy, [1000, 3000]);
-    await checkBridgeDeploy(rinkebyDeploy, [1000, 2000]);
   });
 });
