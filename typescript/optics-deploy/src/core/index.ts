@@ -1,4 +1,5 @@
 import * as ethers from 'ethers';
+import { assert } from 'console';
 import fs from 'fs';
 
 import * as proxyUtils from '../proxyUtils';
