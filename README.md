@@ -210,7 +210,7 @@ The timeout on new updates to the replica serves two purposes:
 2. It gives message recipients a chance to opt-out of message processing for
    the update. If an incorrect update is published, recipients always have the
    information necessary to take defensive measures before any messages can be
-   processed.\
+   processed.
 
 ## Deploy Procedure
 

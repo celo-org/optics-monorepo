@@ -561,7 +561,7 @@ export async function deployNChains(deploys: CoreDeploy[]) {
     await deployOptics(deploy);
   }));
 
-  // enroll remotes on every cha
+  // enroll remotes on every chain
   await Promise.all(
     deploys.map(async (local) => {
       // deploy replicas for all OTHER non-gov domains
