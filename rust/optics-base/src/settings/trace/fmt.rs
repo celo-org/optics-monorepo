@@ -4,7 +4,7 @@ use tracing::{span, Subscriber};
 use tracing_subscriber::{
     fmt::{
         self,
-        format::{Compact, DefaultFields, Format, Full, Json, JsonFields, Pretty},
+        format::{Compact, DefaultFields, FmtSpan, Format, Full, Json, JsonFields, Pretty},
     },
     registry::LookupSpan,
     Layer,
@@ -64,11 +64,12 @@ impl<S> Default for LogOutputLayer<S> {
 
 impl<S> From<Style> for LogOutputLayer<S> {
     fn from(style: Style) -> Self {
+        let layer = fmt::layer().with_span_events(FmtSpan::CLOSE);
         match style {
-            Style::Full => Self::Full(fmt::layer()),
-            Style::Pretty => Self::Pretty(fmt::layer().pretty()),
-            Style::Compact => Self::Compact(fmt::layer().compact()),
-            Style::Json => Self::Json(fmt::layer().json()),
+            Style::Full => Self::Full(layer),
+            Style::Pretty => Self::Pretty(layer.pretty()),
+            Style::Compact => Self::Compact(layer.compact()),
+            Style::Json => Self::Json(layer.json()),
         }
     }
 }
