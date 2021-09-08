@@ -14,6 +14,7 @@ pub struct CoreMetrics {
     transactions: Box<IntGaugeVec>,
     wallet_balance: Box<IntGaugeVec>,
     rpc_latencies: Box<HistogramVec>,
+    span_durations: Box<HistogramVec>,
     listen_port: Option<u16>,
     /// Metrics registry for adding new metrics and gathering reports
     registry: Arc<Registry>,
@@ -55,6 +56,15 @@ impl CoreMetrics {
                 .const_label("VERSION", env!("CARGO_PKG_VERSION")),
                 &["chain", "method", "agent"],
             )?),
+            span_durations: Box::new(HistogramVec::new(
+                HistogramOpts::new(
+                    "span_duration_sec",
+                    "Duration from span creation to span destruction",
+                )
+                .namespace("optics")
+                .const_label("VERSION", env!("CARGO_PKG_VERSION")),
+                &["span_name", "target"],
+            )?),
             registry,
             listen_port,
         };
@@ -64,6 +74,7 @@ impl CoreMetrics {
         metrics.registry.register(metrics.transactions.clone())?;
         metrics.registry.register(metrics.wallet_balance.clone())?;
         metrics.registry.register(metrics.rpc_latencies.clone())?;
+        metrics.registry.register(metrics.span_durations.clone())?;
 
         Ok(metrics)
     }
@@ -126,6 +137,13 @@ impl CoreMetrics {
         self.rpc_latencies
             .with_label_values(&[chain, method, &self.agent_name])
             .observe(duration_ms)
+    }
+
+    /// Histogram for measuring span durations.
+    ///
+    /// Labels needed: `span_name`, `target`.
+    pub fn span_duration(&self) -> HistogramVec {
+        *self.span_durations.clone()
     }
 
     /// Gather available metrics into an encoded (plaintext, OpenMetrics format) report.

@@ -21,10 +21,14 @@ use optics_base::agent::OpticsAgent;
 async fn _main() -> Result<()> {
     color_eyre::install()?;
     let config = ProcessorSettings::new()?;
-    config.base.tracing.start_tracing()?;
 
     // TODO: top-level root span customizations?
     let agent = Processor::from_settings(config).await?;
+    agent
+        .as_ref()
+        .settings
+        .tracing
+        .start_tracing(agent.metrics().span_duration())?;
 
     let _ = agent.metrics().run_http_server();
 

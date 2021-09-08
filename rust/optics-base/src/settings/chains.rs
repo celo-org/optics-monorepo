@@ -9,16 +9,22 @@ use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
 ///
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "rpcStyle", content = "connection", rename_all = "camelCase")]
 pub enum ChainConf {
     /// Ethereum configuration
     Ethereum(EthereumConnection),
 }
 
+impl Default for ChainConf {
+    fn default() -> Self {
+        ChainConf::Ethereum(Default::default())
+    }
+}
+
 /// A chain setup is a domain ID, an address on that chain (where the home or
 /// replica is deployed) and details for connecting to the chain API.
-#[derive(Debug, Deserialize)]
+#[derive(Default, Clone, Debug, Deserialize)]
 pub struct ChainSetup {
     /// Chain name
     pub name: String,

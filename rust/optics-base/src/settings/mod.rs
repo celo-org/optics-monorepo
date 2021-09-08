@@ -166,7 +166,7 @@ impl IndexSettings {
 ///     }
 /// }
 /// ```
-#[derive(Debug, Deserialize)]
+#[derive(Default, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// The path to use for the DB file
@@ -184,6 +184,20 @@ pub struct Settings {
     pub tracing: TracingConfig,
     /// Transaction signers
     pub signers: HashMap<String, SignerConf>,
+}
+
+impl Settings {
+    /// Private so that
+    fn clone(&self) -> Self {
+        Self {
+            db: self.db.clone(),
+            metrics: self.metrics.clone(),
+            home: self.home.clone(),
+            replicas: self.replicas.clone(),
+            tracing: self.tracing.clone(),
+            signers: self.signers.clone(),
+        }
+    }
 }
 
 impl Settings {
@@ -233,6 +247,7 @@ impl Settings {
             home,
             replicas,
             db,
+            settings: self.clone(),
             metrics,
             indexer: self.index.clone(),
         })

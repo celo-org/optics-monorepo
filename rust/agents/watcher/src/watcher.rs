@@ -793,6 +793,7 @@ mod test {
                 replicas: replica_map,
                 db: db,
                 indexer: IndexSettings::default(),
+                settings: optics_base::settings::Settings::default(),
                 metrics: Arc::new(
                     optics_base::metrics::CoreMetrics::new(
                         "watcher_test",

@@ -121,6 +121,14 @@ pub enum EthereumConnection {
     },
 }
 
+impl Default for EthereumConnection {
+    fn default() -> Self {
+        EthereumConnection::Ws {
+            url: "wss://main-light.eth.linkpool.io/ws".into(),
+        }
+    }
+}
+
 impl EthereumConnection {
     /// Try to convert this into a home contract
     #[tracing::instrument(err)]

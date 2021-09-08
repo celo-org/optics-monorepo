@@ -30,6 +30,8 @@ pub struct AgentCore {
     pub metrics: Arc<CoreMetrics>,
     /// The height at which to start indexing the Home
     pub indexer: IndexSettings,
+    /// Settings this agent was created with
+    pub settings: crate::settings::Settings,
 }
 
 /// A trait for an application:

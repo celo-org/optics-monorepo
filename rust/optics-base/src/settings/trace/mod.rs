@@ -15,6 +15,10 @@ pub mod jaeger;
 /// Configure a Layer using `tracing_opentelemtry` + `opentelemetry-zipkin`
 pub mod zipkin;
 
+mod span_metrics;
+
+pub use span_metrics::TimeSpanLifetime;
+
 /// Logging level
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,13 +74,25 @@ pub struct TracingConfig {
     level: Level,
 }
 
+impl Default for TracingConfig {
+    fn default() -> Self {
+        Self {
+            jaeger: None,
+            zipkin: None,
+            fmt: Style::Pretty,
+            level: Level::Trace,
+        }
+    }
+}
+
 impl TracingConfig {
     /// Attempt to instantiate and register a tracing subscriber setup from settings.
-    pub fn start_tracing(&self) -> Result<()> {
+    pub fn start_tracing(&self, latencies: prometheus::HistogramVec) -> Result<()> {
         let fmt_layer: LogOutputLayer<_> = self.fmt.into();
         let err_layer = tracing_error::ErrorLayer::default();
 
         let subscriber = tracing_subscriber::Registry::default()
+            .with(TimeSpanLifetime::new(latencies))
             .with(self.level.to_filter())
             .with(fmt_layer)
             .with(err_layer);

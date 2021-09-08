@@ -9,6 +9,11 @@ where
 {
     // Instantiate an agent
     let oa = OA::from_settings(settings).await?;
+    oa.as_ref()
+        .settings
+        .tracing
+        .start_tracing(oa.metrics().span_duration())?;
+
     // Use the agent to run a number of replicas
     oa.run_all().await?
 }
@@ -20,7 +25,6 @@ fn setup() -> Result<Settings> {
     color_eyre::install()?;
 
     let settings = Settings::new()?;
-    settings.tracing.start_tracing()?;
 
     Ok(settings)
 }
