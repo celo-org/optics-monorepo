@@ -153,7 +153,7 @@ export async function deployGovernanceRouter(deploy: CoreDeploy) {
 
   deploy.contracts.governance =
     await proxyUtils.deployProxy<contracts.GovernanceRouter>(
-      'GovernanceRouter',
+      'Governance',
       deploy,
       new governanceRouter(deploy.deployer),
       initData,

@@ -1,15 +1,6 @@
 import { BytesLike, ethers } from 'ethers';
 
-import {
-  UpgradeBeacon,
-  Home,
-  TestHome,
-  Replica,
-  TestReplica,
-  GovernanceRouter,
-  TestGovernanceRouter,
-} from '../../typechain/optics-core';
-import * as xAppContracts from '../../typechain/optics-xapps';
+import * as contracts from '../../typechain/optics-core';
 import { CoreDeploy } from './core/CoreDeploy';
 import { BridgeDeploy } from './bridge/BridgeDeploy';
 import TestBridgeDeploy from './bridge/TestBridgeDeploy';
@@ -19,9 +10,9 @@ type Deploy = CoreDeploy | BridgeDeploy | TestBridgeDeploy;
 export class BeaconProxy<T extends ethers.Contract> {
   implementation: T;
   proxy: T;
-  beacon: UpgradeBeacon;
+  beacon: contracts.UpgradeBeacon;
 
-  constructor(implementation: T, proxy: T, beacon: UpgradeBeacon) {
+  constructor(implementation: T, proxy: T, beacon: contracts.UpgradeBeacon) {
     this.implementation = implementation;
     this.proxy = proxy;
     this.beacon = beacon;
