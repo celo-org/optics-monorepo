@@ -330,14 +330,12 @@ interface TestReplicaInterface extends ethers.utils.Interface {
 
   events: {
     "DoubleUpdate(bytes32,bytes32[2],bytes,bytes)": EventFragment;
-    "ProcessError(bytes32,uint32,address,bytes)": EventFragment;
-    "ProcessSuccess(bytes32)": EventFragment;
+    "Process(bytes32,bool,bytes)": EventFragment;
     "Update(uint32,bytes32,bytes32,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DoubleUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProcessError"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProcessSuccess"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Process"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Update"): EventFragment;
 }
 
@@ -1023,24 +1021,14 @@ export class TestReplica extends BaseContract {
       }
     >;
 
-    ProcessError(
+    Process(
       messageHash?: BytesLike | null,
-      nonce?: BigNumberish | null,
-      recipient?: string | null,
-      returnData?: null
+      success?: boolean | null,
+      returnData?: BytesLike | null
     ): TypedEventFilter<
-      [string, number, string, string],
-      {
-        messageHash: string;
-        nonce: number;
-        recipient: string;
-        returnData: string;
-      }
+      [string, boolean, string],
+      { messageHash: string; success: boolean; returnData: string }
     >;
-
-    ProcessSuccess(
-      messageHash?: BytesLike | null
-    ): TypedEventFilter<[string], { messageHash: string }>;
 
     Update(
       homeDomain?: BigNumberish | null,

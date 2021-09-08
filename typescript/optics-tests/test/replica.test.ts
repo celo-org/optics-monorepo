@@ -262,8 +262,8 @@ describe('Replica', async () => {
 
     const processTx = replica.process(opticsMessage);
     await expect(processTx)
-      .to.emit(replica, 'ProcessSuccess')
-      .withArgs(optics.messageHash(opticsMessage));
+      .to.emit(replica, 'Process')
+      .withArgs(optics.messageHash(opticsMessage), true, "0x");
   });
 
   it('Fails to process an unproved message', async () => {

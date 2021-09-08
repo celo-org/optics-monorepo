@@ -62,37 +62,18 @@
       },
       {
         "indexed": true,
-        "internalType": "uint32",
-        "name": "nonce",
-        "type": "uint32"
+        "internalType": "bool",
+        "name": "success",
+        "type": "bool"
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
         "internalType": "bytes",
         "name": "returnData",
         "type": "bytes"
       }
     ],
-    "name": "ProcessError",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "messageHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ProcessSuccess",
+    "name": "Process",
     "type": "event"
   },
   {

@@ -64,23 +64,15 @@ contract Replica is Version0, Common {
     // ============ Events ============
 
     /**
-     * @notice Emitted when message is processed without error
-     * @param messageHash Hash of message processed
-     */
-    event ProcessSuccess(bytes32 indexed messageHash);
-
-    /**
-     * @notice Emitted when processing message reverts
+     * @notice Emitted when message is processed
      * @param messageHash Hash of message that failed to process
-     * @param nonce nonce of the message, set for each domain by remote Home
-     * @param recipient the intended recipient of the failed message
-     * @param returnData the return data from the failed message
+     * @param success TRUE if the call was executed successfully, FALSE if the call reverted
+     * @param returnData the return data from the external call
      */
-    event ProcessError(
+    event Process(
         bytes32 indexed messageHash,
-        uint32 indexed nonce,
-        address indexed recipient,
-        bytes returnData
+        bool indexed success,
+        bytes indexed returnData
     );
 
     // ============ Constructor ============
@@ -207,16 +199,7 @@ contract Replica is Version0, Common {
             )
         );
         // emit process results
-        if (_success) {
-            emit ProcessSuccess(_messageHash);
-        } else {
-            emit ProcessError(
-                _messageHash,
-                _m.nonce(),
-                _recipient,
-                _returnData
-            );
-        }
+        emit Process(_messageHash, _success, _returnData);
         // reset re-entrancy guard
         entered = 1;
     }
