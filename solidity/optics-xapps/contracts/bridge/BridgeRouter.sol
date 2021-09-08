@@ -44,6 +44,15 @@ contract BridgeRouter is Version0, Router, TokenRegistry {
 
     // ======== Events =========
 
+    /**
+     * @notice emitted when an old token implementation is swapped for a new implementation
+     * @param domain the domain of the canonical token being migrated
+     * @param id the bytes32 canonical address of the token being migrated
+     * @param tokenHolder the address migrating its token balance
+     * @param balance the amount of tokens migrated
+     * @param oldToken the local address of the old token implementation
+     * @param newToken the local address of the new token implementation
+     */
     event Migrate(
         uint32 indexed domain,
         bytes32 indexed id,
