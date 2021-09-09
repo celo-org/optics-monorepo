@@ -1,6 +1,7 @@
 use color_eyre::{Report, Result};
 use ethers::prelude::{Address, Middleware, StreamExt};
-use std::convert::TryFrom;
+use rocksdb::DB;
+use std::{convert::TryFrom, sync::Arc};
 
 use optics_core::{
     traits::{ConnectionManager, Home, Replica},
@@ -52,6 +53,50 @@ macro_rules! construct_box_contract {
             ))
         }
     }};
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr, $db:expr) => {{
+        // increase by 2x every 10 seconds
+        let escalator =
+            ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
+
+        let provider = ethers::middleware::gas_escalator::GasEscalatorMiddleware::new(
+            $provider,
+            escalator,
+            ethers::middleware::gas_escalator::Frequency::PerBlock,
+        );
+
+        if let Some(signer) = $signer {
+            // If there's a provided signer, we want to manage every aspect
+            // locally
+
+            // First set the chain ID locally
+            let provider_chain_id = provider.get_chainid().await?;
+            let signer = ethers::signers::Signer::with_chain_id(signer, provider_chain_id.as_u64());
+
+            // Manage the nonce locally
+            let address = ethers::prelude::Signer::address(&signer);
+            let provider =
+                ethers::middleware::nonce_manager::NonceManagerMiddleware::new(provider, address);
+
+            // Manage signing locally
+            let signing_provider = ethers::middleware::SignerMiddleware::new(provider, signer);
+
+            Box::new(crate::$contract::new(
+                $name,
+                $domain,
+                $address,
+                signing_provider.into(),
+                $db,
+            ))
+        } else {
+            Box::new(crate::$contract::new(
+                $name,
+                $domain,
+                $address,
+                provider.into(),
+                $db,
+            ))
+        }
+    }};
 }
 
 macro_rules! construct_ws_box_contract {
@@ -60,6 +105,11 @@ macro_rules! construct_ws_box_contract {
         let provider = ethers::providers::Provider::new(ws);
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+        let ws = ethers::providers::Ws::connect($url).await?;
+        let provider = ethers::providers::Provider::new(ws);
+        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
+    }};
 }
 
 macro_rules! construct_http_box_contract {
@@ -67,6 +117,11 @@ macro_rules! construct_http_box_contract {
         let provider =
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
+    }};
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+        let provider =
+            ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
+        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
     }};
 }
 
@@ -155,13 +210,14 @@ impl EthereumConnection {
         domain: u32,
         address: Address,
         signer: Option<Signers>,
+        db: Arc<DB>,
     ) -> Result<Box<dyn Home>, Report> {
         let b: Box<dyn Home> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer)
+                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer, db)
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer)
+                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer, db)
             }
         };
         Ok(b)

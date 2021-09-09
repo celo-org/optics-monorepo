@@ -26,6 +26,10 @@ pub mod test_utils;
 /// Core optics system data structures
 pub mod types;
 
+/// DB related utilities
+pub mod db;
+pub use db::persistence;
+
 /// Test functions that output json files for Solidity tests
 #[cfg(feature = "output")]
 pub mod test_output;

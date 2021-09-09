@@ -14,10 +14,6 @@ pub mod settings;
 /// Base trait for an agent
 pub mod agent;
 
-/// DB related utilities
-pub mod db;
-pub use db::persistence;
-
 #[doc(hidden)]
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]

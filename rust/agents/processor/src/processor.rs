@@ -22,11 +22,11 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task, decl_agent,
     home::Homes,
-    persistence::UsingPersistence,
     replica::Replicas,
 };
 use optics_core::{
     accumulator::merkle::Proof,
+    persistence::UsingPersistence,
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 

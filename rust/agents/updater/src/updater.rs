@@ -22,10 +22,10 @@ use tracing::{error, info, instrument::Instrumented, Instrument};
 use crate::settings::UpdaterSettings as Settings;
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
-    db::UsingPersistence,
     home::Homes,
 };
 use optics_core::{
+    db::UsingPersistence,
     traits::{Common, Home},
     SignedUpdate, Signers, Update,
 };

@@ -20,10 +20,10 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task,
     home::Homes,
-    persistence::UsingPersistence,
     xapp::ConnectionManagers,
 };
 use optics_core::{
+    persistence::UsingPersistence,
     traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
     FailureNotification, SignedUpdate, Signers,
 };

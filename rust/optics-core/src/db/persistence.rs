@@ -1,4 +1,4 @@
-use optics_core::{Decode, Encode};
+use crate::{Decode, Encode};
 use rocksdb::{DBIterator, Error, DB};
 use std::{marker::PhantomData, ops::Deref};
 

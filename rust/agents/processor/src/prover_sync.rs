@@ -1,8 +1,9 @@
 use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
-use optics_base::{db::UsingPersistence, home::Homes};
+use optics_base::home::Homes;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, merkle::Proof, INITIAL_ROOT},
+    db::UsingPersistence,
     traits::{ChainCommunicationError, Common, Home},
 };
 use rocksdb::DB;

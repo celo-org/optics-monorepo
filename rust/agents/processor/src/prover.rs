@@ -5,10 +5,12 @@
 use ethers::core::types::H256;
 use rocksdb::DB;
 
-use optics_base::db::UsingPersistence;
-use optics_core::accumulator::{
-    merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
-    TREE_DEPTH,
+use optics_core::{
+    accumulator::{
+        merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
+        TREE_DEPTH,
+    },
+    db::UsingPersistence,
 };
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary

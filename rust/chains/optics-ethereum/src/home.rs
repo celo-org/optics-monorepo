@@ -9,6 +9,7 @@ use optics_core::{
     },
     utils, Message, SignedUpdate, Update,
 };
+use rocksdb::DB;
 
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
@@ -29,6 +30,7 @@ where
     contract: EthereumHomeInternal<M>,
     domain: u32,
     name: String,
+    db: Arc<DB>,
 }
 
 impl<M> EthereumHome<M>
@@ -37,11 +39,12 @@ where
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>, db: Arc<DB>) -> Self {
         Self {
             contract: EthereumHomeInternal::new(address, provider),
             domain,
             name: name.to_owned(),
+            db,
         }
     }
 }
