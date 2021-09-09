@@ -1,7 +1,7 @@
-import * as ethers from "ethers";
-import * as core from "../../typechain/optics-core";
-import * as xapps from "../../typechain/optics-xapps";
-import { Domain } from "./domains";
+import * as ethers from 'ethers';
+import * as core from '../../typechain/optics-core';
+import * as xapps from '../../typechain/optics-xapps';
+import { Domain } from './domains';
 
 type Provider = ethers.providers.Provider;
 
@@ -26,7 +26,7 @@ export class MultiProvider {
 
   registerProvider(domain: number, provider: Provider) {
     if (!this.domains[domain]) {
-      throw new Error("Must have domain to register provider");
+      throw new Error('Must have domain to register provider');
     }
     this.providers[domain] = provider;
     if (this.signers[domain]) {
@@ -45,7 +45,7 @@ export class MultiProvider {
 
   registerSigner(domain: number, signer: ethers.Signer) {
     if (!this.providers[domain] && !signer.provider) {
-      throw new Error("Must have a provider before registering signer");
+      throw new Error('Must have a provider before registering signer');
     }
 
     if (this.providers[domain]) {

@@ -1,21 +1,10 @@
-import fs from "fs";
-import ethers from "ethers";
-import * as core from "../../typechain/optics-core";
-import {
-  BridgeRouter,
-  BridgeRouter__factory,
-  ETHHelper,
-  ETHHelper__factory,
-} from "../../typechain/optics-xapps";
-
-type Address = string;
-type ProviderOrSigner = ethers.providers.Provider | ethers.Signer;
+import fs from 'fs';
 
 export abstract class Contracts {
-  readonly original: Object;
+  readonly args: any;
 
-  constructor(data: Object) {
-    this.original = data;
+  constructor(...args: any) {
+    this.args = args;
   }
 
   abstract toObject(): Object;
@@ -30,13 +19,5 @@ export abstract class Contracts {
 
   saveJson(filepath: string) {
     fs.writeFileSync(filepath, this.toJsonPretty());
-  }
-
-  static loadJson<T extends Contracts>(
-    this: new (data: Object) => T,
-    filepath: string
-  ): T {
-    let file = fs.readFileSync(filepath);
-    return new this(file);
   }
 }

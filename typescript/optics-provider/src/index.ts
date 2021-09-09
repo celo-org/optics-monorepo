@@ -1,1 +1,1 @@
-export { MultiProvider } from "./provider";
+export { MultiProvider } from './provider';
