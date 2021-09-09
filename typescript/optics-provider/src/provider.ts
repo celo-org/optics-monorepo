@@ -24,26 +24,45 @@ export class MultiProvider {
     return this.domains[domain];
   }
 
-  registerProvider(domain: number, provider: Provider) {
+  resolveDomain(nameOrDomain: string | number): number {
+    if (typeof nameOrDomain === 'string') {
+      return Object.values(this.domains).filter(
+        (domain) => domain.name === nameOrDomain,
+      )[0].domain;
+    } else {
+      return nameOrDomain;
+    }
+  }
+
+  registerProvider(nameOrDomain: string | number, provider: Provider) {
+    const domain = this.resolveDomain(nameOrDomain);
+
     if (!this.domains[domain]) {
       throw new Error('Must have domain to register provider');
     }
+
     this.providers[domain] = provider;
     if (this.signers[domain]) {
       this.signers[domain] = this.signers[domain].connect(provider);
     }
   }
 
-  registerRpcProvider(domain: number, rpc: string) {
+  registerRpcProvider(nameOrDomain: string | number, rpc: string) {
+    const domain = this.resolveDomain(nameOrDomain);
+
     const provider = new ethers.providers.JsonRpcProvider(rpc);
     this.registerProvider(domain, provider);
   }
 
-  getProvider(domain: number): Provider | undefined {
+  getProvider(nameOrDomain: string | number): Provider | undefined {
+    const domain = this.resolveDomain(nameOrDomain);
+
     return this.providers[domain];
   }
 
-  registerSigner(domain: number, signer: ethers.Signer) {
+  registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
+    const domain = this.resolveDomain(nameOrDomain);
+
     if (!this.providers[domain] && !signer.provider) {
       throw new Error('Must have a provider before registering signer');
     }
@@ -56,12 +75,15 @@ export class MultiProvider {
     }
   }
 
-  registerWalletSigner(domain: number, privkey: string) {
+  registerWalletSigner(nameOrDomain: string | number, privkey: string) {
+    const domain = this.resolveDomain(nameOrDomain);
+
     const wallet = new ethers.Wallet(privkey);
     this.registerSigner(domain, wallet);
   }
 
-  getSigner(domain: number): ethers.Signer | undefined {
+  getSigner(nameOrDomain: string | number): ethers.Signer | undefined {
+    const domain = this.resolveDomain(nameOrDomain);
     return this.signers[domain];
   }
 }
@@ -94,7 +116,11 @@ export class OpticsContext extends MultiProvider {
     return new OpticsContext(domains, cores, bridges);
   }
 
-  registerProvider(domain: number, provider: ethers.providers.Provider) {
+  registerProvider(
+    nameOrDomain: string | number,
+    provider: ethers.providers.Provider,
+  ) {
+    const domain = this.resolveDomain(nameOrDomain);
     super.registerProvider(domain, provider);
 
     // re-register contracts
@@ -107,7 +133,9 @@ export class OpticsContext extends MultiProvider {
     }
   }
 
-  registerSigner(domain: number, signer: ethers.Signer) {
+  registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
+    const domain = this.resolveDomain(nameOrDomain);
+
     super.registerSigner(domain, signer);
     // re-register contracts
     if (this.cores[domain]) {
@@ -118,11 +146,15 @@ export class OpticsContext extends MultiProvider {
     }
   }
 
-  getCore(domain: number): CoreContracts | undefined {
+  getCore(nameOrDomain: string | number): CoreContracts | undefined {
+    const domain = this.resolveDomain(nameOrDomain);
+
     return this.cores[domain];
   }
 
-  getBridge(domain: number): BridgeContracts | undefined {
+  getBridge(nameOrDomain: string | number): BridgeContracts | undefined {
+    const domain = this.resolveDomain(nameOrDomain);
+
     return this.bridges[domain];
   }
 }
