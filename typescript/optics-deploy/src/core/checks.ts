@@ -50,19 +50,20 @@ export async function checkCoreDeploy(
     });
   }
 
-  // expect all replicas to have to same implementation and upgradeBeacon
-  const firstReplica = deploy.contracts.replicas[remoteDomains[0]]!;
-  const replicaImpl = firstReplica.implementation.address;
-  const replicaBeacon = firstReplica.beacon.address;
-  // check every other implementation/beacon matches the first
-  remoteDomains.slice(1).forEach(remoteDomain => {
-    const replica = deploy.contracts.replicas[remoteDomain]!
-    const implementation = replica.implementation.address;
-    const beacon = replica.implementation.address;
-    expect(implementation).to.equal(replicaImpl);
-    expect(beacon).to.equal(replicaBeacon);
-    console.log('check', remoteDomain);
-  })
+  if (remoteDomains.length > 0) {
+    // expect all replicas to have to same implementation and upgradeBeacon
+    const firstReplica = deploy.contracts.replicas[remoteDomains[0]]!;
+    const replicaImpl = firstReplica.implementation.address;
+    const replicaBeacon = firstReplica.beacon.address;
+    // check every other implementation/beacon matches the first
+    remoteDomains.slice(1).forEach(remoteDomain => {
+      const replica = deploy.contracts.replicas[remoteDomain]!
+      const implementation = replica.implementation.address;
+      const beacon = replica.implementation.address;
+      expect(implementation).to.equal(replicaImpl);
+      expect(beacon).to.equal(replicaBeacon);
+    })
+  }
 
   // contracts are defined
   expect(deploy.contracts.updaterManager).to.not.be.undefined;
