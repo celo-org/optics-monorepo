@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use color_eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
     traits::{
@@ -7,9 +8,8 @@ use optics_core::{
     Message, SignedUpdate, Update,
 };
 use optics_ethereum::EthereumHome;
-use tracing::instrument;
-
 use optics_test::mocks::MockHomeContract;
+use tracing::{instrument, instrument::Instrumented};
 
 /// Home type
 #[derive(Debug)]
@@ -63,6 +63,17 @@ impl Home for Homes {
             Homes::Ethereum(home) => home.local_domain(),
             Homes::Mock(mock_home) => mock_home.local_domain(),
             Homes::Other(home) => home.local_domain(),
+        }
+    }
+
+    fn index(
+        &self,
+        from_height: u32,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        match self {
+            Homes::Ethereum(home) => home.index(from_height),
+            Homes::Mock(mock_home) => mock_home.index(from_height),
+            Homes::Other(home) => home.index(from_height),
         }
     }
 

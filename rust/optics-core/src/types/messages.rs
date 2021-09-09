@@ -1,6 +1,6 @@
 use ethers::{types::H256, utils::keccak256};
 
-use crate::{Decode, Encode, OpticsError};
+use crate::{utils, Decode, Encode, OpticsError};
 
 const OPTICS_MESSAGE_PREFIX_LEN: usize = 76;
 
@@ -87,6 +87,11 @@ impl OpticsMessage {
         let mut buf = vec![];
         self.write_to(&mut buf).expect("!write");
         keccak256(buf).into()
+    }
+
+    /// Get the encoded destination + nonce
+    pub fn destination_and_nonce(&self) -> u64 {
+        utils::destination_and_nonce(self.destination, self.nonce)
     }
 }
 

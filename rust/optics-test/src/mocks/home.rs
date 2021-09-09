@@ -12,6 +12,8 @@ use optics_core::{
     Message, SignedUpdate, Update,
 };
 
+use tracing::{instrument::Instrumented, Instrument};
+
 mock! {
     pub HomeContract {
         // Home
@@ -138,6 +140,13 @@ impl Home for MockHomeContract {
 
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         self._produce_update()
+    }
+
+    fn index(
+        &self,
+        _from_height: u32,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        tokio::spawn(async move { Ok(()) }).in_current_span()
     }
 }
 

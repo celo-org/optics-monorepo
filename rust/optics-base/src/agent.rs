@@ -4,6 +4,7 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
+use optics_core::traits::Home;
 use rocksdb::DB;
 use tracing::instrument::Instrumented;
 use tracing::Instrument;
@@ -97,9 +98,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Run several agents
-    #[allow(clippy::unit_arg)]
+    #[allow(clippy::unit_arg, unused_must_use)]
     #[tracing::instrument(err)]
     async fn run_all(&self) -> Result<()> {
+        // this is the unused must use
+        self.home().index(0);
         let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
         self.run_many(&names).await
     }

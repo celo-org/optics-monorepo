@@ -22,3 +22,4 @@ tokio = "1.7.1"
 hex = "0.4.3"
 prometheus = "0.12"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
+tracing-futures = "0.2.5"

@@ -1,13 +1,15 @@
 use std::convert::TryFrom;
 
-use async_trait::async_trait;
-use ethers::core::types::H256;
-
 use crate::{
     traits::{ChainCommunicationError, Common, TxOutcome},
     utils::home_domain_hash,
-    Decode, Message, OpticsError, OpticsMessage, SignedUpdate, Update,
+    Decode, Encode, Message, OpticsError, OpticsMessage, SignedUpdate, Update,
 };
+use async_trait::async_trait;
+use color_eyre::Result;
+use ethers::{core::types::H256, utils::keccak256};
+use tokio::task::JoinHandle;
+use tracing::instrument::Instrumented;
 
 /// A Stamped message that has been committed at some leaf index
 #[derive(Debug, Default, Clone)]
@@ -18,6 +20,51 @@ pub struct RawCommittedMessage {
     pub committed_root: H256,
     /// The fully detailed message that was committed
     pub message: Vec<u8>,
+}
+
+impl RawCommittedMessage {
+    /// Return the `leaf_hash` for this raw message
+    ///
+    /// The leaf hash is the keccak256 digest of the message, which is committed
+    /// in the message tree
+    pub fn leaf_hash(&self) -> H256 {
+        keccak256(&self.message).into()
+    }
+}
+
+impl Encode for RawCommittedMessage {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        writer.write_all(&self.leaf_index.to_be_bytes())?;
+        writer.write_all(self.committed_root.as_ref())?;
+        writer.write_all(&self.message)?;
+        Ok(4 + 32 + self.message.len())
+    }
+}
+
+impl Decode for RawCommittedMessage {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let mut idx = [0u8; 4];
+        reader.read_exact(&mut idx)?;
+
+        let mut hash = [0u8; 32];
+        reader.read_exact(&mut hash)?;
+
+        let mut message = vec![];
+        reader.read_to_end(&mut message)?;
+
+        Ok(Self {
+            leaf_index: u32::from_be_bytes(idx),
+            committed_root: hash.into(),
+            message,
+        })
+    }
 }
 
 // ember: tracingify these across usage points
@@ -63,6 +110,9 @@ impl TryFrom<RawCommittedMessage> for CommittedMessage {
 pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// Return the domain ID
     fn local_domain(&self) -> u32;
+
+    /// Run a task indexing the chain (if necessary)
+    fn index(&self, from_height: u32) -> Instrumented<JoinHandle<Result<()>>>;
 
     /// Return the domain hash
     fn home_domain_hash(&self) -> H256 {
