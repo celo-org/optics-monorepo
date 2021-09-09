@@ -17,14 +17,14 @@
     "constructorArguments": []
   },
   {
-    "name": "Contract Implementation",
+    "name": "Home Implementation",
     "address": "0x05a1afF80B23C2fc7E2067Daf4413eDa1B76b0d0",
     "constructorArguments": [
       2000
     ]
   },
   {
-    "name": "Contract UpgradeBeacon",
+    "name": "Home UpgradeBeacon",
     "address": "0x35eF86b59dbF21DDD6cf4fA7Dc04a3aEFaD57484",
     "constructorArguments": [
       "0x05a1afF80B23C2fc7E2067Daf4413eDa1B76b0d0",
@@ -32,7 +32,7 @@
     ]
   },
   {
-    "name": "Contract Proxy",
+    "name": "Home Proxy",
     "address": "0x8459EDe1ed4dADD6D5B142d845240088A6530Cf8",
     "constructorArguments": [
       "0x35eF86b59dbF21DDD6cf4fA7Dc04a3aEFaD57484",
@@ -41,7 +41,7 @@
     "isProxy": true
   },
   {
-    "name": "Contract Implementation",
+    "name": "Governance Implementation",
     "address": "0x89a4cccC3d6708F16f40c873812091765B3f2884",
     "constructorArguments": [
       2000,
@@ -49,7 +49,7 @@
     ]
   },
   {
-    "name": "Contract UpgradeBeacon",
+    "name": "Governance UpgradeBeacon",
     "address": "0xbdf5227e9D80C400cFB294864b7d068BdeE4e4ed",
     "constructorArguments": [
       "0x89a4cccC3d6708F16f40c873812091765B3f2884",
@@ -57,7 +57,7 @@
     ]
   },
   {
-    "name": "Contract Proxy",
+    "name": "Governance Proxy",
     "address": "0x8f8424DC94b4c302984Ab5a03fc4c2d1Ec95DC92",
     "constructorArguments": [
       "0xbdf5227e9D80C400cFB294864b7d068BdeE4e4ed",
@@ -66,7 +66,7 @@
     "isProxy": true
   },
   {
-    "name": "Contract Implementation",
+    "name": "Replica Implementation",
     "address": "0x42f046Ca3967f80F0F3178Ca73F8701b36957445",
     "constructorArguments": [
       2000,
@@ -75,7 +75,7 @@
     ]
   },
   {
-    "name": "Contract UpgradeBeacon",
+    "name": "Replica UpgradeBeacon",
     "address": "0x73509B64B9A83F9e220d300cfA964e6bbE718B85",
     "constructorArguments": [
       "0x42f046Ca3967f80F0F3178Ca73F8701b36957445",
@@ -83,7 +83,7 @@
     ]
   },
   {
-    "name": "Contract Proxy",
+    "name": "Replica Proxy",
     "address": "0x7EB8450a5397b795F2d89BC48EA20c24fa147F11",
     "constructorArguments": [
       "0x73509B64B9A83F9e220d300cfA964e6bbE718B85",
@@ -92,7 +92,7 @@
     "isProxy": true
   },
   {
-    "name": "Contract Proxy",
+    "name": "Replica Proxy",
     "address": "0xb473F5e0AAf47Ba54dac048633e7b578c1eBde01",
     "constructorArguments": [
       "0x73509B64B9A83F9e220d300cfA964e6bbE718B85",

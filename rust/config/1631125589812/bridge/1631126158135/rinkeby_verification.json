@@ -1,11 +1,11 @@
 [
   {
-    "name": "Contract Implementation",
+    "name": "BridgeToken Implementation",
     "address": "0x29ED2691B1f474bFBC25A3Fc193faCF5191d1A76",
     "constructorArguments": []
   },
   {
-    "name": "Contract UpgradeBeacon",
+    "name": "BridgeToken UpgradeBeacon",
     "address": "0xA41400FE39d81FEd7800B9748Ffa3943F8d08125",
     "constructorArguments": [
       "0x29ED2691B1f474bFBC25A3Fc193faCF5191d1A76",
@@ -13,7 +13,7 @@
     ]
   },
   {
-    "name": "Contract Proxy",
+    "name": "BridgeToken Proxy",
     "address": "0x8F60dc7117dE62398a801100bfcf613569Dd66d7",
     "constructorArguments": [
       "0xA41400FE39d81FEd7800B9748Ffa3943F8d08125",
@@ -22,12 +22,12 @@
     "isProxy": true
   },
   {
-    "name": "Contract Implementation",
+    "name": "BridgeRouter Implementation",
     "address": "0x32ea430C414DC7c08B6C40EEA495F358404dA03e",
     "constructorArguments": []
   },
   {
-    "name": "Contract UpgradeBeacon",
+    "name": "BridgeRouter UpgradeBeacon",
     "address": "0xef357E74a084E7571f2FB7220953b7C7E876eA4a",
     "constructorArguments": [
       "0x32ea430C414DC7c08B6C40EEA495F358404dA03e",
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "name": "Contract Proxy",
+    "name": "BridgeRouter Proxy",
     "address": "0x8FbEA25D0bFDbff68F2B920df180e9498E9c856A",
     "constructorArguments": [
       "0xef357E74a084E7571f2FB7220953b7C7E876eA4a",
