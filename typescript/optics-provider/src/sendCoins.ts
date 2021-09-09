@@ -1,7 +1,7 @@
 import {
   BridgeRouter,
   BridgeRouter__factory,
-  IERC20__factory,
+  ERC20__factory,
 } from "../../typechain/optics-xapps";
 import * as ethers from "ethers";
 
@@ -20,8 +20,10 @@ async function doThing() {
   const celoSigner = new ethers.Wallet(privkey!, celoProvider);
 
   // approve the bridge to spend your celo
-  const token = IERC20__factory.connect(celoTokenAddr, celoSigner);
-  let tx = await token.approve(celoBridgeRouter, ethers.constants.MaxUint256);
+  const token = ERC20__factory.connect(celoTokenAddr, celoSigner);
+  let tx = await token.approve(celoBridgeRouter, ethers.constants.MaxUint256, {
+    gasLimit: 100_000,
+  });
   console.log("approving token spend");
   await tx.wait(1);
 
