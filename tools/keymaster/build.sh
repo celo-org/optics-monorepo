@@ -1,0 +1,1 @@
+docker build -t gcr.io/clabs-optics/keymaster:$1 . 

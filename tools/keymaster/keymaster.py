@@ -5,17 +5,19 @@
 
 from utils import dispatch_signed_transaction
 from web3 import Web3
-import click
-import logging
+from prometheus_client import start_http_server, Counter, Gauge
 from config import load_config
 from utils import create_transaction, is_wallet_below_threshold, get_nonce, get_balance
+
+import click
+import logging
 import json 
 import sys 
 import time
 
 @click.group()
 @click.option('--debug/--no-debug', default=False)
-@click.option('--config-path', default="./keymaster.json")
+@click.option('--config-path', default="./config/keymaster.json")
 @click.pass_context
 def cli(ctx, debug, config_path):
     ctx.ensure_object(dict)
@@ -37,6 +39,57 @@ def cli(ctx, debug, config_path):
     if debug:
         click.echo(f"Loaded config from {config_path}")
         click.echo(json.dumps(ctx.obj['CONFIG'], indent=2))
+
+@cli.command()
+@click.pass_context
+@click.option('--metrics-port', default=9090, help="Port to bind metrics server to.")
+@click.option('--pause-duration', default=30, help="Number of seconds to sleep between polling.")
+def monitor(ctx, metrics_port, pause_duration):
+    """Simple program that polls one or more ethereum accounts and reports metrics on them."""
+    # Get config
+    config = ctx.obj["CONFIG"]
+    
+    # Set up prometheus metrics 
+    metrics = {
+        "wallet_balance": Gauge("ethereum_wallet_balance", "ETH Wallet Balance", ["role", "home", "address", "network"]),
+        "transaction_count": Gauge("ethereum_transaction_count", "ETH Wallet Balance", ["role", "home", "address", "network"]),
+        "block_number": Gauge("ethereum_block_height", "Block Height", ["network"])
+    }
+
+    # Set up logging
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+    # run metrics endpoint
+    start_http_server(metrics_port)
+    logging.info(f"Running Prometheus endpoint on port {metrics_port}")
+
+    logging.info("Executing event loop, Ctrl+C to exit.")
+    # main event loop
+    while True:
+        # for each rpc
+        for name, network in config["networks"].items():
+            endpoint = network["endpoint"]
+            w3 = Web3(Web3.HTTPProvider(endpoint))
+
+            # Fetch block height
+            block_height = w3.eth.get_block_number()
+            metrics["block_number"].labels(network=name).set(block_height)
+
+            # for each account
+            for home_name, home in config["homes"].items():
+                for role, account in home["addresses"].items():
+                    logging.info(f"Fetching metrics for {account} via {endpoint}")
+                    # fetch balance
+                    wallet_wei = get_balance(account, endpoint)
+                    logging.info(f"Wallet Balance: {wallet_wei * 10**-18}")
+                    # fetch tx count
+                    tx_count = get_nonce(account, endpoint)
+                    logging.info(f"Transaction Count: {tx_count}")
+                    # report metrics 
+                    metrics["wallet_balance"].labels(role=role, home=home_name, address=account, network=name).set(wallet_wei)
+                    metrics["transaction_count"].labels(role=role, home=home_name, address=account, network=name).set(tx_count)
+        logging.info(f"Sleeping for {pause_duration} seconds.")
+        time.sleep(pause_duration)
 
 
 @cli.command()

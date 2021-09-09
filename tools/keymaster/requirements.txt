@@ -1,3 +1,4 @@
 click
 python-json-config
 web3
+prometheus_client
