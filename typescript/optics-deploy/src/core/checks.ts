@@ -2,7 +2,9 @@ import { expect } from 'chai';
 import { Contract } from 'ethers';
 
 import { CoreDeploy as Deploy } from './CoreDeploy';
+import { BridgeDeploy } from '../bridge/BridgeDeploy';
 import { BeaconProxy } from '../proxyUtils';
+import TestBridgeDeploy from '../bridge/TestBridgeDeploy';
 
 const emptyAddr = '0x' + '00'.repeat(20);
 
@@ -10,6 +12,11 @@ export function assertBeaconProxy(beaconProxy: BeaconProxy<Contract>) {
   expect(beaconProxy.beacon).to.not.be.undefined;
   expect(beaconProxy.proxy).to.not.be.undefined;
   expect(beaconProxy.implementation).to.not.be.undefined;
+}
+
+export function checkVerificationInput(deploy: Deploy | BridgeDeploy | TestBridgeDeploy, name: string, addr: string) {
+  const inputAddr = deploy.verificationInput.filter(contract => contract.name == name)[0].address;
+  expect(inputAddr).to.equal(addr);
 }
 
 export async function checkCoreDeploy(
@@ -76,21 +83,26 @@ export async function checkCoreDeploy(
   expect(homeOwner).to.equal(governorAddr);
 
   // check verification addresses
-  // TODO: give unique name or id in verification output
-  // expect(deploy.verificationInput[0].address).to.equal(deploy.contracts.upgradeBeaconController?.address);
-  // expect(deploy.verificationInput[1].address).to.equal(deploy.contracts.updaterManager?.address);
-  // expect(deploy.verificationInput[2].address).to.equal(deploy.contracts.xAppConnectionManager?.address);
-  // expect(deploy.verificationInput[3].address).to.equal(deploy.contracts.home?.implementation.address);
-  // expect(deploy.verificationInput[4].address).to.equal(deploy.contracts.home?.beacon.address);
-  // expect(deploy.verificationInput[5].address).to.equal(deploy.contracts.home?.proxy.address);
-  // expect(deploy.verificationInput[6].address).to.equal(deploy.contracts.governance?.implementation.address);
-  // expect(deploy.verificationInput[7].address).to.equal(deploy.contracts.governance?.beacon.address);
-  // expect(deploy.verificationInput[8].address).to.equal(deploy.contracts.governance?.proxy.address);
-  // for (let i = 0; i < remoteDomains.length; i++) {
-  //   const index = i + 9;
-  //   const replica = deploy.contracts.replicas[remoteDomains[i]]!;
-  //   expect(deploy.verificationInput[index].address).to.equal(replica.implementation.address);
-  //   expect(deploy.verificationInput[index + 1].address).to.equal(replica.beacon.address);
-  //   expect(deploy.verificationInput[index + 2].address).to.equal(replica.proxy.address);
-  // }
+  checkVerificationInput(deploy, 'UpgradeBeaconController', deploy.contracts.upgradeBeaconController?.address!);
+  checkVerificationInput(deploy, 'XAppConnectionManager', deploy.contracts.xAppConnectionManager?.address!);
+  checkVerificationInput(deploy, 'UpdaterManager', deploy.contracts.updaterManager?.address!);
+  checkVerificationInput(deploy, 'Home Implementation', deploy.contracts.home?.implementation.address!);
+  checkVerificationInput(deploy, 'Home UpgradeBeacon', deploy.contracts.home?.beacon.address!);
+  checkVerificationInput(deploy, 'Home Proxy', deploy.contracts.home?.proxy.address!);
+  checkVerificationInput(deploy, 'Governance Implementation', deploy.contracts.governance?.implementation.address!);
+  checkVerificationInput(deploy, 'Governance UpgradeBeacon', deploy.contracts.governance?.beacon.address!);
+  checkVerificationInput(deploy, 'Governance Proxy', deploy.contracts.governance?.proxy.address!);
+  
+  if (remoteDomains.length > 0) {
+    checkVerificationInput(deploy, 'Replica Implementation', deploy.contracts.replicas[remoteDomains[0]]?.implementation.address!);
+    checkVerificationInput(deploy, 'Replica UpgradeBeacon', deploy.contracts.replicas[remoteDomains[0]]?.beacon.address!);
+
+    const replicaProxies = deploy.verificationInput.filter(contract => contract.name == 'Replica Proxy');
+    remoteDomains.forEach(domain => {
+      const replicaProxy = replicaProxies.find(proxy => {
+        return proxy.address = deploy.contracts.replicas[domain]?.proxy.address
+      });
+      expect(replicaProxy).to.not.be.undefined;
+    })
+  }
 }

@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { assertBeaconProxy } from '../core/checks';
 import { BridgeDeploy as Deploy } from './BridgeDeploy';
 import TestBridgeDeploy from './TestBridgeDeploy';
+import { checkVerificationInput } from '../core/checks';
 
 const emptyAddr = '0x' + '00'.repeat(32);
 
@@ -27,12 +28,13 @@ export async function checkBridgeDeploy(
 
   expect(await bridgeRouter.owner()).to.equal(deploy.coreContractAddresses.governance.proxy);
 
-  expect(deploy.verificationInput[0].address).to.equal(deploy.contracts.bridgeToken?.implementation.address);
-  expect(deploy.verificationInput[1].address).to.equal(deploy.contracts.bridgeToken?.beacon.address);
-  expect(deploy.verificationInput[2].address).to.equal(deploy.contracts.bridgeToken?.proxy.address);
-  expect(deploy.verificationInput[3].address).to.equal(deploy.contracts.bridgeRouter?.implementation.address);
-  expect(deploy.verificationInput[4].address).to.equal(deploy.contracts.bridgeRouter?.beacon.address);
-  expect(deploy.verificationInput[5].address).to.equal(deploy.contracts.bridgeRouter?.proxy.address);
+  // check verification addresses
+  checkVerificationInput(deploy, 'BridgeToken Implementation', deploy.contracts.bridgeToken?.implementation.address!);
+  checkVerificationInput(deploy, 'BridgeToken UpgradeBeacon', deploy.contracts.bridgeToken?.beacon.address!);
+  checkVerificationInput(deploy, 'BridgeToken Proxy', deploy.contracts.bridgeToken?.proxy.address!);
+  checkVerificationInput(deploy, 'BridgeRouter Implementation', deploy.contracts.bridgeRouter?.implementation.address!);
+  checkVerificationInput(deploy, 'BridgeRouter UpgradeBeacon', deploy.contracts.bridgeRouter?.beacon.address!);
+  checkVerificationInput(deploy, 'BridgeRouter Proxy', deploy.contracts.bridgeRouter?.proxy.address!);
   if (deploy.config.weth) {
     expect(deploy.verificationInput[6].address).to.equal(deploy.contracts.ethHelper?.address);
   }
