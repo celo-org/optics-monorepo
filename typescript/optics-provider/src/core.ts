@@ -22,11 +22,18 @@ type InternalReplica = {
 };
 
 export class CoreContracts extends Contracts {
+  readonly domain;
   private home: Home;
   private replicas: InternalReplica[];
 
-  constructor(home: Address, replicas: ReplicaInfo[], signer?: ethers.Signer) {
-    super(home, replicas, signer);
+  constructor(
+    domain: number,
+    home: Address,
+    replicas: ReplicaInfo[],
+    signer?: ethers.Signer,
+  ) {
+    super(domain, home, replicas, signer);
+    this.domain = domain;
     this.home = new Home__factory(signer).attach(home);
 
     this.replicas = replicas.map((replica) => {
@@ -37,7 +44,7 @@ export class CoreContracts extends Contracts {
     });
   }
 
-  connect(signer: ethers.Signer) {
+  connect(signer: ethers.Signer): void {
     this.home = this.home.connect(signer);
     this.replicas = this.replicas.map((replica) => {
       return {
@@ -62,10 +69,10 @@ export class CoreContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer): CoreContracts {
-    if (!data.home || !data.replicas) {
+    if (!data.domain || !data.home || !data.replicas) {
       throw new Error('Missing key');
     }
-    return new CoreContracts(data.home, data.replicas, signer);
+    return new CoreContracts(data.domain, data.home, data.replicas, signer);
   }
 
   static loadJson(filepath: string, signer?: ethers.Signer) {

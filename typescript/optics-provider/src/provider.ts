@@ -1,6 +1,9 @@
 import * as ethers from 'ethers';
 import * as core from '../../typechain/optics-core';
 import * as xapps from '../../typechain/optics-xapps';
+import { BridgeContracts } from './bridge';
+import { Contracts } from './contracts';
+import { CoreContracts } from './core';
 import { Domain } from './domains';
 
 type Provider = ethers.providers.Provider;
@@ -63,5 +66,41 @@ export class MultiProvider {
 
   getSigner(domain: number): ethers.Signer | undefined {
     return this.signers[domain];
+  }
+}
+
+export class OpticsContext extends MultiProvider {
+  private cores: Record<number, CoreContracts>;
+  private bridges: Record<number, BridgeContracts>;
+
+  constructor(cores: CoreContracts[], bridges: BridgeContracts[]) {
+    super();
+    this.cores = {};
+    this.bridges = {};
+
+    cores.forEach((core) => {
+      this.cores[core.domain] = core;
+    });
+    bridges.forEach((bridge) => {
+      this.bridges[bridge.domain] = bridge;
+    });
+  }
+
+  registerSigner(domain: number, signer: ethers.Signer) {
+    super.registerSigner(domain, signer);
+    if (this.cores[domain]) {
+      this.cores[domain].connect(signer);
+    }
+    if (this.bridges[domain]) {
+      this.bridges[domain].connect(signer);
+    }
+  }
+
+  getCore(domain: number): CoreContracts | undefined {
+    return this.cores[domain];
+  }
+
+  getBridge(domain: number): BridgeContracts | undefined {
+    return this.bridges[domain];
   }
 }

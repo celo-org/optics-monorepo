@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import fs from 'fs';
 
 export abstract class Contracts {
@@ -7,7 +8,9 @@ export abstract class Contracts {
     this.args = args;
   }
 
-  abstract toObject(): Object;
+  abstract toObject(): any;
+
+  abstract connect(signer: ethers.Signer): void;
 
   toJson(): string {
     return JSON.stringify(this.toObject());
