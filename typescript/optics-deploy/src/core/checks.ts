@@ -34,7 +34,7 @@ export async function checkCoreDeploy(
   // GovernanceRouter upgrade setup contracts are defined
   assertBeaconProxy(deploy.contracts.governance!);
 
-  remoteDomains.forEach(async domain => {
+  for (const domain of remoteDomains) {
     // Replica upgrade setup contracts are defined
     assertBeaconProxy(deploy.contracts.replicas[domain]!);
     // governanceRouter for remote domain is registered
@@ -48,7 +48,21 @@ export async function checkCoreDeploy(
       const watcherPermissions = await deploy.contracts.xAppConnectionManager?.watcherPermission(watcher, domain);
       expect(watcherPermissions).to.be.true;
     });
-  });
+  }
+
+  // expect all replicas to have to same implementation and upgradeBeacon
+  const firstReplica = deploy.contracts.replicas[remoteDomains[0]]!;
+  const replicaImpl = firstReplica.implementation.address;
+  const replicaBeacon = firstReplica.beacon.address;
+  // check every other implementation/beacon matches the first
+  remoteDomains.slice(1).forEach(remoteDomain => {
+    const replica = deploy.contracts.replicas[remoteDomain]!
+    const implementation = replica.implementation.address;
+    const beacon = replica.implementation.address;
+    expect(implementation).to.equal(replicaImpl);
+    expect(beacon).to.equal(replicaBeacon);
+    console.log('check', remoteDomain);
+  })
 
   // contracts are defined
   expect(deploy.contracts.updaterManager).to.not.be.undefined;

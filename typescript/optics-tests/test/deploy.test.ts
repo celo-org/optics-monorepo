@@ -97,7 +97,7 @@ describe('bridge deploy scripts', async () => {
     await deployNChains(deploys);
 
     for (let i = 0; i < numChains; i++) {
-      coreAddresses.push(deploys[0].contracts.toObject());
+      coreAddresses.push(deploys[i].contracts.toObject());
     }
   });
 
