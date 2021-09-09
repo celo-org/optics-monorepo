@@ -8,13 +8,9 @@ import {
   Replica__factory,
 } from '../../typechain/optics-core';
 import { Contracts } from './contracts';
+import { ReplicaInfo } from './domains';
 
 type Address = string;
-
-export interface ReplicaInfo {
-  domain: number;
-  address: Address;
-}
 
 type InternalReplica = {
   domain: number;
@@ -44,11 +40,11 @@ export class CoreContracts extends Contracts {
     });
   }
 
-  connect(signer: ethers.Signer): void {
-    this.home = this.home.connect(signer);
+  connect(providerOrSigner: ethers.providers.Provider | ethers.Signer): void {
+    this.home = this.home.connect(providerOrSigner);
     this.replicas = this.replicas.map((replica) => {
       return {
-        contract: replica.contract.connect(signer),
+        contract: replica.contract.connect(providerOrSigner),
         domain: replica.domain,
       };
     });

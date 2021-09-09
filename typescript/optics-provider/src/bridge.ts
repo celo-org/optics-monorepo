@@ -13,23 +13,27 @@ type Address = string;
 export class BridgeContracts extends Contracts {
   domain: number;
   bridgeRouter: BridgeRouter;
-  ethHelper: ETHHelper;
+  ethHelper?: ETHHelper;
 
   constructor(
     domain: number,
     br: Address,
-    ethHelper: Address,
+    ethHelper?: Address,
     signer?: ethers.Signer,
   ) {
     super(domain, br, ethHelper, signer);
     this.domain = domain;
     this.bridgeRouter = new BridgeRouter__factory(signer).attach(br);
-    this.ethHelper = new ETHHelper__factory(signer).attach(ethHelper);
+    if (ethHelper) {
+      this.ethHelper = new ETHHelper__factory(signer).attach(ethHelper);
+    }
   }
 
-  connect(signer: ethers.Signer): void {
-    this.bridgeRouter = this.bridgeRouter.connect(signer);
-    this.ethHelper = this.ethHelper.connect(signer);
+  connect(providerOrSigner: ethers.providers.Provider | ethers.Signer): void {
+    this.bridgeRouter = this.bridgeRouter.connect(providerOrSigner);
+    if (this.ethHelper) {
+      this.ethHelper = this.ethHelper.connect(providerOrSigner);
+    }
   }
 
   static fromObject(data: any, signer?: ethers.Signer) {
@@ -52,9 +56,12 @@ export class BridgeContracts extends Contracts {
   }
 
   toObject(): any {
-    return {
+    const obj: any = {
       bridgeRouter: this.bridgeRouter.address,
-      ethHelper: this.ethHelper.address,
     };
+    if (this.ethHelper) {
+      obj.ethHelper = this.ethHelper.address;
+    }
+    return obj;
   }
 }

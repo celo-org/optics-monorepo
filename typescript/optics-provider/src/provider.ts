@@ -1,10 +1,7 @@
 import * as ethers from 'ethers';
-import * as core from '../../typechain/optics-core';
-import * as xapps from '../../typechain/optics-xapps';
 import { BridgeContracts } from './bridge';
-import { Contracts } from './contracts';
 import { CoreContracts } from './core';
-import { Domain } from './domains';
+import { Domain, mainnetDomains } from './domains';
 
 type Provider = ethers.providers.Provider;
 
@@ -86,8 +83,28 @@ export class OpticsContext extends MultiProvider {
     });
   }
 
+  static fromDomains(domains: Domain[]): OpticsContext {
+    const cores = domains.map((domain) => CoreContracts.fromObject(domain));
+    const bridges = domains.map((domain) => BridgeContracts.fromObject(domain));
+    return new OpticsContext(cores, bridges);
+  }
+
+  registerProvider(domain: number, provider: ethers.providers.Provider) {
+    super.registerProvider(domain, provider);
+
+    // re-register contracts
+    const connection = this.getSigner(domain) ?? this.getProvider(domain)!;
+    if (this.cores[domain]) {
+      this.cores[domain].connect(connection);
+    }
+    if (this.bridges[domain]) {
+      this.bridges[domain].connect(connection);
+    }
+  }
+
   registerSigner(domain: number, signer: ethers.Signer) {
     super.registerSigner(domain, signer);
+    // re-register contracts
     if (this.cores[domain]) {
       this.cores[domain].connect(signer);
     }
@@ -104,3 +121,5 @@ export class OpticsContext extends MultiProvider {
     return this.bridges[domain];
   }
 }
+
+export const mainnet = OpticsContext.fromDomains(mainnetDomains);
