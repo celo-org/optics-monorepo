@@ -37,13 +37,13 @@ export class BridgeContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer) {
-    if (!data.domain || !data.bridgeRouter || !data.ethHelper) {
+    if (!data.domain || !data.bridgeRouter) {
       throw new Error('missing address');
     }
 
     const domain = data.domain;
     const br = data.bridgeRouter.proxy ?? data.bridgeRouter;
-    const eh = data.bridgeRouter.proxy ?? data.bridgeRouter;
+    const eh = data.ethHelper;
 
     return new BridgeContracts(domain, br, eh);
   }

@@ -16,8 +16,8 @@ export class MultiProvider {
     this.signers = {};
   }
 
-  registerDomain(data: Domain) {
-    this.domains[data.domain] = data;
+  registerDomain(domain: Domain) {
+    this.domains[domain.domain] = domain;
   }
 
   getDomain(domain: number): Domain | undefined {
@@ -70,8 +70,13 @@ export class OpticsContext extends MultiProvider {
   private cores: Record<number, CoreContracts>;
   private bridges: Record<number, BridgeContracts>;
 
-  constructor(cores: CoreContracts[], bridges: BridgeContracts[]) {
+  constructor(
+    domains: Domain[],
+    cores: CoreContracts[],
+    bridges: BridgeContracts[],
+  ) {
     super();
+    domains.forEach((domain) => this.registerDomain(domain));
     this.cores = {};
     this.bridges = {};
 
@@ -86,7 +91,7 @@ export class OpticsContext extends MultiProvider {
   static fromDomains(domains: Domain[]): OpticsContext {
     const cores = domains.map((domain) => CoreContracts.fromObject(domain));
     const bridges = domains.map((domain) => BridgeContracts.fromObject(domain));
-    return new OpticsContext(cores, bridges);
+    return new OpticsContext(domains, cores, bridges);
   }
 
   registerProvider(domain: number, provider: ethers.providers.Provider) {
