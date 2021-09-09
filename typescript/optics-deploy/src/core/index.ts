@@ -563,26 +563,24 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   }));
 
   // enroll remotes on every chain
-  await Promise.all(
-    deploys.map(async (local) => {
-      // deploy replicas for all OTHER non-gov domains
-      await Promise.all(
-        deploys
-          .filter((deploy) => deploy.chain.domain !== local.chain.domain)
-          .map(async (remote) => {
-            log(
-              isTestDeploy,
-              `connecting ${remote.chain.name} on ${local.chain.name}`,
-            );
-            await enrollRemote(local, remote);
-            log(
-              isTestDeploy,
-              `connected ${remote.chain.name} on ${local.chain.name}`,
-            );
-          }),
+  //
+  //    NB: do not use Promise.all for this block. It introduces a race condition
+  //    which results in multiple replica implementations on the home chain.
+  //
+  for (const local of deploys) {
+    const remotes = deploys.filter(d => d.chain.domain !== local.chain.domain);
+    for (const remote of remotes) {
+      log(
+        isTestDeploy,
+        `connecting ${remote.chain.name} on ${local.chain.name}`,
       );
-    }),
-  );
+      await enrollRemote(local, remote);
+      log(
+        isTestDeploy,
+        `connected ${remote.chain.name} on ${local.chain.name}`,
+      );
+    }
+  }
 
   // appoint the configured governance account as governor
   if (govChain.config.governor) {
