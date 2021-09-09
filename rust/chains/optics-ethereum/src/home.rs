@@ -74,6 +74,8 @@ macro_rules! impl_home_db_traits {
 }
 
 static LAST_INSPECTED: &str = "homeIndexerLastInspected";
+
+// TODO: make configurable
 static CHUNK_SIZE: u32 = 1999;
 
 #[allow(missing_docs)]
@@ -158,6 +160,8 @@ where
                 OpticsMessage::read_from(&mut message.message.clone().as_slice())?
                     .destination_and_nonce();
 
+            // TODO: stop storing this 3 times. make the others pointers to a
+            // canonical version
             Self::db_put(&self.db, destination_and_nonce, message.clone())?;
             Self::db_put(&self.db, message.leaf_index, message.clone())?;
             Self::db_put(&self.db, message.leaf_hash(), message)?;
@@ -168,11 +172,11 @@ where
 
     fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
         tokio::spawn(async move {
-            // TODO: james: add a from_height
             let mut next_height = Self::db_get(&self.db, LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             loop {
+                // TODO(james): figure out when we're at chain head and then switch to interval-based polling
                 // TODO(james): these shouldn't have to go in lockstep
                 try_join!(
                     self.sync_updates(next_height),
