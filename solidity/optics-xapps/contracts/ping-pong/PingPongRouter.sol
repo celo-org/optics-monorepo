@@ -47,7 +47,7 @@ contract PingPongRouter is Router {
 
     // ============ Constructor ============
     constructor(address _xAppConnectionManager) {
-        assert(true == false, "example xApp, do not deploy");
+        require(false, "example xApp, do not deploy");
 
         __XAppConnectionClient_initialize(_xAppConnectionManager);
     }
