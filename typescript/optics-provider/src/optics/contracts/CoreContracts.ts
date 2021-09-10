@@ -20,7 +20,7 @@ type InternalReplica = {
 export class CoreContracts extends Contracts {
   readonly domain;
   home: Home;
-  replicas: InternalReplica[];
+  replicas: Map<number, InternalReplica>;
 
   constructor(
     domain: number,
@@ -32,31 +32,32 @@ export class CoreContracts extends Contracts {
     this.domain = domain;
     this.home = new Home__factory(signer).attach(home);
 
-    this.replicas = replicas.map((replica) => {
-      return {
+    this.replicas = new Map();
+    replicas.forEach((replica) => {
+      this.replicas.set(replica.domain, {
         contract: new Replica__factory(signer).attach(replica.address),
         domain: replica.domain,
-      };
+      });
     });
   }
 
   connect(providerOrSigner: ethers.providers.Provider | ethers.Signer): void {
     this.home = this.home.connect(providerOrSigner);
-    this.replicas = this.replicas.map((replica) => {
-      return {
-        contract: replica.contract.connect(providerOrSigner),
-        domain: replica.domain,
-      };
+
+    Array.from(this.replicas.values()).forEach((replica: InternalReplica) => {
+      replica.contract = replica.contract.connect(providerOrSigner);
     });
   }
 
   toObject(): any {
-    const replicas: ReplicaInfo[] = this.replicas.map((replica) => {
-      return {
-        domain: replica.domain,
-        address: replica.contract.address,
-      };
-    });
+    const replicas: ReplicaInfo[] = Array.from(this.replicas.values()).map(
+      (replica) => {
+        return {
+          domain: replica.domain,
+          address: replica.contract.address,
+        };
+      },
+    );
 
     return {
       home: this.home.address,

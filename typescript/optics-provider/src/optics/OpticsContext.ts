@@ -6,6 +6,7 @@ import { CoreContracts } from './contracts/CoreContracts';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
 import { canonizeId } from '../utils';
 import { mainnetDomains, OpticsDomain } from './OpticsDomain';
+import { Replica } from '../../../typechain/optics-core';
 
 type Address = string;
 
@@ -82,8 +83,16 @@ export class OpticsContext extends MultiProvider {
 
   getBridge(nameOrDomain: string | number): BridgeContracts | undefined {
     const domain = this.resolveDomain(nameOrDomain);
-
     return this.bridges.get(domain);
+  }
+
+  // gets the replica of Home on Remote
+  getReplicaFor(
+    home: string | number,
+    remote: string | number,
+  ): Replica | undefined {
+    return this.getCore(remote)?.replicas.get(this.resolveDomain(home))
+      ?.contract;
   }
 
   // resolve the local repr of a token on its domain

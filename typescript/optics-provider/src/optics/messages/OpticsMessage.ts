@@ -2,6 +2,7 @@ import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { TypedEvent } from '../../../../typechain/optics-core/commons';
 import { Home, Replica } from '../../../../typechain/optics-core';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { CoreContracts, OpticsContext } from '..';
 
 // match the typescript declaration
 export type DispatchEvent = TypedEvent<
@@ -52,10 +53,9 @@ export class OpticsMessage {
   readonly committedRoot: string;
   readonly message: ParsedMessage;
 
-  private origin: Home;
-  private destination: Replica;
+  private context: OpticsContext;
 
-  constructor(event: DispatchEvent, origin: Home, destination: Replica) {
+  constructor(event: DispatchEvent, context: OpticsContext) {
     this.event = event;
     this.messageHash = event.args.messageHash;
     this.leafIndex = event.args.leafIndex;
@@ -63,12 +63,39 @@ export class OpticsMessage {
     this.committedRoot = event.args.committedRoot;
     this.message = parseMessage(event.args.message);
 
-    this.origin = origin;
-    this.destination = destination;
+    this.context = context;
   }
 
   async status(): Promise<MessageStatus> {
-    const status = await this.destination.messages(this.messageHash);
-    return status;
+    // TODO
+    return 0;
+  }
+
+  get from(): number {
+    return this.message.from;
+  }
+
+  get origin(): number {
+    return this.from;
+  }
+
+  get sender(): string {
+    return this.message.sender;
+  }
+
+  get nonce(): number {
+    return this.message.nonce;
+  }
+
+  get destination(): number {
+    return this.message.destination;
+  }
+
+  get recipient(): string {
+    return this.message.recipient;
+  }
+
+  get body(): string {
+    return this.message.body;
   }
 }

@@ -1,8 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { BridgeContracts, CoreContracts, OpticsContext } from '..';
 import { Home, Replica } from '../../../../typechain/optics-core';
+import { BridgeRouter } from '../../../../typechain/optics-xapps';
 import { TokenIdentifier } from '../tokens';
-import { DispatchEvent, OpticsMessage, ParsedMessage } from './message';
+import { DispatchEvent, OpticsMessage, ParsedMessage } from './OpticsMessage';
 
 const ACTION_LEN = {
   identifier: 1,
@@ -81,10 +83,22 @@ export class BridgeMessage extends OpticsMessage {
   readonly action: Action;
   readonly token: TokenIdentifier;
 
-  constructor(event: DispatchEvent, origin: Home, destination: Replica) {
-    super(event, origin, destination);
-    const parsed = parseBody(this.message.body);
+  readonly fromBridge: BridgeContracts;
+  readonly toBridge: BridgeContracts;
 
+  constructor(event: DispatchEvent, context: OpticsContext) {
+    super(event, context);
+    const parsed = parseBody(this.body);
+
+    const fromBridge = context.getBridge(this.message.from);
+    const toBridge = context.getBridge(this.message.destination);
+
+    if (!fromBridge || !toBridge) {
+      throw new Error('missing bridge');
+    }
+
+    this.fromBridge = fromBridge;
+    this.toBridge = toBridge;
     this.action = parsed.action;
     this.token = parsed.token;
   }
