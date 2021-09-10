@@ -106,8 +106,8 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     #[allow(clippy::unit_arg, unused_must_use)]
     #[tracing::instrument(err)]
     async fn run_all(&self) -> Result<()> {
-        // this is the unused must use
         let indexer = &self.as_ref().indexer;
+        // this is the unused must use
         self.home().index(indexer.from(), indexer.chunk_size());
         let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
         self.run_many(&names).await

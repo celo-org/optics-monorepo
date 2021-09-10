@@ -12,7 +12,7 @@ use tokio::task::JoinHandle;
 use tracing::instrument::Instrumented;
 
 /// A Stamped message that has been committed at some leaf index
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct RawCommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,

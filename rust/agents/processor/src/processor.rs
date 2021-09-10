@@ -144,7 +144,13 @@ impl Replica {
         let message = match self.home.message_by_nonce(domain, current_seq).await {
             Ok(Some(m)) => m,
             Ok(None) => {
-                info!("Message not yet found");
+                info!(
+                    domain = domain,
+                    sequence = current_seq,
+                    "Message not yet found {}:{}",
+                    domain,
+                    current_seq
+                );
                 return Ok(false);
             }
             Err(e) => bail!(e),
@@ -173,7 +179,7 @@ impl Replica {
         let proof = match self.db.proof_by_leaf_index(message.leaf_index) {
             Ok(Some(p)) => p,
             Ok(None) => {
-                info!("Proof not yet found");
+                info!(leaf_index = message.leaf_index, "Proof not yet found");
                 return Ok(false);
             }
             Err(e) => bail!(e),

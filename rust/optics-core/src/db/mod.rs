@@ -14,7 +14,7 @@ use crate::{
 
 use self::iterator::PrefixIterator;
 
-static DEST: &str = "destination_and_nonce_";
+static NONCE: &str = "destination_and_nonce_";
 static LEAF_IDX: &str = "leaf_index_";
 static LEAF_HASH: &str = "leaf_hash_";
 static PREV_ROOT: &str = "update_prev_root_";
@@ -141,12 +141,11 @@ impl DB {
         );
         self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
         self.store_leaf(message.leaf_index, destination_and_nonce, leaf_hash)?;
-        self.store_latest_leaf_index(message.leaf_index)?;
         Ok(())
     }
 
     /// Store the latest known leaf_index
-    pub fn store_latest_leaf_index(&self, leaf_index: u32) -> Result<()> {
+    pub fn update_latest_leaf_index(&self, leaf_index: u32) -> Result<()> {
         if let Ok(Some(idx)) = self.retrieve_latest_leaf_index() {
             if leaf_index <= idx {
                 return Ok(());
@@ -172,8 +171,9 @@ impl DB {
             leaf_hash = ?leaf_hash,
             "storing leaf hash keyed by index and dest+nonce"
         );
-        self.store_keyed_encodable(DEST, &destination_and_nonce, &leaf_hash)?;
-        self.store_keyed_encodable(LEAF_IDX, &leaf_index, &leaf_hash)
+        self.store_keyed_encodable(NONCE, &destination_and_nonce, &leaf_hash)?;
+        self.store_keyed_encodable(LEAF_IDX, &leaf_index, &leaf_hash)?;
+        self.update_latest_leaf_index(leaf_index)
     }
 
     /// Retrieve a raw committed message by its leaf hash
@@ -187,30 +187,30 @@ impl DB {
     }
 
     /// Retrieve the leaf hash keyed by destination and nonce
-    pub fn leaf_by_destination(&self, destination: u32, nonce: u32) -> Result<Option<H256>> {
+    pub fn leaf_by_nonce(&self, destination: u32, nonce: u32) -> Result<Option<H256>> {
         let key = utils::destination_and_nonce(destination, nonce);
-        self.retrive_keyed_decodable(DEST, &key)
+        self.retrive_keyed_decodable(NONCE, &key)
     }
 
     /// Retrieve a raw committed message by its leaf hash
-    pub fn message_by_destination(
+    pub fn message_by_nonce(
         &self,
         destination: u32,
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>> {
-        let leaf_hash = self.leaf_by_destination(destination, nonce)?;
+        let leaf_hash = self.leaf_by_nonce(destination, nonce)?;
         match leaf_hash {
             None => Ok(None),
-            Some(leaf_hash) => self.retrive_keyed_decodable(LEAF_HASH, &leaf_hash),
+            Some(leaf_hash) => self.message_by_leaf_hash(leaf_hash),
         }
     }
 
     /// Retrieve a raw committed message by its leaf index
     pub fn message_by_leaf_index(&self, index: u32) -> Result<Option<RawCommittedMessage>> {
-        let leaf_hash: Option<H256> = self.retrive_keyed_decodable(LEAF_IDX, &index)?;
+        let leaf_hash: Option<H256> = self.leaf_by_leaf_index(index)?;
         match leaf_hash {
             None => Ok(None),
-            Some(leaf_hash) => self.retrive_keyed_decodable(LEAF_HASH, &leaf_hash),
+            Some(leaf_hash) => self.message_by_leaf_hash(leaf_hash),
         }
     }
 

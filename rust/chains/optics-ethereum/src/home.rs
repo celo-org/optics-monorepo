@@ -332,7 +332,7 @@ where
         destination: u32,
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        if let Ok(Some(message)) = self.db.message_by_destination(destination, nonce) {
+        if let Ok(Some(message)) = self.db.message_by_nonce(destination, nonce) {
             return Ok(Some(message));
         }
 

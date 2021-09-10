@@ -84,9 +84,7 @@ impl Decode for OpticsMessage {
 impl OpticsMessage {
     /// Convert the message to a leaf
     pub fn to_leaf(&self) -> H256 {
-        let mut buf = vec![];
-        self.write_to(&mut buf).expect("!write");
-        keccak256(buf).into()
+        keccak256(self.to_vec()).into()
     }
 
     /// Get the encoded destination + nonce
