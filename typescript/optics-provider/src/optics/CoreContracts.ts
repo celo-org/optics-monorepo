@@ -7,8 +7,8 @@ import {
   Replica,
   Replica__factory,
 } from '../../../typechain/optics-core';
-import { Contracts } from './contracts';
-import { ReplicaInfo } from '../domains';
+import { Contracts } from '../contracts/contracts';
+import { ReplicaInfo } from './OpticsDomain';
 
 type Address = string;
 

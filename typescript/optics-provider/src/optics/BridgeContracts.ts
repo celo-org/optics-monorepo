@@ -6,7 +6,7 @@ import {
   ETHHelper,
   ETHHelper__factory,
 } from '../../../typechain/optics-xapps';
-import { Contracts } from './contracts';
+import { Contracts } from '../contracts/contracts';
 
 type Address = string;
 

@@ -1,6 +1,7 @@
 import { BytesLike } from '@ethersproject/bytes';
-import { id } from '@ethersproject/hash';
 import { ethers } from 'ethers';
+
+export type Address = string;
 
 // ensure that a bytes-like is 32 long. left-pad with 0s if not
 export function canonizeId(data: BytesLike): Uint8Array {

@@ -2,7 +2,7 @@ import {
   BridgeRouter,
   BridgeRouter__factory,
   ERC20__factory,
-} from '../../typechain/optics-xapps';
+} from '../../../typechain/optics-xapps';
 import * as ethers from 'ethers';
 
 import { mainnet } from '.';
