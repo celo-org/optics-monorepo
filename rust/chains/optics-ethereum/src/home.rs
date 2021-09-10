@@ -103,6 +103,7 @@ where
                 .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
+
             loop {
                 let tip = self.provider.get_block_number().await?.as_u32();
                 let candidate = next_height + self.chunk_size;
@@ -110,9 +111,10 @@ where
 
                 // TODO(james): these shouldn't have to go in lockstep
                 try_join!(
-                    self.sync_updates(next_height, next_height + self.chunk_size),
-                    self.sync_leaves(next_height, next_height + self.chunk_size)
+                    self.sync_updates(next_height, to),
+                    self.sync_leaves(next_height, to)
                 )?;
+
                 self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
