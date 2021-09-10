@@ -1,9 +1,11 @@
 import * as ethers from 'ethers';
+import { BigNumberish, ContractTransaction } from 'ethers';
 import { ERC20, ERC20__factory } from '../../typechain/optics-xapps';
 import { BridgeContracts } from './bridge';
 import { CoreContracts } from './core';
 import { Domain, mainnetDomains } from './domains';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
+import { canonizeId } from './utils';
 
 type Provider = ethers.providers.Provider;
 
@@ -27,12 +29,12 @@ export class MultiProvider {
   }
 
   get domainNumbers(): number[] {
-    return Object.values(this.domains).map((domain) => domain.domain);
+    return Array.from(this.domains.keys());
   }
 
   resolveDomain(nameOrDomain: string | number): number {
     if (typeof nameOrDomain === 'string') {
-      return Object.values(this.domains).filter(
+      return Array.from(this.domains.values()).filter(
         (domain) => domain.name === nameOrDomain,
       )[0].domain;
     } else {
@@ -187,9 +189,12 @@ export class OpticsContext extends MultiProvider {
     const domain = this.resolveDomain(nameOrDomain);
     const bridge = this.getBridge(domain);
 
+    const tokenDomain = this.resolveDomain(token.domain);
+    const tokenId = canonizeId(token.id);
+
     const address = await bridge?.bridgeRouter[
       'getLocalAddress(uint32,bytes32)'
-    ](token.domain, token.id);
+    ](tokenDomain, tokenId);
 
     if (!address) {
       return;
@@ -220,10 +225,53 @@ export class OpticsContext extends MultiProvider {
     );
 
     return {
-      domain: token.domain,
+      domain: this.resolveDomain(token.domain),
       id: token.id,
       tokens,
     };
+  }
+
+  // send tokens from domain to domain
+  async send(
+    from: string | number,
+    to: string | number,
+    token: TokenIdentifier,
+    amount: BigNumberish,
+    recipient: string,
+  ): Promise<ContractTransaction> {
+    const fromBridge = this.getBridge(from);
+    if (!fromBridge) {
+      throw new Error(`Bridge not available on ${from}`);
+    }
+
+    const fromToken = await this.resolveToken(from, token);
+    if (!fromToken) {
+      throw new Error(`Token not available on ${from}`);
+    }
+
+    const bridgeAddress = fromBridge?.bridgeRouter.address;
+    if (!bridgeAddress) {
+      throw new Error(`No bridge for ${from}`);
+    }
+
+    const sender = this.getSigner(from);
+    if (!sender) {
+      throw new Error(`No signer for ${from}`);
+    }
+    const senderAddress = await sender.getAddress();
+
+    const approved = await fromToken.allowance(senderAddress, bridgeAddress);
+
+    if (approved.lt(amount)) {
+      await fromToken.approve(bridgeAddress, amount);
+    }
+
+    return fromBridge.bridgeRouter.send(
+      fromToken.address,
+      amount,
+      to,
+      recipient,
+    );
   }
 }
 

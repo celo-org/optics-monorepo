@@ -2,7 +2,7 @@ import { BytesLike } from 'ethers';
 import { ERC20 } from '../../typechain/optics-xapps';
 
 export interface TokenIdentifier {
-  domain: number;
+  domain: string | number;
   id: BytesLike;
 }
 
