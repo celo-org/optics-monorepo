@@ -40,8 +40,7 @@ use crate::{agent::AgentCore, home::Homes, replica::Replicas};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use ethers::prelude::AwsSigner;
-use optics_core::{db, utils::HexString, Signers};
-use rocksdb::DB;
+use optics_core::{db::DB, utils::HexString, Signers};
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
 use serde::Deserialize;
@@ -205,7 +204,7 @@ impl Settings {
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self, db: Arc<DB>) -> Result<Homes, Report> {
+    pub async fn try_home(&self, db: DB) -> Result<Homes, Report> {
         let signer = self.get_signer(&self.home.name).await;
         self.home.try_into_home(signer, db).await
     }
@@ -228,13 +227,13 @@ impl Settings {
             )
             .expect("failed to register block_height metric");
 
-        let db = Arc::new(db::from_path(&self.db)?);
+        let db = DB::from_path(&self.db)?;
+        let home = Arc::new(self.try_home(db.clone()).await?);
         self.home.track_block_height(name, block_height.clone());
         let replicas = self.try_replicas().await?;
         self.replicas
             .iter()
             .for_each(|(_, setup)| setup.track_block_height(name, block_height.clone()));
-        let home = Arc::new(self.try_home(db.clone()).await?);
 
         Ok(AgentCore {
             home,

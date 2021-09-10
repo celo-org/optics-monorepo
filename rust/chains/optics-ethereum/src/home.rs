@@ -4,74 +4,23 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256, U256};
-use optics_core::db::UsingPersistence;
+use optics_core::db::DB;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
     utils, Message, SignedUpdate, Update,
 };
-use optics_core::{Decode, OpticsMessage};
-use rocksdb::DB;
 use tokio::task::JoinHandle;
+use tokio::time::sleep;
 use tokio::try_join;
 use tracing::{instrument::Instrumented, Instrument};
 
+use std::cmp::min;
+use std::time::Duration;
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
-
-macro_rules! impl_home_db_traits {
-    ($name:ident) => {
-        // index by old root
-        impl<M> UsingPersistence<H256, SignedUpdate> for $name<M>
-        where
-            M: ethers::providers::Middleware,
-        {
-            const KEY_PREFIX: &'static [u8] = b"old_root_";
-
-            fn key_to_bytes(key: H256) -> Vec<u8> {
-                key.as_bytes().to_vec()
-            }
-        }
-
-        // index by destination + nonce
-        impl<M> UsingPersistence<u64, RawCommittedMessage> for $name<M>
-        where
-            M: ethers::providers::Middleware,
-        {
-            const KEY_PREFIX: &'static [u8] = b"destination_and_nonce_";
-
-            fn key_to_bytes(key: u64) -> Vec<u8> {
-                key.to_be_bytes().to_vec()
-            }
-        }
-
-        // index by leaf
-        impl<M> UsingPersistence<H256, RawCommittedMessage> for $name<M>
-        where
-            M: ethers::providers::Middleware,
-        {
-            const KEY_PREFIX: &'static [u8] = b"leaf_";
-
-            fn key_to_bytes(key: H256) -> Vec<u8> {
-                key.as_bytes().to_vec()
-            }
-        }
-
-        // index by leaf_index
-        impl<M> UsingPersistence<u32, RawCommittedMessage> for $name<M>
-        where
-            M: ethers::providers::Middleware,
-        {
-            const KEY_PREFIX: &'static [u8] = b"leaf_index_";
-
-            fn key_to_bytes(key: u32) -> Vec<u8> {
-                key.to_be_bytes().to_vec()
-            }
-        }
-    };
-}
 
 static LAST_INSPECTED: &str = "homeIndexerLastInspected";
 
@@ -86,35 +35,22 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    db: Arc<DB>,
+    provider: Arc<M>,
+    db: DB,
     from_height: u32,
     chunk_size: u32,
-}
-
-impl_home_db_traits!(HomeIndexer);
-
-// 'static usually means "string constant", don't dynamically create db keys
-impl<M> UsingPersistence<&'static str, u32> for HomeIndexer<M>
-where
-    M: ethers::providers::Middleware,
-{
-    const KEY_PREFIX: &'static [u8] = b"state_";
-
-    fn key_to_bytes(key: &'static str) -> Vec<u8> {
-        key.into()
-    }
 }
 
 impl<M> HomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    async fn sync_updates(&self, from: u32) -> Result<()> {
+    async fn sync_updates(&self, from: u32, to: u32) -> Result<()> {
         let events = self
             .contract
             .update_filter()
             .from_block(from)
-            .to_block(from + self.chunk_size)
+            .to_block(to)
             .query()
             .await?;
 
@@ -132,18 +68,18 @@ where
         });
 
         for update in updates {
-            Self::db_put(&self.db, update.update.previous_root, update)?;
+            self.db.store_update(&update)?;
         }
 
         Ok(())
     }
 
-    async fn sync_leaves(&self, from: u32) -> Result<()> {
+    async fn sync_leaves(&self, from: u32, to: u32) -> Result<()> {
         let events = self
             .contract
             .dispatch_filter()
             .from_block(from)
-            .to_block(from + self.chunk_size)
+            .to_block(to)
             .query()
             .await?;
 
@@ -154,15 +90,7 @@ where
         });
 
         for message in messages {
-            let destination_and_nonce =
-                OpticsMessage::read_from(&mut message.message.clone().as_slice())?
-                    .destination_and_nonce();
-
-            // TODO: stop storing this 3 times. make the others pointers to a
-            // canonical version
-            Self::db_put(&self.db, destination_and_nonce, message.clone())?;
-            Self::db_put(&self.db, message.leaf_index, message.clone())?;
-            Self::db_put(&self.db, message.leaf_hash(), message)?;
+            self.db.store_raw_committed_message(&message)?;
         }
 
         Ok(())
@@ -170,18 +98,27 @@ where
 
     fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
         tokio::spawn(async move {
-            let mut next_height = Self::db_get(&self.db, LAST_INSPECTED)
+            let mut next_height: u32 = self
+                .db
+                .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             loop {
-                // TODO(james): figure out when we're at chain head and then switch to interval-based polling
+                let tip = self.provider.get_block_number().await?.as_u32();
+                let candidate = next_height + self.chunk_size;
+                let to = min(tip, candidate);
+
                 // TODO(james): these shouldn't have to go in lockstep
                 try_join!(
-                    self.sync_updates(next_height),
-                    self.sync_leaves(next_height)
+                    self.sync_updates(next_height, next_height + self.chunk_size),
+                    self.sync_leaves(next_height, next_height + self.chunk_size)
                 )?;
-                Self::db_put(&self.db, LAST_INSPECTED, next_height)?;
-                next_height += self.chunk_size;
+                self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
+                next_height = to;
+                // sleep here if we've caught up
+                if to == tip {
+                    sleep(Duration::from_secs(100)).await;
+                }
             }
         })
         .in_current_span()
@@ -195,12 +132,11 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    db: Arc<DB>,
+    db: DB,
     domain: u32,
     name: String,
+    provider: Arc<M>,
 }
-
-impl_home_db_traits!(EthereumHome);
 
 impl<M> EthereumHome<M>
 where
@@ -208,12 +144,13 @@ where
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>, db: Arc<DB>) -> Self {
+    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>, db: DB) -> Self {
         Self {
-            contract: Arc::new(EthereumHomeInternal::new(address, provider)),
+            contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain,
             name: name.to_owned(),
             db,
+            provider,
         }
     }
 }
@@ -264,7 +201,7 @@ where
         &self,
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        if let Ok(Some(update)) = Self::db_get(&self.db, old_root) {
+        if let Ok(Some(update)) = self.db.update_by_previous_root(old_root) {
             return Ok(Some(update));
         }
 
@@ -365,6 +302,7 @@ where
             contract: self.contract.clone(),
             db: self.db.clone(),
             from_height,
+            provider: self.provider.clone(),
             chunk_size,
         };
         indexer.spawn()
@@ -376,9 +314,7 @@ where
         destination: u32,
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        let dest_and_nonce = utils::destination_and_nonce(destination, nonce);
-
-        if let Ok(Some(message)) = Self::db_get(&self.db, dest_and_nonce) {
+        if let Ok(Some(message)) = self.db.message_by_destination(destination, nonce) {
             return Ok(Some(message));
         }
 
@@ -386,7 +322,7 @@ where
             .contract
             .dispatch_filter()
             .from_block(0)
-            .topic3(U256::from(dest_and_nonce))
+            .topic3(U256::from(utils::destination_and_nonce(destination, nonce)))
             .query()
             .await?;
 
@@ -402,7 +338,7 @@ where
         &self,
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        if let Ok(Some(message)) = Self::db_get(&self.db, leaf) {
+        if let Ok(Some(message)) = self.db.message_by_leaf_hash(leaf) {
             return Ok(Some(message));
         }
 
@@ -425,7 +361,7 @@ where
         &self,
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
-        if let Ok(Some(message)) = Self::db_get(&self.db, tree_index as u32) {
+        if let Ok(Some(message)) = self.db.message_by_leaf_index(tree_index as u32) {
             return Ok(Some(message.leaf_hash()));
         }
         Ok(self

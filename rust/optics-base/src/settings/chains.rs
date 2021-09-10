@@ -1,10 +1,7 @@
-use std::sync::Arc;
-
 use color_eyre::Report;
-use optics_core::Signers;
+use optics_core::{db::DB, Signers};
 use optics_ethereum::settings::EthereumConnection;
 use prometheus::IntGaugeVec;
-use rocksdb::DB;
 use serde::Deserialize;
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
@@ -47,11 +44,7 @@ impl ChainSetup {
     }
 
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(
-        &self,
-        signer: Option<Signers>,
-        db: Arc<DB>,
-    ) -> Result<Homes, Report> {
+    pub async fn try_into_home(&self, signer: Option<Signers>, db: DB) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 conf.try_into_home(

@@ -2,11 +2,10 @@ use crate::prover::{Prover, ProverError};
 use ethers::core::types::H256;
 use optics_base::home::Homes;
 use optics_core::{
-    accumulator::{incremental::IncrementalMerkle, merkle::Proof, INITIAL_ROOT},
-    db::UsingPersistence,
+    accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
+    db::{DBError, DB},
     traits::{ChainCommunicationError, Common, Home},
 };
-use rocksdb::DB;
 use std::{ops::Range, sync::Arc, time::Duration};
 use tokio::{
     sync::{
@@ -21,26 +20,10 @@ use tracing::{debug, info, instrument};
 #[derive(Debug)]
 pub struct ProverSync {
     home: Arc<Homes>,
-    db: Arc<DB>,
+    db: DB,
     prover: Arc<RwLock<Prover>>,
     incremental: IncrementalMerkle,
     rx: Receiver<()>,
-}
-
-impl UsingPersistence<usize, H256> for ProverSync {
-    const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
-
-    fn key_to_bytes(key: usize) -> Vec<u8> {
-        key.to_be_bytes().into()
-    }
-}
-
-impl UsingPersistence<usize, Proof> for ProverSync {
-    const KEY_PREFIX: &'static [u8] = "proof_".as_bytes();
-
-    fn key_to_bytes(key: usize) -> Vec<u8> {
-        key.to_be_bytes().into()
-    }
 }
 
 /// ProverSync errors
@@ -66,16 +49,14 @@ pub enum ProverSyncError {
     /// ProverSync receives ChainCommunicationError from chain API
     #[error(transparent)]
     ChainCommunicationError(#[from] ChainCommunicationError),
+    /// DB Error
+    #[error("{0}")]
+    DBError(#[from] DBError),
 }
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(
-        prover: Arc<RwLock<Prover>>,
-        home: Arc<Homes>,
-        db: Arc<DB>,
-        rx: Receiver<()>,
-    ) -> Self {
+    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,
@@ -96,22 +77,10 @@ impl ProverSync {
         }
     }
 
-    fn store_leaf(&mut self, index: usize, leaf: H256) {
-        Self::db_put(&self.db, index, leaf).expect("!db_put_leaf");
-    }
-
-    fn store_proof(&mut self, index: usize, proof: Proof) {
-        Self::db_put(&self.db, index, proof).expect("!db_put_proof");
-    }
-
-    fn retrieve_leaf(&self, index: usize) -> Option<H256> {
-        Self::db_get(&self.db, index).expect("!db_get")
-    }
-
     // simple caching
     #[instrument(err)]
     async fn fetch_leaf(&mut self, leaf_index: usize) -> Result<Option<H256>, ProverSyncError> {
-        let leaf = self.retrieve_leaf(leaf_index);
+        let leaf = self.db.leaf_by_leaf_index(leaf_index as u32)?;
         if leaf.is_some() {
             debug!("Retrieved leaf from db.");
             Ok(leaf)
@@ -123,7 +92,7 @@ impl ProverSync {
             match self.home.leaf_by_tree_index(leaf_index).await? {
                 Some(leaf) => {
                     debug!("Retrieved leaf from chain.");
-                    self.store_leaf(leaf_index, leaf);
+                    self.db.store_leaf_hash(leaf_index as u32, leaf)?;
                     Ok(Some(leaf))
                 }
                 None => {
@@ -197,7 +166,7 @@ impl ProverSync {
 
         // store all calculated proofs in the db
         for (idx, proof) in proofs {
-            self.store_proof(idx, proof);
+            self.db.store_proof(idx as u32, &proof)?;
         }
         info!("Stored proofs for leaves {}..{}", start, end);
 

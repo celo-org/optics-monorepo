@@ -5,10 +5,9 @@ use color_eyre::{
     eyre::{bail, ensure, Context},
     Result,
 };
-use ethers::{core::types::H256, signers::Signer, types::Address};
+use ethers::{signers::Signer, types::Address};
 use futures_util::future::select_all;
 use prometheus::IntCounterVec;
-use rocksdb::DB;
 use tokio::{
     sync::{
         mpsc::{self, error::TrySendError, Receiver, Sender},
@@ -25,7 +24,7 @@ use optics_base::{
     home::Homes,
 };
 use optics_core::{
-    db::UsingPersistence,
+    db::DB,
     traits::{Common, Home},
     SignedUpdate, Signers, Update,
 };
@@ -39,7 +38,7 @@ struct UpdateHandler {
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
-    db: Arc<DB>,
+    db: DB,
     mutex: Arc<Mutex<()>>,
     signed_attestation_count: IntCounterVec,
 }
@@ -54,21 +53,13 @@ impl std::fmt::Display for UpdateHandler {
     }
 }
 
-impl UsingPersistence<H256, SignedUpdate> for UpdateHandler {
-    const KEY_PREFIX: &'static [u8] = "update_".as_bytes();
-
-    fn key_to_bytes(key: H256) -> Vec<u8> {
-        key.as_bytes().to_owned()
-    }
-}
-
 impl UpdateHandler {
     fn new(
         home: Arc<Homes>,
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
-        db: Arc<DB>,
+        db: DB,
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
@@ -84,7 +75,9 @@ impl UpdateHandler {
     }
 
     fn check_conflict(&self, update: &Update) -> Option<SignedUpdate> {
-        Self::db_get(&self.db, update.previous_root).unwrap()
+        self.db
+            .update_by_previous_root(update.previous_root)
+            .expect("db failure")
     }
 
     #[tracing::instrument(err, skip(self), fields(self = %self))]
@@ -166,7 +159,7 @@ impl UpdateHandler {
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
-        Self::db_put(&self.db, update.previous_root, signed).expect("!db_put");
+        self.db.store_update(&signed)?;
         Ok(())
         // guard dropped here
     }

@@ -3,14 +3,13 @@
 //! Struct responsible for syncing Prover
 
 use ethers::core::types::H256;
-use rocksdb::DB;
 
 use optics_core::{
     accumulator::{
         merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
         TREE_DEPTH,
     },
-    db::UsingPersistence,
+    db::DB,
 };
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
@@ -19,14 +18,6 @@ use optics_core::{
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
-}
-
-impl UsingPersistence<usize, H256> for Prover {
-    const KEY_PREFIX: &'static [u8] = "index_".as_bytes();
-
-    fn key_to_bytes(key: usize) -> Vec<u8> {
-        key.to_be_bytes().into()
-    }
 }
 
 /// Prover Errors
@@ -74,7 +65,7 @@ impl Prover {
         let mut prover = Self::default();
 
         // Ingest all leaves in db into prover tree
-        let db_iter = Self::iterator(&db);
+        let db_iter = db.leaf_iterator();
         for leaf in db_iter {
             prover.ingest(leaf).expect("!tree full");
         }

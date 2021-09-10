@@ -1,9 +1,9 @@
 use color_eyre::{Report, Result};
 use ethers::prelude::{Address, Middleware, StreamExt};
-use rocksdb::DB;
-use std::{convert::TryFrom, sync::Arc};
+use std::convert::TryFrom;
 
 use optics_core::{
+    db::DB,
     traits::{ConnectionManager, Home, Replica},
     Signers,
 };
@@ -210,7 +210,7 @@ impl EthereumConnection {
         domain: u32,
         address: Address,
         signer: Option<Signers>,
-        db: Arc<DB>,
+        db: DB,
     ) -> Result<Box<dyn Home>, Report> {
         let b: Box<dyn Home> = match &self {
             EthereumConnection::Http { url } => {

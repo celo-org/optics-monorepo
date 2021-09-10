@@ -8,8 +8,7 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::traits::Home;
-use rocksdb::DB;
+use optics_core::{db::DB, traits::Home};
 use tracing::instrument::Instrumented;
 use tracing::Instrument;
 
@@ -23,7 +22,7 @@ pub struct AgentCore {
     /// A map of boxed Replicas
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
-    pub db: Arc<DB>,
+    pub db: DB,
     /// Prometheus metrics
     pub metrics: Arc<CoreMetrics>,
     /// The height at which to start indexing the Home
@@ -50,7 +49,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Return a handle to the DB
-    fn db(&self) -> Arc<DB> {
+    fn db(&self) -> DB {
         self.as_ref().db.clone()
     }
 

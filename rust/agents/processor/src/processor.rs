@@ -5,7 +5,6 @@ use color_eyre::{
 };
 use ethers::prelude::H256;
 use futures_util::future::select_all;
-use rocksdb::DB;
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
@@ -26,7 +25,7 @@ use optics_base::{
 };
 use optics_core::{
     accumulator::merkle::Proof,
-    persistence::UsingPersistence,
+    db::DB,
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 
@@ -42,7 +41,7 @@ pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    db: Arc<DB>,
+    db: DB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
     next_message_index: prometheus::IntGaugeVec,
@@ -55,23 +54,6 @@ impl std::fmt::Display for Replica {
             "ReplicaProcessor: {{ home: {:?}, replica: {:?}, allowed: {:?}, denied: {:?} }}",
             self.home, self.replica, self.allowed, self.denied
         )
-    }
-}
-
-impl UsingPersistence<usize, Proof> for Replica {
-    const KEY_PREFIX: &'static [u8] = b"proof_";
-
-    fn key_to_bytes(key: usize) -> Vec<u8> {
-        key.to_be_bytes().into()
-    }
-}
-
-// 'static usually means "string constant", don't dynamically create db keys
-impl UsingPersistence<&'static str, u32> for Replica {
-    const KEY_PREFIX: &'static [u8] = b"state_";
-
-    fn key_to_bytes(key: &'static str) -> Vec<u8> {
-        key.into()
     }
 }
 
@@ -92,10 +74,11 @@ impl Replica {
                 //      - If not, wait and poll again
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
-                let mut next_message_index: u32 = match Self::db_get(&self.db, LAST_INSPECTED)? {
-                    Some(n) => n + 1,
-                    None => 0,
-                };
+                let mut next_message_index: u32 = self
+                    .db
+                    .retrieve_decodable("", LAST_INSPECTED)?
+                    .map(|n: u32| n + 1)
+                    .unwrap_or_default();
 
                 self.next_message_index
                     .with_label_values(&[self.replica.name(), AGENT_NAME])
@@ -127,7 +110,8 @@ impl Replica {
                         .await
                     {
                         Ok(true) => {
-                            Self::db_put(&self.db, LAST_INSPECTED, next_message_index)?;
+                            self.db
+                                .store_encodable("", LAST_INSPECTED, &next_message_index)?;
                             next_message_index += 1;
                         }
                         Ok(false) => {
@@ -186,7 +170,7 @@ impl Replica {
             return Ok(true);
         }
 
-        let proof = match Self::db_get(&self.db, message.leaf_index as usize) {
+        let proof = match self.db.proof_by_leaf_index(message.leaf_index) {
             Ok(Some(p)) => p,
             Ok(None) => {
                 info!("Proof not yet found");

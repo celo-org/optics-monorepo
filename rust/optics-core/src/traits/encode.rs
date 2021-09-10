@@ -94,3 +94,25 @@ impl Decode for u32 {
         Ok(u32::from_be_bytes(buf))
     }
 }
+
+impl Encode for u64 {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        writer.write_all(&self.to_be_bytes())?;
+        Ok(8)
+    }
+}
+
+impl Decode for u64 {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let mut buf = [0; 8];
+        reader.read_exact(&mut buf)?;
+        Ok(u64::from_be_bytes(buf))
+    }
+}

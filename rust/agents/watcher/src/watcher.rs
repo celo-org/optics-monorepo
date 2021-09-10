@@ -7,7 +7,6 @@ use thiserror::Error;
 
 use ethers::core::types::H256;
 use futures_util::future::{join, join_all};
-use rocksdb::DB;
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::{
     sync::{mpsc, RwLock},
@@ -23,7 +22,7 @@ use optics_base::{
     xapp::ConnectionManagers,
 };
 use optics_core::{
-    persistence::UsingPersistence,
+    db::DB,
     traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
     FailureNotification, SignedUpdate, Signers,
 };
@@ -168,20 +167,12 @@ where
 #[derive(Debug)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    db: Arc<DB>,
+    db: DB,
     home: Arc<Homes>,
 }
 
-impl UsingPersistence<H256, SignedUpdate> for UpdateHandler {
-    const KEY_PREFIX: &'static [u8] = "leaf_".as_bytes();
-
-    fn key_to_bytes(key: H256) -> Vec<u8> {
-        key.as_bytes().to_owned()
-    }
-}
-
 impl UpdateHandler {
-    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: Arc<DB>, home: Arc<Homes>) -> Self {
+    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: DB, home: Arc<Homes>) -> Self {
         Self { rx, db, home }
     }
 
@@ -189,14 +180,14 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        match Self::db_get(&self.db, old_root).expect("!db_get") {
+        match self.db.update_by_previous_root(old_root).expect("!db_get") {
             Some(existing) => {
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                Self::db_put(&self.db, old_root, update.to_owned()).expect("!db_put");
+                self.db.store_update(update).expect("!db_put");
             }
         }
 
@@ -620,7 +611,7 @@ mod test {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: Arc::new(db),
+                    db,
                     home: Arc::new(MockHomeContract::new().into()),
                 };
 
@@ -798,7 +789,7 @@ mod test {
             let core = AgentCore {
                 home,
                 replicas: replica_map,
-                db: Arc::new(db),
+                db: db,
                 indexer: IndexSettings::default(),
                 metrics: Arc::new(
                     optics_base::metrics::CoreMetrics::new(
