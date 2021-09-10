@@ -19,8 +19,8 @@ type InternalReplica = {
 
 export class CoreContracts extends Contracts {
   readonly domain;
-  private home: Home;
-  private replicas: InternalReplica[];
+  home: Home;
+  replicas: InternalReplica[];
 
   constructor(
     domain: number,

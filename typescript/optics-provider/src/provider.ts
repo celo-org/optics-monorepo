@@ -110,6 +110,8 @@ export class MultiProvider {
   }
 }
 
+type Address = string;
+
 export class OpticsContext extends MultiProvider {
   private cores: Map<number, CoreContracts>;
   private bridges: Map<number, BridgeContracts>;
@@ -188,7 +190,7 @@ export class OpticsContext extends MultiProvider {
   }
 
   // resolve the local repr of a token on its domain
-  async resolveToken(
+  async resolveTokenRepresentation(
     nameOrDomain: string | number,
     token: TokenIdentifier,
   ): Promise<ERC20 | undefined> {
@@ -223,7 +225,7 @@ export class OpticsContext extends MultiProvider {
 
     await Promise.all(
       this.domainNumbers.map(async (domain) => {
-        let tok = await this.resolveToken(domain, token);
+        let tok = await this.resolveTokenRepresentation(domain, token);
         if (tok) {
           tokens.set(domain, tok);
         }
@@ -234,6 +236,25 @@ export class OpticsContext extends MultiProvider {
       domain: this.resolveDomain(token.domain),
       id: token.id,
       tokens,
+    };
+  }
+
+  async resolveCanonicalToken(
+    nameOrDomain: string | number,
+    representation: Address,
+  ): Promise<TokenIdentifier | undefined> {
+    const bridge = this.getBridge(nameOrDomain);
+    if (!bridge) {
+      throw new Error(`Bridge not available on ${nameOrDomain}`);
+    }
+
+    const token = await bridge.bridgeRouter.getCanonicalAddress(representation);
+    if (token[0] === 0) {
+      return;
+    }
+    return {
+      domain: token[0],
+      id: token[1],
     };
   }
 
@@ -250,7 +271,7 @@ export class OpticsContext extends MultiProvider {
       throw new Error(`Bridge not available on ${from}`);
     }
 
-    const fromToken = await this.resolveToken(from, token);
+    const fromToken = await this.resolveTokenRepresentation(from, token);
     if (!fromToken) {
       throw new Error(`Token not available on ${from}`);
     }
