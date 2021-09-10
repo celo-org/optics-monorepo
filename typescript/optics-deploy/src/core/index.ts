@@ -571,9 +571,9 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   //    NB: do not use Promise.all for this block. It introduces a race condition
   //    which results in multiple replica implementations on the home chain.
   //
-  for (const local of deploys) {
+  for (let local of deploys) {
     const remotes = deploys.filter(d => d.chain.domain !== local.chain.domain);
-    for (const remote of remotes) {
+    for (let remote of remotes) {
       log(
         isTestDeploy,
         `connecting ${remote.chain.name} on ${local.chain.name}`,

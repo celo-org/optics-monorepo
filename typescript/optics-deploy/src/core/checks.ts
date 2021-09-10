@@ -59,7 +59,7 @@ export async function checkCoreDeploy(
     remoteDomains.slice(1).forEach(remoteDomain => {
       const replica = deploy.contracts.replicas[remoteDomain]!
       const implementation = replica.implementation.address;
-      const beacon = replica.implementation.address;
+      const beacon = replica.beacon.address;
       expect(implementation).to.equal(replicaImpl);
       expect(beacon).to.equal(replicaBeacon);
     })
