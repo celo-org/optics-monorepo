@@ -5,14 +5,14 @@ use std::{path::Path, sync::Arc};
 use tracing::info;
 
 /// Shared functionality surrounding use of rocksdb
-pub mod persistence;
+pub mod iterator;
 
 use crate::{
     accumulator::merkle::Proof, traits::RawCommittedMessage, utils, Decode, Encode, OpticsError,
     OpticsMessage, SignedUpdate,
 };
 
-use self::persistence::PrefixIterator;
+use self::iterator::PrefixIterator;
 
 static DEST: &str = "destination_and_nonce_";
 static LEAF_IDX: &str = "leaf_index_";
@@ -20,6 +20,8 @@ static LEAF_HASH: &str = "leaf_hash_";
 static PREV_ROOT: &str = "update_prev_root_";
 static NEW_ROOT: &str = "update_new_root_";
 static PROOF: &str = "proof_";
+
+static LATEST_LEAF: &str = "latest_known_leaf_";
 
 #[derive(Debug, Clone)]
 /// A KV Store
@@ -132,7 +134,23 @@ impl DB {
         self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
         self.store_keyed_encodable(DEST, &destination_and_nonce, &leaf_hash)?;
         self.store_leaf_hash(message.leaf_index, leaf_hash)?;
+        self.store_latest_leaf_index(message.leaf_index)?;
         Ok(())
+    }
+
+    /// Store the latest known leaf_index
+    pub fn store_latest_leaf_index(&self, leaf_index: u32) -> Result<()> {
+        if let Ok(Some(idx)) = self.retrieve_latest_leaf_index() {
+            if leaf_index <= idx {
+                return Ok(());
+            }
+        }
+        self.store_encodable("", LATEST_LEAF, &leaf_index)
+    }
+
+    /// Retrieve the highest known leaf_index
+    pub fn retrieve_latest_leaf_index(&self) -> Result<Option<u32>> {
+        self.retrieve_decodable("", LATEST_LEAF)
     }
 
     /// Store the leaf_hash keyed by leaf_index
