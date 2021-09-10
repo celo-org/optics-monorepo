@@ -8,5 +8,10 @@ export {
 export { OpticsMessage } from './messages/OpticsMessage';
 export { ResolvedTokenInfo, TokenIdentifier } from './tokens';
 
-export { OpticsDomain, mainnetDomains } from './OpticsDomain';
-export { OpticsContext, mainnet } from './OpticsContext';
+export {
+  OpticsDomain,
+  mainnetDomains,
+  devDomains,
+  stagingDomains,
+} from './domains';
+export { OpticsContext, mainnet, dev, staging } from './OpticsContext';

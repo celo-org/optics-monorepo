@@ -1,5 +1,7 @@
 export { MultiProvider } from './provider';
 
+export { mainnet, dev, staging, OpticsContext } from './optics';
+
 // intended usage
 // import {mainnet} from 'optics-provider';
 

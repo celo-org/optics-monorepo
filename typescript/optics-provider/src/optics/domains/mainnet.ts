@@ -1,17 +1,4 @@
-import { Domain } from '../domains';
-import { Address } from '../utils';
-
-export interface ReplicaInfo {
-  domain: number;
-  address: Address;
-}
-
-export interface OpticsDomain extends Domain {
-  bridgeRouter: Address;
-  ethHelper?: Address;
-  home: Address;
-  replicas: ReplicaInfo[];
-}
+import { OpticsDomain } from './domain';
 
 export const ethereum: OpticsDomain = {
   name: 'ethereum',

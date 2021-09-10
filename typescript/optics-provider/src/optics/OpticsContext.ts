@@ -5,7 +5,12 @@ import { BridgeContracts } from './contracts/BridgeContracts';
 import { CoreContracts } from './contracts/CoreContracts';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
 import { canonizeId } from '../utils';
-import { mainnetDomains, OpticsDomain } from './OpticsDomain';
+import {
+  devDomains,
+  mainnetDomains,
+  OpticsDomain,
+  stagingDomains,
+} from './domains';
 import { Replica } from '../../../typechain/optics-core';
 
 type Address = string;
@@ -65,14 +70,16 @@ export class OpticsContext extends MultiProvider {
     const domain = this.resolveDomain(nameOrDomain);
 
     super.registerSigner(domain, signer);
+
+    const connection = this.getConnection(domain)!;
     // re-register contracts
     const core = this.cores.get(domain);
     if (core) {
-      core.connect(signer);
+      core.connect(connection);
     }
     const bridge = this.bridges.get(domain);
     if (bridge) {
-      bridge.connect(signer);
+      bridge.connect(connection);
     }
   }
 
@@ -244,3 +251,5 @@ export class OpticsContext extends MultiProvider {
 }
 
 export const mainnet = OpticsContext.fromDomains(mainnetDomains);
+export const dev = OpticsContext.fromDomains(devDomains);
+export const staging = OpticsContext.fromDomains(stagingDomains);
