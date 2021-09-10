@@ -7,6 +7,8 @@ import TestBridgeDeploy from './bridge/TestBridgeDeploy';
 
 type Deploy = CoreDeploy | BridgeDeploy | TestBridgeDeploy;
 
+type ProxyNames = "Home" | "Replica" | "Governance" | "BridgeToken" | "BridgeRouter";
+
 export class BeaconProxy<T extends ethers.Contract> {
   implementation: T;
   proxy: T;
@@ -39,7 +41,7 @@ export type ProxyAddresses = {
  * @param T - The contract
  */
 export async function deployProxy<T extends ethers.Contract>(
-  name: string,
+  name: ProxyNames,
   deploy: Deploy,
   factory: ethers.ContractFactory,
   initData: BytesLike,
@@ -95,7 +97,7 @@ export async function deployProxy<T extends ethers.Contract>(
  * @param T - The contract
  */
 export async function duplicate<T extends ethers.Contract>(
-  name: string,
+  name: ProxyNames,
   deploy: Deploy,
   prev: BeaconProxy<T>,
   initData: BytesLike,

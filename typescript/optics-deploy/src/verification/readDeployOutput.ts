@@ -1,4 +1,13 @@
 import fs from 'fs';
+import { ContractVerificationName } from '../deploy';
+
+type ContractInput = {
+  name: ContractVerificationName;
+  address: string;
+  constructorArguments: any[];
+  isProxy?: boolean;
+}
+type VerificationInput = ContractInput[];
 
 /*
  * @notice Get the list of networks included in the contract deploy at path
@@ -87,7 +96,7 @@ function getPathToLatestConfig(
  * @param path relative path to deploy config folder ("../../rust/config/1625570709419")
  * @param network target network to parse ("alfajores", "kovan")
  * */
-export function getVerificationInputFromDeploy(path: any, network: any) {
+export function getVerificationInputFromDeploy(path: any, network: any): VerificationInput {
   return parseFileFromDeploy(path, network, 'verification');
 }
 

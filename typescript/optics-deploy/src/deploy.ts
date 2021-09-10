@@ -1,9 +1,21 @@
-import { ethers } from 'ethers';
+import { Contract, ethers } from 'ethers';
 import { Chain } from './chain';
 import { Contracts } from './contracts';
 
+type XAppConnectionName = "XAppConnectionManager";
+type UpdaterManagerName = "UpdaterManager";
+type UBCName = "UpgradeBeaconController";
+type HomeName = "Home UpgradeBeacon" | "Home Proxy" | "Home Implementation";
+type ReplicaName = "Replica UpgradeBeacon" | "Replica Proxy" | "Replica Implementation";
+type GovernanceName = "Governance UpgradeBeacon" | "Governance Proxy" | "Governance Implementation";
+type EthHelperName = "ETH Helper";
+type BridgeTokenName = "BridgeToken UpgradeBeacon" | "BridgeToken Proxy" | "BridgeToken Implementation";
+type BridgeRouterName = "BridgeRouter UpgradeBeacon" | "BridgeRouter Proxy" | "BridgeRouter Implementation";
+
+export type ContractVerificationName = XAppConnectionName | UpdaterManagerName | UBCName | HomeName | ReplicaName | GovernanceName | EthHelperName | BridgeTokenName | BridgeRouterName;
+
 export type ContractVerificationInput = {
-  name: string;
+  name: ContractVerificationName;
   address: string;
   constructorArguments: any[];
   isProxy?: boolean;
