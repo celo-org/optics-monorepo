@@ -76,6 +76,24 @@ export class OpticsContext extends MultiProvider {
     }
   }
 
+  unregisterSigner(nameOrDomain: string | number): void {
+    const domain = this.resolveDomain(nameOrDomain);
+    super.unregisterSigner(domain);
+    const connection = this.getConnection(domain);
+    if (!connection) {
+      throw new Error('No connection');
+    }
+    // re-register contracts
+    const core = this.cores.get(domain);
+    if (core) {
+      core.connect(connection);
+    }
+    const bridge = this.bridges.get(domain);
+    if (bridge) {
+      bridge.connect(connection);
+    }
+  }
+
   getCore(nameOrDomain: string | number): CoreContracts | undefined {
     const domain = this.resolveDomain(nameOrDomain);
     return this.cores.get(domain);

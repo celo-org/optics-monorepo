@@ -80,6 +80,10 @@ export class MultiProvider {
     }
   }
 
+  unregisterSigner(nameOrDomain: string | number) {
+    this.signers.delete(this.resolveDomain(nameOrDomain));
+  }
+
   registerWalletSigner(nameOrDomain: string | number, privkey: string) {
     const domain = this.resolveDomain(nameOrDomain);
 
