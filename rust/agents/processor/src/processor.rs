@@ -15,7 +15,7 @@ use tokio::{
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{error, info, instrument, instrument::Instrumented, warn, Instrument};
+use tracing::{error, info, instrument, instrument::Instrumented, Instrument};
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
@@ -138,18 +138,18 @@ impl Replica {
     ///
     /// In case of error: send help?
     #[instrument(err)]
-    async fn try_msg_by_domain_and_nonce(&self, domain: u32, current_seq: u32) -> Result<bool> {
+    async fn try_msg_by_domain_and_nonce(&self, domain: u32, nonce: u32) -> Result<bool> {
         use optics_core::traits::Replica;
 
-        let message = match self.home.message_by_nonce(domain, current_seq).await {
+        let message = match self.home.message_by_nonce(domain, nonce).await {
             Ok(Some(m)) => m,
             Ok(None) => {
                 info!(
                     domain = domain,
-                    sequence = current_seq,
+                    sequence = nonce,
                     "Message not yet found {}:{}",
                     domain,
-                    current_seq
+                    nonce
                 );
                 return Ok(false);
             }
@@ -201,8 +201,8 @@ impl Replica {
         }
 
         info!(
-            "Dispatching a message for processing {}:{}",
-            domain, current_seq
+            domain,
+            nonce, "Dispatching a message for processing {}:{}", domain, nonce
         );
 
         self.process(message, proof).await?;
@@ -226,8 +226,16 @@ impl Replica {
                 self.replica.process(message.as_ref()).await?;
             }
             MessageStatus::Processed => {
-                warn!(target: "possible_race_condition", "Message {domain}:{idx} already processed", domain = message.message.destination, idx = message.leaf_index);
-            } // Indicates race condition?
+                info!(
+                    domain = message.message.destination,
+                    nonce = message.message.nonce,
+                    leaf_index = message.leaf_index,
+                    leaf_hash = ?message.message.to_leaf(),
+                    "Message {}:{} already processed",
+                    message.message.destination,
+                    message.message.nonce
+                );
+            }
         }
 
         Ok(())
