@@ -67,8 +67,14 @@ export class OpticsMessage {
   }
 
   async status(): Promise<MessageStatus> {
-    // TODO
-    return 0;
+    const replica = this.context.getReplicaFor(this.from, this.destination);
+    if (!replica) {
+      throw new Error(
+        `No replica on ${this.destination} for home ${this.from}`,
+      );
+    }
+
+    return await replica.messages(this.messageHash);
   }
 
   get from(): number {
