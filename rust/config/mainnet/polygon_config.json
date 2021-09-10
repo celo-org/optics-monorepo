@@ -2,7 +2,7 @@
   "environment": "prod",
   "index": {
     "from": "18895794",
-    "chunk": "1999"
+    "chunk": "9999"
   },
   "signers": {
     "polygon": {
