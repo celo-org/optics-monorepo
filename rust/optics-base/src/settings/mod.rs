@@ -195,7 +195,7 @@ impl Settings {
     /// Try to get all replicas from this settings object
     pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
-        for (k, v) in self.replicas.iter() {
+        for (k, v) in self.replicas.iter().filter(|(_, v)| v.disabled.is_none()) {
             if k != &v.name {
                 bail!(
                     "Replica key does not match replica name:\n key: {}  name: {}",

@@ -30,6 +30,9 @@ pub struct ChainSetup {
     /// The chain connection details
     #[serde(flatten)]
     pub chain: ChainConf,
+    /// Set this key to disable the replica. Does nothing for homes.
+    #[serde(default)]
+    pub disabled: Option<String>,
 }
 
 impl ChainSetup {
