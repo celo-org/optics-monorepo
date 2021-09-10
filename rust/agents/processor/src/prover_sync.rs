@@ -4,7 +4,7 @@ use optics_base::home::Homes;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
     db::{DBError, DB},
-    traits::{ChainCommunicationError, Common, Home},
+    traits::{ChainCommunicationError, Common},
 };
 use std::{ops::Range, sync::Arc, time::Duration};
 use tokio::{
@@ -79,27 +79,16 @@ impl ProverSync {
 
     // simple caching
     #[instrument(err)]
-    async fn fetch_leaf(&mut self, leaf_index: usize) -> Result<Option<H256>, ProverSyncError> {
-        let leaf = self.db.leaf_by_leaf_index(leaf_index as u32)?;
-        if leaf.is_some() {
-            debug!("Retrieved leaf from db.");
-            Ok(leaf)
-        } else {
-            debug!("Retrieving leaf from chain.");
-            // slight rate limit
-            // TODO(James): make this not so kludgy
-            sleep(Duration::from_millis(100)).await;
-            match self.home.leaf_by_tree_index(leaf_index).await? {
-                Some(leaf) => {
-                    debug!("Retrieved leaf from chain.");
-                    self.db.store_leaf_hash(leaf_index as u32, leaf)?;
-                    Ok(Some(leaf))
-                }
-                None => {
-                    debug!("Chain does not contain leaf.");
-                    Ok(None)
+    async fn fetch_leaf(&self, leaf_index: u32) -> Result<Option<H256>, ProverSyncError> {
+        loop {
+            if let Some(idx) = self.db.retrieve_latest_leaf_index()? {
+                if idx >= leaf_index {
+                    debug!("Retrieving leaf from db.");
+                    return Ok(self.db.leaf_by_leaf_index(leaf_index as u32)?);
                 }
             }
+            // TODO(james): make not suck
+            sleep(Duration::from_secs(10)).await;
         }
     }
 
@@ -108,7 +97,7 @@ impl ProverSync {
         let mut leaves = vec![];
 
         for i in range {
-            let leaf = self.fetch_leaf(i).await?;
+            let leaf = self.fetch_leaf(i as u32).await?;
             if leaf.is_none() {
                 break;
             }
@@ -184,8 +173,6 @@ impl ProverSync {
         local_root: H256,
         new_root: H256,
     ) -> Result<Range<usize>, ProverSyncError> {
-        let mut leaves: Vec<H256> = Vec::new();
-
         // Create copy of ProverSync's incremental so we can easily discard
         // changes in case of bad updates
         let mut incremental = self.incremental;
@@ -201,10 +188,9 @@ impl ProverSync {
             // As we fill the incremental merkle, its tree_size will always be
             // equal to the index of the next leaf we want (e.g. if tree_size
             // is 3, we want the 4th leaf, which is at index 3)
-            if let Some(leaf) = self.fetch_leaf(tree_size).await? {
+            if let Some(leaf) = self.fetch_leaf(tree_size as u32).await? {
                 info!("Leaf at index {} is {}", tree_size, leaf);
                 incremental.ingest(leaf);
-                leaves.push(leaf);
                 local_root = incremental.root();
             } else {
                 // break on no leaf
@@ -225,6 +211,7 @@ impl ProverSync {
 
         info!("Committing leaves {}..{} to incremental.", start, tree_size);
         self.incremental = incremental;
+        assert!(incremental.root() == new_root);
         Ok(start..tree_size)
     }
 

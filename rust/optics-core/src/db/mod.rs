@@ -2,7 +2,7 @@ use color_eyre::eyre::WrapErr;
 use ethers::types::H256;
 use rocksdb::{Options, DB as Rocks};
 use std::{path::Path, sync::Arc};
-use tracing::info;
+use tracing::{debug, info};
 
 /// Shared functionality surrounding use of rocksdb
 pub mod iterator;
@@ -125,15 +125,22 @@ impl DB {
 
     /// Store a raw committed message
     pub fn store_raw_committed_message(&self, message: &RawCommittedMessage) -> Result<()> {
-        let destination_and_nonce =
-            OpticsMessage::read_from(&mut message.message.clone().as_slice())?
-                .destination_and_nonce();
+        let parsed = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
+
+        let destination_and_nonce = parsed.destination_and_nonce();
 
         let leaf_hash = message.leaf_hash();
 
+        debug!(
+            leaf_hash = ?leaf_hash,
+            destination_and_nonce,
+            destination = parsed.destination,
+            nonce = parsed.nonce,
+            leaf_index = message.leaf_index,
+            "storing raw committed message in db"
+        );
         self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
-        self.store_keyed_encodable(DEST, &destination_and_nonce, &leaf_hash)?;
-        self.store_leaf_hash(message.leaf_index, leaf_hash)?;
+        self.store_leaf(message.leaf_index, destination_and_nonce, leaf_hash)?;
         self.store_latest_leaf_index(message.leaf_index)?;
         Ok(())
     }
@@ -154,7 +161,18 @@ impl DB {
     }
 
     /// Store the leaf_hash keyed by leaf_index
-    pub fn store_leaf_hash(&self, leaf_index: u32, leaf_hash: H256) -> Result<()> {
+    pub fn store_leaf(
+        &self,
+        leaf_index: u32,
+        destination_and_nonce: u64,
+        leaf_hash: H256,
+    ) -> Result<()> {
+        debug!(
+            leaf_index,
+            leaf_hash = ?leaf_hash,
+            "storing leaf hash keyed by index and dest+nonce"
+        );
+        self.store_keyed_encodable(DEST, &destination_and_nonce, &leaf_hash)?;
         self.store_keyed_encodable(LEAF_IDX, &leaf_index, &leaf_hash)
     }
 
@@ -171,7 +189,7 @@ impl DB {
     /// Retrieve the leaf hash keyed by destination and nonce
     pub fn leaf_by_destination(&self, destination: u32, nonce: u32) -> Result<Option<H256>> {
         let key = utils::destination_and_nonce(destination, nonce);
-        self.retrive_keyed_decodable(LEAF_IDX, &key)
+        self.retrive_keyed_decodable(DEST, &key)
     }
 
     /// Retrieve a raw committed message by its leaf hash
@@ -198,6 +216,11 @@ impl DB {
 
     /// Store a signed update
     pub fn store_update(&self, update: &SignedUpdate) -> Result<()> {
+        debug!(
+            previous_root = ?update.update.previous_root,
+            new_root = ?update.update.new_root,
+            "storing update in DB"
+        );
         self.store_keyed_encodable(PREV_ROOT, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
             NEW_ROOT,
@@ -228,6 +251,7 @@ impl DB {
 
     /// Store a proof by its leaf index
     pub fn store_proof(&self, leaf_index: u32, proof: &Proof) -> Result<()> {
+        debug!(leaf_index, "storing proof in DB");
         self.store_keyed_encodable(PROOF, &leaf_index, proof)
     }
 
