@@ -19,7 +19,7 @@ Purpose: Allows us to test changes to contracts and agents. *Bugs should be foun
 
 **Current Dev Contract Deployment:**
 
-[1630962358898](../rust/config/1630962358898/)
+[development](../rust/config/development/)
 
 ### Staging
 
@@ -34,7 +34,7 @@ Purpose: Allows us to test the full-stack integration, specifically surrounding 
 
 **Current Staging Contract Deployment:**
 
-[1631125589812](../rust/config/1631125589812/)
+[staging](../rust/config/staging/)
 
 ### Production
 
