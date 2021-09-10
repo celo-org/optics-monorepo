@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { TypedEvent } from '../../typechain/optics-core/commons';
-import { Home, Replica } from '../../typechain/optics-core';
+import { TypedEvent } from '../../../typechain/optics-core/commons';
+import { Home, Replica } from '../../../typechain/optics-core';
 
 // match the typescript declaration
 export type DispatchEvent = TypedEvent<
@@ -15,10 +15,24 @@ export type DispatchEvent = TypedEvent<
   };
 };
 
+export type ParsedMessage = {
+  from: number;
+  sender: string;
+  nonce: number;
+  destination: number;
+  recipient: string;
+  body: string;
+};
+
 enum MessageStatus {
   None = 0,
   Proven,
   Processed,
+}
+
+function parseMessage(message: string): ParsedMessage {
+  // TODO
+  return message as unknown as ParsedMessage;
 }
 
 export class OpticsMessage {
@@ -27,7 +41,7 @@ export class OpticsMessage {
   readonly leafIndex: BigNumber;
   readonly destinationAndNonce: BigNumber;
   readonly committedRoot: string;
-  readonly message: string;
+  readonly message: ParsedMessage;
 
   private origin: Home;
   private destination: Replica;
@@ -38,7 +52,8 @@ export class OpticsMessage {
     this.leafIndex = event.args.leafIndex;
     this.destinationAndNonce = event.args.destinationAndNonce;
     this.committedRoot = event.args.committedRoot;
-    this.message = event.args.message;
+    this.message = parseMessage(event.args.message);
+
     this.origin = origin;
     this.destination = destination;
   }

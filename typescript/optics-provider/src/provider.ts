@@ -1,8 +1,8 @@
 import * as ethers from 'ethers';
 import { BigNumberish, ContractTransaction } from 'ethers';
 import { ERC20, ERC20__factory } from '../../typechain/optics-xapps';
-import { BridgeContracts } from './bridge';
-import { CoreContracts } from './core';
+import { BridgeContracts } from './contracts/bridge';
+import { CoreContracts } from './contracts/core';
 import { Domain, mainnetDomains } from './domains';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
 import { canonizeId } from './utils';
@@ -264,7 +264,7 @@ export class OpticsContext extends MultiProvider {
     to: string | number,
     token: TokenIdentifier,
     amount: BigNumberish,
-    recipient: string,
+    recipient: Address,
   ): Promise<ContractTransaction> {
     const fromBridge = this.getBridge(from);
     if (!fromBridge) {
@@ -289,6 +289,7 @@ export class OpticsContext extends MultiProvider {
 
     const approved = await fromToken.allowance(senderAddress, bridgeAddress);
 
+    // Approve if necessary
     if (approved.lt(amount)) {
       await fromToken.approve(bridgeAddress, amount);
     }
@@ -299,6 +300,22 @@ export class OpticsContext extends MultiProvider {
       to,
       recipient,
     );
+  }
+
+  async sendNative(
+    from: string | number,
+    to: string | number,
+    amount: BigNumberish,
+    recipient: Address,
+  ): Promise<ContractTransaction> {
+    const ethHelper = this.getBridge(from)?.ethHelper;
+    if (!ethHelper) {
+      throw new Error(`No ethHelper for ${from}`);
+    }
+
+    const toDomain = this.resolveDomain(to);
+
+    return ethHelper.sendToEVMLike(toDomain, recipient, { value: amount });
   }
 }
 
