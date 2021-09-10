@@ -69,11 +69,12 @@ impl Home for Homes {
     fn index(
         &self,
         from_height: u32,
+        chunk_size: u32,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         match self {
-            Homes::Ethereum(home) => home.index(from_height),
-            Homes::Mock(mock_home) => mock_home.index(from_height),
-            Homes::Other(home) => home.index(from_height),
+            Homes::Ethereum(home) => home.index(from_height, chunk_size),
+            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size),
+            Homes::Other(home) => home.index(from_height, chunk_size),
         }
     }
 

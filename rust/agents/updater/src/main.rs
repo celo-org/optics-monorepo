@@ -28,7 +28,8 @@ async fn _main() -> Result<()> {
     let _ = agent.metrics().run_http_server();
 
     // this is deliberately different from other agents
-    agent.home().index(0);
+    let indexer = agent.as_ref().indexer;
+    agent.home().index(indexer.from(), indexer.chunk_size());
     agent.run("").await??;
     Ok(())
 }

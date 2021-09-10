@@ -75,9 +75,6 @@ macro_rules! impl_home_db_traits {
 
 static LAST_INSPECTED: &str = "homeIndexerLastInspected";
 
-// TODO: make configurable
-static CHUNK_SIZE: u32 = 1999;
-
 #[allow(missing_docs)]
 abigen!(
     EthereumHomeInternal,
@@ -91,6 +88,7 @@ where
     contract: Arc<EthereumHomeInternal<M>>,
     db: Arc<DB>,
     from_height: u32,
+    chunk_size: u32,
 }
 
 impl_home_db_traits!(HomeIndexer);
@@ -116,7 +114,7 @@ where
             .contract
             .update_filter()
             .from_block(from)
-            .to_block(from + CHUNK_SIZE)
+            .to_block(from + self.chunk_size)
             .query()
             .await?;
 
@@ -145,7 +143,7 @@ where
             .contract
             .dispatch_filter()
             .from_block(from)
-            .to_block(from + CHUNK_SIZE)
+            .to_block(from + self.chunk_size)
             .query()
             .await?;
 
@@ -183,7 +181,7 @@ where
                     self.sync_leaves(next_height)
                 )?;
                 Self::db_put(&self.db, LAST_INSPECTED, next_height)?;
-                next_height += CHUNK_SIZE;
+                next_height += self.chunk_size;
             }
         })
         .in_current_span()
@@ -200,7 +198,6 @@ where
     db: Arc<DB>,
     domain: u32,
     name: String,
-    indexing: bool,
 }
 
 impl_home_db_traits!(EthereumHome);
@@ -217,7 +214,6 @@ where
             domain,
             name: name.to_owned(),
             db,
-            indexing: false,
         }
     }
 }
@@ -364,11 +360,12 @@ where
     }
 
     /// Start an indexing task that syncs chain state
-    fn index(&self, from_height: u32) -> Instrumented<JoinHandle<Result<()>>> {
+    fn index(&self, from_height: u32, chunk_size: u32) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = HomeIndexer {
             contract: self.contract.clone(),
             db: self.db.clone(),
             from_height,
+            chunk_size,
         };
         indexer.spawn()
     }

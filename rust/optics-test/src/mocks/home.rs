@@ -145,6 +145,7 @@ impl Home for MockHomeContract {
     fn index(
         &self,
         _from_height: u32,
+        _chunk_size: u32,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         tokio::spawn(async move { Ok(()) }).in_current_span()
     }

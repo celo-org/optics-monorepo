@@ -1,5 +1,9 @@
 use crate::{
-    cancel_task, home::Homes, metrics::CoreMetrics, replica::Replicas, settings::Settings,
+    cancel_task,
+    home::Homes,
+    metrics::CoreMetrics,
+    replica::Replicas,
+    settings::{IndexSettings, Settings},
 };
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
@@ -22,6 +26,8 @@ pub struct AgentCore {
     pub db: Arc<DB>,
     /// Prometheus metrics
     pub metrics: Arc<CoreMetrics>,
+    /// The height at which to start indexing the Home
+    pub indexer: IndexSettings,
 }
 
 /// A trait for an application:
@@ -102,7 +108,8 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     #[tracing::instrument(err)]
     async fn run_all(&self) -> Result<()> {
         // this is the unused must use
-        self.home().index(0);
+        let indexer = self.as_ref().indexer;
+        self.home().index(indexer.from(), indexer.chunk_size());
         let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
         self.run_many(&names).await
     }

@@ -115,6 +115,28 @@ impl SignerConf {
     }
 }
 
+/// Home indexing settings
+#[derive(Debug, Deserialize, Default, Copy, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexSettings {
+    /// The height at which to start indexing the Home contract
+    from: Option<u32>,
+    /// The number of blocks to query at once at which to start indexing the Home contract
+    chunk: Option<u32>,
+}
+
+impl IndexSettings {
+    /// Get the `from` setting
+    pub fn from(&self) -> u32 {
+        self.from.unwrap_or_default()
+    }
+
+    /// Get the `chunk_size` setting
+    pub fn chunk_size(&self) -> u32 {
+        self.chunk.unwrap_or(1999)
+    }
+}
+
 /// Settings. Usually this should be treated as a base config and used as
 /// follows:
 ///
@@ -146,6 +168,9 @@ pub struct Settings {
     pub db: String,
     /// Port to listen for prometheus scrape requests
     pub metrics: Option<String>,
+    /// Settings for the home indexer
+    #[serde(default)]
+    pub index: IndexSettings,
     /// The home configuration
     pub home: ChainSetup,
     /// The replica configurations
@@ -216,6 +241,7 @@ impl Settings {
             replicas,
             db,
             metrics,
+            indexer: self.index,
         })
     }
 

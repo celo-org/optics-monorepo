@@ -430,6 +430,7 @@ impl OpticsAgent for Watcher {
 
 #[cfg(test)]
 mod test {
+    use optics_base::settings::IndexSettings;
     use std::sync::Arc;
     use tokio::sync::mpsc;
 
@@ -798,6 +799,7 @@ mod test {
                 home,
                 replicas: replica_map,
                 db: Arc::new(db),
+                indexer: IndexSettings::default(),
                 metrics: Arc::new(
                     optics_base::metrics::CoreMetrics::new(
                         "watcher_test",
