@@ -115,24 +115,30 @@ impl SignerConf {
 }
 
 /// Home indexing settings
-#[derive(Debug, Deserialize, Default, Copy, Clone)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexSettings {
     /// The height at which to start indexing the Home contract
-    from: Option<u32>,
+    from: Option<String>,
     /// The number of blocks to query at once at which to start indexing the Home contract
-    chunk: Option<u32>,
+    chunk: Option<String>,
 }
 
 impl IndexSettings {
     /// Get the `from` setting
     pub fn from(&self) -> u32 {
-        self.from.unwrap_or_default()
+        self.from
+            .as_ref()
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or_default()
     }
 
     /// Get the `chunk_size` setting
     pub fn chunk_size(&self) -> u32 {
-        self.chunk.unwrap_or(1999)
+        self.chunk
+            .as_ref()
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or(1999)
     }
 }
 
@@ -240,7 +246,7 @@ impl Settings {
             replicas,
             db,
             metrics,
-            indexer: self.index,
+            indexer: self.index.clone(),
         })
     }
 

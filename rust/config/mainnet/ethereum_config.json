@@ -1,5 +1,9 @@
 {
   "environment": "prod",
+  "index": {
+    "from": "13187674",
+    "chunk": "9999"
+  },
   "signers": {
     "ethereum": {
       "key": "",

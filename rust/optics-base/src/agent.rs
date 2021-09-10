@@ -107,7 +107,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     #[tracing::instrument(err)]
     async fn run_all(&self) -> Result<()> {
         // this is the unused must use
-        let indexer = self.as_ref().indexer;
+        let indexer = &self.as_ref().indexer;
         self.home().index(indexer.from(), indexer.chunk_size());
         let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
         self.run_many(&names).await
