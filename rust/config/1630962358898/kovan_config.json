@@ -1,5 +1,9 @@
 {
   "environment": "dev",
+  "index": {
+    "from": "27086626",
+    "chunk": "9999"
+  },
   "signers": {
     "kovan": {
       "key": "",
