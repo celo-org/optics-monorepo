@@ -43,62 +43,41 @@ export class OpticsContext extends MultiProvider {
     return new OpticsContext(domains, cores, bridges);
   }
 
+  private reconnect(domain: number) {
+    const connection = this.getConnection(domain);
+    if (!connection) {
+      throw new Error('Reconnect failed: no connection');
+    }
+    // re-register contracts
+    const core = this.cores.get(domain);
+    if (core) {
+      core.connect(connection);
+    }
+    const bridge = this.bridges.get(domain);
+    if (bridge) {
+      bridge.connect(connection);
+    }
+  }
+
   registerProvider(
     nameOrDomain: string | number,
     provider: ethers.providers.Provider,
   ) {
     const domain = this.resolveDomain(nameOrDomain);
     super.registerProvider(domain, provider);
-
-    // re-register contracts
-    const connection = this.getConnection(domain);
-    if (!connection) {
-      return;
-    }
-
-    const core = this.cores.get(domain);
-    if (core) {
-      core.connect(connection);
-    }
-    const bridge = this.bridges.get(domain);
-    if (bridge) {
-      bridge.connect(connection);
-    }
+    this.reconnect(domain);
   }
 
   registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
     const domain = this.resolveDomain(nameOrDomain);
-
     super.registerSigner(domain, signer);
-
-    const connection = this.getConnection(domain)!;
-    // re-register contracts
-    const core = this.cores.get(domain);
-    if (core) {
-      core.connect(connection);
-    }
-    const bridge = this.bridges.get(domain);
-    if (bridge) {
-      bridge.connect(connection);
-    }
+    this.reconnect(domain);
   }
 
   unregisterSigner(nameOrDomain: string | number): void {
     const domain = this.resolveDomain(nameOrDomain);
     super.unregisterSigner(domain);
-    const connection = this.getConnection(domain);
-    if (!connection) {
-      throw new Error('No connection');
-    }
-    // re-register contracts
-    const core = this.cores.get(domain);
-    if (core) {
-      core.connect(connection);
-    }
-    const bridge = this.bridges.get(domain);
-    if (bridge) {
-      bridge.connect(connection);
-    }
+    this.reconnect(domain);
   }
 
   getCore(nameOrDomain: string | number): CoreContracts | undefined {
