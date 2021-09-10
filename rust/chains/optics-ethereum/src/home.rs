@@ -14,6 +14,7 @@ use optics_core::{
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tokio::try_join;
+use tracing::{info, info_span, instrument};
 use tracing::{instrument::Instrumented, Instrument};
 
 use std::cmp::min;
@@ -45,6 +46,7 @@ impl<M> HomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
+    #[instrument(err, skip(self))]
     async fn sync_updates(&self, from: u32, to: u32) -> Result<()> {
         let events = self
             .contract
@@ -74,6 +76,7 @@ where
         Ok(())
     }
 
+    #[instrument(err, skip(self))]
     async fn sync_leaves(&self, from: u32, to: u32) -> Result<()> {
         let events = self
             .contract
@@ -97,18 +100,31 @@ where
     }
 
     fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
+        let span = info_span!("HomeIndexer");
+
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
                 .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
+            info!(
+                next_height = next_height,
+                "resuming indexer from {}", next_height
+            );
 
             loop {
                 let tip = self.provider.get_block_number().await?.as_u32();
                 let candidate = next_height + self.chunk_size;
                 let to = min(tip, candidate);
 
+                info!(
+                    next_height = next_height,
+                    to = to,
+                    "indexing block heights {}...{}",
+                    next_height,
+                    to
+                );
                 // TODO(james): these shouldn't have to go in lockstep
                 try_join!(
                     self.sync_updates(next_height, to),
@@ -123,7 +139,7 @@ where
                 }
             }
         })
-        .in_current_span()
+        .instrument(span)
     }
 }
 
