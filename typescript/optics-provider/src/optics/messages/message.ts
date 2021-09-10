@@ -1,6 +1,7 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { TypedEvent } from '../../../../typechain/optics-core/commons';
 import { Home, Replica } from '../../../../typechain/optics-core';
+import { arrayify, hexlify } from '@ethersproject/bytes';
 
 // match the typescript declaration
 export type DispatchEvent = TypedEvent<
@@ -31,8 +32,16 @@ enum MessageStatus {
 }
 
 function parseMessage(message: string): ParsedMessage {
-  // TODO
-  return message as unknown as ParsedMessage;
+  const buf = Buffer.from(arrayify(message));
+
+  const from = buf.readUInt32BE(0);
+  const sender = hexlify(buf.slice(4, 36));
+  const nonce = buf.readUInt32BE(36);
+  const destination = buf.readUInt32BE(40);
+  const recipient = hexlify(buf.slice(44, 76));
+  const body = hexlify(buf.slice(76));
+
+  return { from, sender, nonce, destination, recipient, body };
 }
 
 export class OpticsMessage {

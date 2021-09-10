@@ -71,7 +71,7 @@ function parseBody(messageBody: string): ParsedBridgeMessage {
   return {
     action: parseAction(action),
     token: {
-      domain: Buffer.from(tokenId).readInt32BE(0),
+      domain: Buffer.from(tokenId).readUInt32BE(0),
       id: hexlify(buf.slice(4)),
     },
   };
