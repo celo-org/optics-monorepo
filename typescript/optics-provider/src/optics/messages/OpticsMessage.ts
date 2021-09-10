@@ -31,7 +31,7 @@ enum MessageStatus {
   Processed,
 }
 
-function parseMessage(message: string): ParsedMessage {
+export function parseMessage(message: string): ParsedMessage {
   const buf = Buffer.from(arrayify(message));
 
   const from = buf.readUInt32BE(0);
