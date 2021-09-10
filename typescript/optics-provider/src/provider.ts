@@ -102,6 +102,12 @@ export class MultiProvider {
   ): ethers.Signer | ethers.providers.Provider | undefined {
     return this.getSigner(nameOrDomain) ?? this.getProvider(nameOrDomain);
   }
+
+  async getAddress(nameOrDomain: string | number): Promise<string | undefined> {
+    const signer = this.getSigner(nameOrDomain);
+
+    return await signer?.getAddress();
+  }
 }
 
 export class OpticsContext extends MultiProvider {

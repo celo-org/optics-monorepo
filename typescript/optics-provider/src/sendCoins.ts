@@ -5,8 +5,10 @@ import {
 } from '../../typechain/optics-xapps';
 import * as ethers from 'ethers';
 
+import { mainnet } from '.';
+
 const celoTokenAddr = '0x471EcE3750Da237f93B8E339c536989b8978a438';
-const celoBridgeRouter = '0xf244eA81F715F343040569398A4E7978De656bf6';
+
 const amount = ethers.constants.WeiPerEther.mul(100);
 const privkey = process.env.PRIVKEY_LMAO;
 if (!privkey) {
@@ -14,30 +16,24 @@ if (!privkey) {
 }
 
 const celoRpc = 'https://forno.celo.org';
+mainnet.registerRpcProvider('celo', celoRpc);
+mainnet.registerWalletSigner('celo', privkey);
 
 async function doThing() {
-  const celoProvider = new ethers.providers.JsonRpcProvider(celoRpc);
-  const celoSigner = new ethers.Wallet(privkey!, celoProvider);
+  const address = await mainnet.getAddress('celo');
+  if (!address) {
+    throw new Error('no address');
+  }
 
-  // approve the bridge to spend your celo
-  const token = ERC20__factory.connect(celoTokenAddr, celoSigner);
-  let tx = await token.approve(celoBridgeRouter, ethers.constants.MaxUint256, {
-    gasLimit: 100_000,
-  });
-  console.log('approving token spend');
-  await tx.wait(1);
-
-  // instruct the bridge to send
-  const bridgeRouter = BridgeRouter__factory.connect(
-    celoBridgeRouter,
-    celoSigner,
-  );
-  tx = await bridgeRouter.send(
-    token.address,
+  const tx = await mainnet.send(
+    'celo',
+    'ethereum',
+    { domain: 'celo', id: celoTokenAddr },
     amount,
-    6648936, // b'eth'
-    celoSigner.address,
+    address,
   );
   console.log(`sendTx is ${tx.hash}`);
   await tx.wait(1);
 }
+
+doThing();

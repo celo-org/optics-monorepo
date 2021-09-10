@@ -8,5 +8,8 @@ export function canonizeId(data: BytesLike): Uint8Array {
   if (buf.length > 32) {
     throw new Error('Too long');
   }
+  if (buf.length !== 20 && buf.length != 32) {
+    throw new Error('bad input, expect address or bytes32');
+  }
   return ethers.utils.zeroPad(buf, 32);
 }
