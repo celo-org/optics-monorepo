@@ -1,9 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { BridgeContracts, CoreContracts, OpticsContext } from '..';
-import { Home, Replica } from '../../../../typechain/optics-core';
-import { BridgeRouter } from '../../../../typechain/optics-xapps';
-import { TokenIdentifier } from '../tokens';
+import { ERC20 } from '../../../../typechain/optics-xapps';
+import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
 import { DispatchEvent, OpticsMessage, ParsedMessage } from './OpticsMessage';
 
 const ACTION_LEN = {
@@ -101,5 +100,9 @@ export class BridgeMessage extends OpticsMessage {
     this.toBridge = toBridge;
     this.action = parsed.action;
     this.token = parsed.token;
+  }
+
+  async asset(): Promise<ResolvedTokenInfo> {
+    return await this.context.tokenRepresentations(this.token);
   }
 }

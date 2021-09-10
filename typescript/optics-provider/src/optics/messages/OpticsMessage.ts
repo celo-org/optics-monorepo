@@ -1,8 +1,7 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { TypedEvent } from '../../../../typechain/optics-core/commons';
-import { Home, Replica } from '../../../../typechain/optics-core';
 import { arrayify, hexlify } from '@ethersproject/bytes';
-import { CoreContracts, OpticsContext } from '..';
+import { OpticsContext } from '..';
 
 // match the typescript declaration
 export type DispatchEvent = TypedEvent<
@@ -53,7 +52,7 @@ export class OpticsMessage {
   readonly committedRoot: string;
   readonly message: ParsedMessage;
 
-  private context: OpticsContext;
+  protected context: OpticsContext;
 
   constructor(event: DispatchEvent, context: OpticsContext) {
     this.event = event;
