@@ -77,6 +77,9 @@ spec:
         volumeMounts:
         - name: state
           mountPath: {{ .Values.optics.dbPath }}
+        ports: 
+        - name: metrics
+          containerPort: {{ .Values.optics.metrics.port }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

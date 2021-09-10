@@ -32,3 +32,4 @@ data:
   {{- if .Values.optics.tracing.uri }}
   OPT_BASE_TRACING_JAEGER_COLLECTOR_URI: {{ .Values.optics.tracing.uri }}
   {{- end }}
+  OPT_BASE_METRICS: {{ .Values.optics.metrics.port | quote }}

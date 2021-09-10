@@ -38,6 +38,8 @@ optics:
     # Set the log level
     level: info
     uri: ""
+  metrics: 
+    port: 9090
   homeChain:
     name: "kovan"
     # -- The contract address for the home contract
