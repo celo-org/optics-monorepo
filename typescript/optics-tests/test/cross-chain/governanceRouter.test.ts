@@ -56,15 +56,15 @@ describe('GovernanceRouter', async () => {
   before(async () => {
     [thirdRouter, signer, secondGovernorSigner] = await ethers.getSigners();
     updater = await Updater.fromSigner(signer, governorDomain);
-
-    // get fresh test deploy objects
-    deploys.push(await getTestDeploy(governorDomain, updater.address, []));
-    deploys.push(await getTestDeploy(nonGovernorDomain, updater.address, []));
-    deploys.push(await getTestDeploy(thirdDomain, updater.address, []));
   });
 
   beforeEach(async () => {
-    // deploy the entire Optics suite on each chain
+    // reset deploys
+    deploys[0] = await getTestDeploy(governorDomain, updater.address, []);
+    deploys[1] = await getTestDeploy(nonGovernorDomain, updater.address, []);
+    deploys[2] = await getTestDeploy(thirdDomain, updater.address, []);
+
+    // deploy the entire Optics suite on two chains
     await deployNChains([deploys[0], deploys[1]]);
 
     // get both governanceRouters

@@ -554,7 +554,6 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   const govChain = deploys[0];
   const nonGovChains = deploys.slice(1);
 
-  // await Promise.all([deployOptics(deploys[0]), deployOptics(deploys[1])]);
   log(isTestDeploy, 'awaiting provider ready');
   await Promise.all([deploys.map(async (deploy) => {
     await deploy.ready();
