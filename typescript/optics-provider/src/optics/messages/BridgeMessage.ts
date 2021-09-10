@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
-import { Home, Replica } from '../../../typechain/optics-core';
+import { Home, Replica } from '../../../../typechain/optics-core';
 import { TokenIdentifier } from '../tokens';
 import { DispatchEvent, OpticsMessage, ParsedMessage } from './message';
 

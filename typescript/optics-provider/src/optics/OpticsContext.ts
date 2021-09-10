@@ -1,9 +1,9 @@
 import { BigNumberish, ContractTransaction, ethers } from 'ethers';
 import { MultiProvider } from '..';
 import { ERC20, ERC20__factory } from '../../../typechain/optics-xapps';
-import { BridgeContracts } from './BridgeContracts';
-import { CoreContracts } from './CoreContracts';
-import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
+import { BridgeContracts } from './contracts/BridgeContracts';
+import { CoreContracts } from './contracts/CoreContracts';
+import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
 import { canonizeId } from '../utils';
 import { mainnetDomains, OpticsDomain } from './OpticsDomain';
 

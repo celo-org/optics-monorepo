@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { TypedEvent } from '../../../typechain/optics-core/commons';
-import { Home, Replica } from '../../../typechain/optics-core';
+import { TypedEvent } from '../../../../typechain/optics-core/commons';
+import { Home, Replica } from '../../../../typechain/optics-core';
 
 // match the typescript declaration
 export type DispatchEvent = TypedEvent<
