@@ -64,6 +64,7 @@ impl From<Level> for LevelFilter {
 pub struct TracingConfig {
     jaeger: Option<JaegerConfig>,
     zipkin: Option<ZipkinConfig>,
+    honeycomb: Option<String>,
     #[serde(default)]
     fmt: Style,
     #[serde(default)]
@@ -81,17 +82,34 @@ impl TracingConfig {
             .with(fmt_layer)
             .with(err_layer);
 
-        match self.jaeger {
-            None => match self.zipkin {
-                None => subscriber.try_init()?,
-                Some(ref zipkin) => {
-                    let layer: OpenTelemetryLayer<_, _> = zipkin.try_into_layer()?;
+        // honeycomb excludes jaeger and zipkin, which don't really work anyway
+        if let Some(api_key) = self.honeycomb.clone() {
+            subscriber
+                .with(tracing_honeycomb::new_honeycomb_telemetry_layer(
+                    "optics",
+                    libhoney::Config {
+                        options: libhoney::client::Options {
+                            api_key,
+                            dataset: "optics_dev".to_string(),
+                            ..libhoney::client::Options::default()
+                        },
+                        transmission_options: libhoney::transmission::Options::default(),
+                    },
+                ))
+                .try_init()?;
+        } else {
+            match self.jaeger {
+                None => match self.zipkin {
+                    None => subscriber.try_init()?,
+                    Some(ref zipkin) => {
+                        let layer: OpenTelemetryLayer<_, _> = zipkin.try_into_layer()?;
+                        subscriber.with(layer).try_init()?
+                    }
+                },
+                Some(ref jaeger) => {
+                    let layer: OpenTelemetryLayer<_, _> = jaeger.try_into_layer()?;
                     subscriber.with(layer).try_init()?
                 }
-            },
-            Some(ref jaeger) => {
-                let layer: OpenTelemetryLayer<_, _> = jaeger.try_into_layer()?;
-                subscriber.with(layer).try_init()?
             }
         }
 
