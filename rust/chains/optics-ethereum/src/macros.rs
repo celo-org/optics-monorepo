@@ -2,16 +2,29 @@
 #[macro_export]
 macro_rules! report_tx {
     ($tx:expr) => {{
-        tracing::info!("Dispatching call to {:?}", $tx.tx.to());
-        tracing::trace!("Call data {:?}", $tx.tx.data());
-        tracing::trace!("Call from {:?}", $tx.tx.from());
-        tracing::trace!("Call nonce {:?}", $tx.tx.nonce());
+
+        // "0x..."
+        let data = format!("0x{}", hex::encode(&$tx.tx.data().map(|b| b.to_vec()).unwrap_or_default()));
+
+        tracing::info!(
+            to = ?$tx.tx.to(),
+            data = %data,
+            nonce = ?$tx.tx.nonce(),
+            "Dispatching transaction"
+        );
         let dispatch_fut = $tx.send();
         let dispatched = dispatch_fut.await?;
 
         let tx_hash: ethers::core::types::H256 = *dispatched;
 
-        tracing::info!("Dispatched tx with tx_hash {:?}", tx_hash);
+        tracing::info!(
+            to = ?$tx.tx.to(),
+            data = ?$tx.tx.data(),
+            nonce = ?$tx.tx.nonce(),
+            tx_hash = ?tx_hash,
+            "Dispatched tx with tx_hash {:?}",
+            tx_hash
+        );
 
         let result = dispatched
             .await?
