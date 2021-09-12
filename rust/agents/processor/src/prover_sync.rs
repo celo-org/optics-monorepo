@@ -3,7 +3,7 @@ use ethers::core::types::H256;
 use optics_base::home::Homes;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
-    db::{DBError, DB},
+    db::{DbError, DB},
     traits::{ChainCommunicationError, Common},
 };
 use std::{ops::Range, sync::Arc, time::Duration};
@@ -51,7 +51,7 @@ pub enum ProverSyncError {
     ChainCommunicationError(#[from] ChainCommunicationError),
     /// DB Error
     #[error("{0}")]
-    DBError(#[from] DBError),
+    DbError(#[from] DbError),
 }
 
 impl ProverSync {

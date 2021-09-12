@@ -3,13 +3,13 @@
 use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
-use ethers::core::types::{Address, Signature, H256, U256};
+use ethers::core::types::{Address, Signature, H256};
 use optics_core::db::DB;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
-    utils, Message, SignedUpdate, Update,
+    Message, SignedUpdate, Update,
 };
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
@@ -219,31 +219,12 @@ where
         &self,
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        if let Ok(Some(update)) = self.db.update_by_previous_root(old_root) {
-            return Ok(Some(update));
+        loop {
+            if let Some(update) = self.db.update_by_previous_root(old_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
         }
-
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic2(old_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
     }
 
     #[tracing::instrument(err, skip(self))]
@@ -251,27 +232,12 @@ where
         &self,
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic3(new_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
+        loop {
+            if let Some(update) = self.db.update_by_new_root(new_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
     }
 
     #[tracing::instrument(err, skip(self), fields(hexSignature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
@@ -332,23 +298,12 @@ where
         destination: u32,
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        if let Ok(Some(message)) = self.db.message_by_nonce(destination, nonce) {
-            return Ok(Some(message));
+        loop {
+            if let Some(update) = self.db.message_by_nonce(destination, nonce)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
         }
-
-        let events = self
-            .contract
-            .dispatch_filter()
-            .from_block(0)
-            .topic3(U256::from(utils::destination_and_nonce(destination, nonce)))
-            .query()
-            .await?;
-
-        Ok(events.into_iter().next().map(|f| RawCommittedMessage {
-            leaf_index: f.leaf_index.as_u32(),
-            committed_root: f.committed_root.into(),
-            message: f.message,
-        }))
     }
 
     #[tracing::instrument(err, skip(self))]
@@ -356,41 +311,24 @@ where
         &self,
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        if let Ok(Some(message)) = self.db.message_by_leaf_hash(leaf) {
-            return Ok(Some(message));
+        loop {
+            if let Some(update) = self.db.message_by_leaf_hash(leaf)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
         }
-
-        let events = self
-            .contract
-            .dispatch_filter()
-            .from_block(0)
-            .topic1(leaf)
-            .query()
-            .await?;
-
-        Ok(events.into_iter().next().map(|f| RawCommittedMessage {
-            leaf_index: f.leaf_index.as_u32(),
-            committed_root: f.committed_root.into(),
-            message: f.message,
-        }))
     }
 
     async fn leaf_by_tree_index(
         &self,
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
-        if let Ok(Some(message)) = self.db.message_by_leaf_index(tree_index as u32) {
-            return Ok(Some(message.leaf_hash()));
+        loop {
+            if let Some(update) = self.db.leaf_by_leaf_index(tree_index as u32)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
         }
-        Ok(self
-            .contract
-            .dispatch_filter()
-            .from_block(0)
-            .topic2(U256::from(tree_index))
-            .query()
-            .await?
-            .first()
-            .map(|event| event.message_hash.into()))
     }
 
     #[tracing::instrument(err, skip(self))]

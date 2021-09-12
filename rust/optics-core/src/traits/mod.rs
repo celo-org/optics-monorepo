@@ -18,7 +18,7 @@ use ethers::{
 };
 use std::error::Error as StdError;
 
-use crate::{OpticsError, SignedUpdate};
+use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use home::*;
 pub use replica::*;
@@ -72,6 +72,9 @@ pub enum ChainCommunicationError {
     /// A transaction was dropped from the mempool
     #[error("Transaction dropped from mempool {0:?}")]
     DroppedError(H256),
+    /// DB Error
+    #[error("{0}")]
+    DbError(#[from] DbError),
     /// Any other error
     #[error("{0}")]
     CustomError(#[from] Box<dyn StdError + Send + Sync>),

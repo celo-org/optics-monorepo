@@ -35,7 +35,7 @@ impl From<Rocks> for DB {
 
 /// DB Error type
 #[derive(thiserror::Error, Debug)]
-pub enum DBError {
+pub enum DbError {
     /// Rocks DB Error
     #[error("{0}")]
     RockError(#[from] rocksdb::Error),
@@ -44,7 +44,7 @@ pub enum DBError {
     OpticsError(#[from] OpticsError),
 }
 
-type Result<T> = std::result::Result<T, DBError>;
+type Result<T> = std::result::Result<T, DbError>;
 
 impl DB {
     /// Store a value in the DB
