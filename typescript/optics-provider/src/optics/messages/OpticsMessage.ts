@@ -2,11 +2,10 @@ import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { TypedEvent } from '@optics-xyz/ts-interface/optics-core/commons';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { OpticsContext } from '..';
+import { delay } from '../../utils';
 
 // match the typescript declaration
-export type DispatchEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string, string]
-> & {
+export interface DispatchEvent {
   args: {
     messageHash: string;
     leafIndex: BigNumber;
@@ -14,7 +13,7 @@ export type DispatchEvent = TypedEvent<
     committedRoot: string;
     message: string;
   };
-};
+}
 
 export type ParsedMessage = {
   from: number;
@@ -74,6 +73,24 @@ export class OpticsMessage {
     }
 
     return await replica.messages(this.messageHash);
+  }
+
+  /// Returns true when the message is delivered
+  async delivered(): Promise<boolean> {
+    const status = await this.status();
+    return status === MessageStatus.Processed;
+  }
+
+  /// Resolves when the message has been delivered.
+  /// May never resolve. May take hours to resolve.
+  async wait(opts?: { pollTime?: number }): Promise<void> {
+    const interval = opts?.pollTime ?? 5000;
+    while (true) {
+      if (await this.delivered()) {
+        return;
+      }
+      await delay(interval);
+    }
   }
 
   get from(): number {

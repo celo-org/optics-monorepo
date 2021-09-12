@@ -1,4 +1,4 @@
-import { BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 import { MultiProvider } from '..';
 import { ERC20, ERC20__factory } from '@optics-xyz/ts-interface/optics-xapps';
 import { BridgeContracts } from './contracts/BridgeContracts';
@@ -12,6 +12,7 @@ import {
   stagingDomains,
 } from './domains';
 import { Replica } from '@optics-xyz/ts-interface/optics-core';
+import { TransferMessage } from '.';
 
 type Address = string;
 
@@ -85,9 +86,25 @@ export class OpticsContext extends MultiProvider {
     return this.cores.get(domain);
   }
 
+  mustGetCore(nameOrDomain: string | number): CoreContracts {
+    const core = this.getCore(nameOrDomain);
+    if (!core) {
+      throw new Error(`Missing core for domain: ${nameOrDomain}`);
+    }
+    return core;
+  }
+
   getBridge(nameOrDomain: string | number): BridgeContracts | undefined {
     const domain = this.resolveDomain(nameOrDomain);
     return this.bridges.get(domain);
+  }
+
+  mustGetBridge(nameOrDomain: string | number): BridgeContracts {
+    const bridge = this.getBridge(nameOrDomain);
+    if (!bridge) {
+      throw new Error(`Missing bridge for domain: ${nameOrDomain}`);
+    }
+    return bridge;
   }
 
   // gets the replica of Home on Remote
@@ -153,10 +170,7 @@ export class OpticsContext extends MultiProvider {
     nameOrDomain: string | number,
     representation: Address,
   ): Promise<TokenIdentifier | undefined> {
-    const bridge = this.getBridge(nameOrDomain);
-    if (!bridge) {
-      throw new Error(`Bridge not available on ${nameOrDomain}`);
-    }
+    const bridge = this.mustGetBridge(nameOrDomain);
 
     const token = await bridge.bridgeRouter.getCanonicalAddress(representation);
     if (token[0] === 0) {
@@ -175,20 +189,14 @@ export class OpticsContext extends MultiProvider {
     token: TokenIdentifier,
     amount: BigNumberish,
     recipient: Address,
-  ): Promise<ContractTransaction> {
-    const fromBridge = this.getBridge(from);
-    if (!fromBridge) {
-      throw new Error(`Bridge not available on ${from}`);
-    }
+    overrides: ethers.Overrides,
+  ): Promise<TransferMessage> {
+    const fromBridge = this.mustGetBridge(from);
+    const bridgeAddress = fromBridge.bridgeRouter.address;
 
     const fromToken = await this.resolveTokenRepresentation(from, token);
     if (!fromToken) {
       throw new Error(`Token not available on ${from}`);
-    }
-
-    const bridgeAddress = fromBridge?.bridgeRouter.address;
-    if (!bridgeAddress) {
-      throw new Error(`No bridge for ${from}`);
     }
 
     const sender = this.getSigner(from);
@@ -204,12 +212,21 @@ export class OpticsContext extends MultiProvider {
       await fromToken.approve(bridgeAddress, amount);
     }
 
-    return fromBridge.bridgeRouter.send(
+    const tx = await fromBridge.bridgeRouter.send(
       fromToken.address,
       amount,
       to,
       recipient,
+      overrides,
     );
+    const receipt = await tx.wait();
+
+    const message = TransferMessage.fromReceipt(receipt, this);
+    if (!message) {
+      throw new Error();
+    }
+
+    return message as TransferMessage;
   }
 
   async sendNative(
@@ -217,15 +234,25 @@ export class OpticsContext extends MultiProvider {
     to: string | number,
     amount: BigNumberish,
     recipient: Address,
-  ): Promise<ContractTransaction> {
-    const ethHelper = this.getBridge(from)?.ethHelper;
+  ): Promise<TransferMessage> {
+    const ethHelper = this.mustGetBridge(from).ethHelper;
     if (!ethHelper) {
       throw new Error(`No ethHelper for ${from}`);
     }
 
     const toDomain = this.resolveDomain(to);
 
-    return ethHelper.sendToEVMLike(toDomain, recipient, { value: amount });
+    const tx = await ethHelper.sendToEVMLike(toDomain, recipient, {
+      value: amount,
+    });
+    const receipt = await tx.wait();
+
+    const message = TransferMessage.fromReceipt(receipt, this);
+    if (!message) {
+      throw new Error();
+    }
+
+    return message as TransferMessage;
   }
 }
 

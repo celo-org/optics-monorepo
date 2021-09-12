@@ -1,6 +1,10 @@
+import { EventFragment, LogDescription } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { ethers } from 'ethers';
 import { BridgeContracts, CoreContracts, OpticsContext } from '..';
+import { Home, Home__factory } from '../../../../typechain/optics-core';
+import { ERC20 } from '../../../../typechain/optics-xapps';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
 import { DispatchEvent, OpticsMessage, parseMessage } from './OpticsMessage';
 
@@ -98,57 +102,50 @@ function parseBody(
   }
 }
 
-class BridgeMessage<T extends Action> extends OpticsMessage {
+class BridgeMessage extends OpticsMessage {
   readonly token: TokenIdentifier;
-  readonly action: T;
 
   readonly fromBridge: BridgeContracts;
   readonly toBridge: BridgeContracts;
 
   constructor(
     event: DispatchEvent,
-    parsed: ParsedBridgeMessage<T>,
+    token: TokenIdentifier,
     context: OpticsContext,
   ) {
     super(event, context);
 
-    const fromBridge = context.getBridge(this.message.from);
-    const toBridge = context.getBridge(this.message.destination);
-
-    if (!fromBridge || !toBridge) {
-      throw new Error('missing bridge');
-    }
+    const fromBridge = context.mustGetBridge(this.message.from);
+    const toBridge = context.mustGetBridge(this.message.destination);
 
     this.fromBridge = fromBridge;
     this.toBridge = toBridge;
-    this.token = parsed.token;
-
-    this.action = parsed.action;
+    this.token = token;
   }
 
   static fromEvent(
     event: DispatchEvent,
     context: OpticsContext,
-  ): TransferMessage | DetailsMessage | RequestDetailsMesasage {
+  ): TransferMessage | DetailsMessage | RequestDetailsMessage {
     // kinda hate this but ok
     const parsedEvent = parseMessage(event.args.message);
     const parsed = parseBody(parsedEvent.body);
 
     switch (parsed.action.action) {
       case 'transfer':
-        return new BridgeMessage(
+        return new TransferMessage(
           event,
           parsed as ParsedTransferMessage,
           context,
         );
       case 'details':
-        return new BridgeMessage(
+        return new DetailsMessage(
           event,
           parsed as ParsedDetailsMessage,
           context,
         );
       case 'requestDetails':
-        return new BridgeMessage(
+        return new RequestDetailsMessage(
           event,
           parsed as ParsedRequestDetailsMesasage,
           context,
@@ -156,11 +153,112 @@ class BridgeMessage<T extends Action> extends OpticsMessage {
     }
   }
 
+  static fromReceipt(
+    receipt: ethers.ContractReceipt,
+    context: OpticsContext,
+  ): TransferMessage | DetailsMessage | RequestDetailsMessage | undefined {
+    if (!receipt.events) {
+      throw new Error('No events');
+    }
+
+    const iface = new Home__factory().interface;
+
+    for (const log of receipt.logs) {
+      let parsed: LogDescription;
+      try {
+        parsed = iface.parseLog(log);
+      } catch (e) {
+        continue;
+      }
+      if (parsed.name === 'Dispatch') {
+        return this.fromEvent(parsed as unknown as DispatchEvent, context);
+      }
+    }
+
+    return;
+  }
+
   async asset(): Promise<ResolvedTokenInfo> {
     return await this.context.tokenRepresentations(this.token);
   }
+
+  // Get the asset at the orgin
+  async assetAtOrigin(): Promise<ERC20 | undefined> {
+    return (await this.asset()).tokens.get(this.origin);
+  }
+
+  // Get the asset at the destination
+  async assetAtDestination(): Promise<ERC20 | undefined> {
+    return (await this.asset()).tokens.get(this.destination);
+  }
 }
 
-export type TransferMessage = BridgeMessage<Transfer>;
-export type DetailsMessage = BridgeMessage<Details>;
-export type RequestDetailsMesasage = BridgeMessage<RequestDetails>;
+export class TransferMessage extends BridgeMessage {
+  action: Transfer;
+
+  constructor(
+    event: DispatchEvent,
+    parsed: ParsedTransferMessage,
+    context: OpticsContext,
+  ) {
+    super(event, parsed.token, context);
+    this.action = parsed.action;
+  }
+
+  async currentlyPrefilled(): Promise<boolean> {
+    const bridge = this.context.mustGetBridge(this.destination);
+    const lpAddress = await bridge.bridgeRouter.liquidityProvider(
+      this.messageHash,
+    );
+    if (lpAddress !== ethers.constants.AddressZero) {
+      return true;
+    }
+    return false;
+  }
+
+  get amount(): BigNumber {
+    return this.action.amount;
+  }
+
+  get to(): string {
+    return this.action.to;
+  }
+}
+
+export class DetailsMessage extends BridgeMessage {
+  action: Details;
+
+  constructor(
+    event: DispatchEvent,
+    parsed: ParsedDetailsMessage,
+    context: OpticsContext,
+  ) {
+    super(event, parsed.token, context);
+    this.action = parsed.action;
+  }
+
+  get name(): string {
+    return this.action.name;
+  }
+
+  get symbol(): string {
+    return this.action.symbol;
+  }
+
+  get decimals(): number {
+    return this.action.decimals;
+  }
+}
+
+export class RequestDetailsMessage extends BridgeMessage {
+  action: RequestDetails;
+
+  constructor(
+    event: DispatchEvent,
+    parsed: ParsedRequestDetailsMesasage,
+    context: OpticsContext,
+  ) {
+    super(event, parsed.token, context);
+    this.action = parsed.action;
+  }
+}
