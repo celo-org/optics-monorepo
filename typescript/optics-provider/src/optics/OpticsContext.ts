@@ -189,7 +189,7 @@ export class OpticsContext extends MultiProvider {
     token: TokenIdentifier,
     amount: BigNumberish,
     recipient: Address,
-    overrides: ethers.Overrides,
+    overrides?: ethers.Overrides,
   ): Promise<TransferMessage> {
     const fromBridge = this.mustGetBridge(from);
     const bridgeAddress = fromBridge.bridgeRouter.address;
@@ -234,7 +234,7 @@ export class OpticsContext extends MultiProvider {
     to: string | number,
     amount: BigNumberish,
     recipient: Address,
-    overrides: ethers.PayableOverrides,
+    overrides?: ethers.PayableOverrides,
   ): Promise<TransferMessage> {
     const ethHelper = this.mustGetBridge(from).ethHelper;
     if (!ethHelper) {
@@ -243,7 +243,8 @@ export class OpticsContext extends MultiProvider {
 
     const toDomain = this.resolveDomain(to);
 
-    overrides.value = amount;
+    const o = overrides ?? {};
+    o.value = amount;
 
     const tx = await ethHelper.sendToEVMLike(toDomain, recipient, overrides);
     const receipt = await tx.wait();
