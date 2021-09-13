@@ -6,7 +6,7 @@ use optics_core::{
     db::{DbError, DB},
     traits::{ChainCommunicationError, Common},
 };
-use std::{ops::Range, sync::Arc, time::Duration};
+use std::{fmt::Display, ops::Range, sync::Arc, time::Duration};
 use tokio::{
     sync::{
         oneshot::{error::TryRecvError, Receiver},
@@ -14,7 +14,7 @@ use tokio::{
     },
     time::sleep,
 };
-use tracing::{debug, info, instrument};
+use tracing::{info, instrument};
 
 /// Struct to sync prover.
 #[derive(Debug)]
@@ -24,6 +24,17 @@ pub struct ProverSync {
     prover: Arc<RwLock<Prover>>,
     incremental: IncrementalMerkle,
     rx: Receiver<()>,
+}
+
+impl Display for ProverSync {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "ProverSync {{")?;
+        writeln!(f, "home: {:?}", self.home)?;
+        writeln!(f, "root: {}", self.incremental.root())?;
+        writeln!(f, "size: {}", self.incremental.count())?;
+        writeln!(f, "}}")?;
+        Ok(())
+    }
 }
 
 /// ProverSync errors
@@ -78,17 +89,19 @@ impl ProverSync {
     }
 
     // simple caching
-    #[instrument(err)]
+    #[instrument(err, skip(self), fields(self = %self))]
     async fn fetch_leaf(&self, leaf_index: u32) -> Result<Option<H256>, ProverSyncError> {
         loop {
             if let Some(idx) = self.db.retrieve_latest_leaf_index()? {
                 if idx >= leaf_index {
-                    debug!("Retrieving leaf from db.");
-                    return Ok(self.db.leaf_by_leaf_index(leaf_index as u32)?);
+                    let leaf = self.db.leaf_by_leaf_index(leaf_index as u32)?;
+                    info!(leaf = ?leaf, "Retrieved leaf from db.");
+                    return Ok(leaf);
                 }
             }
+
             // TODO(james): make not suck
-            sleep(Duration::from_secs(10)).await;
+            sleep(Duration::from_millis(1500)).await;
         }
     }
 
@@ -111,7 +124,7 @@ impl ProverSync {
     /// produced between `local_root` and `new_root`. If successful (i.e.
     /// incremental tree is updated until its root equals the `new_root`),
     /// commit to changes by batch updating the prover's actual merkle tree.
-    #[tracing::instrument(err, skip(self))]
+    #[instrument(err, skip(self), fields(self = %self))]
     async fn update_full(
         &mut self,
         local_root: H256,
@@ -167,7 +180,7 @@ impl ProverSync {
     /// and return ingested leaves if successful. If incremental merkle is
     /// up-to-date with update but roots still don't match, return
     /// `MismatchedRoots` error.
-    #[tracing::instrument(err, skip(self))]
+    #[instrument(err, skip(self), fields(self = %self))]
     async fn update_incremental(
         &mut self,
         local_root: H256,
@@ -219,7 +232,7 @@ impl ProverSync {
     /// local merkle tree with all leaves between local root and
     /// new root. Use short interval for bootup syncing and longer
     /// interval for regular polling.
-    #[tracing::instrument(err, skip(self))]
+    #[instrument(err, skip(self), fields(self = %self))]
     pub async fn spawn(mut self) -> Result<(), ProverSyncError> {
         loop {
             let local_root = self.local_root().await;
