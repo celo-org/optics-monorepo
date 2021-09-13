@@ -1,9 +1,7 @@
-import { EventFragment, LogDescription } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
-import { ethers } from 'ethers';
+import { ContractReceipt, ethers } from 'ethers';
 import { BridgeContracts, CoreContracts, OpticsContext } from '..';
-import { Home, Home__factory } from '../../../../typechain/optics-core';
 import { ERC20 } from '../../../../typechain/optics-xapps';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
 import { DispatchEvent, OpticsMessage, parseMessage } from './OpticsMessage';
@@ -109,11 +107,15 @@ class BridgeMessage extends OpticsMessage {
   readonly toBridge: BridgeContracts;
 
   constructor(
-    event: DispatchEvent,
+    receipt: ContractReceipt,
     token: TokenIdentifier,
     context: OpticsContext,
+    callerKnowsWhatTheyAreDoing: boolean,
   ) {
-    super(event, context);
+    if (!callerKnowsWhatTheyAreDoing) {
+      throw new Error('Use `fromReceipt` to instantiate');
+    }
+    super(receipt, context);
 
     const fromBridge = context.mustGetBridge(this.message.from);
     const toBridge = context.mustGetBridge(this.message.destination);
@@ -123,59 +125,38 @@ class BridgeMessage extends OpticsMessage {
     this.token = token;
   }
 
-  static fromEvent(
-    event: DispatchEvent,
+  static fromReceipt(
+    receipt: ethers.ContractReceipt,
     context: OpticsContext,
   ): TransferMessage | DetailsMessage | RequestDetailsMessage {
     // kinda hate this but ok
+    const oMessage = new OpticsMessage(receipt, context);
+
+    let event = oMessage.event;
+
     const parsedEvent = parseMessage(event.args.message);
     const parsed = parseBody(parsedEvent.body);
 
     switch (parsed.action.action) {
       case 'transfer':
         return new TransferMessage(
-          event,
+          receipt,
           parsed as ParsedTransferMessage,
           context,
         );
       case 'details':
         return new DetailsMessage(
-          event,
+          receipt,
           parsed as ParsedDetailsMessage,
           context,
         );
       case 'requestDetails':
         return new RequestDetailsMessage(
-          event,
+          receipt,
           parsed as ParsedRequestDetailsMesasage,
           context,
         );
     }
-  }
-
-  static fromReceipt(
-    receipt: ethers.ContractReceipt,
-    context: OpticsContext,
-  ): TransferMessage | DetailsMessage | RequestDetailsMessage | undefined {
-    if (!receipt.events) {
-      throw new Error('No events');
-    }
-
-    const iface = new Home__factory().interface;
-
-    for (const log of receipt.logs) {
-      let parsed: LogDescription;
-      try {
-        parsed = iface.parseLog(log);
-      } catch (e) {
-        continue;
-      }
-      if (parsed.name === 'Dispatch') {
-        return this.fromEvent(parsed as unknown as DispatchEvent, context);
-      }
-    }
-
-    return;
   }
 
   async asset(): Promise<ResolvedTokenInfo> {
@@ -197,11 +178,11 @@ export class TransferMessage extends BridgeMessage {
   action: Transfer;
 
   constructor(
-    event: DispatchEvent,
+    receipt: ContractReceipt,
     parsed: ParsedTransferMessage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context);
+    super(receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -229,11 +210,11 @@ export class DetailsMessage extends BridgeMessage {
   action: Details;
 
   constructor(
-    event: DispatchEvent,
+    receipt: ContractReceipt,
     parsed: ParsedDetailsMessage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context);
+    super(receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -254,11 +235,11 @@ export class RequestDetailsMessage extends BridgeMessage {
   action: RequestDetails;
 
   constructor(
-    event: DispatchEvent,
+    receipt: ContractReceipt,
     parsed: ParsedRequestDetailsMesasage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context);
+    super(receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 }

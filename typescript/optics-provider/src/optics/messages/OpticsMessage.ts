@@ -1,11 +1,14 @@
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { TypedEvent } from '@optics-xyz/ts-interface/optics-core/commons';
+import { LogDescription } from '@ethersproject/abi';
+import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { ContractReceipt } from '@ethersproject/contracts';
 import { OpticsContext } from '..';
+import { Home__factory } from '../../../../typechain/optics-core';
 import { delay } from '../../utils';
 
 // match the typescript declaration
 export interface DispatchEvent {
+  transactionHash: string;
   args: {
     messageHash: string;
     leafIndex: BigNumber;
@@ -44,6 +47,7 @@ export function parseMessage(message: string): ParsedMessage {
 }
 
 export class OpticsMessage {
+  readonly receipt: ContractReceipt;
   readonly event: DispatchEvent;
   readonly messageHash: string;
   readonly leafIndex: BigNumber;
@@ -53,8 +57,30 @@ export class OpticsMessage {
 
   protected context: OpticsContext;
 
-  constructor(event: DispatchEvent, context: OpticsContext) {
+  constructor(receipt: ContractReceipt, context: OpticsContext) {
+    this.receipt = receipt;
+
+    // find the first dispatch log by attempting to parse them
+    let event;
+    const iface = new Home__factory().interface;
+    for (const log of receipt.logs) {
+      let parsed: LogDescription;
+      try {
+        parsed = iface.parseLog(log);
+      } catch (e) {
+        continue;
+      }
+      if (parsed.name === 'Dispatch') {
+        event = parsed as unknown as DispatchEvent;
+      }
+    }
+
+    if (!event) {
+      throw new Error('No matching event found');
+    }
+
     this.event = event;
+
     this.messageHash = event.args.messageHash;
     this.leafIndex = event.args.leafIndex;
     this.destinationAndNonce = event.args.destinationAndNonce;
@@ -119,5 +145,9 @@ export class OpticsMessage {
 
   get body(): string {
     return this.message.body;
+  }
+
+  get transactionHash(): string {
+    return this.receipt.transactionHash;
   }
 }

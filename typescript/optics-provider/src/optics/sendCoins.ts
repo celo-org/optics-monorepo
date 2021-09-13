@@ -20,15 +20,15 @@ async function doThing() {
     throw new Error('no address');
   }
 
-  const tx = await mainnet.send(
+  const message = await mainnet.send(
     'celo',
     'ethereum',
     { domain: 'celo', id: celoTokenAddr },
     amount,
     address,
   );
-  console.log(`sendTx is ${tx.hash}`);
-  await tx.wait(1);
+  console.log(`sendTx is ${message.transactionHash}`);
+  await message.wait();
 }
 
 doThing();
