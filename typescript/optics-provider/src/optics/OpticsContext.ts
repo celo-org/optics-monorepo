@@ -12,7 +12,7 @@ import {
   stagingDomains,
 } from './domains';
 import { Replica } from '@optics-xyz/ts-interface/optics-core';
-import { TransferMessage } from '.';
+import { TransferMessage } from './messages';
 
 type Address = string;
 
