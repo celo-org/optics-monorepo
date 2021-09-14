@@ -11,7 +11,8 @@ use optics_core::{
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.
 macro_rules! construct_box_contract {
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
+    // ember asks: why is this a macro? can the signature of `$contract::new` not be stated as a type?
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         // increase by 2x every 10 seconds
         let escalator =
             ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
@@ -40,6 +41,7 @@ macro_rules! construct_box_contract {
 
             Box::new(crate::$contract::new(
                 $name,
+                $for_agent,
                 $domain,
                 $address,
                 signing_provider.into(),
@@ -47,13 +49,14 @@ macro_rules! construct_box_contract {
         } else {
             Box::new(crate::$contract::new(
                 $name,
+                $for_agent,
                 $domain,
                 $address,
                 provider.into(),
             ))
         }
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr, $db:expr) => {{
         // increase by 2x every 10 seconds
         let escalator =
             ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
@@ -82,6 +85,7 @@ macro_rules! construct_box_contract {
 
             Box::new(crate::$contract::new(
                 $name,
+                $for_agent,
                 $domain,
                 $address,
                 signing_provider.into(),
@@ -90,6 +94,7 @@ macro_rules! construct_box_contract {
         } else {
             Box::new(crate::$contract::new(
                 $name,
+                $for_agent,
                 $domain,
                 $address,
                 provider.into(),
@@ -100,28 +105,32 @@ macro_rules! construct_box_contract {
 }
 
 macro_rules! construct_ws_box_contract {
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
         let ws = ethers::providers::Ws::connect($url).await?;
         let provider = ethers::providers::Provider::new(ws);
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
+        construct_box_contract!($contract, $name, $for_agent, $domain, $address, provider, $signer)
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
         let ws = ethers::providers::Ws::connect($url).await?;
         let provider = ethers::providers::Provider::new(ws);
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
+        construct_box_contract!(
+            $contract, $name, $for_agent, $domain, $address, provider, $signer, $db
+        )
     }};
 }
 
 macro_rules! construct_http_box_contract {
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
         let provider =
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
+        construct_box_contract!($contract, $name, $for_agent, $domain, $address, provider, $signer)
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $for_agent:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
         let provider =
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
+        construct_box_contract!(
+            $contract, $name, $for_agent, $domain, $address, provider, $signer, $db
+        )
     }};
 }
 
@@ -207,6 +216,7 @@ impl EthereumConnection {
     pub async fn try_into_home(
         &self,
         name: &str,
+        for_agent: &str,
         domain: u32,
         address: Address,
         signer: Option<Signers>,
@@ -214,10 +224,28 @@ impl EthereumConnection {
     ) -> Result<Box<dyn Home>, Report> {
         let b: Box<dyn Home> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer, db)
+                construct_http_box_contract!(
+                    EthereumHome,
+                    name,
+                    for_agent,
+                    domain,
+                    address,
+                    url,
+                    signer,
+                    db
+                )
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer, db)
+                construct_ws_box_contract!(
+                    EthereumHome,
+                    name,
+                    for_agent,
+                    domain,
+                    address,
+                    url,
+                    signer,
+                    db
+                )
             }
         };
         Ok(b)
@@ -228,16 +256,33 @@ impl EthereumConnection {
     pub async fn try_into_replica(
         &self,
         name: &str,
+        for_agent: &str,
         domain: u32,
         address: Address,
         signer: Option<Signers>,
     ) -> Result<Box<dyn Replica>, Report> {
         let b: Box<dyn Replica> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(EthereumReplica, name, domain, address, url, signer)
+                construct_http_box_contract!(
+                    EthereumReplica,
+                    name,
+                    for_agent,
+                    domain,
+                    address,
+                    url,
+                    signer
+                )
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(EthereumReplica, name, domain, address, url, signer)
+                construct_ws_box_contract!(
+                    EthereumReplica,
+                    name,
+                    for_agent,
+                    domain,
+                    address,
+                    url,
+                    signer
+                )
             }
         };
         Ok(b)
@@ -248,6 +293,7 @@ impl EthereumConnection {
     pub async fn try_into_connection_manager(
         &self,
         name: &str,
+        for_agent: &str,
         domain: u32,
         address: Address,
         signer: Option<Signers>,
@@ -257,6 +303,7 @@ impl EthereumConnection {
                 construct_http_box_contract!(
                     EthereumConnectionManager,
                     name,
+                    for_agent,
                     domain,
                     address,
                     url,
@@ -267,6 +314,7 @@ impl EthereumConnection {
                 construct_ws_box_contract!(
                     EthereumConnectionManager,
                     name,
+                    for_agent,
                     domain,
                     address,
                     url,
