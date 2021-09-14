@@ -29,7 +29,9 @@ async fn _main() -> Result<()> {
 
     let _ = agent.metrics().run_http_server();
 
-    // this is deliberately different from other agents
+    // this is deliberately different from other agents because the updater
+    // does not run replicas. As a result, most of the contents of run_all are
+    // broken out here
     let indexer = &agent.as_ref().indexer;
 
     let block_height = agent
