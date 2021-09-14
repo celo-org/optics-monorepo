@@ -12,28 +12,18 @@ use optics_core::{
 // combinations of middleware.
 macro_rules! construct_box_contract {
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
-        // increase by 2x every 10 seconds
-        let escalator =
-            ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
-
-        let provider = ethers::middleware::gas_escalator::GasEscalatorMiddleware::new(
-            $provider,
-            escalator,
-            ethers::middleware::gas_escalator::Frequency::PerBlock,
-        );
-
         if let Some(signer) = $signer {
             // If there's a provided signer, we want to manage every aspect
             // locally
 
             // First set the chain ID locally
-            let provider_chain_id = provider.get_chainid().await?;
+            let provider_chain_id = $provider.get_chainid().await?;
             let signer = ethers::signers::Signer::with_chain_id(signer, provider_chain_id.as_u64());
 
             // Manage the nonce locally
             let address = ethers::prelude::Signer::address(&signer);
             let provider =
-                ethers::middleware::nonce_manager::NonceManagerMiddleware::new(provider, address);
+                ethers::middleware::nonce_manager::NonceManagerMiddleware::new($provider, address);
 
             // Manage signing locally
             let signing_provider = ethers::middleware::SignerMiddleware::new(provider, signer);
@@ -49,33 +39,23 @@ macro_rules! construct_box_contract {
                 $name,
                 $domain,
                 $address,
-                provider.into(),
+                $provider.into(),
             ))
         }
     }};
     ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr, $db:expr) => {{
-        // increase by 2x every 10 seconds
-        let escalator =
-            ethers::middleware::gas_escalator::GeometricGasPrice::new(2.0, 10u64, None::<u64>);
-
-        let provider = ethers::middleware::gas_escalator::GasEscalatorMiddleware::new(
-            $provider,
-            escalator,
-            ethers::middleware::gas_escalator::Frequency::PerBlock,
-        );
-
         if let Some(signer) = $signer {
             // If there's a provided signer, we want to manage every aspect
             // locally
 
             // First set the chain ID locally
-            let provider_chain_id = provider.get_chainid().await?;
+            let provider_chain_id = $provider.get_chainid().await?;
             let signer = ethers::signers::Signer::with_chain_id(signer, provider_chain_id.as_u64());
 
             // Manage the nonce locally
             let address = ethers::prelude::Signer::address(&signer);
             let provider =
-                ethers::middleware::nonce_manager::NonceManagerMiddleware::new(provider, address);
+                ethers::middleware::nonce_manager::NonceManagerMiddleware::new($provider, address);
 
             // Manage signing locally
             let signing_provider = ethers::middleware::SignerMiddleware::new(provider, signer);
@@ -92,7 +72,7 @@ macro_rules! construct_box_contract {
                 $name,
                 $domain,
                 $address,
-                provider.into(),
+                $provider.into(),
                 $db,
             ))
         }
@@ -172,6 +152,7 @@ impl EthereumConnection {
             }
             Ok(())
         }
+
         let slf = self.clone();
         tokio::spawn(async move {
             match slf {
