@@ -2,3 +2,4 @@ click
 python-json-config
 web3
 prometheus_client
+websockets>=10.0 # not directly required, pinned by Snyk to avoid a vulnerability
