@@ -146,6 +146,7 @@ impl Home for MockHomeContract {
         &self,
         _from_height: u32,
         _chunk_size: u32,
+        _indexed_height: prometheus::IntGauge,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         tokio::spawn(async move { Ok(()) }).in_current_span()
     }

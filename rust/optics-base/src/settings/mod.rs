@@ -225,21 +225,9 @@ impl Settings {
             Arc::new(prometheus::Registry::new()),
         )?);
 
-        let block_height = metrics
-            .new_int_gauge(
-                "block_height",
-                "Height of a recently observed block",
-                &["network", "agent"],
-            )
-            .expect("failed to register block_height metric");
-
         let db = DB::from_path(&self.db)?;
         let home = Arc::new(self.try_home(db.clone()).await?);
-        self.home.track_block_height(name, block_height.clone());
         let replicas = self.try_replicas().await?;
-        self.replicas
-            .iter()
-            .for_each(|(_, setup)| setup.track_block_height(name, block_height.clone()));
 
         Ok(AgentCore {
             home,

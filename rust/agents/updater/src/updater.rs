@@ -248,6 +248,8 @@ impl Updater {
 // Ideally this hould be generic across all signers.
 // Right now we only have one
 impl OpticsAgent for Updater {
+    const AGENT_NAME: &'static str = AGENT_NAME;
+
     type Settings = Settings;
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>

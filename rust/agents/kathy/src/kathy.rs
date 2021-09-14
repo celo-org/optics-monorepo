@@ -38,13 +38,15 @@ impl Kathy {
 
 #[async_trait]
 impl OpticsAgent for Kathy {
+    const AGENT_NAME: &'static str = "kathy";
+
     type Settings = Settings;
 
     async fn from_settings(settings: Settings) -> Result<Self> {
         Ok(Self::new(
             settings.interval.parse().expect("invalid u64"),
             settings.chat.into(),
-            settings.base.try_into_core("kathy").await?,
+            settings.base.try_into_core(Self::AGENT_NAME).await?,
         ))
     }
 

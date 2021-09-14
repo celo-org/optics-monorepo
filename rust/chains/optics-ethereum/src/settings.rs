@@ -1,5 +1,5 @@
 use color_eyre::{Report, Result};
-use ethers::prelude::{Address, Middleware, StreamExt};
+use ethers::prelude::{Address, Middleware};
 use std::convert::TryFrom;
 
 use optics_core::{
@@ -122,67 +122,6 @@ pub enum EthereumConnection {
 }
 
 impl EthereumConnection {
-    /// Watch network for new blocks and accumulate block height into `metric`
-    pub fn track_block_height(
-        &self,
-        network_name: String,
-        agent_name: String,
-        metric: prometheus::IntGaugeVec,
-    ) -> tokio::task::JoinHandle<()> {
-        async fn watch<M: Middleware>(
-            provider: M,
-            network_name: &str,
-            agent_name: &str,
-            metric: prometheus::IntGaugeVec,
-        ) -> color_eyre::Result<()> {
-            let mut stream = provider
-                .watch_blocks()
-                .await
-                .expect("watch_blocks failed")
-                .stream();
-            while let Some(_hash) = stream.next().await {
-                match provider.get_block_number().await {
-                    Ok(height) => metric
-                        .with_label_values(&[network_name, agent_name])
-                        .set(height.as_u64() as i64),
-                    Err(e) => {
-                        tracing::error!("get_block_number() failed with {err:?}", err = e)
-                    }
-                }
-            }
-            Ok(())
-        }
-
-        let slf = self.clone();
-        tokio::spawn(async move {
-            match slf {
-                EthereumConnection::Http { url } => {
-                    let provider =
-                        ethers::providers::Provider::<ethers::providers::Http>::try_from(
-                            url.as_ref(),
-                        )
-                        .expect("failed http connection");
-                    watch(provider, &network_name, &agent_name, metric)
-                        .await
-                        .expect("block height watch failed")
-                }
-                EthereumConnection::Ws { url } => {
-                    let ws = ethers::providers::Ws::connect(url)
-                        .await
-                        .expect("failed ws connection");
-                    watch(
-                        ethers::providers::Provider::new(ws),
-                        &network_name,
-                        &agent_name,
-                        metric,
-                    )
-                    .await
-                    .expect("block height watch failed")
-                }
-            };
-        })
-    }
-
     /// Try to convert this into a home contract
     #[tracing::instrument(err)]
     pub async fn try_into_home(

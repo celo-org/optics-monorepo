@@ -1,7 +1,6 @@
 use color_eyre::Report;
 use optics_core::{db::DB, Signers};
 use optics_ethereum::settings::EthereumConnection;
-use prometheus::IntGaugeVec;
 use serde::Deserialize;
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
@@ -36,16 +35,6 @@ pub struct ChainSetup {
 }
 
 impl ChainSetup {
-    /// Track the block height into `metric`
-    pub fn track_block_height(&self, agent: &str, metric: IntGaugeVec) {
-        match &self.chain {
-            ChainConf::Ethereum(conf) => {
-                let _background_tracker_task =
-                    conf.track_block_height(self.name.clone(), agent.to_owned(), metric);
-            }
-        }
-    }
-
     /// Try to convert the chain setting into a Home contract
     pub async fn try_into_home(&self, signer: Option<Signers>, db: DB) -> Result<Homes, Report> {
         match &self.chain {

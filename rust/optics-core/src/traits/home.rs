@@ -112,7 +112,12 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     fn local_domain(&self) -> u32;
 
     /// Run a task indexing the chain (if necessary)
-    fn index(&self, from_height: u32, chunk_size: u32) -> Instrumented<JoinHandle<Result<()>>>;
+    fn index(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<JoinHandle<Result<()>>>;
 
     /// Return the domain hash
     fn home_domain_hash(&self) -> H256 {

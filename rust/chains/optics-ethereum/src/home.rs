@@ -40,6 +40,7 @@ where
     db: DB,
     from_height: u32,
     chunk_size: u32,
+    indexed_height: prometheus::IntGauge,
 }
 
 impl<M> HomeIndexer<M>
@@ -114,6 +115,7 @@ where
             );
 
             loop {
+                self.indexed_height.set(next_height as i64);
                 let tip = self.provider.get_block_number().await?.as_u32();
                 let candidate = next_height + self.chunk_size;
                 let to = min(tip, candidate);
@@ -281,13 +283,19 @@ where
     }
 
     /// Start an indexing task that syncs chain state
-    fn index(&self, from_height: u32, chunk_size: u32) -> Instrumented<JoinHandle<Result<()>>> {
+    fn index(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = HomeIndexer {
             contract: self.contract.clone(),
             db: self.db.clone(),
             from_height,
             provider: self.provider.clone(),
             chunk_size,
+            indexed_height,
         };
         indexer.spawn()
     }

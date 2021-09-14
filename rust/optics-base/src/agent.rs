@@ -8,7 +8,10 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::{db::DB, traits::Home};
+use optics_core::{
+    db::DB,
+    traits::{Common, Home},
+};
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 
@@ -35,6 +38,9 @@ pub struct AgentCore {
 ///     a reference to a home.
 #[async_trait]
 pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
+    /// The agent's name
+    const AGENT_NAME: &'static str;
+
     /// The settings object for this agent
     type Settings: AsRef<Settings>;
 
@@ -113,15 +119,34 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     {
         let span = info_span!("run_all");
         tokio::spawn(async move {
-            let indexer = &self.as_ref().indexer;
             // this is the unused must use
             let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
 
-            let index_task = self.home().index(indexer.from(), indexer.chunk_size());
             let run_task = self.run_many(&names);
+            let mut tasks = vec![run_task];
 
-            let futs = vec![index_task, run_task];
-            let (res, _, remaining) = select_all(futs).await;
+            // kludge
+            if Self::AGENT_NAME != "kathy" {
+                let block_height = self
+                    .as_ref()
+                    .metrics
+                    .new_int_gauge(
+                        "block_height",
+                        "Height of a recently observed block",
+                        &["network", "agent"],
+                    )
+                    .expect("failed to register block_height metric")
+                    .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+
+                let indexer = &self.as_ref().indexer;
+                let index_task =
+                    self.home()
+                        .index(indexer.from(), indexer.chunk_size(), block_height);
+
+                tasks.push(index_task);
+            }
+
+            let (res, _, remaining) = select_all(tasks).await;
 
             for task in remaining.into_iter() {
                 cancel_task!(task);

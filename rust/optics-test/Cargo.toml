@@ -21,3 +21,4 @@ rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../chains/optics-ethereum"}
 tracing = "0.1.26"
+prometheus = "0.12.0"

@@ -13,6 +13,8 @@ use optics_core::traits::Common;
 
 use crate::settings::RelayerSettings as Settings;
 
+const AGENT_NAME: &str = "relayer";
+
 #[derive(Debug)]
 struct UpdatePoller {
     duration: Duration,
@@ -116,6 +118,8 @@ impl Relayer {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Relayer {
+    const AGENT_NAME: &'static str = AGENT_NAME;
+
     type Settings = Settings;
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>

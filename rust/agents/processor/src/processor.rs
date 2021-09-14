@@ -280,6 +280,8 @@ impl Processor {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Processor {
+    const AGENT_NAME: &'static str = AGENT_NAME;
+
     type Settings = Settings;
 
     async fn from_settings(settings: Self::Settings) -> Result<Self>
@@ -331,18 +333,31 @@ impl OpticsAgent for Processor {
     {
         let span = info_span!("Processor::run_all");
         tokio::spawn(async move {
-            let indexer = &self.as_ref().indexer;
-            // this is the unused must use
-            let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
-
+            // tree sync
             let sync = ProverSync::new(Prover::from_disk(&self.core.db), self.home(), self.db());
-
             let sync_task = tokio::spawn(async move {
                 sync.spawn().await.wrap_err("ProverSync task has shut down")
             })
             .in_current_span();
 
-            let index_task = self.home().index(indexer.from(), indexer.chunk_size());
+            // indexer setup
+            let block_height = self
+                .as_ref()
+                .metrics
+                .new_int_gauge(
+                    "block_height",
+                    "Height of a recently observed block",
+                    &["network", "agent"],
+                )
+                .expect("failed to register block_height metric")
+                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+            let indexer = &self.as_ref().indexer;
+            let index_task = self
+                .home()
+                .index(indexer.from(), indexer.chunk_size(), block_height);
+
+            // this is the unused must use
+            let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
             let run_task = self.run_many(&names);
 
             let futs = vec![index_task, run_task, sync_task];
