@@ -27,6 +27,8 @@ pub struct ChainSetup {
     pub domain: String,
     /// Address of contract on the chain
     pub address: String,
+    /// Name of agent this chain setup is operating on behalf of
+    pub for_agent: String,
     /// The chain connection details
     #[serde(flatten)]
     pub chain: ChainConf,
@@ -52,6 +54,7 @@ impl ChainSetup {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 conf.try_into_home(
                     &self.name,
+                    &self.for_agent,
                     self.domain.parse().expect("invalid uint"),
                     self.address.parse()?,
                     signer,
@@ -68,6 +71,7 @@ impl ChainSetup {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
                 conf.try_into_replica(
                     &self.name,
+                    &self.for_agent,
                     self.domain.parse().expect("invalid uint"),
                     self.address.parse()?,
                     signer,
@@ -86,6 +90,7 @@ impl ChainSetup {
             ChainConf::Ethereum(conf) => Ok(ConnectionManagers::Ethereum(
                 conf.try_into_connection_manager(
                     &self.name,
+                    &self.for_agent,
                     self.domain.parse().expect("invalid uint"),
                     self.address.parse()?,
                     signer,

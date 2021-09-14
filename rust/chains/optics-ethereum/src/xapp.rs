@@ -26,6 +26,7 @@ where
     contract: EthereumConnectionManagerInternal<M>,
     domain: u32,
     name: String,
+    for_agent: String,
 }
 
 impl<M> EthereumConnectionManager<M>
@@ -35,11 +36,18 @@ where
     /// Create a reference to a XAppConnectionManager at a specific Ethereum
     /// address on some chain
     #[allow(dead_code)]
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(
+        name: &str,
+        for_agent: &str,
+        domain: u32,
+        address: Address,
+        provider: Arc<M>,
+    ) -> Self {
         Self {
             contract: EthereumConnectionManagerInternal::new(address, provider),
             domain,
             name: name.to_owned(),
+            for_agent: for_agent.to_owned(),
         }
     }
 }
@@ -85,7 +93,7 @@ where
             .contract
             .owner_enroll_replica(replica.as_ethereum_address(), domain);
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
@@ -97,14 +105,14 @@ where
             .contract
             .owner_unenroll_replica(replica.as_ethereum_address());
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
     async fn set_home(&self, home: OpticsIdentifier) -> Result<TxOutcome, ChainCommunicationError> {
         let tx = self.contract.set_home(home.as_ethereum_address());
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
@@ -118,7 +126,7 @@ where
             self.contract
                 .set_watcher_permission(watcher.as_ethereum_address(), domain, access);
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
@@ -132,6 +140,6 @@ where
             signed_failure.signature.to_vec(),
         );
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 }

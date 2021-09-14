@@ -33,6 +33,7 @@ where
     contract: EthereumReplicaInternal<M>,
     domain: u32,
     name: String,
+    for_agent: String,
 }
 
 impl<M> EthereumReplica<M>
@@ -41,11 +42,18 @@ where
 {
     /// Create a reference to a Replica at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(
+        name: &str,
+        for_agent: &str,
+        domain: u32,
+        address: Address,
+        provider: Arc<M>,
+    ) -> Self {
         Self {
             contract: EthereumReplicaInternal::new(address, provider),
             domain,
             name: name.to_owned(),
+            for_agent: for_agent.to_owned(),
         }
     }
 }
@@ -155,7 +163,7 @@ where
             update.signature.to_vec(),
         );
 
-        let result = report_tx!(tx);
+        let result = report_tx!(self, tx);
         Ok(result.into())
     }
 
@@ -174,7 +182,7 @@ where
             double.1.signature.to_vec(),
         );
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 }
 
@@ -203,13 +211,13 @@ where
             .contract
             .prove(proof.leaf.into(), sol_proof, proof.index.into());
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
     async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
         let tx = self.contract.process(message.to_vec());
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]
@@ -227,7 +235,7 @@ where
         let tx = self
             .contract
             .prove_and_process(message.to_vec(), sol_proof, proof.index.into());
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err)]

@@ -154,6 +154,7 @@ where
     domain: u32,
     name: String,
     provider: Arc<M>,
+    for_agent: String,
 }
 
 impl<M> EthereumHome<M>
@@ -162,13 +163,21 @@ where
 {
     /// Create a reference to a Home at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>, db: DB) -> Self {
+    pub fn new(
+        name: &str,
+        for_agent: &str,
+        domain: u32,
+        address: Address,
+        provider: Arc<M>,
+        db: DB,
+    ) -> Self {
         Self {
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain,
             name: name.to_owned(),
             db,
             provider,
+            for_agent: for_agent.to_owned(),
         }
     }
 }
@@ -282,7 +291,7 @@ where
             update.signature.to_vec(),
         );
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err, skip(self))]
@@ -299,7 +308,7 @@ where
             double.0.signature.to_vec(),
             double.1.signature.to_vec(),
         );
-        let response = report_tx!(tx);
+        let response = report_tx!(self, tx);
 
         Ok(response.into())
     }
@@ -406,7 +415,7 @@ where
             message.body.clone(),
         );
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
@@ -424,7 +433,7 @@ where
             update.signature.to_vec(),
         );
 
-        Ok(report_tx!(tx).into())
+        Ok(report_tx!(self, tx).into())
     }
 
     #[tracing::instrument(err, skip(self))]

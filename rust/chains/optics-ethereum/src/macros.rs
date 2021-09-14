@@ -1,7 +1,14 @@
 /// Dispatches a transaction, logs the tx id, and returns the result
 #[macro_export]
 macro_rules! report_tx {
-    ($tx:expr) => {{
+    // FIXME: the code is soup, make this into a method somewhere.
+    // it can't be Common, because xapp module doesn't use it
+    ($self:ident, $tx:expr) => {{
+        if let Some(metric) = $crate::TX_METRICS.get() {
+            // TODO(before merge): certify that `NameOrAddress` Display formatting is appropriate for automated usage
+            metric.with_label_values(&[&$self.for_agent, &$self.name, &$tx.tx.to().map_or_else(String::default, |x| format!("{:?}", x))]).inc()
+        }
+
         tracing::info!("Dispatching call to {:?}", $tx.tx.to());
         tracing::trace!("Call data {:?}", $tx.tx.data());
         tracing::trace!("Call from {:?}", $tx.tx.from());

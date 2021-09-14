@@ -1,8 +1,9 @@
 {
   "interval": "100",
   "chat": {
-    "message": "static message",
+    "message": "hello it is i, ember!",
     "recipient": "0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
     "type": "static"
-  }
+  },
+  "honeycomb": "29a35d61050162c04e975e26dd2789c0"
 }
