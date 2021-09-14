@@ -29,8 +29,6 @@ use optics_core::{
 
 use crate::settings::WatcherSettings as Settings;
 
-const AGENT_NAME: &str = "watcher";
-
 #[derive(Debug, Error)]
 enum WatcherError {
     #[error("Syncing finished")]
@@ -311,7 +309,7 @@ impl Watcher {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
-    const AGENT_NAME: &'static str = AGENT_NAME;
+    const AGENT_NAME: &'static str = "watcher";
 
     type Settings = Settings;
 

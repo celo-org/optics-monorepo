@@ -29,8 +29,6 @@ use optics_core::{
     SignedUpdate, Signers, Update,
 };
 
-const AGENT_NAME: &str = "updater";
-
 #[derive(Debug)]
 struct UpdateHandler {
     home: Arc<Homes>,
@@ -154,7 +152,7 @@ impl UpdateHandler {
         );
 
         self.signed_attestation_count
-            .with_label_values(&[self.home.name(), AGENT_NAME])
+            .with_label_values(&[self.home.name(), Updater::AGENT_NAME])
             .inc();
         self.home.update(&signed).await?;
 
@@ -248,7 +246,7 @@ impl Updater {
 // Ideally this hould be generic across all signers.
 // Right now we only have one
 impl OpticsAgent for Updater {
-    const AGENT_NAME: &'static str = AGENT_NAME;
+    const AGENT_NAME: &'static str = "updater";
 
     type Settings = Settings;
 
@@ -259,7 +257,7 @@ impl OpticsAgent for Updater {
         let signer = settings.updater.try_into_signer().await?;
         let interval_seconds = settings.interval.parse().expect("invalid uint");
         let update_pause = settings.pause.parse().expect("invalid uint");
-        let core = settings.as_ref().try_into_core(AGENT_NAME).await?;
+        let core = settings.as_ref().try_into_core(Self::AGENT_NAME).await?;
         Ok(Self::new(signer, interval_seconds, update_pause, core))
     }
 
