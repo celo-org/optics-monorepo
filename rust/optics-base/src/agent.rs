@@ -10,7 +10,7 @@ use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
 use optics_core::{db::DB, traits::Home};
 use tracing::instrument::Instrumented;
-use tracing::Instrument;
+use tracing::{info_span, Instrument};
 
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
@@ -85,31 +85,50 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
 
     /// Run several agents by replica name
     #[allow(clippy::unit_arg)]
-    #[tracing::instrument(err)]
-    async fn run_many(&self, replicas: &[&str]) -> Result<()> {
+    fn run_many(&self, replicas: &[&str]) -> Instrumented<JoinHandle<Result<()>>> {
+        let span = info_span!("run_many");
         let handles: Vec<_> = replicas
             .iter()
             .map(|replica| self.run_report_error(replica))
             .collect();
 
-        // This gets the first future to resolve.
-        let (res, _, remaining) = select_all(handles).await;
+        tokio::spawn(async move {
+            // This gets the first future to resolve.
+            let (res, _, remaining) = select_all(handles).await;
 
-        for task in remaining.into_iter() {
-            cancel_task!(task);
-        }
+            for task in remaining.into_iter() {
+                cancel_task!(task);
+            }
 
-        res?
+            res?
+        })
+        .instrument(span)
     }
 
     /// Run several agents
     #[allow(clippy::unit_arg, unused_must_use)]
-    #[tracing::instrument(err)]
-    async fn run_all(&self) -> Result<()> {
-        let indexer = &self.as_ref().indexer;
-        // this is the unused must use
-        self.home().index(indexer.from(), indexer.chunk_size());
-        let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
-        self.run_many(&names).await
+    fn run_all(self) -> Instrumented<JoinHandle<Result<()>>>
+    where
+        Self: Sized + 'static,
+    {
+        let span = info_span!("run_all");
+        tokio::spawn(async move {
+            let indexer = &self.as_ref().indexer;
+            // this is the unused must use
+            let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
+
+            let index_task = self.home().index(indexer.from(), indexer.chunk_size());
+            let run_task = self.run_many(&names);
+
+            let futs = vec![index_task, run_task];
+            let (res, _, remaining) = select_all(futs).await;
+
+            for task in remaining.into_iter() {
+                cancel_task!(task);
+            }
+
+            res?
+        })
+        .instrument(span)
     }
 }

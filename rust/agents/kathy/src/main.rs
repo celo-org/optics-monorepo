@@ -23,8 +23,7 @@ async fn _main() -> Result<()> {
 
     let _ = agent.metrics().run_http_server();
 
-    agent.run_all().await?;
-    Ok(())
+    agent.run_all().await?
 }
 
 fn main() -> Result<()> {

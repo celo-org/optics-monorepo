@@ -12,7 +12,9 @@ mod updater;
 
 use color_eyre::Result;
 
-use optics_base::agent::OpticsAgent;
+use futures_util::future::select_all;
+
+use optics_base::{agent::OpticsAgent, cancel_task};
 use optics_core::traits::Home;
 
 use crate::{settings::UpdaterSettings as Settings, updater::Updater};
@@ -29,8 +31,17 @@ async fn _main() -> Result<()> {
 
     // this is deliberately different from other agents
     let indexer = &agent.as_ref().indexer;
-    agent.home().index(indexer.from(), indexer.chunk_size());
-    agent.run("").await??;
+
+    let index_task = agent.home().index(indexer.from(), indexer.chunk_size());
+    let run_task = agent.run("");
+
+    let futs = vec![index_task, run_task];
+    let (_, _, remaining) = select_all(futs).await;
+
+    for task in remaining.into_iter() {
+        cancel_task!(task);
+    }
+
     Ok(())
 }
 

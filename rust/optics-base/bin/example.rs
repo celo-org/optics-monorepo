@@ -5,12 +5,12 @@ use optics_base::{agent::OpticsAgent, settings::Settings};
 /// An example main function for any agent that implemented Default
 async fn _example_main<OA>(settings: Settings) -> Result<()>
 where
-    OA: OpticsAgent<Settings = Settings> + Sized,
+    OA: OpticsAgent<Settings = Settings> + Sized + 'static,
 {
     // Instantiate an agent
     let oa = OA::from_settings(settings).await?;
     // Use the agent to run a number of replicas
-    oa.run_all().await
+    oa.run_all().await?
 }
 
 /// Read settings from the config file and set up reporting and logging based

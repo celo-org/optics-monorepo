@@ -8,7 +8,7 @@ members = [
     "agents/kathy",
     "agents/updater",
     "agents/relayer",
-    "agents/watcher",
+    # "agents/watcher",
     "agents/processor",
     "kms-cli",
 ]

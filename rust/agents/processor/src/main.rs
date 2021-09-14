@@ -28,7 +28,7 @@ async fn _main() -> Result<()> {
 
     let _ = agent.metrics().run_http_server();
 
-    agent.run_all().await?;
+    agent.run_all().await??;
     Ok(())
 }
 

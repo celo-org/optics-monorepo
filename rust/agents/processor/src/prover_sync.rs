@@ -7,10 +7,7 @@ use optics_core::{
     traits::{ChainCommunicationError, Common},
 };
 use std::{fmt::Display, ops::Range, sync::Arc, time::Duration};
-use tokio::{
-    sync::oneshot::{error::TryRecvError, Receiver},
-    time::sleep,
-};
+use tokio::time::sleep;
 use tracing::{error, info, instrument};
 
 /// Struct to sync prover.
@@ -20,7 +17,6 @@ pub struct ProverSync {
     db: DB,
     prover: Prover,
     incremental: IncrementalMerkle,
-    rx: Receiver<()>,
 }
 
 impl Display for ProverSync {
@@ -74,13 +70,12 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Prover, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
+    pub fn new(prover: Prover, home: Arc<Homes>, db: DB) -> Self {
         Self {
             prover,
             home,
             incremental: IncrementalMerkle::default(),
             db,
-            rx,
         }
     }
 
@@ -291,14 +286,6 @@ impl ProverSync {
             {
                 return Err(ProverSyncError::InvalidLocalRoot { local_root });
             }
-
-            // Check to see if the parent task has shut down
-            if let Err(TryRecvError::Closed) = self.rx.try_recv() {
-                info!("ProverSync: Parent task has shut down.");
-                break;
-            }
         }
-
-        Ok(())
     }
 }
