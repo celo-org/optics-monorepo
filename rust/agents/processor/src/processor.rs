@@ -137,7 +137,7 @@ impl Replica {
     /// }```
     ///
     /// In case of error: send help?
-    #[instrument(err)]
+    #[instrument(err, skip(self), fields(self = %self))]
     async fn try_msg_by_domain_and_nonce(&self, domain: u32, nonce: u32) -> Result<bool> {
         use optics_core::traits::Replica;
 
@@ -210,7 +210,7 @@ impl Replica {
         Ok(true)
     }
 
-    #[instrument(err, level = "trace")]
+    #[instrument(err, level = "trace", skip(self), fields(self = %self))]
     /// Dispatch a message for processing. If the message is already proven, process only.
     async fn process(&self, message: CommittedMessage, proof: Proof) -> Result<()> {
         use optics_core::traits::Replica;
@@ -246,7 +246,6 @@ decl_agent!(
     /// A processor agent
     Processor {
         interval: u64,
-        prover: Arc<RwLock<Prover>>,
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
         allowed: Option<Arc<HashSet<H256>>>,
         denied: Option<Arc<HashSet<H256>>>,
@@ -273,7 +272,6 @@ impl Processor {
 
         Self {
             interval,
-            prover: Arc::new(RwLock::new(Prover::from_disk(&core.db))),
             core,
             replica_tasks: Default::default(),
             allowed: allowed.map(Arc::new),
@@ -336,7 +334,7 @@ impl OpticsAgent for Processor {
         let (_tx, rx) = channel();
 
         info!("Starting ProverSync task");
-        let sync = ProverSync::new(self.prover.clone(), self.home(), self.db(), rx);
+        let sync = ProverSync::new(Prover::from_disk(&self.core.db), self.home(), self.db(), rx);
         let sync_task =
             tokio::spawn(
                 async move { sync.spawn().await.wrap_err("ProverSync task has shut down") },

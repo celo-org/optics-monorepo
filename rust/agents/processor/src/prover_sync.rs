@@ -8,31 +8,38 @@ use optics_core::{
 };
 use std::{fmt::Display, ops::Range, sync::Arc, time::Duration};
 use tokio::{
-    sync::{
-        oneshot::{error::TryRecvError, Receiver},
-        RwLock,
-    },
+    sync::oneshot::{error::TryRecvError, Receiver},
     time::sleep,
 };
-use tracing::{info, instrument};
+use tracing::{error, info, instrument};
 
 /// Struct to sync prover.
 #[derive(Debug)]
 pub struct ProverSync {
     home: Arc<Homes>,
     db: DB,
-    prover: Arc<RwLock<Prover>>,
+    prover: Prover,
     incremental: IncrementalMerkle,
     rx: Receiver<()>,
 }
 
 impl Display for ProverSync {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "ProverSync {{")?;
-        writeln!(f, "home: {:?}", self.home)?;
-        writeln!(f, "root: {}", self.incremental.root())?;
-        writeln!(f, "size: {}", self.incremental.count())?;
-        writeln!(f, "}}")?;
+        write!(f, "ProverSync {{ ")?;
+        write!(f, "home: {:?}", self.home)?;
+        write!(
+            f,
+            "incremental: {{ root: {:?}, size: {} }}, ",
+            self.incremental.root(),
+            self.incremental.count()
+        )?;
+        write!(
+            f,
+            "prover: {{ root: {:?}, size: {} }} ",
+            self.prover.root(),
+            self.prover.count()
+        )?;
+        write!(f, "}}")?;
         Ok(())
     }
 }
@@ -67,7 +74,7 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     /// Instantiates a new ProverSync.
-    pub fn new(prover: Arc<RwLock<Prover>>, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
+    pub fn new(prover: Prover, home: Arc<Homes>, db: DB, rx: Receiver<()>) -> Self {
         Self {
             prover,
             home,
@@ -79,8 +86,8 @@ impl ProverSync {
 
     // The current canonical local root. This is the root that the full
     // prover currently has. If that root is the initial root, it is 0.
-    async fn local_root(&self) -> H256 {
-        let root = self.prover.read().await.root();
+    fn local_root(&self) -> H256 {
+        let root = self.prover.root();
         if root == *INITIAL_ROOT {
             H256::zero()
         } else {
@@ -124,7 +131,7 @@ impl ProverSync {
     /// produced between `local_root` and `new_root`. If successful (i.e.
     /// incremental tree is updated until its root equals the `new_root`),
     /// commit to changes by batch updating the prover's actual merkle tree.
-    #[instrument(err, skip(self), fields(self = %self))]
+    #[tracing::instrument(err, skip(self, local_root, new_root), fields(self = %self, local_root = ?local_root, new_root = ?new_root))]
     async fn update_full(
         &mut self,
         local_root: H256,
@@ -135,41 +142,44 @@ impl ProverSync {
         // We destructure the range here to avoid cloning it several times
         // later on.
         let Range { start, end } = self.update_incremental(local_root, new_root).await?;
-        let leaves = self.get_leaf_range(start..end).await?;
 
         // Check that local root still equals prover's root just in case
         // another entity wrote to prover while we were building the leaf
         // vector. If roots no longer match, return Ok(()) and restart
         // poll_updates loop.
-        if local_root != self.local_root().await {
+        if local_root != self.local_root() {
             info!("ProverSync: Root mismatch during update. Resuming loop.");
             return Ok(());
         }
 
         // Extend in-memory tree
         info!("Committing leaves {}..{} to prover.", start, end);
-        let leaves = leaves.into_iter();
+        let leaves = self.get_leaf_range(start..end).await?;
+        let num_leaves = leaves.len();
 
-        let mut proofs = vec![];
+        self.prover.extend(leaves.into_iter());
+        info!("Committing {} leaves to prover.", num_leaves);
 
-        {
-            // lock bounds
-            let mut prover = self.prover.write().await;
-            prover.extend(leaves.clone());
-            assert_eq!(new_root, prover.root());
-            info!("Committed {} leaves to prover.", leaves.len());
+        if new_root != self.prover.root() {
+            error!(
+                start = ?local_root,
+                expected = ?new_root,
+                actual = ?self.prover.root(),
+                "Prover in unexpected state after committing leaves"
+            );
+            return Err(ProverSyncError::MismatchedRoots {
+                local_root: self.prover.root(),
+                new_root,
+            });
+        }
 
-            // calculate a proof under the current root for each leaf
-            for idx in start..end {
-                let proof = prover.prove(idx)?;
-                proofs.push((idx, proof));
-            }
+        // calculate a proof under the current root for each leaf
+        for idx in start..end {
+            let proof = self.prover.prove(idx)?;
+            self.db.store_proof(idx as u32, &proof)?;
         }
 
         // store all calculated proofs in the db
-        for (idx, proof) in proofs {
-            self.db.store_proof(idx as u32, &proof)?;
-        }
         info!("Stored proofs for leaves {}..{}", start, end);
 
         Ok(())
@@ -189,25 +199,45 @@ impl ProverSync {
         // Create copy of ProverSync's incremental so we can easily discard
         // changes in case of bad updates
         let mut incremental = self.incremental;
-        let mut local_root = local_root;
+        let mut current_root = local_root;
 
         let start = incremental.count();
         let mut tree_size = start;
-        info!("Local root is {}, goingt to root {}", local_root, new_root);
+        info!(
+            local_root = ?local_root,
+            new_root = ?new_root,
+            "Local root is {}, going to root {}",
+            local_root,
+            new_root
+        );
 
-        while local_root != new_root {
-            info!("Retrieving leaf at index {}", tree_size);
+        let mut leaves = vec![];
+
+        while current_root != new_root {
+            info!(
+                current_root = ?local_root,
+                index = tree_size,
+                "Retrieving next leaf, at index {}",
+                tree_size
+            );
 
             // As we fill the incremental merkle, its tree_size will always be
             // equal to the index of the next leaf we want (e.g. if tree_size
             // is 3, we want the 4th leaf, which is at index 3)
             if let Some(leaf) = self.fetch_leaf(tree_size as u32).await? {
-                info!("Leaf at index {} is {}", tree_size, leaf);
+                info!(
+                    index = tree_size,
+                    leaf = ?leaf,
+                    "Leaf at index {} is {}",
+                    tree_size,
+                    leaf
+                );
                 incremental.ingest(leaf);
-                local_root = incremental.root();
+                leaves.push(leaf);
+                current_root = incremental.root();
             } else {
                 // break on no leaf
-                local_root = incremental.root();
+                current_root = incremental.root();
                 break;
             }
             tree_size = incremental.count();
@@ -215,9 +245,9 @@ impl ProverSync {
 
         // If local incremental tree is up-to-date but doesn't match new
         // root, bubble up MismatchedRoots error
-        if local_root != new_root {
+        if current_root != new_root {
             return Err(ProverSyncError::MismatchedRoots {
-                local_root,
+                local_root: current_root,
                 new_root,
             });
         }
@@ -235,7 +265,7 @@ impl ProverSync {
     #[instrument(err, skip(self), fields(self = %self))]
     pub async fn spawn(mut self) -> Result<(), ProverSyncError> {
         loop {
-            let local_root = self.local_root().await;
+            let local_root = self.local_root();
             let signed_update_opt = self.home.signed_update_by_old_root(local_root).await?;
 
             // This if block is somewhat ugly.
