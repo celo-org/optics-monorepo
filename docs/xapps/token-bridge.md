@@ -83,3 +83,39 @@ The logical steps and flow of information involved in sending tokens from one ch
     - If it's a native token, `BridgeRouter-B` sends the tokens from the pool it's holding in escrow
     - If it's a non-native token, `BridgeRouter-B` mints the token to the recipient (
       - *Note:* `BridgeRouter-B` can mint non-native tokens because the representative contract for the token on its non-native chain is deployed by `BridgeRouter-B` when it received a message sending the token from another chain. The router has administrative rights on representations.
+
+
+## Tracing a Message
+
+Optics is currently still under active development. Because Optics batches messages and sends only tree roots, there is no way to track individual messages on-chain once a message is passed to the Home contract. A agent-querying tool could be built to query off-chain agents for individual transactions, but such a tool does not currently exist.
+
+What this means for the token brdige is that there is going to be a state of unknown during the time of send and receipt. You can think of this as snail mail without any tracking but with delivery confirmation. The only things that can be confirmed on-chain are:
+
+  1) A transaction was sent on chain A to the BridgeRouter contract
+  2) The recipient addressed received a token mint on chain B
+
+
+### Pseudo-tracking
+
+1. Start by locating the `bridgeRouter` contract you are looking for, addresses in the config dir:
+
+  * [Dev Contracts](https://github.com/celo-org/optics-monorepo/tree/main/rust/config/development)
+  * [Staging Contracts](https://github.com/celo-org/optics-monorepo/tree/main/rust/config/staging)
+  * [Prod Contracts](https://github.com/celo-org/optics-monorepo/tree/main/rust/config/mainnet)
+
+2. Verify that a transaction was sent to the BridgeRouter contract on the Home chain
+   * _Wait time_: dependent on block confirmation times for each chain
+
+3. Verify a transaction was sent on the Home contract
+   * _Wait time_: dependent on block confirmation for each chain, but should be shortly after transaction is sent to BridgeRouter contract
+   * There is not a way to query for a particular transactions at this time. Cross-check timestamps with BridgeRouter transaction.
+
+4. After acceptance period, verify a transaction was sent on the destination Replica
+   * _Wait time_: acceptance period. Currently ~3 hours
+   * Cross-check timestamps
+
+5. Verify a transaction was sent on the destination BridgeRouter
+   * _Wait time_: acceptance period + block confirmation time 
+
+6. Verify that the recipient address received a token mint
+   1. _Wait time_: block confirmation time for chain A + acceptance period + block confirmation time for chain B
