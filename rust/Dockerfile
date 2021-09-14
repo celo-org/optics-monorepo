@@ -30,7 +30,8 @@ RUN --mount=id=cargo,type=cache,target=/usr/src/target \
 WORKDIR /release 
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/updater .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/relayer .
-RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/watcher .
+# Commented out pending https://github.com/celo-org/optics-monorepo/issues/782
+# RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/watcher .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/processor .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/kathy .
 
@@ -43,7 +44,7 @@ RUN apt-get update && \
 WORKDIR /app
 COPY --from=builder /release/updater .
 COPY --from=builder /release/relayer .
-COPY --from=builder /release/watcher .
+# COPY --from=builder /release/watcher .
 COPY --from=builder /release/processor .
 COPY --from=builder /release/kathy .
 COPY config ./config
