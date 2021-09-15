@@ -68,15 +68,22 @@ pub enum ProverSyncError {
 
 impl ProverSync {
     fn store_proof(&self, leaf_index: u32) -> Result<(), ProverSyncError> {
-        let proof = self.prover.prove(leaf_index as usize)?;
-        self.db.store_proof(leaf_index, &proof)?;
-        info!(
-            leaf_index,
-            root = ?self.prover.root(),
-            "Storing proof for leaf {}",
-            leaf_index
-        );
-        Ok(())
+        match self.prover.prove(leaf_index as usize) {
+            Ok(proof) => {
+                self.db.store_proof(leaf_index, &proof)?;
+                info!(
+                    leaf_index,
+                    root = ?self.prover.root(),
+                    "Storing proof for leaf {}",
+                    leaf_index
+                );
+                Ok(())
+            }
+            // ignore the storage request if it's out of range
+            Err(ProverError::ZeroProof { index: _, count: _ }) => Ok(()),
+            // bubble up any other errors
+            Err(e) => Err(e.into()),
+        }
     }
 
     /// Given rocksdb handle `db` containing merkle tree leaves,
