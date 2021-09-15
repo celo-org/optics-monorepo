@@ -88,10 +88,9 @@ async fn main() -> color_eyre::Result<()> {
     eprintln!("Loading up the input...");
 
     let setup: Input = if !args.is_present("stdin") {
-        serde_json::from_reader(std::fs::File::open(
-            args.value_of_t::<PathBuf>("file")
-                .expect("malformed --file"),
-        )?)?
+        serde_json::from_reader(std::fs::File::open(PathBuf::from(
+            args.value_of_os("file").expect("malformed --file"),
+        ))?)?
     } else {
         serde_json::from_reader(std::io::stdin())?
     };
