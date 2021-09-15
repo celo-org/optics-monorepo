@@ -89,7 +89,7 @@ The logical steps and flow of information involved in sending tokens from one ch
 
 Optics is currently still under active development. Because Optics batches messages and sends only tree roots, there is no way to track individual messages on-chain once a message is passed to the Home contract. A agent-querying tool could be built to query off-chain agents for individual transactions, but such a tool does not currently exist.
 
-What this means for the token brdige is that there is going to be a state of unknown during the time of send and receipt. You can think of this as snail mail without any tracking but with delivery confirmation. The only things that can be confirmed on-chain are:
+What this means for the token bridge is that there is going to be a state of unknown during the time of send and receipt. You can think of this as snail mail without any tracking but with delivery confirmation. The only things that can be confirmed on-chain are:
 
   1) A transaction was sent on chain A to the BridgeRouter contract
   2) The recipient addressed received a token mint on chain B
