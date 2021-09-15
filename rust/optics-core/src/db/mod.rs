@@ -1,7 +1,8 @@
 use color_eyre::eyre::WrapErr;
 use ethers::types::H256;
 use rocksdb::{Options, DB as Rocks};
-use std::{path::Path, sync::Arc};
+use std::{future::Future, path::Path, sync::Arc, time::Duration};
+use tokio::time::sleep;
 use tracing::{debug, info};
 
 /// Shared functionality surrounding use of rocksdb
@@ -19,6 +20,7 @@ static LEAF_IDX: &str = "leaf_index_";
 static LEAF_HASH: &str = "leaf_hash_";
 static PREV_ROOT: &str = "update_prev_root_";
 static NEW_ROOT: &str = "update_new_root_";
+static LATEST_ROOT: &str = "update_latest_root_";
 static PROOF: &str = "proof_";
 
 static LATEST_LEAF: &str = "latest_known_leaf_";
@@ -47,6 +49,32 @@ pub enum DbError {
 type Result<T> = std::result::Result<T, DbError>;
 
 impl DB {
+    /// Opens db at `db_path` and creates if missing
+    #[tracing::instrument(err)]
+    pub fn from_path(db_path: &str) -> color_eyre::Result<DB> {
+        // Canonicalize ensures existence, so we have to do that, then extend
+        let mut path = Path::new(".").canonicalize()?;
+        path.extend(&[db_path]);
+
+        match path.is_dir() {
+            true => info!(
+                "Opening existing db at {path}",
+                path = path.to_str().unwrap()
+            ),
+            false => info!("Creating db at {path}", path = path.to_str().unwrap()),
+        }
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+
+        Rocks::open(&opts, &path)
+            .wrap_err(format!(
+                "Failed to open db path {}, canonicalized as {:?}",
+                db_path, path
+            ))
+            .map(Into::into)
+    }
+
     /// Store a value in the DB
     fn _store(&self, key: impl AsRef<[u8]>, value: impl AsRef<[u8]>) -> Result<()> {
         Ok(self.0.put(key, value)?)
@@ -115,7 +143,7 @@ impl DB {
     }
 
     /// Retrieve any decodable
-    pub fn retrive_keyed_decodable<K: Encode, V: Decode>(
+    pub fn retrieve_keyed_decodable<K: Encode, V: Decode>(
         &self,
         prefix: impl AsRef<[u8]>,
         key: &K,
@@ -178,18 +206,18 @@ impl DB {
 
     /// Retrieve a raw committed message by its leaf hash
     pub fn message_by_leaf_hash(&self, leaf_hash: H256) -> Result<Option<RawCommittedMessage>> {
-        self.retrive_keyed_decodable(LEAF_HASH, &leaf_hash)
+        self.retrieve_keyed_decodable(LEAF_HASH, &leaf_hash)
     }
 
     /// Retrieve the leaf hash keyed by leaf index
     pub fn leaf_by_leaf_index(&self, leaf_index: u32) -> Result<Option<H256>> {
-        self.retrive_keyed_decodable(LEAF_IDX, &leaf_index)
+        self.retrieve_keyed_decodable(LEAF_IDX, &leaf_index)
     }
 
     /// Retrieve the leaf hash keyed by destination and nonce
     pub fn leaf_by_nonce(&self, destination: u32, nonce: u32) -> Result<Option<H256>> {
         let key = utils::destination_and_nonce(destination, nonce);
-        self.retrive_keyed_decodable(NONCE, &key)
+        self.retrieve_keyed_decodable(NONCE, &key)
     }
 
     /// Retrieve a raw committed message by its leaf hash
@@ -214,6 +242,16 @@ impl DB {
         }
     }
 
+    /// Retrieve the latest committed
+    pub fn retrieve_latest_root(&self) -> Result<Option<H256>> {
+        self.retrieve_decodable("", LATEST_ROOT)
+    }
+
+    fn store_latest_root(&self, root: H256) -> Result<()> {
+        debug!(root = ?root, "storing new latest root in DB");
+        self.store_encodable("", LATEST_ROOT, &root)
+    }
+
     /// Store a signed update
     pub fn store_update(&self, update: &SignedUpdate) -> Result<()> {
         debug!(
@@ -221,6 +259,18 @@ impl DB {
             new_root = ?update.update.new_root,
             "storing update in DB"
         );
+
+        // If there is no latet root, or if this update is on the latest root
+        // update latest root
+        match self.retrieve_latest_root()? {
+            Some(root) => {
+                if root == update.update.previous_root {
+                    self.store_latest_root(update.update.new_root)?;
+                }
+            }
+            None => self.store_latest_root(update.update.new_root)?,
+        }
+
         self.store_keyed_encodable(PREV_ROOT, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
             NEW_ROOT,
@@ -231,15 +281,15 @@ impl DB {
 
     /// Retrieve an update by its previous root
     pub fn update_by_previous_root(&self, previous_root: H256) -> Result<Option<SignedUpdate>> {
-        self.retrive_keyed_decodable(PREV_ROOT, &previous_root)
+        self.retrieve_keyed_decodable(PREV_ROOT, &previous_root)
     }
 
     /// Retrieve an update by its new root
     pub fn update_by_new_root(&self, new_root: H256) -> Result<Option<SignedUpdate>> {
-        let prev_root: Option<H256> = self.retrive_keyed_decodable(NEW_ROOT, &new_root)?;
+        let prev_root: Option<H256> = self.retrieve_keyed_decodable(NEW_ROOT, &new_root)?;
 
         match prev_root {
-            Some(prev_root) => self.retrive_keyed_decodable(PREV_ROOT, &prev_root),
+            Some(prev_root) => self.retrieve_keyed_decodable(PREV_ROOT, &prev_root),
             None => Ok(None),
         }
     }
@@ -257,32 +307,20 @@ impl DB {
 
     /// Retrieve a proof by its leaf index
     pub fn proof_by_leaf_index(&self, leaf_index: u32) -> Result<Option<Proof>> {
-        self.retrive_keyed_decodable(PROOF, &leaf_index)
+        self.retrieve_keyed_decodable(PROOF, &leaf_index)
     }
 
-    /// Opens db at `db_path` and creates if missing
-    #[tracing::instrument(err)]
-    pub fn from_path(db_path: &str) -> color_eyre::Result<DB> {
-        // Canonicalize ensures existence, so we have to do that, then extend
-        let mut path = Path::new(".").canonicalize()?;
-        path.extend(&[db_path]);
-
-        match path.is_dir() {
-            true => info!(
-                "Opening existing db at {path}",
-                path = path.to_str().unwrap()
-            ),
-            false => info!("Creating db at {path}", path = path.to_str().unwrap()),
+    // TODO(james): this is a quick-fix for the prover_sync and I don't like it
+    /// poll db ever 100 milliseconds waitinf for a leaf.
+    pub fn wait_for_leaf(&self, leaf_index: u32) -> impl Future<Output = Result<Option<H256>>> {
+        let slf = self.clone();
+        async move {
+            loop {
+                if let Some(leaf) = slf.leaf_by_leaf_index(leaf_index)? {
+                    return Ok(Some(leaf));
+                }
+                sleep(Duration::from_millis(100)).await
+            }
         }
-
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-
-        Rocks::open(&opts, &path)
-            .wrap_err(format!(
-                "Failed to open db path {}, canonicalized as {:?}",
-                db_path, path
-            ))
-            .map(Into::into)
     }
 }

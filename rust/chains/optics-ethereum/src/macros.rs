@@ -6,10 +6,11 @@ macro_rules! report_tx {
         // "0x..."
         let data = format!("0x{}", hex::encode(&$tx.tx.data().map(|b| b.to_vec()).unwrap_or_default()));
 
+        let to = $tx.tx.to().cloned().unwrap_or_else(|| ethers::types::NameOrAddress::Address(Default::default()));
+
         tracing::info!(
-            to = ?$tx.tx.to(),
+            to = ?to,
             data = %data,
-            nonce = ?$tx.tx.nonce(),
             "Dispatching transaction"
         );
         let dispatch_fut = $tx.send();
@@ -18,9 +19,8 @@ macro_rules! report_tx {
         let tx_hash: ethers::core::types::H256 = *dispatched;
 
         tracing::info!(
-            to = ?$tx.tx.to(),
-            data = ?$tx.tx.data(),
-            nonce = ?$tx.tx.nonce(),
+            to = ?to,
+            data = %data,
             tx_hash = ?tx_hash,
             "Dispatched tx with tx_hash {:?}",
             tx_hash

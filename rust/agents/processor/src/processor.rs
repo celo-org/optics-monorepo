@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use color_eyre::{
-    eyre::{bail, eyre, WrapErr},
+    eyre::{bail, eyre},
     Result,
 };
 use ethers::prelude::H256;
@@ -25,7 +25,7 @@ use optics_core::{
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 
-use crate::{prover::Prover, prover_sync::ProverSync, settings::ProcessorSettings as Settings};
+use crate::{prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 
 const LAST_INSPECTED: &str = "lastInspected";
 const AGENT_NAME: &str = "processor";
@@ -331,14 +331,11 @@ impl OpticsAgent for Processor {
     where
         Self: Sized + 'static,
     {
-        let span = info_span!("Processor::run_all");
         tokio::spawn(async move {
+            info!("Starting Processor tasks");
             // tree sync
-            let sync = ProverSync::new(Prover::from_disk(&self.core.db), self.home(), self.db());
-            let sync_task = tokio::spawn(async move {
-                sync.spawn().await.wrap_err("ProverSync task has shut down")
-            })
-            .in_current_span();
+            let sync = ProverSync::from_disk(self.core.db.clone());
+            let sync_task = sync.spawn();
 
             // indexer setup
             let block_height = self
@@ -356,12 +353,18 @@ impl OpticsAgent for Processor {
                 .home()
                 .index(indexer.from(), indexer.chunk_size(), block_height);
 
+            info!("started indexer and sync");
+
             // this is the unused must use
             let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
             let run_task = self.run_many(&names);
 
-            let futs = vec![index_task, run_task, sync_task];
-            let (res, _, remaining) = select_all(futs).await;
+            // info!("resting");
+            // sleep(Duration::from_secs(5000)).await;
+
+            info!("selecting");
+            let tasks = vec![index_task, run_task, sync_task];
+            let (res, _, remaining) = select_all(tasks).await;
 
             for task in remaining.into_iter() {
                 cancel_task!(task);
@@ -369,6 +372,6 @@ impl OpticsAgent for Processor {
 
             res?
         })
-        .instrument(span)
+        .instrument(info_span!("Processor::run_all"))
     }
 }

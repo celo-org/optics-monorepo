@@ -4,12 +4,9 @@
 
 use ethers::core::types::H256;
 
-use optics_core::{
-    accumulator::{
-        merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
-        TREE_DEPTH,
-    },
-    db::DB,
+use optics_core::accumulator::{
+    merkle::{merkle_root_from_branch, MerkleTree, MerkleTreeError, Proof},
+    TREE_DEPTH,
 };
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
@@ -59,20 +56,6 @@ impl Default for Prover {
 }
 
 impl Prover {
-    /// Given rocksdb handle `db` containing merkle tree leaves,
-    /// instantiates new prover and fills prover's merkle tree
-    pub fn from_disk(db: &DB) -> Self {
-        let mut prover = Self::default();
-
-        // Ingest all leaves in db into prover tree
-        let db_iter = db.leaf_iterator();
-        for leaf in db_iter {
-            prover.ingest(leaf).expect("!tree full");
-        }
-
-        prover
-    }
-
     /// Push a leaf to the tree. Appends it to the first unoccupied slot
     ///
     /// This will fail if the underlying tree is full.
