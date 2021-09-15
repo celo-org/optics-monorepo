@@ -13,8 +13,8 @@ systems have pre-built objects for quick development.
 ### Intended Usage
 
 ```ts
-import * as ethers from 'ethers;
-import { LedgerSigner } from "@ethersproject/hardware-wallets";
+import * as ethers from 'ethers';
+import { LedgerSigner } from '@ethersproject/hardware-wallets';
 
 import { mainnet } from 'optics-provider';
 
