@@ -6,7 +6,7 @@ import {
   Home__factory,
   Replica,
   Replica__factory,
-} from '../../../../typechain/optics-core';
+} from '@optics-xyz/ts-interface/optics-core';
 import { Contracts } from '../../contracts';
 import { ReplicaInfo } from '../domains/domain';
 

@@ -5,7 +5,7 @@ import {
   BridgeRouter__factory,
   ETHHelper,
   ETHHelper__factory,
-} from '../../../../typechain/optics-xapps';
+} from '@optics-xyz/ts-interface/optics-xapps';
 import { Contracts } from '../../contracts';
 
 type Address = string;

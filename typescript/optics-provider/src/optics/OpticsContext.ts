@@ -1,6 +1,6 @@
 import { BigNumberish, ContractTransaction, ethers } from 'ethers';
 import { MultiProvider } from '..';
-import { ERC20, ERC20__factory } from '../../../typechain/optics-xapps';
+import { ERC20, ERC20__factory } from '@optics-xyz/ts-interface/optics-xapps';
 import { BridgeContracts } from './contracts/BridgeContracts';
 import { CoreContracts } from './contracts/CoreContracts';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
@@ -11,7 +11,7 @@ import {
   OpticsDomain,
   stagingDomains,
 } from './domains';
-import { Replica } from '../../../typechain/optics-core';
+import { Replica } from '@optics-xyz/ts-interface/optics-core';
 
 type Address = string;
 

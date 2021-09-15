@@ -10,5 +10,10 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "ethers": "^5.4.6"
+  },
+  "devDependencies": {
+    "@optics-xyz/ts-interface": "^1.0.3",
+    "@types/node": "^16.9.1",
+    "fs": "0.0.1-security"
   }
 }

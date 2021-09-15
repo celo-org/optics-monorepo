@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { TypedEvent } from '../../../../typechain/optics-core/commons';
+import { TypedEvent } from '@optics-xyz/ts-interface/optics-core/commons';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { OpticsContext } from '..';
 
