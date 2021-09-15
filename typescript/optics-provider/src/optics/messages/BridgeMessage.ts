@@ -1,10 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { ContractReceipt, ethers } from 'ethers';
-import { BridgeContracts, CoreContracts, OpticsContext } from '..';
-import { ERC20 } from '../../../../typechain/optics-xapps';
+import { BridgeContracts, OpticsContext } from '..';
+import { ERC20 } from '@optics-xyz/ts-interface/optics-xapps';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
-import { DispatchEvent, OpticsMessage, parseMessage } from './OpticsMessage';
+import { OpticsMessage, parseMessage } from './OpticsMessage';
 
 const ACTION_LEN = {
   identifier: 1,

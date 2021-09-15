@@ -3,7 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { ContractReceipt } from '@ethersproject/contracts';
 import { OpticsContext } from '..';
-import { Home__factory } from '../../../../typechain/optics-core';
+import { Home__factory } from '@optics-xyz/ts-interface/optics-core';
 import { delay } from '../../utils';
 
 // match the typescript declaration
