@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@ethersproject/hardware-wallets": "^5.4.0",
-    "@optics-xyz/ts-interface": "^1.0.3",
+    "@optics-xyz/ts-interface": "^1.0.4",
     "@types/node": "^16.9.1",
     "fs": "0.0.1-security",
     "dotenv": "^10.0.0"

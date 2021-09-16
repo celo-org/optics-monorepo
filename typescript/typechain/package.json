@@ -1,13 +1,18 @@
 {
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "ethers": "^5.4.4"
   },
-  "name": "typechain",
-  "version": "1.0.0",
+  "name": "@optics-xyz/ts-interfaces",
+  "version": "1.0.4",
   "description": "Optics contract typechain gens",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0",
+  "prepublish": "tsc",
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0"
   }
