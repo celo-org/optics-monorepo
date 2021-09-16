@@ -1,6 +1,6 @@
 import { BytesLike } from 'ethers';
 import { xapps } from '@optics-xyz/ts-interface';
-import tokens from './well-known';
+import wellKnown from './well-known';
 
 export interface TokenIdentifier {
   domain: string | number;
@@ -16,4 +16,5 @@ export type ResolvedTokenInfo = {
   tokens: Map<number, xapps.ERC20>;
 };
 
+export const tokens = wellKnown;
 export default tokens;
