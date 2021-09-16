@@ -1,6 +1,5 @@
 import * as ethers from 'ethers';
 import { Domain } from './domains';
-import { mainnetDomains } from './optics/domains/mainnet';
 
 type Provider = ethers.providers.Provider;
 

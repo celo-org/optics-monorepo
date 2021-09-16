@@ -6,7 +6,7 @@
     "ethers": "^5.4.4"
   },
   "name": "@optics-xyz/ts-interface",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Optics contract typechain gens",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
