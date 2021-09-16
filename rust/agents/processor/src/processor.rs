@@ -14,10 +14,10 @@ use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
 use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
 use optics_base::{
-    agent::{AgentCore, OpticsAgent},
+    AgentCore, OpticsAgent,
     cancel_task, decl_agent,
-    home::Homes,
-    replica::Replicas,
+    Homes,
+    Replicas,
 };
 use optics_core::{
     accumulator::merkle::Proof,

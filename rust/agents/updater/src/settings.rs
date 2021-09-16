@@ -1,9 +1,9 @@
 //! Configuration
-use optics_base::{decl_settings, settings::SignerConf};
+use optics_base::*;
 
 decl_settings!(Updater {
     /// The updater attestation signer
-    updater: SignerConf,
+    updater: optics_base::SignerConf,
     /// The polling interval (in seconds)
     interval: String,
     /// The delay (in seconds) before an updater will attempt to submit a

@@ -1,6 +1,7 @@
 use crate::prover::{Prover, ProverError};
 use color_eyre::eyre::{bail, Result};
 use ethers::core::types::H256;
+use optics_base::Homes;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
     db::{DbError, HomeDB},

@@ -4,11 +4,7 @@ use std::{sync::Arc, time::Duration};
 use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::{info, instrument::Instrumented, Instrument};
 
-use optics_base::{
-    agent::{AgentCore, OpticsAgent},
-    home::Homes,
-    replica::Replicas,
-};
+use optics_base::{AgentCore, Homes, OpticsAgent, Replicas};
 use optics_core::traits::Common;
 
 use crate::settings::RelayerSettings as Settings;

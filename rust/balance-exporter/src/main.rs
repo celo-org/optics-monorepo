@@ -4,7 +4,7 @@ use clap::Arg;
 use color_eyre::eyre::anyhow;
 use futures::StreamExt;
 use human_panic::setup_panic;
-use optics_base::settings::ChainSetup;
+use optics_base::ChainSetup;
 use tokio::time::Instant;
 
 #[derive(serde::Deserialize, Debug)]
@@ -142,7 +142,7 @@ async fn mainnet_works() {
                 name: "ethereum".into(),
                 domain: "6648936".into(),
                 // i would love for this to just be ChainConf::ethereum()
-                chain: optics_base::settings::chains::ChainConf::Ethereum(
+                chain: optics_base::Ethereum(
                     optics_ethereum::settings::EthereumConnection::Ws {
                         url: "wss://main-light.eth.linkpool.io/ws".into(),
                     },

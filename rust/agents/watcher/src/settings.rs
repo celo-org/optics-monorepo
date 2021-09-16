@@ -1,9 +1,6 @@
 //! Configuration
 
-use optics_base::{
-    decl_settings,
-    settings::{ChainSetup, SignerConf},
-};
+use optics_base::{decl_settings, ChainSetup, SignerConf};
 
 decl_settings!(Watcher {
     /// The watcher's attestation signer

@@ -13,10 +13,10 @@ use tokio::{
 use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
 use optics_base::{
-    agent::{AgentCore, OpticsAgent},
+    AgentCore, OpticsAgent,
     cancel_task,
-    home::Homes,
-    xapp::ConnectionManagers,
+    Homes,
+    ConnectionManagers,
 };
 use optics_core::{
     db::HomeDB,
@@ -492,14 +492,14 @@ impl OpticsAgent for Watcher {
 
 #[cfg(test)]
 mod test {
-    use optics_base::settings::IndexSettings;
+    use optics_base::IndexSettings;
     use std::sync::Arc;
     use tokio::sync::mpsc;
 
     use ethers::core::types::H256;
     use ethers::signers::{LocalWallet, Signer};
 
-    use optics_base::{agent::AgentCore, replica::Replicas};
+    use optics_base::Replicas};
     use optics_core::{traits::DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
@@ -864,7 +864,7 @@ mod test {
                 indexer: IndexSettings::default(),
                 settings: optics_base::settings::Settings::default(),
                 metrics: Arc::new(
-                    optics_base::metrics::CoreMetrics::new(
+                    optics_base::new(
                         "watcher_test",
                         None,
                         Arc::new(prometheus::Registry::new()),

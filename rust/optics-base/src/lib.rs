@@ -9,23 +9,29 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-pub mod settings;
+mod settings;
+pub use settings::*;
 
 /// Base trait for an agent
-pub mod agent;
+mod agent;
+pub use agent::*;
 
 #[doc(hidden)]
 #[cfg_attr(tarpaulin, skip)]
 #[macro_use]
-pub mod macros;
+mod macros;
+pub use macros::*;
 
 /// Home type
-pub mod home;
+mod home;
+pub use home::*;
 
 /// Replica type
-pub mod replica;
-
+mod replica;
+pub use replica::*;
 /// XAppConnectionManager type
-pub mod xapp;
+mod xapp;
+pub use xapp::*;
 
-pub mod metrics;
+mod metrics;
+pub use metrics::*;

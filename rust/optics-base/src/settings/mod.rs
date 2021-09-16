@@ -146,7 +146,7 @@ impl IndexSettings {
 /// follows:
 ///
 /// ```
-/// use optics_base::settings::*;
+/// use optics_base::*;
 /// use serde::Deserialize;
 ///
 /// pub struct OtherSettings { /* anything */ };

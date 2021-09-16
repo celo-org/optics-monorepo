@@ -109,7 +109,7 @@ We use the tokio async runtime environment. Please see the docs
   - copy most of the dependencies from `optics-base`
 - create a new module in `src/$AGENT_NAME.rs`
   - add a new struct
-  - implement `optics_base::agent::OpticsAgent` for your struct
+  - implement `optics_base::OpticsAgent` for your struct
   - your `run` function is the business logic of your agent
 - create a new settings module `src/settings.rs`
   - reuse the `Settings` objects from `optics_base::settings`

@@ -15,8 +15,8 @@ macro_rules! cancel_task {
 /// Shortcut for implementing agent traits
 macro_rules! impl_as_ref_core {
     ($agent:ident) => {
-        impl AsRef<optics_base::agent::AgentCore> for $agent {
-            fn as_ref(&self) -> &optics_base::agent::AgentCore {
+        impl AsRef<optics_base::AgentCore> for $agent {
+            fn as_ref(&self) -> &optics_base::AgentCore {
                 &self.core
             }
         }
@@ -36,7 +36,7 @@ macro_rules! decl_agent {
         #[derive(Debug)]
         pub struct $name {
             $($prop: $type,)*
-            core: optics_base::agent::AgentCore,
+            core: optics_base::AgentCore,
         }
 
         $crate::impl_as_ref_core!($name);
@@ -75,15 +75,15 @@ macro_rules! decl_settings {
             #[doc = "Settings for `" $name]
             pub struct [<$name Settings>] {
                 #[serde(flatten)]
-                pub(crate) base: optics_base::settings::Settings,
+                pub(crate) base: optics_base::Settings,
                 $(
                     $(#[$tags])*
                     pub(crate) $prop: $type,
                 )*
             }
 
-            impl AsRef<optics_base::settings::Settings> for [<$name Settings>] {
-                fn as_ref(&self) -> &optics_base::settings::Settings {
+            impl AsRef<optics_base::Settings> for [<$name Settings>] {
+                fn as_ref(&self) -> &optics_base::Settings {
                     &self.base
                 }
             }

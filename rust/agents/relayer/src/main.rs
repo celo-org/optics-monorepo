@@ -12,7 +12,7 @@ mod settings;
 
 use color_eyre::Result;
 
-use optics_base::agent::OpticsAgent;
+use optics_base::OpticsAgent;
 
 use crate::{relayer::Relayer, settings::RelayerSettings as Settings};
 

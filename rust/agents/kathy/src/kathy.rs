@@ -11,10 +11,7 @@ use rand::{thread_rng, Rng};
 
 use color_eyre::Result;
 
-use optics_base::{
-    agent::{AgentCore, OpticsAgent},
-    decl_agent,
-};
+use optics_base::{decl_agent, AgentCore, OpticsAgent};
 use optics_core::{traits::Home, Message};
 use tracing::instrument::Instrumented;
 use tracing::{info, Instrument};
