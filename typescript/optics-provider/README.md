@@ -14,17 +14,14 @@ systems have pre-built objects for quick development.
 
 ```ts
 import * as ethers from 'ethers';
-import { LedgerSigner } from '@ethersproject/hardware-wallets';
 
 import { mainnet } from 'optics-provider';
 
 // Set up providers and signers
-// https://docs.ethers.io/v5/api/other/hardware/
 const someEthersProvider = ethers.providers.WsProvider('...');
+const someEtheresSigner = new AnySigner(...);
 mainnet.registerProvider('ethereum', someEthersProvider);
-
-const ledgerSigner = new LedgerSigner();
-mainnet.registerSigner('ethereum', ledgerSigner);
+mainnet.registerSigner('ethereum', someEthersSigner);
 
 // We have shortcuts for common provider/signer types
 mainnet.registerRpcProvider('celo', 'https://forno.celo.org');
