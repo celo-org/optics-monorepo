@@ -19,7 +19,7 @@
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0",
-    "@types/node": "^16.7.1",
+    "@types/node": "^16.7.2",
     "axios": "^0.21.3",
     "dotenv": "^10.0.0"
   }
