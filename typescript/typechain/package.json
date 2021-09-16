@@ -5,7 +5,7 @@
   "devDependencies": {
     "ethers": "^5.4.4"
   },
-  "name": "@optics-xyz/ts-interfaces",
+  "name": "@optics-xyz/ts-interface",
   "version": "1.0.4",
   "description": "Optics contract typechain gens",
   "main": "dist/index.js",
