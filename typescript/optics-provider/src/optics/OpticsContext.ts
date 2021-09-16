@@ -188,7 +188,7 @@ export class OpticsContext extends MultiProvider {
     token: TokenIdentifier,
     amount: BigNumberish,
     recipient: Address,
-    overrides?: ethers.Overrides,
+    overrides: ethers.Overrides = {},
   ): Promise<TransferMessage> {
     const fromBridge = this.mustGetBridge(from);
     const bridgeAddress = fromBridge.bridgeRouter.address;
@@ -197,25 +197,28 @@ export class OpticsContext extends MultiProvider {
     if (!fromToken) {
       throw new Error(`Token not available on ${from}`);
     }
-
+    console.log(1);
     const sender = this.getSigner(from);
     if (!sender) {
       throw new Error(`No signer for ${from}`);
     }
     const senderAddress = await sender.getAddress();
+    console.log(2);
 
     const approved = await fromToken.allowance(senderAddress, bridgeAddress);
-
+    console.log(3);
+    console.log({ approved, amount, overrides });
     // Approve if necessary
     if (approved.lt(amount)) {
-      await fromToken.approve(bridgeAddress, amount);
+      await fromToken.approve(bridgeAddress, amount, overrides);
     }
+    console.log(4);
 
     const tx = await fromBridge.bridgeRouter.send(
       fromToken.address,
       amount,
-      to,
-      recipient,
+      this.resolveDomain(to),
+      canonizeId(recipient),
       overrides,
     );
     const receipt = await tx.wait();
@@ -233,7 +236,7 @@ export class OpticsContext extends MultiProvider {
     to: string | number,
     amount: BigNumberish,
     recipient: Address,
-    overrides?: ethers.PayableOverrides,
+    overrides: ethers.PayableOverrides = {},
   ): Promise<TransferMessage> {
     const ethHelper = this.mustGetBridge(from).ethHelper;
     if (!ethHelper) {
@@ -242,8 +245,7 @@ export class OpticsContext extends MultiProvider {
 
     const toDomain = this.resolveDomain(to);
 
-    const o = overrides ?? {};
-    o.value = amount;
+    overrides.value = amount;
 
     const tx = await ethHelper.sendToEVMLike(toDomain, recipient, overrides);
     const receipt = await tx.wait();
