@@ -7,7 +7,7 @@ import { permitDigest } from '../../lib/permit';
 import {
   BridgeToken__factory,
   BridgeToken,
-} from '../../../typechain/optics-xapps';
+} from '@optics-xyz/ts-interface/dist/optics-xapps';
 
 const VALUE = 100;
 

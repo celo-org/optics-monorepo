@@ -1,24 +1,18 @@
 import { expect } from 'chai';
-import { BigNumber, BytesLike } from 'ethers';
 import { ethers, bridge } from 'hardhat';
-const { BridgeMessageTypes } = bridge;
+import { BigNumber, BytesLike } from 'ethers';
 
 import * as types from '../../lib/types';
 import { toBytes32 } from '../../lib/utils';
-import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
+import TestBridgeDeploy from '@optics-xyz/deploy/dist/src/bridge/TestBridgeDeploy';
 import {
   BridgeToken,
   BridgeToken__factory,
   IERC20,
-} from '../../../typechain/optics-xapps';
+} from '@optics-xyz/ts-interface/dist/optics-xapps';
+import { stringToBytes32 } from '../utils';
 
-const stringToBytes32 = (s: string): string => {
-  const str = Buffer.from(s.slice(0, 32), 'utf-8');
-  const result = Buffer.alloc(32);
-  str.copy(result);
-
-  return '0x' + result.toString('hex');
-};
+const { BridgeMessageTypes } = bridge;
 
 describe('BridgeRouter', async () => {
   let deployer: types.Signer;
@@ -40,7 +34,7 @@ describe('BridgeRouter', async () => {
 
   describe('invalid messages', async () => {
     before(async () => {
-      deploy = await TestBridgeDeploy.deploy(deployer);
+      deploy = await TestBridgeDeploy.deploy(ethers, deployer);
     });
 
     it('rejects invalid messages', async () => {
@@ -56,7 +50,7 @@ describe('BridgeRouter', async () => {
 
   describe('transfer message', async () => {
     before(async () => {
-      deploy = await TestBridgeDeploy.deploy(deployer);
+      deploy = await TestBridgeDeploy.deploy(ethers, deployer);
     });
 
     describe('remotely-originating asset roundtrup', async () => {
@@ -64,7 +58,7 @@ describe('BridgeRouter', async () => {
       let repr: IERC20;
 
       before(async () => {
-        deploy = await TestBridgeDeploy.deploy(deployer);
+        deploy = await TestBridgeDeploy.deploy(ethers, deployer);
 
         // generate transfer action
         const transferMessageObj: types.Message = {
@@ -200,7 +194,7 @@ describe('BridgeRouter', async () => {
       let localToken: BridgeToken;
 
       before(async () => {
-        deploy = await TestBridgeDeploy.deploy(deployer);
+        deploy = await TestBridgeDeploy.deploy(ethers, deployer);
 
         localToken = await new BridgeToken__factory(deployer).deploy();
         await localToken.initialize();
@@ -306,7 +300,7 @@ describe('BridgeRouter', async () => {
 
   describe('prefill', async () => {
     before(async () => {
-      deploy = await TestBridgeDeploy.deploy(deployer);
+      deploy = await TestBridgeDeploy.deploy(ethers, deployer);
     });
 
     it('errors for non-existing assets', async () => {
@@ -334,7 +328,7 @@ describe('BridgeRouter', async () => {
       let transferMessage: string;
 
       before(async () => {
-        deploy = await TestBridgeDeploy.deploy(deployer);
+        deploy = await TestBridgeDeploy.deploy(ethers, deployer);
 
         // generate actions
         recipient = `0x${'00'.repeat(19)}ff`;
@@ -416,7 +410,7 @@ describe('BridgeRouter', async () => {
       let transferMessage: string;
 
       before(async () => {
-        deploy = await TestBridgeDeploy.deploy(deployer);
+        deploy = await TestBridgeDeploy.deploy(ethers, deployer);
         localToken = await new BridgeToken__factory(deployer).deploy();
         await localToken.initialize();
         await localToken.mint(deployerAddress, TOKEN_VALUE);
@@ -489,7 +483,7 @@ describe('BridgeRouter', async () => {
     const TEST_DECIMALS = 8;
 
     before(async () => {
-      deploy = await TestBridgeDeploy.deploy(deployer);
+      deploy = await TestBridgeDeploy.deploy(ethers, deployer);
       localToken = await new BridgeToken__factory(deployer).deploy();
       await localToken.initialize();
       await localToken.setDetails(TEST_NAME, TEST_SYMBOL, TEST_DECIMALS);
@@ -651,7 +645,7 @@ describe('BridgeRouter', async () => {
     const VALUE = `0xffffffffffffffff`;
 
     before(async () => {
-      deploy = await TestBridgeDeploy.deploy(deployer);
+      deploy = await TestBridgeDeploy.deploy(ethers, deployer);
 
       // generate transfer action
       const transferMessageObj: types.Message = {

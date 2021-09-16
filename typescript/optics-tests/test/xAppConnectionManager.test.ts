@@ -4,12 +4,11 @@ import { expect } from 'chai';
 import { getTestDeploy } from './testChain';
 import { Updater } from '../lib/core';
 import { Signer } from '../lib/types';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
-import * as deploys from '../../optics-deploy/src/core';
-import { BeaconProxy } from '../../optics-deploy/src/proxyUtils';
-import * as contracts from '../../typechain/optics-core';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
+import * as deploys from '@optics-xyz/deploy/dist/src/core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 
-import signedFailureTestCases from '../../../vectors/signedFailure.json';
+const signedFailureTestCases = require('../../../vectors/signedFailure.json');
 
 const ONLY_OWNER_REVERT_MSG = 'Ownable: caller is not the owner';
 const localDomain = 1000;
@@ -19,9 +18,7 @@ describe('XAppConnectionManager', async () => {
   let localDeploy: Deploy,
     remoteDeploy: Deploy,
     connectionManager: contracts.TestXAppConnectionManager,
-    updaterManager: contracts.UpdaterManager,
     enrolledReplica: contracts.TestReplica,
-    home: BeaconProxy<contracts.Home>,
     signer: Signer,
     updater: Updater;
 
@@ -48,10 +45,8 @@ describe('XAppConnectionManager', async () => {
     // set respective variables
     connectionManager = localDeploy.contracts
       .xAppConnectionManager! as contracts.TestXAppConnectionManager;
-    updaterManager = localDeploy.contracts.updaterManager!;
     enrolledReplica = localDeploy.contracts.replicas[remoteDomain]
       .proxy as contracts.TestReplica;
-    home = localDeploy.contracts.home!;
   });
 
   it('Returns the local domain', async () => {

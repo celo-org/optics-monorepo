@@ -1,17 +1,19 @@
 {
   "name": "@optics-xyz/multi-provider",
-  "version": "0.0.0",
+  "version": "0.0.4",
   "description": "multi-provider for Optics",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc",
     "check": "tsc --noEmit"
   },
+  "prepublish": "tsc",
   "author": "Celo Labs Inc.",
   "license": "MIT OR Apache-2.0",
-  "dependencies": {},
   "devDependencies": {
     "@ethersproject/hardware-wallets": "^5.4.0",
-    "@optics-xyz/ts-interface": "^1.0.7",
+    "@optics-xyz/ts-interface": "^1.0.9",
     "@types/node": "^16.9.1",
     "dotenv": "^10.0.0",
     "ethers": "^5.4.6",

@@ -2,8 +2,12 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
 import { BytesArray } from '../lib/types';
-import { TestMerkle, TestMerkle__factory } from '../../typechain/optics-core';
-import merkleTestCases from '../../../vectors/merkle.json';
+import {
+  TestMerkle,
+  TestMerkle__factory,
+} from '@optics-xyz/ts-interface/dist/optics-core';
+
+const merkleTestCases = require('../../../vectors/merkle.json');
 
 describe('Merkle', async () => {
   for (let testCase of merkleTestCases) {

@@ -9,7 +9,7 @@ import {
   TestReplica,
   Home,
   TestGovernanceRouter,
-} from '../../../typechain/optics-core';
+} from '@optics-xyz/ts-interface/dist/optics-core';
 
 type MessageDetails = {
   message: string;

@@ -1,7 +1,6 @@
 import {
   Chain,
   ChainJson,
-  CoreContractAddresses,
   CoreDeployAddresses,
   DeployEnvironment,
   RustConfig,
@@ -9,8 +8,9 @@ import {
 } from '../chain';
 import { CoreContracts } from './CoreContracts';
 import { Deploy } from '../deploy';
-import { Address } from '../../../optics-tests/lib/types';
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
+import { BigNumberish } from '@ethersproject/bignumber';
+
+type Address = string;
 
 type Governor = {
   domain: number;

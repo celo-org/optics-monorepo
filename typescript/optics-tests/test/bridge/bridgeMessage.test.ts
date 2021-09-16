@@ -8,8 +8,9 @@ import { formatTokenId } from '../../lib/bridge';
 import * as types from '../../lib/types';
 import {
   TestBridgeMessage__factory,
-  TestBridgeMessage
-} from '../../../typechain/optics-xapps';
+  TestBridgeMessage,
+} from '@optics-xyz/ts-interface/dist/optics-xapps';
+import { TokenIdentifier } from '@optics-xyz/multi-provider/dist/optics';
 
 const stringToBytes32 = (s: string): string => {
   const str = Buffer.from(s.slice(0, 32), 'utf-8');
@@ -27,23 +28,26 @@ describe('BridgeMessage', async () => {
   const TOKEN_VALUE = 0xffff;
 
   // tokenId
-  const testTokenId: types.TokenId = {
+  const testTokenId: TokenIdentifier = {
     domain: 1,
-    id: '0x' + '11'.repeat(32)
-  }
-  const tokenIdBytes = formatTokenId(testTokenId.domain, testTokenId.id);
+    id: '0x' + '11'.repeat(32),
+  };
+  const tokenIdBytes = formatTokenId(
+    testTokenId.domain as number,
+    testTokenId.id as string,
+  );
 
   // transfer action/message
   const transferAction: types.TransferAction = {
     type: BridgeMessageTypes.TRANSFER,
     recipient: deployerId,
-    amount: TOKEN_VALUE
-  }
+    amount: TOKEN_VALUE,
+  };
   const transferBytes = bridge.serializeTransferAction(transferAction);
   const transferMessage: types.Message = {
     tokenId: testTokenId,
-    action: transferAction
-  }
+    action: transferAction,
+  };
   const transferMessageBytes = bridge.serializeMessage(transferMessage);
 
   // details action/message
@@ -51,27 +55,30 @@ describe('BridgeMessage', async () => {
     type: BridgeMessageTypes.DETAILS,
     name: stringToBytes32('TEST TOKEN'),
     symbol: stringToBytes32('TEST'),
-    decimals: 8
-  }
+    decimals: 8,
+  };
   const detailsBytes = bridge.serializeDetailsAction(detailsAction);
   const detailsMessage: types.Message = {
     tokenId: testTokenId,
-    action: detailsAction
-  }
+    action: detailsAction,
+  };
   const detailsMessageBytes = bridge.serializeMessage(detailsMessage);
 
   // requestDetails action/message
   const requestDetailsAction: types.RequestDetailsAction = {
-    type: BridgeMessageTypes.REQUEST_DETAILS
+    type: BridgeMessageTypes.REQUEST_DETAILS,
   };
-  const requestDetailsBytes = bridge.serializeRequestDetailsAction(requestDetailsAction);
+  const requestDetailsBytes =
+    bridge.serializeRequestDetailsAction(requestDetailsAction);
   const requestDetailsMessage: types.Message = {
     tokenId: testTokenId,
     action: {
-      type: BridgeMessageTypes.REQUEST_DETAILS
-    }
-  }
-  const requestDetailsMessageBytes = bridge.serializeMessage(requestDetailsMessage);
+      type: BridgeMessageTypes.REQUEST_DETAILS,
+    },
+  };
+  const requestDetailsMessageBytes = bridge.serializeMessage(
+    requestDetailsMessage,
+  );
 
   before(async () => {
     const [signer] = await ethers.getSigners();
@@ -82,54 +89,91 @@ describe('BridgeMessage', async () => {
 
   it('validates actions', async () => {
     const invalidAction = '0x00';
-    const invalidActionLen = '0x0300'
 
     // transfer message is valid
-    let isAction = await bridgeMessage.testIsValidAction(transferBytes, BridgeMessageTypes.TRANSFER);
+    let isAction = await bridgeMessage.testIsValidAction(
+      transferBytes,
+      BridgeMessageTypes.TRANSFER,
+    );
     expect(isAction).to.be.true;
     // details message is valid
-    isAction = await bridgeMessage.testIsValidAction(detailsBytes, BridgeMessageTypes.DETAILS);
+    isAction = await bridgeMessage.testIsValidAction(
+      detailsBytes,
+      BridgeMessageTypes.DETAILS,
+    );
     expect(isAction).to.be.true;
     // request details message is valid
-    isAction = await bridgeMessage.testIsValidAction(requestDetailsBytes, BridgeMessageTypes.REQUEST_DETAILS);
+    isAction = await bridgeMessage.testIsValidAction(
+      requestDetailsBytes,
+      BridgeMessageTypes.REQUEST_DETAILS,
+    );
     expect(isAction).to.be.true;
     // not a valid message type
-    isAction = await bridgeMessage.testIsValidAction(transferBytes, BridgeMessageTypes.INVALID);
+    isAction = await bridgeMessage.testIsValidAction(
+      transferBytes,
+      BridgeMessageTypes.INVALID,
+    );
     expect(isAction).to.be.false;
     // not a valid action type
-    isAction = await bridgeMessage.testIsValidAction(invalidAction, BridgeMessageTypes.TRANSFER);
+    isAction = await bridgeMessage.testIsValidAction(
+      invalidAction,
+      BridgeMessageTypes.TRANSFER,
+    );
     expect(isAction).to.be.false;
-    // TODO: Action length is not checked, should it be? We do check message length
-    // invalid length
-    // isAction = await bridgeMessage.testIsValidAction(invalidActionLen, BridgeMessageTypes.TRANSFER);
-    // expect(isAction).to.be.false;
   });
 
   it('validates message length', async () => {
     const invalidMessageLen = '0x' + '03'.repeat(38);
     // valid transfer message
-    let isValidLen = await bridgeMessage.testIsValidMessageLength(transferMessageBytes);
+    let isValidLen = await bridgeMessage.testIsValidMessageLength(
+      transferMessageBytes,
+    );
     expect(isValidLen).to.be.true;
     // valid details message
-    isValidLen = await bridgeMessage.testIsValidMessageLength(detailsMessageBytes);
+    isValidLen = await bridgeMessage.testIsValidMessageLength(
+      detailsMessageBytes,
+    );
     expect(isValidLen).to.be.true;
     // valid requestDetails message
-    isValidLen = await bridgeMessage.testIsValidMessageLength(requestDetailsMessageBytes);
+    isValidLen = await bridgeMessage.testIsValidMessageLength(
+      requestDetailsMessageBytes,
+    );
     expect(isValidLen).to.be.true;
     // invalid message length
-    isValidLen = await bridgeMessage.testIsValidMessageLength(invalidMessageLen);
+    isValidLen = await bridgeMessage.testIsValidMessageLength(
+      invalidMessageLen,
+    );
     expect(isValidLen).to.be.false;
     // TODO: check that message length matches type?
   });
 
   it('formats message', async () => {
     // formats message
-    const newMessage = await bridgeMessage.testFormatMessage(tokenIdBytes, transferBytes, BridgeMessageTypes.TOKEN_ID, BridgeMessageTypes.TRANSFER);
+    const newMessage = await bridgeMessage.testFormatMessage(
+      tokenIdBytes,
+      transferBytes,
+      BridgeMessageTypes.TOKEN_ID,
+      BridgeMessageTypes.TRANSFER,
+    );
     expect(newMessage).to.equal(transferMessageBytes);
     // reverts with bad tokenId
-    await expect(bridgeMessage.testFormatMessage(tokenIdBytes, transferBytes, BridgeMessageTypes.INVALID, BridgeMessageTypes.TRANSFER)).to.be.reverted;
+    await expect(
+      bridgeMessage.testFormatMessage(
+        tokenIdBytes,
+        transferBytes,
+        BridgeMessageTypes.INVALID,
+        BridgeMessageTypes.TRANSFER,
+      ),
+    ).to.be.reverted;
     // reverts with bad action
-    await expect(bridgeMessage.testFormatMessage(tokenIdBytes, transferBytes, BridgeMessageTypes.TOKEN_ID, BridgeMessageTypes.INVALID)).to.be.revertedWith('!action');
+    await expect(
+      bridgeMessage.testFormatMessage(
+        tokenIdBytes,
+        transferBytes,
+        BridgeMessageTypes.TOKEN_ID,
+        BridgeMessageTypes.INVALID,
+      ),
+    ).to.be.revertedWith('!action');
   });
 
   it('returns correct message type', async () => {
@@ -160,7 +204,9 @@ describe('BridgeMessage', async () => {
     isDetails = await bridgeMessage.testIsDetails(requestDetailsBytes);
     expect(isDetails).to.be.false;
 
-    let isRequestDetails = await bridgeMessage.testIsRequestDetails(requestDetailsBytes);
+    let isRequestDetails = await bridgeMessage.testIsRequestDetails(
+      requestDetailsBytes,
+    );
     expect(isRequestDetails).to.be.true;
     isRequestDetails = await bridgeMessage.testIsRequestDetails(detailsBytes);
     expect(isRequestDetails).to.be.false;
@@ -184,13 +230,20 @@ describe('BridgeMessage', async () => {
 
   it('formats transfer action', async () => {
     const { recipient, amount } = transferAction;
-    const newTransfer = await bridgeMessage.testFormatTransfer(recipient, amount);
+    const newTransfer = await bridgeMessage.testFormatTransfer(
+      recipient,
+      amount,
+    );
     expect(newTransfer).to.equal(transferBytes);
   });
 
   it('formats details action', async () => {
     const { name, symbol, decimals } = detailsAction;
-    const newDetails = await bridgeMessage.testFormatDetails(name, symbol, decimals);
+    const newDetails = await bridgeMessage.testFormatDetails(
+      name,
+      symbol,
+      decimals,
+    );
     expect(newDetails).to.equal(detailsBytes);
   });
 
@@ -200,24 +253,30 @@ describe('BridgeMessage', async () => {
   });
 
   it('formats token id', async () => {
-    const newTokenId = await bridgeMessage.testFormatTokenId(testTokenId.domain, testTokenId.id);
+    const newTokenId = await bridgeMessage.testFormatTokenId(
+      testTokenId.domain,
+      testTokenId.id,
+    );
     expect(newTokenId).to.equal(tokenIdBytes);
   });
 
   it('returns elements of a token id', async () => {
-    const evmId = '0x' + testTokenId.id.slice(26);
-    const [domain, id, newEvmId] = await bridgeMessage.testSplitTokenId(tokenIdBytes);
+    const evmId = '0x' + (testTokenId.id as string).slice(26);
+    const [domain, id, newEvmId] = await bridgeMessage.testSplitTokenId(
+      tokenIdBytes,
+    );
     expect(domain).to.equal(testTokenId.domain);
     expect(id).to.equal(testTokenId.id);
     expect(newEvmId).to.equal(evmId);
 
-    const stuff = await bridgeMessage.testSplitTokenId(transferMessageBytes);
+    await bridgeMessage.testSplitTokenId(transferMessageBytes);
   });
 
   it('returns elements of a transfer action', async () => {
     const evmRecipient = deployerAddress;
 
-    const [type, recipient, newEvmRecipient, amount] = await bridgeMessage.testSplitTransfer(transferBytes);
+    const [type, recipient, newEvmRecipient, amount] =
+      await bridgeMessage.testSplitTransfer(transferBytes);
     expect(type).to.equal(BridgeMessageTypes.TRANSFER);
     expect(recipient).to.equal(transferAction.recipient);
     expect(newEvmRecipient).to.equal(evmRecipient);
@@ -225,7 +284,9 @@ describe('BridgeMessage', async () => {
   });
 
   it('returns elements of a details action', async () => {
-    const [type, name, symbol, decimals] = await bridgeMessage.testSplitDetails(detailsBytes);
+    const [type, name, symbol, decimals] = await bridgeMessage.testSplitDetails(
+      detailsBytes,
+    );
     expect(type).to.equal(BridgeMessageTypes.DETAILS);
     expect(name).to.equal(detailsAction.name);
     expect(symbol).to.equal(detailsAction.symbol);
@@ -233,7 +294,9 @@ describe('BridgeMessage', async () => {
   });
 
   it('returns elements of a message', async () => {
-    const [newTokenId, action] = await bridgeMessage.testSplitMessage(transferMessageBytes);
+    const [newTokenId, action] = await bridgeMessage.testSplitMessage(
+      transferMessageBytes,
+    );
     expect(newTokenId).to.equal(tokenIdBytes);
     expect(action).to.equal(transferBytes);
   });
@@ -241,10 +304,20 @@ describe('BridgeMessage', async () => {
   it('fails if message type is not valid', async () => {
     const revertMsg = 'Validity assertion failed';
 
-    await expect(bridgeMessage.testMustBeTransfer(detailsBytes)).to.be.revertedWith(revertMsg);
-    await expect(bridgeMessage.testMustBeDetails(transferBytes)).to.be.revertedWith(revertMsg);
-    await expect(bridgeMessage.testMustBeRequestDetails(transferBytes)).to.be.revertedWith(revertMsg);
-    await expect(bridgeMessage.testMustBeTokenId(transferBytes)).to.be.revertedWith(revertMsg);
-    await expect(bridgeMessage.testMustBeMessage(transferBytes)).to.be.revertedWith(revertMsg);
+    await expect(
+      bridgeMessage.testMustBeTransfer(detailsBytes),
+    ).to.be.revertedWith(revertMsg);
+    await expect(
+      bridgeMessage.testMustBeDetails(transferBytes),
+    ).to.be.revertedWith(revertMsg);
+    await expect(
+      bridgeMessage.testMustBeRequestDetails(transferBytes),
+    ).to.be.revertedWith(revertMsg);
+    await expect(
+      bridgeMessage.testMustBeTokenId(transferBytes),
+    ).to.be.revertedWith(revertMsg);
+    await expect(
+      bridgeMessage.testMustBeMessage(transferBytes),
+    ).to.be.revertedWith(revertMsg);
   });
 });

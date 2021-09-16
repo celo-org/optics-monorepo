@@ -1,8 +1,8 @@
-import { BytesLike, Signer } from 'ethers';
+import { BigNumber, BytesLike, Signer } from 'ethers';
 import {
   UpgradeBeaconController,
   UpgradeBeaconController__factory,
-} from '../../../typechain/optics-core';
+} from '@optics-xyz/ts-interface/dist/optics-core';
 import {
   BridgeRouter,
   BridgeToken,
@@ -11,16 +11,53 @@ import {
   MockCore__factory,
   MockWeth,
   MockWeth__factory,
-} from '../../../typechain/optics-xapps';
+} from '@optics-xyz/ts-interface/dist/optics-xapps';
 import { ContractVerificationInput } from '../deploy';
 import { BridgeContracts } from './BridgeContracts';
 import * as process from '.';
-import { TokenId } from '../../../optics-tests/lib/types';
 import { Chain } from '../chain';
-import { getTestChain } from '../../../optics-tests/test/testChain';
+
+import { TokenIdentifier } from '@optics-xyz/multi-provider/dist/optics/tokens';
+import { CoreConfig } from '../core/CoreDeploy';
 
 function toBytes32(address: string): string {
   return '0x' + '00'.repeat(12) + address.slice(2);
+}
+
+export async function getTestChain(
+  ethers: any,
+  domain: number,
+  updater: string,
+  watchers: string[],
+  recoveryManager?: string,
+): Promise<[Chain, CoreConfig]> {
+  const [, , , , , , , deployer] = await ethers.getSigners();
+  return [
+    {
+      name: 'hh',
+      provider: ethers.provider,
+      deployer,
+      gasPrice: BigNumber.from(20000000000),
+      gasLimit: BigNumber.from(6_000_000),
+      confirmations: 0,
+      domain,
+      config: {
+        domain,
+        name: 'hh',
+        rpc: 'NA',
+      },
+    },
+    {
+      environment: 'dev',
+      recoveryTimelock: 1,
+      recoveryManager: recoveryManager || ethers.constants.AddressZero,
+      updater,
+      optimisticSeconds: 3,
+      watchers,
+      processGas: 850_000,
+      reserveGas: 15_000,
+    },
+  ];
 }
 
 // A BridgeRouter deployed with a mock Core suite.
@@ -65,13 +102,13 @@ export default class TestBridgeDeploy {
     this.chain = chain;
   }
 
-  static async deploy(signer: Signer): Promise<TestBridgeDeploy> {
+  static async deploy(ethers: any, signer: Signer): Promise<TestBridgeDeploy> {
     const mockCore = await new MockCore__factory(signer).deploy();
     const mockWeth = await new MockWeth__factory(signer).deploy();
     const ubc = await new UpgradeBeaconController__factory(signer).deploy();
     const contracts = new BridgeContracts();
     const domain = await mockCore.localDomain();
-    const [chain] = await getTestChain(domain, '', []);
+    const [chain] = await getTestChain(ethers, domain, '', []);
     chain.deployer = signer;
 
     let deploy = new TestBridgeDeploy(
@@ -138,7 +175,7 @@ export default class TestBridgeDeploy {
     return `0x${'11'.repeat(32)}`;
   }
 
-  get testTokenId(): TokenId {
+  get testTokenId(): TokenIdentifier {
     return {
       domain: this.remoteDomain,
       id: this.testToken,

@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { TestCommon__factory, TestCommon } from '../../typechain/optics-core';
 import { OpticsState, Updater } from '../lib/core';
 import { Signer } from '../lib/types';
-import signedUpdateTestCases from '../../../vectors/signedUpdate.json';
 
+import {
+  TestCommon__factory,
+  TestCommon,
+} from '@optics-xyz/ts-interface/dist/optics-core';
+
+const signedUpdateTestCases = require('../../../vectors/signedUpdate.json');
 const localDomain = 1000;
 
 describe('Common', async () => {

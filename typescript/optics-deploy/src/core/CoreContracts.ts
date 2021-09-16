@@ -1,4 +1,4 @@
-import * as contracts from '../../../typechain/optics-core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 import { BeaconProxy, ProxyAddresses } from '../proxyUtils';
 import { Contracts } from '../contracts';
 import { CoreContractAddresses } from '../chain';

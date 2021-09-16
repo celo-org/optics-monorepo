@@ -3,17 +3,17 @@ import { expect } from 'chai';
 import { getTestDeploy } from './testChain';
 import { OpticsState, Updater } from '../lib/core';
 import { Signer } from '../lib/types';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
-import * as deploys from '../../optics-deploy/src/core';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
+import * as deploys from '@optics-xyz/deploy/dist/src/core';
 
 import {
   TestHome,
   UpdaterManager__factory,
   UpdaterManager,
-} from '../../typechain/optics-core';
+} from '@optics-xyz/ts-interface/dist/optics-core';
 
-import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
-import destinationNonceTestCases from '../../../vectors/destinationNonce.json';
+const homeDomainHashTestCases = require('../../../vectors/homeDomainHash.json');
+const destinationNonceTestCases = require('../../../vectors/destinationNonce.json');
 
 const localDomain = 1000;
 const destDomain = 2000;
@@ -128,15 +128,12 @@ describe('Home', async () => {
     const nonce = await home.nonces(localDomain);
 
     // Format data that will be emitted from Dispatch event
-    const destinationAndNonce = optics.destinationAndNonce(
-      destDomain,
-        nonce,
-    );
+    const destinationAndNonce = optics.destinationAndNonce(destDomain, nonce);
 
     const opticsMessage = optics.formatMessage(
       localDomain,
       signer.address,
-        nonce,
+      nonce,
       destDomain,
       recipient.address,
       message,
@@ -275,11 +272,11 @@ describe('Home', async () => {
   it('Correctly calculates destinationAndNonce', async () => {
     for (let testCase of destinationNonceTestCases) {
       let { destination, nonce, expectedDestinationAndNonce } = testCase;
-      const solidityDestinationAndNonce =
-        await home.testDestinationAndNonce(destination, nonce);
-      expect(solidityDestinationAndNonce).to.equal(
-          expectedDestinationAndNonce,
+      const solidityDestinationAndNonce = await home.testDestinationAndNonce(
+        destination,
+        nonce,
       );
+      expect(solidityDestinationAndNonce).to.equal(expectedDestinationAndNonce);
     }
   });
 });

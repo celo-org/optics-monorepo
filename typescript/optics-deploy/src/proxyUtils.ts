@@ -1,13 +1,18 @@
 import { BytesLike, ethers } from 'ethers';
 
-import * as contracts from '../../typechain/optics-core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 import { CoreDeploy } from './core/CoreDeploy';
 import { BridgeDeploy } from './bridge/BridgeDeploy';
 import TestBridgeDeploy from './bridge/TestBridgeDeploy';
 
 type Deploy = CoreDeploy | BridgeDeploy | TestBridgeDeploy;
 
-type ProxyNames = "Home" | "Replica" | "Governance" | "BridgeToken" | "BridgeRouter";
+type ProxyNames =
+  | 'Home'
+  | 'Replica'
+  | 'Governance'
+  | 'BridgeToken'
+  | 'BridgeRouter';
 
 export class BeaconProxy<T extends ethers.Contract> {
   implementation: T;
@@ -51,10 +56,7 @@ export async function deployProxy<T extends ethers.Contract>(
   // we cast here because Factories don't have associated types
   // this is unsafe if the specified typevar doesn't match the factory output
   // :(
-  const implementation = (await factory.deploy(
-    ...deployArgs,
-    deploy.overrides,
-  ));
+  const implementation = await factory.deploy(...deployArgs, deploy.overrides);
   const beacon = await _deployBeacon(deploy, implementation);
   const proxy = await _deployProxy(deploy, beacon, initData);
 

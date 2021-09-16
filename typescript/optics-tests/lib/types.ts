@@ -1,4 +1,5 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { TokenIdentifier } from '@optics-xyz/multi-provider/dist/optics';
 import { BytesLike, ethers } from 'ethers';
 import { BridgeMessageTypes } from './bridge';
 
@@ -109,32 +110,28 @@ export type MessageLen = {
   transfer: number;
   details: number;
   requestDetails: number;
-}
+};
 
 export type Action = DetailsAction | TransferAction | RequestDetailsAction;
 
-export type TokenId = {
-  domain: number;
-  id: string;
-}
 export type Message = {
-  tokenId: TokenId;
+  tokenId: TokenIdentifier;
   action: Action;
-}
+};
 
 export type TransferAction = {
   type: BridgeMessageTypes.TRANSFER;
   recipient: ethers.BytesLike;
   amount: number | ethers.BytesLike;
-}
+};
 
 export type DetailsAction = {
   type: BridgeMessageTypes.DETAILS;
   name: string;
   symbol: string;
   decimals: number;
-}
+};
 
 export type RequestDetailsAction = {
   type: BridgeMessageTypes.REQUEST_DETAILS;
-}
+};

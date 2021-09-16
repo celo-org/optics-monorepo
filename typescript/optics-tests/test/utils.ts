@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import ethers from 'ethers';
 
 import { Signer } from '../lib/types';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
 import {
   deployUpdaterManager,
   deployUpgradeBeaconController,
-} from '../../optics-deploy/src/core';
-import * as contracts from '../../typechain/optics-core';
+} from '@optics-xyz/deploy/dist/src/core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 
 export const increaseTimestampBy = async (
   provider: ethers.providers.JsonRpcProvider,
@@ -94,3 +94,11 @@ export class UpgradeTestHelpers {
     expect(stateResult).to.equal(this.stateVar);
   }
 }
+
+export const stringToBytes32 = (s: string): string => {
+  const str = Buffer.from(s.slice(0, 32), 'utf-8');
+  const result = Buffer.alloc(32);
+  str.copy(result);
+
+  return '0x' + result.toString('hex');
+};

@@ -1,7 +1,7 @@
 import * as proxyUtils from '../proxyUtils';
 import { checkBridgeDeploy } from './checks';
-import * as xAppContracts from '../../../typechain/optics-xapps';
-import { toBytes32 } from '../../../optics-tests/lib/utils';
+import * as xAppContracts from '@optics-xyz/ts-interface/dist/optics-xapps';
+import { toBytes32 } from '../utils';
 import fs from 'fs';
 import { BridgeDeploy } from './BridgeDeploy';
 import TestBridgeDeploy from './TestBridgeDeploy';
@@ -31,7 +31,7 @@ export async function deployBridges(deploys: Deploy[]) {
       await deployTokenUpgradeBeacon(deploy);
       await deployBridgeRouter(deploy);
       await deployEthHelper(deploy);
-    })
+    }),
   );
 
   // after all BridgeRouters have been deployed,
@@ -39,7 +39,7 @@ export async function deployBridges(deploys: Deploy[]) {
   await Promise.all(
     deploys.map(async (deploy) => {
       await enrollAllBridgeRouters(deploy, deploys);
-    })
+    }),
   );
 
   // after all peer BridgeRouters have been co-enrolled,
@@ -47,17 +47,17 @@ export async function deployBridges(deploys: Deploy[]) {
   await Promise.all(
     deploys.map(async (deploy) => {
       await transferOwnershipToGovernance(deploy);
-    })
+    }),
   );
 
   await Promise.all(
     deploys.map(async (local) => {
       const remotes = deploys
-        .filter(remote => remote.chain.domain != local.chain.domain)
-        .map(remote => remote.chain.domain);
+        .filter((remote) => remote.chain.domain != local.chain.domain)
+        .map((remote) => remote.chain.domain);
       await checkBridgeDeploy(local, remotes);
-    })
-  )
+    }),
+  );
 
   if (!isTestDeploy) {
     // output the Bridge deploy information to a subdirectory

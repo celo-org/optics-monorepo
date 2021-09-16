@@ -1,3 +1,4 @@
+import { TokenIdentifier } from '@optics-xyz/multi-provider/dist/optics';
 import { assert } from 'chai';
 import { ethers } from 'ethers';
 
@@ -19,28 +20,38 @@ const MESSAGE_LEN = {
   tokenId: 36,
   transfer: 65,
   details: 66,
-  requestDetails: 1
-}
+  requestDetails: 1,
+};
 
 // Formats Transfer Message
-export function formatTransfer(to: ethers.BytesLike, amnt: number | ethers.BytesLike): ethers.BytesLike {
+export function formatTransfer(
+  to: ethers.BytesLike,
+  amnt: number | ethers.BytesLike,
+): ethers.BytesLike {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'uint256'],
-    [BridgeMessageTypes.TRANSFER, to, amnt]
+    [BridgeMessageTypes.TRANSFER, to, amnt],
   );
 }
 
 // Formats Details Message
-export function formatDetails(name: string, symbol: string, decimals: number): ethers.BytesLike {
+export function formatDetails(
+  name: string,
+  symbol: string,
+  decimals: number,
+): ethers.BytesLike {
   return ethers.utils.solidityPack(
     ['bytes1', 'bytes32', 'bytes32', 'uint8'],
-    [BridgeMessageTypes.DETAILS, name, symbol, decimals]
+    [BridgeMessageTypes.DETAILS, name, symbol, decimals],
   );
 }
 
 // Formats Request Details message
 export function formatRequestDetails(): ethers.BytesLike {
-  return ethers.utils.solidityPack(['bytes1'], [BridgeMessageTypes.REQUEST_DETAILS]);
+  return ethers.utils.solidityPack(
+    ['bytes1'],
+    [BridgeMessageTypes.REQUEST_DETAILS],
+  );
 }
 
 // Formats the Token ID
@@ -48,32 +59,41 @@ export function formatTokenId(domain: number, id: string): ethers.BytesLike {
   return ethers.utils.solidityPack(['uint32', 'bytes32'], [domain, id]);
 }
 
-export function formatMessage(tokenId: ethers.BytesLike, action: ethers.BytesLike): ethers.BytesLike {
+export function formatMessage(
+  tokenId: ethers.BytesLike,
+  action: ethers.BytesLike,
+): ethers.BytesLike {
   return ethers.utils.solidityPack(['bytes', 'bytes'], [tokenId, action]);
 }
 
-export function serializeTransferAction(transferAction: types.TransferAction): ethers.BytesLike {
+export function serializeTransferAction(
+  transferAction: types.TransferAction,
+): ethers.BytesLike {
   const { type, recipient, amount } = transferAction;
 
   assert(type === BridgeMessageTypes.TRANSFER);
   return formatTransfer(recipient, amount);
 }
 
-export function serializeDetailsAction(detailsAction: types.DetailsAction): ethers.BytesLike {
+export function serializeDetailsAction(
+  detailsAction: types.DetailsAction,
+): ethers.BytesLike {
   const { type, name, symbol, decimals } = detailsAction;
 
   assert(type === BridgeMessageTypes.DETAILS);
   return formatDetails(name, symbol, decimals);
 }
 
-export function serializeRequestDetailsAction(requestDetailsAction: types.RequestDetailsAction): ethers.BytesLike {
+export function serializeRequestDetailsAction(
+  requestDetailsAction: types.RequestDetailsAction,
+): ethers.BytesLike {
   assert(requestDetailsAction.type === BridgeMessageTypes.REQUEST_DETAILS);
   return formatRequestDetails();
 }
 
 export function serializeAction(action: types.Action): ethers.BytesLike {
   let actionBytes: ethers.BytesLike = [];
-  switch(action.type) {
+  switch (action.type) {
     case BridgeMessageTypes.TRANSFER: {
       actionBytes = serializeTransferAction(action);
       break;
@@ -87,21 +107,24 @@ export function serializeAction(action: types.Action): ethers.BytesLike {
       break;
     }
     default: {
-      console.error("Invalid action");
+      console.error('Invalid action');
       break;
     }
   }
   return actionBytes;
 }
 
-export function serializeTokenId(tokenId: types.TokenId): ethers.BytesLike {
-  return formatTokenId(tokenId.domain, tokenId.id);
+export function serializeTokenId(tokenId: TokenIdentifier): ethers.BytesLike {
+  if (typeof tokenId.domain !== 'number' || typeof tokenId.id !== 'string') {
+    throw new Error('!types');
+  }
+  return formatTokenId(tokenId.domain as number, tokenId.id as string);
 }
 
 export function serializeMessage(message: types.Message): ethers.BytesLike {
   const tokenId = serializeTokenId(message.tokenId);
   const action = serializeAction(message.action);
-  return formatMessage(tokenId, action)
+  return formatMessage(tokenId, action);
 }
 
 export const bridge: types.HardhatBridgeHelpers = {
@@ -113,5 +136,5 @@ export const bridge: types.HardhatBridgeHelpers = {
   serializeRequestDetailsAction,
   serializeAction,
   serializeTokenId,
-  serializeMessage
-}
+  serializeMessage,
+};

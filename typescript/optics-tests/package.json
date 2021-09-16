@@ -16,17 +16,21 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
+    "@optics-xyz/deploy": "^0.0.3",
+    "@optics-xyz/multi-provider": "^0.0.4",
+    "@optics-xyz/ts-interface": "^1.0.9",
     "@types/node": "^15.14.7",
     "dotenv": "^10.0.0",
     "ethers": "^5.4.1"
   },
-  "name": "optics-ts",
+  "name": "@optics-xyz/optics-test",
   "version": "1.0.0",
-  "description": "Optics typescript tools",
+  "description": "Optics typescript tests and tools",
   "main": "index.ts",
   "scripts": {
+    "check": "tsc --noEmit",
     "prettier": "prettier --write ./test ./lib",
-    "test": "cd ../../ && ./scripts/test-solidity.sh",
+    "test": "hardhat test",
     "testNoCompile": "hardhat test"
   },
   "author": "Celo Labs Inc.",

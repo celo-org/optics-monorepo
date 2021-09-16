@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { getTestDeploy } from './testChain';
 import { UpgradeTestHelpers, MysteryMathUpgrade } from './utils';
 import { Signer } from '../lib/types';
-import * as contracts from '../../typechain/optics-core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 
 describe('Upgrade', async () => {
   const utils = new UpgradeTestHelpers();

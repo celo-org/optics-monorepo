@@ -4,9 +4,9 @@ import fs from 'fs';
 
 import * as proxyUtils from '../proxyUtils';
 import { CoreDeploy } from './CoreDeploy';
-import { toBytes32 } from '../../../optics-tests/lib/utils';
-import * as contracts from '../../../typechain/optics-core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 import { checkCoreDeploy } from './checks';
+import { toBytes32 } from '../utils';
 
 function log(isTest: boolean, str: string) {
   if (!isTest) {
@@ -474,8 +474,14 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
   log(isTestDeploy, 'Beginning Two Chain deploy process');
   log(isTestDeploy, `Deploy env is ${gov.config.environment}`);
   log(isTestDeploy, `${gov.chain.name} is governing`);
-  log(isTestDeploy, `Updater for ${gov.chain.name} Home is ${gov.config.updater}`);
-  log(isTestDeploy, `Updater for ${non.chain.name} Home is ${non.config.updater}`);
+  log(
+    isTestDeploy,
+    `Updater for ${gov.chain.name} Home is ${gov.config.updater}`,
+  );
+  log(
+    isTestDeploy,
+    `Updater for ${non.chain.name} Home is ${non.config.updater}`,
+  );
 
   log(isTestDeploy, 'awaiting provider ready');
   await Promise.all([gov.ready(), non.ready()]);
@@ -546,7 +552,8 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   log(isTestDeploy, `Deploy env is ${deploys[0].config.environment}`);
   log(isTestDeploy, `${deploys[0].chain.name} is governing`);
   deploys.forEach((deploy) => {
-    log(isTestDeploy,
+    log(
+      isTestDeploy,
       `Updater for ${deploy.chain.name} Home is ${deploy.config.updater}`,
     );
   });
@@ -555,15 +562,19 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   const nonGovChains = deploys.slice(1);
 
   log(isTestDeploy, 'awaiting provider ready');
-  await Promise.all([deploys.map(async (deploy) => {
-    await deploy.ready();
-  })]);
+  await Promise.all([
+    deploys.map(async (deploy) => {
+      await deploy.ready();
+    }),
+  ]);
   log(isTestDeploy, 'done readying');
 
   // deploy optics on each chain
-  await Promise.all(deploys.map(async (deploy) => {
-    await deployOptics(deploy);
-  }));
+  await Promise.all(
+    deploys.map(async (deploy) => {
+      await deployOptics(deploy);
+    }),
+  );
 
   // enroll remotes on every chain
   //
@@ -571,7 +582,9 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   //    which results in multiple replica implementations on the home chain.
   //
   for (let local of deploys) {
-    const remotes = deploys.filter(d => d.chain.domain !== local.chain.domain);
+    const remotes = deploys.filter(
+      (d) => d.chain.domain !== local.chain.domain,
+    );
     for (let remote of remotes) {
       log(
         isTestDeploy,
@@ -604,9 +617,11 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   const govDomain = deploys[0].chain.domain;
   for (var i = 0; i < deploys.length; i++) {
     const localDomain = deploys[i].chain.domain;
-    const remoteDomains = deploys.map(deploy => deploy.chain.domain).filter(domain => {
-      return domain != localDomain
-    });
+    const remoteDomains = deploys
+      .map((deploy) => deploy.chain.domain)
+      .filter((domain) => {
+        return domain != localDomain;
+      });
     await checkCoreDeploy(deploys[i], remoteDomains, govDomain);
   }
 

@@ -2,8 +2,8 @@ import * as ethers from 'ethers';
 import { BigNumber } from 'ethers';
 import { NonceManager } from '@ethersproject/experimental';
 import { ProxyAddresses } from './proxyUtils';
-import { Address } from '../../optics-tests/lib/types';
 
+type Address = string;
 export type DeployEnvironment = 'dev' | 'staging' | 'prod';
 
 export type CoreContractAddresses = {

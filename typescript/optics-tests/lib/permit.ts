@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import { BridgeToken } from '../../typechain/optics-xapps';
+import { BridgeToken } from '@optics-xyz/ts-interface/dist/optics-xapps';
 
 const PERMIT_TYPEHASH = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes(

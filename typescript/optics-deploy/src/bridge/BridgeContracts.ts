@@ -1,4 +1,4 @@
-import * as xAppContracts from '../../../typechain/optics-xapps';
+import * as xAppContracts from '@optics-xyz/ts-interface/dist/optics-xapps';
 import { BeaconProxy } from '../proxyUtils';
 import { Contracts } from '../contracts';
 

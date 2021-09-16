@@ -3,7 +3,6 @@ import * as celo from '../../config/mainnets/celo';
 import * as ethereum from '../../config/mainnets/ethereum';
 import * as polygon from '../../config/mainnets/polygon';
 import { CoreDeploy } from '../../src/core/CoreDeploy';
-import { deployEnvironment } from '../../src/chain';
 
 let celoConfig = celo.config;
 let kovanConfig = ethereum.config;

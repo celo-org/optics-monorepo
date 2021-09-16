@@ -1,11 +1,13 @@
 import { ethers, bridge } from 'hardhat';
-const { BridgeMessageTypes } = bridge;
 import { Signer } from 'ethers';
 import { expect } from 'chai';
 
 import * as types from '../../lib/types';
 import { toBytes32 } from '../../lib/utils';
-import TestBridgeDeploy from '../../../optics-deploy/src/bridge/TestBridgeDeploy';
+import TestBridgeDeploy from '@optics-xyz/deploy/dist/src/bridge/TestBridgeDeploy';
+import { TokenIdentifier } from '@optics-xyz/multi-provider/dist/optics';
+
+const { BridgeMessageTypes } = bridge;
 
 describe('EthHelper', async () => {
   let deploy: TestBridgeDeploy;
@@ -29,20 +31,20 @@ describe('EthHelper', async () => {
     deployerId = toBytes32(deployerAddress).toLowerCase();
     recipientAddress = await recipient.getAddress();
     recipientId = toBytes32(recipientAddress).toLowerCase();
-    deploy = await TestBridgeDeploy.deploy(deployer);
+    deploy = await TestBridgeDeploy.deploy(ethers, deployer);
 
-    const tokenId: types.TokenId = {
+    const tokenId: TokenIdentifier = {
       domain: deploy.localDomain,
-      id: toBytes32(deploy.mockWeth.address)
-    }
+      id: toBytes32(deploy.mockWeth.address),
+    };
     const transferToSelfMessageObj: types.Message = {
       tokenId,
       action: {
         type: BridgeMessageTypes.TRANSFER,
         recipient: deployerId,
-        amount: value
-      }
-    }
+        amount: value,
+      },
+    };
     transferToSelfMessage = bridge.serializeMessage(transferToSelfMessageObj);
 
     const transferMessageObj: types.Message = {
@@ -50,9 +52,9 @@ describe('EthHelper', async () => {
       action: {
         type: BridgeMessageTypes.TRANSFER,
         recipient: recipientId,
-        amount: value
-      }
-    }
+        amount: value,
+      },
+    };
     transferMessage = bridge.serializeMessage(transferMessageObj);
   });
 

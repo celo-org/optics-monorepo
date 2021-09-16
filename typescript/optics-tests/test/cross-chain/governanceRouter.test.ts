@@ -1,22 +1,17 @@
 import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
-import { providers } from 'ethers';
 
-import {
-  updateReplica,
-  formatCall,
-  formatOpticsMessage,
-} from './utils';
+import { updateReplica, formatCall, formatOpticsMessage } from './utils';
 import { increaseTimestampBy, UpgradeTestHelpers } from '../utils';
 import { getTestDeploy } from '../testChain';
 import { Updater } from '../../lib/core';
 import { Address, Signer } from '../../lib/types';
-import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
 import {
   deployNChains,
   deployUnenrolledReplica,
-} from '../../../optics-deploy/src/core';
-import * as contracts from '../../../typechain/optics-core';
+} from '@optics-xyz/deploy/dist/src/core';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 
 const helpers = require('../../../../vectors/proof.json');
 
@@ -141,10 +136,7 @@ describe('GovernanceRouter', async () => {
 
     // Increase time enough for both updates to be confirmable
     const optimisticSeconds = deploy.config.optimisticSeconds;
-    await increaseTimestampBy(
-      deploy.chain.provider,
-      optimisticSeconds * 2,
-    );
+    await increaseTimestampBy(deploy.chain.provider, optimisticSeconds * 2);
 
     // after confirming, committedRoot should be equal to the last submitted update
     expect(await governorReplicaOnNonGovernorChain.committedRoot()).to.equal(

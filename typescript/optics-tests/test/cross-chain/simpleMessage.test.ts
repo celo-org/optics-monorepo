@@ -3,17 +3,16 @@ import { expect } from 'chai';
 
 import * as utils from './utils';
 import { getTestDeploy } from '../testChain';
-import { increaseTimestampBy } from '../utils';
 import { Updater, MessageStatus } from '../../lib/core';
 import { Update, Signer, BytesArray } from '../../lib/types';
-import { CoreDeploy as Deploy } from '../../../optics-deploy/src/core/CoreDeploy';
-import { deployTwoChains } from '../../../optics-deploy/src/core';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
+import { deployTwoChains } from '@optics-xyz/deploy/dist/src/core';
 import {
   TestRecipient__factory,
   TestReplica,
-} from '../../../typechain/optics-core';
+} from '@optics-xyz/ts-interface/dist/optics-core';
 
-import proveAndProcessTestCases from '../../../../vectors/proveAndProcess.json';
+const proveAndProcessTestCases = require('../../../../vectors/proveAndProcess.json');
 
 const domains = [1000, 2000];
 const localDomain = domains[0];
@@ -32,11 +31,7 @@ describe('SimpleCrossChainMessage', async () => {
   // deploys[1] is the remote deploy
   let deploys: Deploy[] = [];
 
-  let randomSigner: Signer,
-    firstRootSubmittedToReplica: string,
-    updater: Updater,
-    latestRoot: string,
-    latestUpdate: Update;
+  let randomSigner: Signer, updater: Updater, latestUpdate: Update;
 
   before(async () => {
     [randomSigner] = await ethers.getSigners();
@@ -83,11 +78,10 @@ describe('SimpleCrossChainMessage', async () => {
     );
 
     latestUpdate = update;
-    latestRoot = update.newRoot;
   });
 
   it('Destination Replica Accepts the first update', async () => {
-    firstRootSubmittedToReplica = await utils.updateReplica(
+    await utils.updateReplica(
       latestUpdate,
       deploys[1].contracts.replicas[localDomain].proxy!,
     );
@@ -102,9 +96,7 @@ describe('SimpleCrossChainMessage', async () => {
       messages,
       updater,
     );
-
     latestUpdate = update;
-    latestRoot = update.newRoot;
   });
 
   it('Destination Replica Accepts the second update', async () => {
@@ -167,6 +159,8 @@ describe('SimpleCrossChainMessage', async () => {
 
     // expect call to have been processed
     expect(await TestRecipient.processed()).to.be.true;
-    expect(await replica.messages(messageHash)).to.equal(MessageStatus.PROCESSED);
+    expect(await replica.messages(messageHash)).to.equal(
+      MessageStatus.PROCESSED,
+    );
   });
 });

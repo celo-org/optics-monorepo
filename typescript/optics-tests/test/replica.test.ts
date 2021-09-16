@@ -1,25 +1,24 @@
 import { ethers, optics } from 'hardhat';
 import { expect } from 'chai';
 
-import { increaseTimestampBy } from './utils';
 import { getTestDeploy } from './testChain';
 import { Updater, OpticsState, MessageStatus } from '../lib/core';
 import { Signer, BytesArray } from '../lib/types';
-import * as contracts from '../../typechain/optics-core';
-import { CoreDeploy as Deploy } from '../../optics-deploy/src/core/CoreDeploy';
+import { CoreDeploy as Deploy } from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
 import {
   deployUnenrolledReplica,
   deployUpgradeBeaconController,
   deployUpdaterManager,
-} from '../../optics-deploy/src/core';
+} from '@optics-xyz/deploy/dist/src/core';
 
-import homeDomainHashTestCases from '../../../vectors/homeDomainHash.json';
-import merkleTestCases from '../../../vectors/merkle.json';
-import proveAndProcessTestCases from '../../../vectors/proveAndProcess.json';
+import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
+
+const homeDomainHashTestCases = require('../../../vectors/homeDomainHash.json');
+const merkleTestCases = require('../../../vectors/merkle.json');
+const proveAndProcessTestCases = require('../../../vectors/proveAndProcess.json');
 
 const localDomain = 2000;
 const remoteDomain = 1000;
-const optimisticSeconds = 3;
 
 describe('Replica', async () => {
   const badRecipientFactories = [
@@ -86,9 +85,7 @@ describe('Replica', async () => {
     expect(await replica.state()).to.equal(OpticsState.FAILED);
 
     const newRoot = ethers.utils.formatBytes32String('new root');
-    await expect(submitValidUpdate(newRoot)).to.be.revertedWith(
-      'failed state',
-    );
+    await expect(submitValidUpdate(newRoot)).to.be.revertedWith('failed state');
   });
 
   it('Calculated domain hash matches Rust-produced domain hash', async () => {
@@ -263,7 +260,7 @@ describe('Replica', async () => {
     const processTx = replica.process(opticsMessage);
     await expect(processTx)
       .to.emit(replica, 'Process')
-      .withArgs(optics.messageHash(opticsMessage), true, "0x");
+      .withArgs(optics.messageHash(opticsMessage), true, '0x');
   });
 
   it('Fails to process an unproved message', async () => {
@@ -295,7 +292,7 @@ describe('Replica', async () => {
       const opticsMessage = optics.formatMessage(
         remoteDomain,
         sender.address,
-          nonce,
+        nonce,
         localDomain,
         badRecipient.address,
         '0x',
@@ -315,7 +312,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-        nonce,
+      nonce,
       // Wrong destination Domain
       localDomain + 5,
       recipient.address,
@@ -334,7 +331,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       opticsMessageSender.address,
-        nonce,
+      nonce,
       localDomain,
       '0x1234567890123456789012345678901234567890', // non-existent contract address
       body,
@@ -353,7 +350,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-        nonce,
+      nonce,
       localDomain,
       recipient.address,
       body,
@@ -378,7 +375,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-        nonce,
+      nonce,
       localDomain,
       testRecipient.address,
       '0x',
@@ -404,7 +401,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-        nonce,
+      nonce,
       localDomain,
       testRecipient.address,
       '0x',
@@ -445,7 +442,7 @@ describe('Replica', async () => {
     const opticsMessage = optics.formatMessage(
       remoteDomain,
       sender.address,
-        nonce,
+      nonce,
       localDomain,
       recipient.address,
       '0x',

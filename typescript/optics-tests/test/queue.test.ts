@@ -1,6 +1,9 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { TestQueue, TestQueue__factory } from '../../typechain/optics-core';
+import {
+  TestQueue,
+  TestQueue__factory,
+} from '@optics-xyz/ts-interface/dist/optics-core';
 
 // create a proper hex encoded bytes32 filled with number. e.g 0x01010101...
 const bytes32 = (num: number) => `0x${Buffer.alloc(32, num).toString('hex')}`;
@@ -20,7 +23,7 @@ describe('Queue', async () => {
 
     const items = Array.from(new Array(10).keys()).map((i) => bytes32(i));
 
-    for (const [idx, item] of items.entries()) {
+    for (const [idx, item] of Array.from(items.entries())) {
       await queue.enqueue(item);
       const length = await queue.length();
       expect(length).to.equal(idx + 1);
@@ -34,7 +37,7 @@ describe('Queue', async () => {
     expect(await queue.contains(bytes32(3))).to.be.true;
     expect(await queue.contains(bytes32(0xff))).to.be.false;
 
-    for (const [idx, item] of items.entries()) {
+    for (const [idx, item] of Array.from(items.entries())) {
       // peek and dequeue
       const dequeued = await queue.peek();
       await queue.dequeue();

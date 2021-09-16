@@ -1,11 +1,12 @@
 import { ethers } from 'hardhat';
-import { Chain } from '../../optics-deploy/src/chain';
-const { BigNumber } = ethers;
 
 import {
   CoreConfig,
   CoreDeploy,
-} from '../../optics-deploy/src/core/CoreDeploy';
+} from '@optics-xyz/deploy/dist/src/core/CoreDeploy';
+import { Chain } from '@optics-xyz/deploy/dist/src/chain';
+
+const { BigNumber } = ethers;
 
 export async function getTestChain(
   domain: number,

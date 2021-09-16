@@ -1,5 +1,3 @@
-import tokens from './tokens';
-
 export { BridgeContracts } from './contracts/BridgeContracts';
 export { CoreContracts } from './contracts/CoreContracts';
 export {
