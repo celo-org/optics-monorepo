@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { ContractReceipt, ethers } from 'ethers';
 import { BridgeContracts, OpticsContext } from '..';
-import { ERC20 } from '@optics-xyz/ts-interface/optics-xapps';
+import { xapps } from '@optics-xyz/ts-interface';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
 import { OpticsMessage, parseMessage } from './OpticsMessage';
 
@@ -164,12 +164,12 @@ class BridgeMessage extends OpticsMessage {
   }
 
   // Get the asset at the orgin
-  async assetAtOrigin(): Promise<ERC20 | undefined> {
+  async assetAtOrigin(): Promise<xapps.ERC20 | undefined> {
     return (await this.asset()).tokens.get(this.origin);
   }
 
   // Get the asset at the destination
-  async assetAtDestination(): Promise<ERC20 | undefined> {
+  async assetAtDestination(): Promise<xapps.ERC20 | undefined> {
     return (await this.asset()).tokens.get(this.destination);
   }
 }

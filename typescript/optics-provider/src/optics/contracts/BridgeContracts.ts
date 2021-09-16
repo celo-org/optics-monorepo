@@ -1,19 +1,14 @@
 import fs from 'fs';
 import { ethers } from 'ethers';
-import {
-  BridgeRouter,
-  BridgeRouter__factory,
-  ETHHelper,
-  ETHHelper__factory,
-} from '@optics-xyz/ts-interface/optics-xapps';
+import { xapps } from '@optics-xyz/ts-interface';
 import { Contracts } from '../../contracts';
 
 type Address = string;
 
 export class BridgeContracts extends Contracts {
   domain: number;
-  bridgeRouter: BridgeRouter;
-  ethHelper?: ETHHelper;
+  bridgeRouter: xapps.BridgeRouter;
+  ethHelper?: xapps.ETHHelper;
 
   constructor(
     domain: number,
@@ -23,9 +18,9 @@ export class BridgeContracts extends Contracts {
   ) {
     super(domain, br, ethHelper, signer);
     this.domain = domain;
-    this.bridgeRouter = new BridgeRouter__factory(signer).attach(br);
+    this.bridgeRouter = new xapps.BridgeRouter__factory(signer).attach(br);
     if (ethHelper) {
-      this.ethHelper = new ETHHelper__factory(signer).attach(ethHelper);
+      this.ethHelper = new xapps.ETHHelper__factory(signer).attach(ethHelper);
     }
   }
 

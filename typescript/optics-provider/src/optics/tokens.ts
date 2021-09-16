@@ -1,5 +1,5 @@
 import { BytesLike } from 'ethers';
-import { ERC20 } from '@optics-xyz/ts-interface/optics-xapps';
+import { xapps } from '@optics-xyz/ts-interface';
 
 export interface TokenIdentifier {
   domain: string | number;
@@ -12,5 +12,5 @@ export type ResolvedTokenInfo = {
   // The canonical identifier
   id: BytesLike;
   // The contract on each chain
-  tokens: Map<number, ERC20>;
+  tokens: Map<number, xapps.ERC20>;
 };

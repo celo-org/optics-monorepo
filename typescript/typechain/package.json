@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "ethers": "^5.4.4"

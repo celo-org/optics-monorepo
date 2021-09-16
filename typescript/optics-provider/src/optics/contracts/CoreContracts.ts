@@ -1,12 +1,7 @@
 import fs from 'fs';
 
 import { ethers } from 'ethers';
-import {
-  Home,
-  Home__factory,
-  Replica,
-  Replica__factory,
-} from '@optics-xyz/ts-interface/optics-core';
+import { core } from '@optics-xyz/ts-interface';
 import { Contracts } from '../../contracts';
 import { ReplicaInfo } from '../domains/domain';
 
@@ -14,12 +9,12 @@ type Address = string;
 
 type InternalReplica = {
   domain: number;
-  contract: Replica;
+  contract: core.Replica;
 };
 
 export class CoreContracts extends Contracts {
   readonly domain;
-  home: Home;
+  home: core.Home;
   replicas: Map<number, InternalReplica>;
 
   constructor(
@@ -30,12 +25,12 @@ export class CoreContracts extends Contracts {
   ) {
     super(domain, home, replicas, signer);
     this.domain = domain;
-    this.home = new Home__factory(signer).attach(home);
+    this.home = new core.Home__factory(signer).attach(home);
 
     this.replicas = new Map();
     replicas.forEach((replica) => {
       this.replicas.set(replica.domain, {
-        contract: new Replica__factory(signer).attach(replica.address),
+        contract: new core.Replica__factory(signer).attach(replica.address),
         domain: replica.domain,
       });
     });

@@ -1,6 +1,6 @@
 import { BigNumberish, ethers } from 'ethers';
 import { MultiProvider } from '..';
-import { ERC20, ERC20__factory } from '@optics-xyz/ts-interface/optics-xapps';
+import { xapps, core } from '@optics-xyz/ts-interface';
 import { BridgeContracts } from './contracts/BridgeContracts';
 import { CoreContracts } from './contracts/CoreContracts';
 import { ResolvedTokenInfo, TokenIdentifier } from './tokens';
@@ -11,7 +11,6 @@ import {
   OpticsDomain,
   stagingDomains,
 } from './domains';
-import { Replica } from '@optics-xyz/ts-interface/optics-core';
 import { TransferMessage } from './messages';
 
 type Address = string;
@@ -111,7 +110,7 @@ export class OpticsContext extends MultiProvider {
   getReplicaFor(
     home: string | number,
     remote: string | number,
-  ): Replica | undefined {
+  ): core.Replica | undefined {
     return this.getCore(remote)?.replicas.get(this.resolveDomain(home))
       ?.contract;
   }
@@ -120,7 +119,7 @@ export class OpticsContext extends MultiProvider {
   async resolveTokenRepresentation(
     nameOrDomain: string | number,
     token: TokenIdentifier,
-  ): Promise<ERC20 | undefined> {
+  ): Promise<xapps.ERC20 | undefined> {
     const domain = this.resolveDomain(nameOrDomain);
     const bridge = this.getBridge(domain);
 
@@ -135,7 +134,7 @@ export class OpticsContext extends MultiProvider {
       return;
     }
 
-    let contract = new ERC20__factory().attach(address);
+    let contract = new xapps.ERC20__factory().attach(address);
 
     const connection = this.getConnection(domain);
     if (connection) {
@@ -148,7 +147,7 @@ export class OpticsContext extends MultiProvider {
   async tokenRepresentations(
     token: TokenIdentifier,
   ): Promise<ResolvedTokenInfo> {
-    const tokens: Map<number, ERC20> = new Map();
+    const tokens: Map<number, xapps.ERC20> = new Map();
 
     await Promise.all(
       this.domainNumbers.map(async (domain) => {

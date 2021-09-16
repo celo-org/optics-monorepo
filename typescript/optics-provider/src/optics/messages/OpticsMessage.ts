@@ -3,7 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
 import { ContractReceipt } from '@ethersproject/contracts';
 import { OpticsContext } from '..';
-import { Home__factory } from '@optics-xyz/ts-interface/optics-core';
+import { core } from '@optics-xyz/ts-interface';
 import { delay } from '../../utils';
 
 // match the typescript declaration
@@ -62,7 +62,7 @@ export class OpticsMessage {
 
     // find the first dispatch log by attempting to parse them
     let event;
-    const iface = new Home__factory().interface;
+    const iface = new core.Home__factory().interface;
     for (const log of receipt.logs) {
       let parsed: LogDescription;
       try {
