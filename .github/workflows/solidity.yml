@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./typescript/optics-provider/node_modules
-          key: ${{ runner.os }}-provider-cache-${{ hashFiles('typescript/optics-deploy/package-lock.json') }}
+          key: ${{ runner.os }}-provider-cache-${{ hashFiles('typescript/optics-provider/package-lock.json') }}
 
       # Install separately depending on cache hit
       - name: Install Core
