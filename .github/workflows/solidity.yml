@@ -53,6 +53,13 @@ jobs:
           path: ./typescript/typechain/node_modules
           key: ${{ runner.os }}-typechain-cache-${{ hashFiles('typescript/typechain/package-lock.json') }}
 
+      - name: Multi-Provider Cache
+        id: provider-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-provider/node_modules
+          key: ${{ runner.os }}-provider-cache-${{ hashFiles('typescript/optics-deploy/package-lock.json') }}
+
       # Install separately depending on cache hit
       - name: Install Core
         if: steps.core-cache.outputs.cache-hit != 'true'
@@ -73,6 +80,10 @@ jobs:
       - name: Install Typechain
         if: steps.typechain-cache.outputs.cache-hit != 'true'
         run: cd ./typescript/typechain && npm i
+
+      - name: Install Multi-Provider
+        if: steps.provider-cache.outputs.cache-hit != 'true'
+        run: cd ./typescript/optics-provider && npm i
 
   lint:
     runs-on: ubuntu-latest
@@ -149,6 +160,13 @@ jobs:
         with:
           path: ./typescript/typechain/node_modules
           key: ${{ runner.os }}-typechain-cache-${{ hashFiles('typescript/typechain/package-lock.json') }}
+
+      - name: Multi-Provider Cache
+        id: provider-cache
+        uses: actions/cache@v2
+        with:
+          path: ./typescript/optics-provider/node_modules
+          key: ${{ runner.os }}-provider-cache-${{ hashFiles('typescript/optics-provider/package-lock.json') }}
 
       # Test
       - name: Test
