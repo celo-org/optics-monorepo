@@ -1,5 +1,5 @@
 {
-  "name": "optics-provider",
+  "name": "@optics-xyz/multi-provider",
   "version": "0.0.0",
   "description": "multi-provider for Optics",
   "main": "src/index.ts",
