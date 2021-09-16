@@ -19,7 +19,7 @@ import { mainnet } from 'optics-provider';
 
 // Set up providers and signers
 const someEthersProvider = ethers.providers.WsProvider('...');
-const someEtheresSigner = new AnySigner(...);
+const someEthersSigner = new AnySigner(...);
 mainnet.registerProvider('ethereum', someEthersProvider);
 mainnet.registerSigner('ethereum', someEthersSigner);
 
