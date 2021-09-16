@@ -10,6 +10,21 @@ const Weth: TokenIdentifier = {
   id: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 };
 
+const WBTC: TokenIdentifier = {
+  domain: 'ethereum',
+  id: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+};
+
+const UNI: TokenIdentifier = {
+  domain: 'ethereum',
+  id: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+};
+
+const LINK: TokenIdentifier = {
+  domain: 'ethereum',
+  id: '0x514910771af9ca656af840dff83e8264ecf986ca',
+};
+
 const USDC: TokenIdentifier = {
   domain: 'ethereum',
   id: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -43,6 +58,9 @@ const WMATIC: TokenIdentifier = {
 export default {
   Sushi,
   Weth,
+  WBTC,
+  UNI,
+  LINK,
   USDC,
   USDT,
   Celo,
