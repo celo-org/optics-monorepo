@@ -90,11 +90,13 @@ impl DB {
     /// Prefix a key and store in the DB
     fn prefix_store(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
         value: impl AsRef<[u8]>,
     ) -> Result<()> {
         let mut buf = vec![];
+        buf.extend(home_name.as_ref());
         buf.extend(prefix.as_ref());
         buf.extend(key.as_ref());
         self._store(buf, value)
@@ -103,10 +105,12 @@ impl DB {
     /// Prefix the key and retrieve
     fn prefix_retrieve(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
     ) -> Result<Option<Vec<u8>>> {
         let mut buf = vec![];
+        buf.extend(home_name.as_ref());
         buf.extend(prefix.as_ref());
         buf.extend(key.as_ref());
         self._retrieve(buf)
@@ -115,21 +119,23 @@ impl DB {
     /// Store any encodeable
     pub fn store_encodable<V: Encode>(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
         value: &V,
     ) -> Result<()> {
-        self.prefix_store(prefix, key, value.to_vec())
+        self.prefix_store(home_name, prefix, key, value.to_vec())
     }
 
     /// Retrieve and attempt to decode
     pub fn retrieve_decodable<V: Decode>(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
     ) -> Result<Option<V>> {
         Ok(self
-            .prefix_retrieve(prefix, key)?
+            .prefix_retrieve(home_name, prefix, key)?
             .map(|val| V::read_from(&mut val.as_slice()))
             .transpose()?)
     }
@@ -137,24 +143,30 @@ impl DB {
     /// Store any encodeable
     pub fn store_keyed_encodable<K: Encode, V: Encode>(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: &K,
         value: &V,
     ) -> Result<()> {
-        self.store_encodable(prefix, key.to_vec(), value)
+        self.store_encodable(home_name, prefix, key.to_vec(), value)
     }
 
     /// Retrieve any decodable
     pub fn retrieve_keyed_decodable<K: Encode, V: Decode>(
         &self,
+        home_name: impl AsRef<[u8]>,
         prefix: impl AsRef<[u8]>,
         key: &K,
     ) -> Result<Option<V>> {
-        self.retrieve_decodable(prefix, key.to_vec())
+        self.retrieve_decodable(home_name, prefix, key.to_vec())
     }
 
     /// Store a raw committed message
-    pub fn store_raw_committed_message(&self, message: &RawCommittedMessage) -> Result<()> {
+    pub fn store_raw_committed_message(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        message: &RawCommittedMessage,
+    ) -> Result<()> {
         let parsed = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
 
         let destination_and_nonce = parsed.destination_and_nonce();
@@ -169,29 +181,39 @@ impl DB {
             leaf_index = message.leaf_index,
             "storing raw committed message in db"
         );
-        self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
-        self.store_leaf(message.leaf_index, destination_and_nonce, leaf_hash)?;
+        self.store_keyed_encodable(&home_name, LEAF_HASH, &leaf_hash, message)?;
+        self.store_leaf(
+            &home_name,
+            message.leaf_index,
+            destination_and_nonce,
+            leaf_hash,
+        )?;
         Ok(())
     }
 
     /// Store the latest known leaf_index
-    pub fn update_latest_leaf_index(&self, leaf_index: u32) -> Result<()> {
-        if let Ok(Some(idx)) = self.retrieve_latest_leaf_index() {
+    pub fn update_latest_leaf_index(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_index: u32,
+    ) -> Result<()> {
+        if let Ok(Some(idx)) = self.retrieve_latest_leaf_index(&home_name) {
             if leaf_index <= idx {
                 return Ok(());
             }
         }
-        self.store_encodable("", LATEST_LEAF, &leaf_index)
+        self.store_encodable(&home_name, "", LATEST_LEAF, &leaf_index)
     }
 
     /// Retrieve the highest known leaf_index
-    pub fn retrieve_latest_leaf_index(&self) -> Result<Option<u32>> {
-        self.retrieve_decodable("", LATEST_LEAF)
+    pub fn retrieve_latest_leaf_index(&self, home_name: impl AsRef<[u8]>) -> Result<Option<u32>> {
+        self.retrieve_decodable(home_name, "", LATEST_LEAF)
     }
 
     /// Store the leaf_hash keyed by leaf_index
     pub fn store_leaf(
         &self,
+        home_name: impl AsRef<[u8]>,
         leaf_index: u32,
         destination_and_nonce: u64,
         leaf_hash: H256,
@@ -201,61 +223,79 @@ impl DB {
             leaf_hash = ?leaf_hash,
             "storing leaf hash keyed by index and dest+nonce"
         );
-        self.store_keyed_encodable(NONCE, &destination_and_nonce, &leaf_hash)?;
-        self.store_keyed_encodable(LEAF_IDX, &leaf_index, &leaf_hash)?;
-        self.update_latest_leaf_index(leaf_index)
+        self.store_keyed_encodable(&home_name, NONCE, &destination_and_nonce, &leaf_hash)?;
+        self.store_keyed_encodable(&home_name, LEAF_IDX, &leaf_index, &leaf_hash)?;
+        self.update_latest_leaf_index(&home_name, leaf_index)
     }
 
     /// Retrieve a raw committed message by its leaf hash
-    pub fn message_by_leaf_hash(&self, leaf_hash: H256) -> Result<Option<RawCommittedMessage>> {
-        self.retrieve_keyed_decodable(LEAF_HASH, &leaf_hash)
+    pub fn message_by_leaf_hash(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_hash: H256,
+    ) -> Result<Option<RawCommittedMessage>> {
+        self.retrieve_keyed_decodable(home_name, LEAF_HASH, &leaf_hash)
     }
 
     /// Retrieve the leaf hash keyed by leaf index
-    pub fn leaf_by_leaf_index(&self, leaf_index: u32) -> Result<Option<H256>> {
-        self.retrieve_keyed_decodable(LEAF_IDX, &leaf_index)
+    pub fn leaf_by_leaf_index(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_index: u32,
+    ) -> Result<Option<H256>> {
+        self.retrieve_keyed_decodable(home_name, LEAF_IDX, &leaf_index)
     }
 
     /// Retrieve the leaf hash keyed by destination and nonce
-    pub fn leaf_by_nonce(&self, destination: u32, nonce: u32) -> Result<Option<H256>> {
+    pub fn leaf_by_nonce(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        destination: u32,
+        nonce: u32,
+    ) -> Result<Option<H256>> {
         let key = utils::destination_and_nonce(destination, nonce);
-        self.retrieve_keyed_decodable(NONCE, &key)
+        self.retrieve_keyed_decodable(home_name, NONCE, &key)
     }
 
     /// Retrieve a raw committed message by its leaf hash
     pub fn message_by_nonce(
         &self,
+        home_name: impl AsRef<[u8]>,
         destination: u32,
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>> {
-        let leaf_hash = self.leaf_by_nonce(destination, nonce)?;
+        let leaf_hash = self.leaf_by_nonce(&home_name, destination, nonce)?;
         match leaf_hash {
             None => Ok(None),
-            Some(leaf_hash) => self.message_by_leaf_hash(leaf_hash),
+            Some(leaf_hash) => self.message_by_leaf_hash(&home_name, leaf_hash),
         }
     }
 
     /// Retrieve a raw committed message by its leaf index
-    pub fn message_by_leaf_index(&self, index: u32) -> Result<Option<RawCommittedMessage>> {
-        let leaf_hash: Option<H256> = self.leaf_by_leaf_index(index)?;
+    pub fn message_by_leaf_index(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        index: u32,
+    ) -> Result<Option<RawCommittedMessage>> {
+        let leaf_hash: Option<H256> = self.leaf_by_leaf_index(&home_name, index)?;
         match leaf_hash {
             None => Ok(None),
-            Some(leaf_hash) => self.message_by_leaf_hash(leaf_hash),
+            Some(leaf_hash) => self.message_by_leaf_hash(&home_name, leaf_hash),
         }
     }
 
     /// Retrieve the latest committed
-    pub fn retrieve_latest_root(&self) -> Result<Option<H256>> {
-        self.retrieve_decodable("", LATEST_ROOT)
+    pub fn retrieve_latest_root(&self, home_name: impl AsRef<[u8]>) -> Result<Option<H256>> {
+        self.retrieve_decodable(home_name, "", LATEST_ROOT)
     }
 
-    fn store_latest_root(&self, root: H256) -> Result<()> {
+    fn store_latest_root(&self, home_name: impl AsRef<[u8]>, root: H256) -> Result<()> {
         debug!(root = ?root, "storing new latest root in DB");
-        self.store_encodable("", LATEST_ROOT, &root)
+        self.store_encodable(home_name, "", LATEST_ROOT, &root)
     }
 
     /// Store a signed update
-    pub fn store_update(&self, update: &SignedUpdate) -> Result<()> {
+    pub fn store_update(&self, home_name: impl AsRef<[u8]>, update: &SignedUpdate) -> Result<()> {
         debug!(
             previous_root = ?update.update.previous_root,
             new_root = ?update.update.new_root,
@@ -264,17 +304,18 @@ impl DB {
 
         // If there is no latet root, or if this update is on the latest root
         // update latest root
-        match self.retrieve_latest_root()? {
+        match self.retrieve_latest_root(&home_name)? {
             Some(root) => {
                 if root == update.update.previous_root {
-                    self.store_latest_root(update.update.new_root)?;
+                    self.store_latest_root(&home_name, update.update.new_root)?;
                 }
             }
-            None => self.store_latest_root(update.update.new_root)?,
+            None => self.store_latest_root(&home_name, update.update.new_root)?,
         }
 
-        self.store_keyed_encodable(PREV_ROOT, &update.update.previous_root, update)?;
+        self.store_keyed_encodable(&home_name, PREV_ROOT, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
+            &home_name,
             NEW_ROOT,
             &update.update.new_root,
             &update.update.previous_root,
@@ -282,16 +323,25 @@ impl DB {
     }
 
     /// Retrieve an update by its previous root
-    pub fn update_by_previous_root(&self, previous_root: H256) -> Result<Option<SignedUpdate>> {
-        self.retrieve_keyed_decodable(PREV_ROOT, &previous_root)
+    pub fn update_by_previous_root(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        previous_root: H256,
+    ) -> Result<Option<SignedUpdate>> {
+        self.retrieve_keyed_decodable(home_name, PREV_ROOT, &previous_root)
     }
 
     /// Retrieve an update by its new root
-    pub fn update_by_new_root(&self, new_root: H256) -> Result<Option<SignedUpdate>> {
-        let prev_root: Option<H256> = self.retrieve_keyed_decodable(NEW_ROOT, &new_root)?;
+    pub fn update_by_new_root(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        new_root: H256,
+    ) -> Result<Option<SignedUpdate>> {
+        let prev_root: Option<H256> =
+            self.retrieve_keyed_decodable(&home_name, NEW_ROOT, &new_root)?;
 
         match prev_root {
-            Some(prev_root) => self.retrieve_keyed_decodable(PREV_ROOT, &prev_root),
+            Some(prev_root) => self.retrieve_keyed_decodable(&home_name, PREV_ROOT, &prev_root),
             None => Ok(None),
         }
     }
@@ -302,23 +352,36 @@ impl DB {
     }
 
     /// Store a proof by its leaf index
-    pub fn store_proof(&self, leaf_index: u32, proof: &Proof) -> Result<()> {
+    pub fn store_proof(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_index: u32,
+        proof: &Proof,
+    ) -> Result<()> {
         debug!(leaf_index, "storing proof in DB");
-        self.store_keyed_encodable(PROOF, &leaf_index, proof)
+        self.store_keyed_encodable(home_name, PROOF, &leaf_index, proof)
     }
 
     /// Retrieve a proof by its leaf index
-    pub fn proof_by_leaf_index(&self, leaf_index: u32) -> Result<Option<Proof>> {
-        self.retrieve_keyed_decodable(PROOF, &leaf_index)
+    pub fn proof_by_leaf_index(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_index: u32,
+    ) -> Result<Option<Proof>> {
+        self.retrieve_keyed_decodable(home_name, PROOF, &leaf_index)
     }
 
     // TODO(james): this is a quick-fix for the prover_sync and I don't like it
     /// poll db ever 100 milliseconds waitinf for a leaf.
-    pub fn wait_for_leaf(&self, leaf_index: u32) -> impl Future<Output = Result<Option<H256>>> {
+    pub fn wait_for_leaf(
+        &self,
+        home_name: impl AsRef<[u8]>,
+        leaf_index: u32,
+    ) -> impl Future<Output = Result<Option<H256>>> {
         let slf = self.clone();
         async move {
             loop {
-                if let Some(leaf) = slf.leaf_by_leaf_index(leaf_index)? {
+                if let Some(leaf) = slf.leaf_by_leaf_index(&home_name, leaf_index)? {
                     return Ok(Some(leaf));
                 }
                 sleep(Duration::from_millis(100)).await

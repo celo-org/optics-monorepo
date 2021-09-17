@@ -74,7 +74,7 @@ impl UpdateHandler {
 
     fn check_conflict(&self, update: &Update) -> Option<SignedUpdate> {
         self.db
-            .update_by_previous_root(update.previous_root)
+            .update_by_previous_root(&self.home.name(), update.previous_root)
             .expect("db failure")
     }
 
@@ -157,7 +157,7 @@ impl UpdateHandler {
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
-        self.db.store_update(&signed)?;
+        self.db.store_update(&self.home.name(), &signed)?;
         Ok(())
         // guard dropped here
     }

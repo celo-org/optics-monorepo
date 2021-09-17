@@ -38,6 +38,7 @@ where
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
     db: DB,
+    home_name: String,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -71,7 +72,7 @@ where
         });
 
         for update in updates {
-            self.db.store_update(&update)?;
+            self.db.store_update(&self.home_name, &update)?;
         }
 
         Ok(())
@@ -94,7 +95,8 @@ where
         });
 
         for message in messages {
-            self.db.store_raw_committed_message(&message)?;
+            self.db
+                .store_raw_committed_message(&self.home_name, &message)?;
         }
 
         Ok(())
@@ -106,7 +108,7 @@ where
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
-                .retrieve_decodable("", LAST_INSPECTED)
+                .retrieve_decodable(&self.home_name, "", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -133,7 +135,8 @@ where
                     self.sync_leaves(next_height, to)
                 )?;
 
-                self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
+                self.db
+                    .store_encodable(&self.home_name, "", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -222,7 +225,7 @@ where
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(old_root)? {
+            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -235,7 +238,7 @@ where
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(new_root)? {
+            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -292,6 +295,7 @@ where
         let indexer = HomeIndexer {
             contract: self.contract.clone(),
             db: self.db.clone(),
+            home_name: self.name.to_owned(),
             from_height,
             provider: self.provider.clone(),
             chunk_size,
@@ -307,7 +311,7 @@ where
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_nonce(destination, nonce)? {
+            if let Some(update) = self.db.message_by_nonce(&self.name, destination, nonce)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -320,7 +324,7 @@ where
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_leaf_hash(leaf)? {
+            if let Some(update) = self.db.message_by_leaf_hash(&self.name, leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -332,7 +336,7 @@ where
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.leaf_by_leaf_index(tree_index as u32)? {
+            if let Some(update) = self.db.leaf_by_leaf_index(&self.name, tree_index as u32)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
