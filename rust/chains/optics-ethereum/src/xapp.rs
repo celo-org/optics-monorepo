@@ -2,11 +2,7 @@
 
 use async_trait::async_trait;
 use ethers::contract::abigen;
-use ethers::core::types::Address;
-use optics_core::{
-    traits::{ChainCommunicationError, ConnectionManager, TxOutcome},
-    OpticsIdentifier, SignedFailureNotification,
-};
+use optics_core::*;
 use std::sync::Arc;
 
 use crate::report_tx;
@@ -35,10 +31,17 @@ where
     /// Create a reference to a XAppConnectionManager at a specific Ethereum
     /// address on some chain
     #[allow(dead_code)]
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(
+        provider: Arc<M>,
+        ContractLocator {
+            name,
+            domain,
+            address,
+        }: &ContractLocator,
+    ) -> Self {
         Self {
             contract: EthereumConnectionManagerInternal::new(address, provider),
-            domain,
+            domain: *domain,
             name: name.to_owned(),
         }
     }

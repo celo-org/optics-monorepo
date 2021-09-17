@@ -2,11 +2,7 @@ use color_eyre::{Report, Result};
 use ethers::prelude::{Address, Middleware};
 use std::convert::TryFrom;
 
-use optics_core::{
-    db::DB,
-    traits::{ConnectionManager, Home, Replica},
-    Signers,
-};
+use crate::*;
 
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.

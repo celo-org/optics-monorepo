@@ -2,13 +2,9 @@
 
 use async_trait::async_trait;
 use ethers::contract::abigen;
-use ethers::core::types::{Address, Signature, H256};
-use optics_core::traits::MessageStatus;
-use optics_core::{
-    accumulator::merkle::Proof,
-    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    Encode, OpticsMessage, SignedUpdate, Update,
-};
+use ethers::core::types::{Signature, H256};
+use optics_core::ContractLocator;
+use optics_core::{accumulator::merkle::Proof, *};
 
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
@@ -41,10 +37,17 @@ where
 {
     /// Create a reference to a Replica at a specific Ethereum address on some
     /// chain
-    pub fn new(name: &str, domain: u32, address: Address, provider: Arc<M>) -> Self {
+    pub fn new(
+        provider: Arc<M>,
+        ContractLocator {
+            name,
+            domain,
+            address,
+        }: &ContractLocator,
+    ) -> Self {
         Self {
             contract: EthereumReplicaInternal::new(address, provider),
-            domain,
+            domain: *domain,
             name: name.to_owned(),
         }
     }
