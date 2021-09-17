@@ -1,7 +1,8 @@
 use color_eyre::Report;
-use optics_core::{db::DB, Signers};
-use optics_ethereum::settings::EthereumConnection;
 use serde::Deserialize;
+
+use optics_core::{db::DB, ContractLocator, Signers};
+use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
 
@@ -13,7 +14,7 @@ use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
 #[serde(tag = "rpcStyle", content = "connection", rename_all = "camelCase")]
 pub enum ChainConf {
     /// Ethereum configuration
-    Ethereum(EthereumConnection),
+    Ethereum(Connection),
 }
 
 impl Default for ChainConf {
@@ -45,10 +46,13 @@ impl ChainSetup {
     pub async fn try_into_home(&self, signer: Option<Signers>, db: DB) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
-                conf.try_into_home(
-                    &self.name,
-                    self.domain.parse().expect("invalid uint"),
-                    self.address.parse()?,
+                make_home(
+                    conf.clone(),
+                    &ContractLocator {
+                        name: self.name.clone(),
+                        domain: self.domain.parse().expect("invalid uint"),
+                        address: self.address.parse::<ethers::types::Address>()?.into(),
+                    },
                     signer,
                     db,
                 )
@@ -61,10 +65,13 @@ impl ChainSetup {
     pub async fn try_into_replica(&self, signer: Option<Signers>) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
-                conf.try_into_replica(
-                    &self.name,
-                    self.domain.parse().expect("invalid uint"),
-                    self.address.parse()?,
+                make_replica(
+                    conf.clone(),
+                    &ContractLocator {
+                        name: self.name.clone(),
+                        domain: self.domain.parse().expect("invalid uint"),
+                        address: self.address.parse::<ethers::types::Address>()?.into(),
+                    },
                     signer,
                 )
                 .await?,
@@ -79,10 +86,13 @@ impl ChainSetup {
     ) -> Result<ConnectionManagers, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(ConnectionManagers::Ethereum(
-                conf.try_into_connection_manager(
-                    &self.name,
-                    self.domain.parse().expect("invalid uint"),
-                    self.address.parse()?,
+                make_conn_manager(
+                    conf.clone(),
+                    &ContractLocator {
+                        name: self.name.clone(),
+                        domain: self.domain.parse().expect("invalid uint"),
+                        address: self.address.parse::<ethers::types::Address>()?.into(),
+                    },
                     signer,
                 )
                 .await?,

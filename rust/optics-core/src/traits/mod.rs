@@ -1,14 +1,7 @@
-/// Interface for home chain contract
-pub mod home;
-
-/// Interface for replica chain contract
-pub mod replica;
-
-/// Interface for XAppConnectionManager contract
-pub mod xapp;
-
-/// Traits for canonical binary representations
-pub mod encode;
+mod encode;
+mod home;
+mod replica;
+mod xapp;
 
 use async_trait::async_trait;
 use ethers::{
@@ -23,6 +16,7 @@ use crate::{db::DbError, OpticsError, SignedUpdate};
 pub use home::*;
 pub use replica::*;
 pub use xapp::*;
+pub use encode::*;
 
 /// Contract states
 #[derive(Debug)]

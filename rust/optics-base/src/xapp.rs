@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use optics_core::{
-    traits::{ChainCommunicationError, ConnectionManager, TxOutcome},
-    OpticsIdentifier, SignedFailureNotification,
+    ChainCommunicationError, ConnectionManager, OpticsIdentifier, SignedFailureNotification,
+    TxOutcome,
 };
 
 use optics_ethereum::EthereumConnectionManager;

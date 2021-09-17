@@ -2,9 +2,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-    traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    },
     Message, SignedUpdate, Update,
 };
 use optics_ethereum::EthereumHome;

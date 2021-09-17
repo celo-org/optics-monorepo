@@ -8,10 +8,7 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::{
-    db::{HomeDB, DB},
-    traits::{Common, Home},
-};
+use optics_core::{db::{HomeDB,DB}, Common, Home};
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 

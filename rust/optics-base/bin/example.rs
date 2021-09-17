@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use optics_base::Settings};
+use optics_base::{OpticsAgent, Settings};
 
 /// An example main function for any agent that implemented Default
 async fn _example_main<OA>(settings: Settings) -> Result<()>

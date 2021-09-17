@@ -12,10 +12,19 @@
 pub mod accumulator;
 
 /// Model instantatiations of the on-chain structures
-pub mod models;
+pub mod models {
+    /// A simple Home chain Optics implementation
+    mod home;
+
+    /// A simple Replica chain Optics implementation
+    mod replica;
+
+    pub use self::{home::*, replica::*};
+}
 
 /// Async Traits for Homes & Replicas for use in applications
-pub mod traits;
+mod traits;
+pub use traits::*;
 
 /// Utilities to match contract values
 pub mod utils;
@@ -24,7 +33,8 @@ pub mod utils;
 pub mod test_utils;
 
 /// Core optics system data structures
-pub mod types;
+mod types;
+pub use types::*;
 
 /// DB related utilities
 pub mod db;
@@ -33,11 +43,12 @@ pub mod db;
 #[cfg(feature = "output")]
 pub mod test_output;
 
+mod chain;
+pub use chain::*;
+
 use std::convert::Infallible;
 
 pub use identifiers::OpticsIdentifier;
-pub use traits::encode::{Decode, Encode};
-pub use types::*;
 
 use async_trait::async_trait;
 use ethers::{

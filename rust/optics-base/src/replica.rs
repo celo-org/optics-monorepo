@@ -1,11 +1,8 @@
 use async_trait::async_trait;
 use ethers::core::types::H256;
 use optics_core::{
-    accumulator::merkle::Proof,
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, MessageStatus, Replica, State, TxOutcome,
-    },
-    OpticsMessage, SignedUpdate,
+    accumulator::merkle::Proof, ChainCommunicationError, Common, DoubleUpdate, MessageStatus,
+    OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
 };
 
 use optics_ethereum::EthereumReplica;
