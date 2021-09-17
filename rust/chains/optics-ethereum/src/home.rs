@@ -49,6 +49,7 @@ abigen!(
     "./chains/optics-ethereum/abis/Home.abi.json"
 );
 
+#[derive(Debug, Clone)]
 pub struct HomeDB {
     db: DB,
     home_name: String,
@@ -102,7 +103,10 @@ impl HomeDB {
     }
 
     /// Store a raw committed message
-    pub fn store_raw_committed_message(&self, message: &RawCommittedMessage) -> Result<(), DbError> {
+    pub fn store_raw_committed_message(
+        &self,
+        message: &RawCommittedMessage,
+    ) -> Result<(), DbError> {
         let parsed = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
 
         let destination_and_nonce = parsed.destination_and_nonce();
@@ -155,7 +159,10 @@ impl HomeDB {
     }
 
     /// Retrieve a raw committed message by its leaf hash
-    pub fn message_by_leaf_hash(&self, leaf_hash: H256) -> Result<Option<RawCommittedMessage>, DbError> {
+    pub fn message_by_leaf_hash(
+        &self,
+        leaf_hash: H256,
+    ) -> Result<Option<RawCommittedMessage>, DbError> {
         self.retrieve_keyed_decodable(LEAF_HASH, &leaf_hash)
     }
 
@@ -184,7 +191,10 @@ impl HomeDB {
     }
 
     /// Retrieve a raw committed message by its leaf index
-    pub fn message_by_leaf_index(&self, index: u32) -> Result<Option<RawCommittedMessage>, DbError> {
+    pub fn message_by_leaf_index(
+        &self,
+        index: u32,
+    ) -> Result<Option<RawCommittedMessage>, DbError> {
         let leaf_hash: Option<H256> = self.leaf_by_leaf_index(index)?;
         match leaf_hash {
             None => Ok(None),
@@ -230,7 +240,10 @@ impl HomeDB {
     }
 
     /// Retrieve an update by its previous root
-    pub fn update_by_previous_root(&self, previous_root: H256) -> Result<Option<SignedUpdate>, DbError> {
+    pub fn update_by_previous_root(
+        &self,
+        previous_root: H256,
+    ) -> Result<Option<SignedUpdate>, DbError> {
         self.retrieve_keyed_decodable(PREV_ROOT, &previous_root)
     }
 
@@ -262,7 +275,10 @@ impl HomeDB {
 
     // TODO(james): this is a quick-fix for the prover_sync and I don't like it
     /// poll db ever 100 milliseconds waitinf for a leaf.
-    pub fn wait_for_leaf(&self, leaf_index: u32) -> impl Future<Output = Result<Option<H256>, DbError>> + '_ {
+    pub fn wait_for_leaf(
+        &self,
+        leaf_index: u32,
+    ) -> impl Future<Output = Result<Option<H256>, DbError>> + '_ {
         let slf = self.clone();
         async move {
             loop {
