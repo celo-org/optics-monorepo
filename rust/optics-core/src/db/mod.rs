@@ -1,29 +1,17 @@
 use color_eyre::eyre::WrapErr;
-use ethers::types::H256;
 use rocksdb::{DBIterator, Options, DB as Rocks};
-use std::{future::Future, path::Path, sync::Arc, time::Duration};
-use tokio::time::sleep;
-use tracing::{debug, info};
+use std::{path::Path, sync::Arc};
+use tracing::info;
 
 /// Shared functionality surrounding use of rocksdb
 pub mod iterator;
 
-use crate::{
-    accumulator::merkle::Proof, traits::RawCommittedMessage, utils, Decode, Encode, OpticsError,
-    OpticsMessage, SignedUpdate,
-};
+/// Home-specific db operations
+pub mod home_db;
 
-use self::iterator::PrefixIterator;
+pub use home_db::HomeDB;
 
-static NONCE: &str = "destination_and_nonce_";
-static LEAF_IDX: &str = "leaf_index_";
-static LEAF_HASH: &str = "leaf_hash_";
-static PREV_ROOT: &str = "update_prev_root_";
-static NEW_ROOT: &str = "update_new_root_";
-static LATEST_ROOT: &str = "update_latest_root_";
-static PROOF: &str = "proof_";
-
-static LATEST_LEAF: &str = "latest_known_leaf_";
+use crate::{Decode, Encode, OpticsError};
 
 #[derive(Debug, Clone)]
 /// A KV Store

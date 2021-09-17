@@ -23,7 +23,7 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     home::Homes,
 };
-use optics_core::{SignedUpdate, Signers, Update, db::{DB, HomeDB}, traits::{Common, Home}};
+use optics_core::{SignedUpdate, Signers, Update, db::HomeDB, traits::{Common, Home}};
 
 #[derive(Debug)]
 struct UpdateHandler {
