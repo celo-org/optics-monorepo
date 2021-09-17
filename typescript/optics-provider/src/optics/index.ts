@@ -6,7 +6,7 @@ export {
   RequestDetailsMessage,
 } from './messages/BridgeMessage';
 export { OpticsMessage } from './messages/OpticsMessage';
-export { ResolvedTokenInfo, TokenIdentifier, tokens } from './tokens';
+export { ResolvedTokenInfo, TokenIdentifier, tokens, testnetTokens } from './tokens';
 
 export {
   OpticsDomain,

@@ -1,6 +1,7 @@
 import { BytesLike } from 'ethers';
 import { xapps } from '@optics-xyz/ts-interface';
-import wellKnown from './well-known';
+import wellKnown from './wellKnown';
+import testnetWellKnown from './testnetWellKnown';
 
 export interface TokenIdentifier {
   domain: string | number;
@@ -17,4 +18,4 @@ export type ResolvedTokenInfo = {
 };
 
 export const tokens = wellKnown;
-export default tokens;
+export const testnetTokens = testnetWellKnown;
