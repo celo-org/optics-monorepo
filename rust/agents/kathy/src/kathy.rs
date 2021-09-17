@@ -1,20 +1,17 @@
 use std::{sync::Arc, time::Duration};
 
-use async_trait::async_trait;
-use color_eyre::eyre::bail;
-use ethers::core::types::H256;
-use optics_core::traits::Replica;
-use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
+use color_eyre::{Result, eyre::bail};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-
-use color_eyre::Result;
-
-use optics_base::{decl_agent, AgentCore, OpticsAgent};
-use optics_core::{traits::Home, Message};
+use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::instrument::Instrumented;
 use tracing::{info, Instrument};
+
+use ethers::core::types::H256;
+
+use optics_base::{decl_agent, AgentCore, OpticsAgent};
+use optics_core::{Home, Message, Replica};
 
 use crate::settings::KathySettings as Settings;
 
@@ -35,7 +32,7 @@ impl Kathy {
     }
 }
 
-#[async_trait]
+#[async_trait::async_trait]
 impl OpticsAgent for Kathy {
     const AGENT_NAME: &'static str = "kathy";
 

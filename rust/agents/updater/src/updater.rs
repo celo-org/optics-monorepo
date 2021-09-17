@@ -22,7 +22,7 @@ use crate::settings::UpdaterSettings as Settings;
 use optics_base::{AgentCore, Homes, OpticsAgent};
 use optics_core::{
     db::HomeDB,
-    traits::{Common, Home},
+    Common, Home,
     SignedUpdate, Signers, Update,
 };
 

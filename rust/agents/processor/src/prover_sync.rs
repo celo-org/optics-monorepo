@@ -5,7 +5,7 @@ use optics_base::Homes;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
     db::{DbError, HomeDB},
-    traits::ChainCommunicationError,
+    ChainCommunicationError, Common,
 };
 use std::{fmt::Display, ops::Range, time::Duration};
 use tokio::{task::JoinHandle, time::sleep};

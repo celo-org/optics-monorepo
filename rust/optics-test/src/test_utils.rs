@@ -44,6 +44,7 @@ mod test {
     use optics_core::{
         accumulator::merkle::Proof, db::HomeDB, traits::RawCommittedMessage, Encode, OpticsMessage,
     };
+    use optics_core::{accumulator::merkle::Proof, Encode, OpticsMessage, RawCommittedMessage};
 
     #[tokio::test]
     async fn home_db_stores_and_retrieves_messages() {

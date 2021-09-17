@@ -5,11 +5,7 @@ use mockall::*;
 
 use ethers::core::types::H256;
 
-use optics_core::{
-    accumulator::merkle::Proof,
-    traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    OpticsMessage, SignedUpdate,
-};
+use optics_core::{accumulator::merkle::Proof, *};
 
 mock! {
     pub ReplicaContract {
@@ -94,10 +90,7 @@ impl Replica for MockReplicaContract {
         self._prove_and_process(message, proof)
     }
 
-    async fn message_status(
-        &self,
-        leaf: H256,
-    ) -> Result<optics_core::traits::MessageStatus, ChainCommunicationError> {
+    async fn message_status(&self, leaf: H256) -> Result<MessageStatus, ChainCommunicationError> {
         self._message_status(leaf)
     }
 
@@ -153,5 +146,3 @@ impl Common for MockReplicaContract {
         self._double_update(double)
     }
 }
-
-use optics_core::traits::MessageStatus;

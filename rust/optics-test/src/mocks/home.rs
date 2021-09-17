@@ -5,12 +5,7 @@ use mockall::*;
 
 use ethers::core::types::H256;
 
-use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    },
-    Message, SignedUpdate, Update,
-};
+use optics_core::*;
 
 use tracing::{instrument::Instrumented, Instrument};
 

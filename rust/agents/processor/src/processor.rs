@@ -13,16 +13,9 @@ use std::{
 use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
 use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
-use optics_base::{
-    AgentCore, OpticsAgent,
-    cancel_task, decl_agent,
-    Homes,
-    Replicas,
-};
+use optics_base::{cancel_task, decl_agent, AgentCore, Homes, OpticsAgent, Replicas};
 use optics_core::{
-    accumulator::merkle::Proof,
-    db::HomeDB,
-    traits::{CommittedMessage, Common, Home, MessageStatus},
+    accumulator::merkle::Proof, db::HomeDB, CommittedMessage, Common, Home, MessageStatus,
 };
 
 use crate::{
@@ -66,7 +59,7 @@ impl Replica {
     fn main(self) -> JoinHandle<Result<()>> {
         tokio::spawn(
             async move {
-                use optics_core::traits::Replica;
+                use optics_core::Replica;
 
                 let domain = self.replica.local_domain();
 
@@ -99,7 +92,7 @@ impl Replica {
                 );
 
                 loop {
-                    use optics_core::traits::Replica;
+                    use optics_core::Replica;
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
@@ -153,14 +146,14 @@ impl Replica {
     /// Attempt to process a message.
     ///
     /// Postcondition: ```match retval? {
-    ///   true => message skipped ⊻ message was processed
-    ///   false => try again later
+    ///   Advance => message skipped ⊻ message was processed
+    ///   Repeat => try again later
     /// }```
     ///
     /// In case of error: send help?
     #[instrument(err, skip(self), fields(self = %self))]
     async fn try_msg_by_domain_and_nonce(&self, domain: u32, nonce: u32) -> Result<Flow> {
-        use optics_core::traits::Replica;
+        use optics_core::Replica;
 
         let message = match self.home.message_by_nonce(domain, nonce).await {
             Ok(Some(m)) => m,
@@ -252,7 +245,7 @@ impl Replica {
     #[instrument(err, level = "trace", skip(self), fields(self = %self))]
     /// Dispatch a message for processing. If the message is already proven, process only.
     async fn process(&self, message: CommittedMessage, proof: Proof) -> Result<()> {
-        use optics_core::traits::Replica;
+        use optics_core::Replica;
         let status = self.replica.message_status(message.to_leaf()).await?;
 
         match status {

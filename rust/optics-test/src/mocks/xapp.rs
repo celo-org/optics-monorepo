@@ -3,10 +3,7 @@
 use async_trait::async_trait;
 use mockall::*;
 
-use optics_core::{
-    traits::{ChainCommunicationError, ConnectionManager, TxOutcome},
-    OpticsIdentifier, SignedFailureNotification,
-};
+use optics_core::*;
 
 mock! {
     pub ConnectionManagerContract {

@@ -142,11 +142,9 @@ async fn mainnet_works() {
                 name: "ethereum".into(),
                 domain: "6648936".into(),
                 // i would love for this to just be ChainConf::ethereum()
-                chain: optics_base::Ethereum(
-                    optics_ethereum::settings::EthereumConnection::Ws {
-                        url: "wss://main-light.eth.linkpool.io/ws".into(),
-                    },
-                ),
+                chain: optics_base::chains::ChainConf::Ethereum(optics_ethereum::Connection::Ws {
+                    url: "wss://main-light.eth.linkpool.io/ws".into(),
+                }),
                 address: "0xcEc158A719d11005Bd9339865965bed938BEafA3".into(),
                 disabled: None,
             }],
