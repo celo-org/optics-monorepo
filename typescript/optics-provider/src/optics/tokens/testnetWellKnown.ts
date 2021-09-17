@@ -2,12 +2,12 @@ import { TokenIdentifier } from './index';
 
 const Alfajores: TokenIdentifier = {
   domain: 'celo',
-  id: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
+  id: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
 };
 
 const Kovan: TokenIdentifier = {
   domain: 'ethereum',
-  id: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  id: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
 };
 
 export default {
