@@ -23,11 +23,7 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     home::Homes,
 };
-use optics_core::{
-    db::DB,
-    traits::{Common, Home},
-    SignedUpdate, Signers, Update,
-};
+use optics_core::{SignedUpdate, Signers, Update, db::{DB, HomeDB}, traits::{Common, Home}};
 
 #[derive(Debug)]
 struct UpdateHandler {
@@ -36,7 +32,7 @@ struct UpdateHandler {
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
-    db: DB,
+    db: HomeDB,
     mutex: Arc<Mutex<()>>,
     signed_attestation_count: IntCounterVec,
 }
@@ -57,10 +53,11 @@ impl UpdateHandler {
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
-        db: DB,
+        db: HomeDB,
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
+        let home_name = home.name().to_owned();
         Self {
             home,
             rx,
@@ -273,7 +270,7 @@ impl OpticsAgent for Updater {
             rx,
             self.update_pause,
             self.signer.clone(),
-            self.db(),
+            HomeDB::new(self.db(), self.home().name().to_owned()),
             Default::default(),
             self.signed_attestation_count.clone(),
         );
