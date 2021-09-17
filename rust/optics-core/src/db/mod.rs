@@ -15,18 +15,20 @@ use crate::{
 
 use self::iterator::PrefixIterator;
 
-static NONCE: &str = "destination_and_nonce_";
-static LEAF_IDX: &str = "leaf_index_";
-static LEAF_HASH: &str = "leaf_hash_";
-static PREV_ROOT: &str = "update_prev_root_";
-static NEW_ROOT: &str = "update_new_root_";
-static LATEST_ROOT: &str = "update_latest_root_";
-static PROOF: &str = "proof_";
+// Type prefixes
+static NONCE: &str = "_destination_and_nonce_";
+static LEAF_IDX: &str = "_leaf_index_";
+static LEAF_HASH: &str = "_leaf_hash_";
+static PREV_ROOT: &str = "_update_prev_root_";
+static NEW_ROOT: &str = "_update_new_root_";
+static LATEST_ROOT: &str = "_update_latest_root_";
+static PROOF: &str = "_proof_";
+static LATEST_LEAF: &str = "_latest_known_leaf_";
 
-static LATEST_LEAF: &str = "latest_known_leaf_";
-
-#[derive(Debug, Clone)]
 /// A KV Store
+///
+/// Key structure: ```<home_name>_<type_prefix>_<key>```
+#[derive(Debug, Clone)]
 pub struct DB(Arc<Rocks>);
 
 impl From<Rocks> for DB {
