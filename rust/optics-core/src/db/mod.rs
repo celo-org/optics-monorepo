@@ -1,6 +1,6 @@
 use color_eyre::eyre::WrapErr;
 use ethers::types::H256;
-use rocksdb::{Options, DB as Rocks};
+use rocksdb::{DB as Rocks, DBIterator, Options};
 use std::{future::Future, path::Path, sync::Arc, time::Duration};
 use tokio::time::sleep;
 use tracing::{debug, info};
@@ -292,6 +292,11 @@ impl DB {
             Some(prev_root) => self.retrieve_keyed_decodable(PREV_ROOT, &prev_root),
             None => Ok(None),
         }
+    }
+
+    /// Get prefix db iterator for `prefix`
+    pub fn prefix_iterator(&self, prefix: impl AsRef<[u8]>) -> DBIterator {
+        self.0.prefix_iterator(prefix)
     }
 
     /// Iterate over all leaves

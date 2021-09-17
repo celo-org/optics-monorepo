@@ -10,7 +10,8 @@ pub struct PrefixIterator<'a, V> {
 }
 
 impl<'a, V> PrefixIterator<'a, V> {
-    pub(crate) fn new(iter: DBIterator<'a>, prefix: &'a [u8]) -> Self {
+    /// Return new prefix iterator
+    pub fn new(iter: DBIterator<'a>, prefix: &'a [u8]) -> Self {
         Self {
             iter,
             prefix,
