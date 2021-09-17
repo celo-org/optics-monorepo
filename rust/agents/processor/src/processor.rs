@@ -21,7 +21,7 @@ use optics_base::{
 };
 use optics_core::{
     accumulator::merkle::Proof,
-    db::DB,
+    db::HomeDB,
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
 
@@ -37,7 +37,7 @@ pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    db: DB,
+    db: HomeDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
     next_message_index: prometheus::IntGaugeVec,
@@ -311,12 +311,13 @@ impl OpticsAgent for Processor {
 
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
+            let home_name = home.name().to_owned();
 
             Replica {
                 interval,
                 replica,
                 home,
-                db,
+                db: HomeDB::new(db, home_name),
                 allowed,
                 denied,
                 next_message_index,
@@ -334,7 +335,7 @@ impl OpticsAgent for Processor {
         tokio::spawn(async move {
             info!("Starting Processor tasks");
             // tree sync
-            let sync = ProverSync::from_disk(self.core.db.clone());
+            let sync = ProverSync::from_disk(HomeDB::new(self.core.db.clone(), self.home().name().to_owned()));
             let sync_task = sync.spawn();
 
             // indexer setup

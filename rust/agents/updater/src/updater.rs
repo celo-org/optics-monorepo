@@ -57,7 +57,6 @@ impl UpdateHandler {
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
-        let home_name = home.name().to_owned();
         Self {
             home,
             rx,
