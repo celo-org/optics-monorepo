@@ -1,6 +1,6 @@
 use color_eyre::eyre::WrapErr;
 use ethers::types::H256;
-use rocksdb::{DB as Rocks, DBIterator, Options};
+use rocksdb::{DBIterator, Options, DB as Rocks};
 use std::{future::Future, path::Path, sync::Arc, time::Duration};
 use tokio::time::sleep;
 use tracing::{debug, info};
