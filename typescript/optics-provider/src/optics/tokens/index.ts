@@ -13,7 +13,7 @@ export type ResolvedTokenInfo = {
   // The canonical identifier
   id: BytesLike;
   // The contract on each chain
-  tokens: Map<number, xapps.ERC20>;
+  tokens: Map<number, xapps.BridgeToken>;
 };
 
 export const tokens = wellKnown;

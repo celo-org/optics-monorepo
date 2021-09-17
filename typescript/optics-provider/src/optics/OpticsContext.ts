@@ -119,7 +119,7 @@ export class OpticsContext extends MultiProvider {
   async resolveTokenRepresentation(
     nameOrDomain: string | number,
     token: TokenIdentifier,
-  ): Promise<xapps.ERC20 | undefined> {
+  ): Promise<xapps.BridgeToken | undefined> {
     const domain = this.resolveDomain(nameOrDomain);
     const bridge = this.getBridge(domain);
 
@@ -134,7 +134,7 @@ export class OpticsContext extends MultiProvider {
       return;
     }
 
-    let contract = new xapps.ERC20__factory().attach(address);
+    let contract = new xapps.BridgeToken__factory().attach(address);
 
     const connection = this.getConnection(domain);
     if (connection) {
@@ -147,7 +147,7 @@ export class OpticsContext extends MultiProvider {
   async tokenRepresentations(
     token: TokenIdentifier,
   ): Promise<ResolvedTokenInfo> {
-    const tokens: Map<number, xapps.ERC20> = new Map();
+    const tokens: Map<number, xapps.BridgeToken> = new Map();
 
     await Promise.all(
       this.domainNumbers.map(async (domain) => {
