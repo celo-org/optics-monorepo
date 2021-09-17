@@ -14,8 +14,8 @@ use color_eyre::Result;
 
 use futures_util::future::select_all;
 
-use optics_base::{OpticsAgent, cancel_task};
-use optics_core::{Common,Home};
+use optics_base::{cancel_task, OpticsAgent};
+use optics_core::{Common, Home};
 
 use crate::{settings::UpdaterSettings as Settings, updater::Updater};
 

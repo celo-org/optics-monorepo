@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
-    Message, SignedUpdate, Update,
+    ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
+    SignedUpdate, State, TxOutcome, Update,
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;

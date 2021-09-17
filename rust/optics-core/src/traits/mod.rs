@@ -13,10 +13,10 @@ use std::error::Error as StdError;
 
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
+pub use encode::*;
 pub use home::*;
 pub use replica::*;
 pub use xapp::*;
-pub use encode::*;
 
 /// Contract states
 #[derive(Debug)]

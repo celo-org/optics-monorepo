@@ -24,9 +24,6 @@ mod replica;
 #[cfg(not(doctest))]
 mod xapp;
 
-/// Configuration structs
-pub mod settings;
-
 /// Ethereum connection configuration
 #[derive(Debug, serde::Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -46,22 +43,27 @@ pub enum Connection {
 #[cfg(not(doctest))]
 pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};
 
+#[allow(dead_code)]
 /// A live connection to an ethereum-compatible chain.
 pub struct Chain<P> {
     creation_metadata: Connection,
-    live_connection: ethers::providers::Provider<P>,
+    ethers: ethers::providers::Provider<P>,
 }
 
 contract!(make_replica, EthereumReplica, Replica,);
 contract!(make_home, EthereumHome, Home, db: optics_core::db::DB);
-contract!(make_conn_manager, EthereumConnectionManager, ConnectionManager,);
+contract!(
+    make_conn_manager,
+    EthereumConnectionManager,
+    ConnectionManager,
+);
 
 /*
 impl Chain<ethers::providers::Ws> {
     pub async fn connect(c: Connection) -> Self {
         Chain {
             creation_metadata: c.clone(),
-            live_connection: match c {
+            ethers: match c {
                 Connection::Http { url } => Provider::connect(url),
                 Connection::Ws { url } => Provider::<connect(url),
             },
@@ -72,7 +74,7 @@ impl Chain<ethers::providers::Http> {
     pub async fn connect(c: Connection) -> Self {
         Chain {
             creation_metadata: c.clone(),
-            live_connection: match c {
+            ethers: match c {
                 Connection::Http { url } => Provider::connect(url),
                 Connection::Ws { url } => Provider::<connect(url),
             },
