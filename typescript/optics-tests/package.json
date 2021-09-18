@@ -7,7 +7,7 @@
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.3.0",
-    "ethers": "^5.4.4",
+    "ethers": "^5.4.7",
     "hardhat": "^2.3.0",
     "mkdirp": "^1.0.4",
     "prettier": "2.3.0",
@@ -21,7 +21,7 @@
     "@optics-xyz/ts-interface": "^1.0.9",
     "@types/node": "^15.14.7",
     "dotenv": "^10.0.0",
-    "ethers": "^5.4.1"
+    "ethers": "^5.4.7"
   },
   "name": "@optics-xyz/optics-test",
   "version": "1.0.0",
