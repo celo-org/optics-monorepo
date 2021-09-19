@@ -22,7 +22,7 @@ async function eventSendMetrics() {
         let router = mainnet.mustGetBridge(network.name).bridgeRouter;
         let token = new xapps.BridgeToken__factory()
         
-        let filter = router.filters.Send(); 
+        let filter = router.filters.TokenDeployed();
         let events = await router.queryFilter(filter, network.blockHeight);
         let details: LooseObject = {}
     
@@ -30,13 +30,13 @@ async function eventSendMetrics() {
             const event = events[index];
             const address = event.args["token"]
             let contract = token.attach(address).connect(mainnet.getProvider(network.name) ?? "")
-            
             try {
                 let name = await contract.name()
                 let symbol = await contract.symbol()
                 let decimals = await contract.decimals()
                 if (address in details){
-                    details[address].total.add(event.args["amount"])
+                    //console.log(`adding ${event.args["amount"]} to ${address}`)
+                    details[address].total = details[address].total.add(event.args["amount"])
                 }
                 else {
                     details[address] = {
@@ -49,6 +49,7 @@ async function eventSendMetrics() {
                 }
                 
             } catch (error) {
+                console.log(error)
                 if (address in details){
                     details[address].total.add(event.args["amount"])
                 }
