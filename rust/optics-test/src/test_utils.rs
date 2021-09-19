@@ -41,7 +41,9 @@ where
 mod test {
     use super::*;
     use ethers::types::H256;
-    use optics_core::{Encode, OpticsMessage, accumulator::merkle::Proof, db::HomeDB, traits::RawCommittedMessage};
+    use optics_core::{
+        accumulator::merkle::Proof, db::HomeDB, traits::RawCommittedMessage, Encode, OpticsMessage,
+    };
 
     #[tokio::test]
     async fn it_stores_and_retrieves_messages() {

@@ -8,7 +8,6 @@ pub mod iterator;
 
 /// Home-specific db operations
 pub mod home_db;
-
 pub use home_db::HomeDB;
 
 use crate::{Decode, Encode, OpticsError};
@@ -138,7 +137,7 @@ impl DB {
     ) -> Result<Option<V>> {
         self.retrieve_decodable(prefix, key.to_vec())
     }
-    
+
     /// Get prefix db iterator for `prefix`
     pub fn prefix_iterator(&self, prefix: impl AsRef<[u8]>) -> DBIterator {
         self.0.prefix_iterator(prefix)

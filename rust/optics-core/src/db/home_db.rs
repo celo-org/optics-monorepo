@@ -1,16 +1,15 @@
-use color_eyre::Result;
-use ethers::core::types::H256;
 use crate::db::{DbError, DB};
 use crate::{
-    accumulator::merkle::Proof,
-    traits::RawCommittedMessage,
-    utils, Decode, Encode, OpticsMessage, SignedUpdate,
+    accumulator::merkle::Proof, traits::RawCommittedMessage, utils, Decode, Encode, OpticsMessage,
+    SignedUpdate,
 };
+use color_eyre::Result;
+use ethers::core::types::H256;
 use tokio::time::sleep;
 use tracing::debug;
 
-use std::time::Duration;
 use std::future::Future;
+use std::time::Duration;
 
 use crate::db::iterator::PrefixIterator;
 

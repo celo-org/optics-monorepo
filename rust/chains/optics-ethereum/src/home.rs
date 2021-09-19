@@ -37,7 +37,7 @@ where
 {
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
-    db: HomeDB,
+    home_db: HomeDB,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -71,7 +71,7 @@ where
         });
 
         for update in updates {
-            self.db.store_update(&update)?;
+            self.home_db.store_update(&update)?;
         }
 
         Ok(())
@@ -94,7 +94,7 @@ where
         });
 
         for message in messages {
-            self.db.store_raw_committed_message(&message)?;
+            self.home_db.store_raw_committed_message(&message)?;
         }
 
         Ok(())
@@ -105,7 +105,7 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = self
-                .db
+                .home_db
                 .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
@@ -133,7 +133,7 @@ where
                     self.sync_leaves(next_height, to)
                 )?;
 
-                self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
+                self.home_db.store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -152,7 +152,7 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    db: HomeDB,
+    home_db: HomeDB,
     domain: u32,
     name: String,
     provider: Arc<M>,
@@ -169,7 +169,7 @@ where
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain,
             name: name.to_owned(),
-            db: HomeDB::new(db, name.to_owned()),
+            home_db: HomeDB::new(db, name.to_owned()),
             provider,
         }
     }
@@ -222,7 +222,7 @@ where
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(old_root)? {
+            if let Some(update) = self.home_db.update_by_previous_root(old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -235,7 +235,7 @@ where
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(new_root)? {
+            if let Some(update) = self.home_db.update_by_new_root(new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -291,7 +291,7 @@ where
     ) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = HomeIndexer {
             contract: self.contract.clone(),
-            db: self.db.clone(),
+            home_db: self.home_db.clone(),
             from_height,
             provider: self.provider.clone(),
             chunk_size,
@@ -307,7 +307,7 @@ where
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_nonce(destination, nonce)? {
+            if let Some(update) = self.home_db.message_by_nonce(destination, nonce)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -320,7 +320,7 @@ where
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_leaf_hash(leaf)? {
+            if let Some(update) = self.home_db.message_by_leaf_hash(leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -332,7 +332,7 @@ where
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.leaf_by_leaf_index(tree_index as u32)? {
+            if let Some(update) = self.home_db.leaf_by_leaf_index(tree_index as u32)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

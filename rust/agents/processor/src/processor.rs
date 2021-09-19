@@ -37,7 +37,7 @@ pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    db: HomeDB,
+    home_db: HomeDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
     next_message_index: prometheus::IntGaugeVec,
@@ -71,7 +71,7 @@ impl Replica {
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
                 let mut next_message_index: u32 = self
-                    .db
+                    .home_db
                     .retrieve_decodable("", LAST_INSPECTED)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
@@ -106,8 +106,11 @@ impl Replica {
                         .await
                     {
                         Ok(true) => {
-                            self.db
-                                .store_encodable("", LAST_INSPECTED, &next_message_index)?;
+                            self.home_db.store_encodable(
+                                "",
+                                LAST_INSPECTED,
+                                &next_message_index,
+                            )?;
                             next_message_index += 1;
                         }
                         Ok(false) => {
@@ -172,7 +175,7 @@ impl Replica {
             return Ok(true);
         }
 
-        let proof = match self.db.proof_by_leaf_index(message.leaf_index) {
+        let proof = match self.home_db.proof_by_leaf_index(message.leaf_index) {
             Ok(Some(p)) => p,
             Ok(None) => {
                 info!(leaf_index = message.leaf_index, "Proof not yet found");
@@ -317,7 +320,7 @@ impl OpticsAgent for Processor {
                 interval,
                 replica,
                 home,
-                db: HomeDB::new(db, home_name),
+                home_db: HomeDB::new(db, home_name),
                 allowed,
                 denied,
                 next_message_index,
@@ -335,7 +338,10 @@ impl OpticsAgent for Processor {
         tokio::spawn(async move {
             info!("Starting Processor tasks");
             // tree sync
-            let sync = ProverSync::from_disk(HomeDB::new(self.core.db.clone(), self.home().name().to_owned()));
+            let sync = ProverSync::from_disk(HomeDB::new(
+                self.core.db.clone(),
+                self.home().name().to_owned(),
+            ));
             let sync_task = sync.spawn();
 
             // indexer setup
