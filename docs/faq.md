@@ -4,7 +4,7 @@
 #### Q: Why does my recently-bridged token have a funny name like `0006648936.eb48`?
 
 **A:**
-In order to avoid sending extra data like the token name and symbol with every message, bridged ERC-20 Token representations are pulled from the originating chain after initial deployment.  This involves a round-trip between the replica and originating chain wherein data about name/symbol/decimals is synced. 
+In order to avoid sending redundant data like the token name and symbol with every message, the first time a bridged ERC-20 Token representation is deployed, metadata is pulled from the originating chain after initial deployment.  This involves a round-trip between the replica and originating chain wherein data about name/symbol/decimals is synced. 
 
 This is expected behavior, and the explorer will update after a day or two. 
 
