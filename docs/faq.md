@@ -1,9 +1,6 @@
 # Frequently Asked Questions
 
 -------
-
-<a name="recently-bridged-token-name"></a>
-
 #### Q: Why does my recently-bridged token have a funny name like `0006648936.eb48`?
 
 **A:**
@@ -24,7 +21,7 @@ USDC's address is `0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`
 
 Note the `eb48` at the end.
 
-**Q: What is the point of the Updater’s attestations?? Why are they necessary / helpful?**
+#### Q: What is the point of the Updater’s attestations?? Why are they necessary / helpful?
 
 I am confused, because it seems like the Updater has very little discretion as to what messages should or should not be enqueued.. it has to sign a message that’s been added to the Home contract’s queue, and it can’t sign the most recent messages without also signing every message before it, so if it detects some kind of “invalid” or malicious message, the only optionality it has is to stop attesting to messages altogether, thereby halting the system entirely, right?
 
@@ -45,7 +42,7 @@ So, the purpose of the Updater is simply providing a signature that the Replica 
 
 -------
 
-**Q: does the Updater need to**
+#### Q: does the Updater need to
 
 - maintain an off-chain copy of the sparse merkle tree
   - No, it relies on the contract
@@ -66,7 +63,7 @@ I am definitely missing some insight into what function the Updater serves in th
 
 -------
 
-**Q: How does a message get processed?**
+#### Q: How does a message get processed?
 
 **A:**
 
@@ -78,7 +75,7 @@ I am definitely missing some insight into what function the Updater serves in th
 
 -------
 
-**Q: What happens if the Updater commits fraud?**
+#### Q: What happens if the Updater commits fraud?
 
 **A:**
 
@@ -94,7 +91,7 @@ I am definitely missing some insight into what function the Updater serves in th
 
 -------
 
-**Q: What happens if the Updater equivocates (signs 2 conflicting updates)?**
+#### Q: What happens if the Updater equivocates (signs 2 conflicting updates)?
 
 **A:**
 
@@ -104,25 +101,25 @@ I am definitely missing some insight into what function the Updater serves in th
 
 -------
 
-**Q: Why would an Updater submit a double update?**
+#### Q: Why would an Updater submit a double update?
 
 **A:** The updater is trying to send different (fraudulent) inbound messages to 2 different chains. E.g the updater wants to move the same $100 to 2 different chains.
 
 -------
 
-**Q: If all double updates are fraud, why do we handle them separately?**
+#### Q: If all double updates are fraud, why do we handle them separately?
 
 **A:** Because unlike regular fraud, a double update can be detected by all chains. So we can *certainly* defend against it everywhere. Since we have a strong defense against this type of fraud, we just ban it outright.
 
 -------
 
-**Q: What do each of the agents do?**
+#### Q: What do each of the agents do?
 
 **A:** See [Optics Architecture](./architecture.md)
 
 -------
 
-**Q: How do xApps know what channels to listen to? And which Home to send messages to?**
+#### Q: How do xApps know what channels to listen to? And which Home to send messages to?
 
 **A:** xApps "know" both of these things by querying the xAppConnectionManager.
 
@@ -140,18 +137,18 @@ In the future, Watchers will be bonded on the Home chain that they watch, to inc
 
 -------
 
-**Q: What is a domain? Why do use domain numbers everywhere?**
+#### Q: What is a domain? Why do use domain numbers everywhere?
 
 **A:** The domain is an identifier for a chain (or other execution environment). It is a number, and eventually we'll have a registry for these. We tag each message with an origin domain so that the recipient knows where it came from. And a destination domain so that the relayer and processor know where to deliver it to (and so the Replica knows that it ought to deliver it). This also lets contracts permission specific people or contracts from other chains.
 
 -------
 
-**Q: Why do we use 32-byte addresses instead of Ethereum-style 20-byte addresses?**
+#### Q: Why do we use 32-byte addresses instead of Ethereum-style 20-byte addresses?
 
 **A:** This is future-proofing. We want to go to non-EVM chains in the future. And 20-bytes won't be enough there.
 
 -------
 
-**Q: Why put all messages in the same Home? Why not use a different Home per destination chain?**
+#### Q: Why put all messages in the same Home? Why not use a different Home per destination chain?
 
 **A:** We do this so that there's no action on the Home chain when we set up a new Replica. There's no action needed in the Home or on the home chain to make a new channel. The Home can be totally naive of the channels it's sending over
