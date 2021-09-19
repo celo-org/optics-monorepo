@@ -41,13 +41,13 @@ where
 mod test {
     use super::*;
     use ethers::types::H256;
-    use optics_core::{
-        accumulator::merkle::Proof, traits::RawCommittedMessage, Encode, OpticsMessage,
-    };
+    use optics_core::{Encode, OpticsMessage, accumulator::merkle::Proof, db::HomeDB, traits::RawCommittedMessage};
 
     #[tokio::test]
     async fn it_stores_and_retrieves_messages() {
         run_test_db(|db| async move {
+            let home_db = HomeDB::new(db, "home_1".to_owned());
+
             let m = OpticsMessage {
                 origin: 10,
                 sender: H256::from_low_u64_be(4),
@@ -64,21 +64,21 @@ mod test {
             };
             assert_eq!(m.to_leaf(), message.leaf_hash());
 
-            db.store_raw_committed_message(&message).unwrap();
+            home_db.store_raw_committed_message(&message).unwrap();
 
-            let by_nonce = db
+            let by_nonce = home_db
                 .message_by_nonce(m.destination, m.nonce)
                 .unwrap()
                 .unwrap();
             assert_eq!(by_nonce, message);
 
-            let by_leaf = db
+            let by_leaf = home_db
                 .message_by_leaf_hash(message.leaf_hash())
                 .unwrap()
                 .unwrap();
             assert_eq!(by_leaf, message);
 
-            let by_index = db
+            let by_index = home_db
                 .message_by_leaf_index(message.leaf_index)
                 .unwrap()
                 .unwrap();
@@ -90,14 +90,16 @@ mod test {
     #[tokio::test]
     async fn it_stores_and_retrieves_proofs() {
         run_test_db(|db| async move {
+            let home_db = HomeDB::new(db, "home_1".to_owned());
+
             let proof = Proof {
                 leaf: H256::from_low_u64_be(15),
                 index: 32,
                 path: Default::default(),
             };
-            db.store_proof(13, &proof).unwrap();
+            home_db.store_proof(13, &proof).unwrap();
 
-            let by_index = db.proof_by_leaf_index(13).unwrap().unwrap();
+            let by_index = home_db.proof_by_leaf_index(13).unwrap().unwrap();
             assert_eq!(by_index, proof);
         })
         .await;
