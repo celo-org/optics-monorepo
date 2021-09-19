@@ -2,6 +2,28 @@
 
 -------
 
+<a name="recently-bridged-token-name"></a>
+
+#### Q: Why does my recently-bridged token have a funny name like `0006648936.eb48`?
+
+**A:**
+In order to avoid sending extra data like the token name and symbol with every message, bridged ERC-20 Token representations are pulled from the originating chain after initial deployment.  This involves a round-trip between the replica and originating chain wherein data about name/symbol/decimals is synced. 
+
+This is expected behavior, and the explorer will update after a day or two. 
+
+#### Q: Why is the ERC-20 token placeholder name like that?
+
+**A**
+Example: `0006648936.eb48` 
+
+`0006648936.eb48` is the Optics domain ID for Ethereum and the last 4 letters of the token address on Ethereum
+
+`6648936 == 0x657468` -- the utf8 encoding of 'eth'
+
+USDC's address is `0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`
+
+Note the `eb48` at the end.
+
 **Q: What is the point of the Updater’s attestations?? Why are they necessary / helpful?**
 
 I am confused, because it seems like the Updater has very little discretion as to what messages should or should not be enqueued.. it has to sign a message that’s been added to the Home contract’s queue, and it can’t sign the most recent messages without also signing every message before it, so if it detects some kind of “invalid” or malicious message, the only optionality it has is to stop attesting to messages altogether, thereby halting the system entirely, right?
