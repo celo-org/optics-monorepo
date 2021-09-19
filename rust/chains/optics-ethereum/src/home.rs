@@ -133,7 +133,8 @@ where
                     self.sync_leaves(next_height, to)
                 )?;
 
-                self.home_db.store_encodable("", LAST_INSPECTED, &next_height)?;
+                self.home_db
+                    .store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {

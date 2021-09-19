@@ -36,7 +36,7 @@ struct UpdateHandler {
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
-    db: HomeDB,
+    home_db: HomeDB,
     mutex: Arc<Mutex<()>>,
     signed_attestation_count: IntCounterVec,
 }
@@ -57,7 +57,7 @@ impl UpdateHandler {
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
-        db: HomeDB,
+        home_db: HomeDB,
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
@@ -66,14 +66,14 @@ impl UpdateHandler {
             rx,
             update_pause,
             signer,
-            db,
+            home_db,
             mutex,
             signed_attestation_count,
         }
     }
 
     fn check_conflict(&self, update: &Update) -> Option<SignedUpdate> {
-        self.db
+        self.home_db
             .update_by_previous_root(update.previous_root)
             .expect("db failure")
     }
@@ -157,7 +157,7 @@ impl UpdateHandler {
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
-        self.db.store_update(&signed)?;
+        self.home_db.store_update(&signed)?;
         Ok(())
         // guard dropped here
     }
