@@ -56,6 +56,7 @@ where
     }
 
     async fn poll_and_send_update(&mut self) -> Result<()> {
+        // Calls out to DB
         let update_opt = self
             .contract
             .signed_update_by_old_root(self.committed_root)
@@ -113,6 +114,7 @@ where
     }
 
     async fn update_history(&mut self) -> Result<()> {
+        // Calls out to DB
         let previous_update = self
             .contract
             .signed_update_by_new_root(self.committed_root)
