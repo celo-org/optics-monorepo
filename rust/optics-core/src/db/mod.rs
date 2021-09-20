@@ -6,9 +6,13 @@ use tracing::info;
 /// Shared functionality surrounding use of rocksdb
 pub mod iterator;
 
-/// Home-specific db operations
-pub mod home_db;
-pub use home_db::HomeDB;
+/// Type-specific db operations
+mod typed_db;
+pub use typed_db::*;
+
+/// DB operations tied to specific home
+mod home_db;
+pub use home_db::*;
 
 use crate::{Decode, Encode, OpticsError};
 

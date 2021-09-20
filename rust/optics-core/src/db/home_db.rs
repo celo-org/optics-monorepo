@@ -1,4 +1,4 @@
-use crate::db::{DbError, DB};
+use crate::db::{DbError, TypedDB, DB};
 use crate::{
     accumulator::merkle::Proof, traits::RawCommittedMessage, utils, Decode, Encode, OpticsMessage,
     SignedUpdate,
@@ -24,26 +24,15 @@ static LATEST_LEAF: &str = "latest_known_leaf_";
 
 /// DB handle for storing data tied to a specific home.
 ///
-/// Key structure: ```<home_name>_<type_prefix>_<key>```
+/// Key structure: ```<home_name>_<additional_prefix(es)>_<key>```
 #[derive(Debug, Clone)]
-pub struct HomeDB {
-    db: DB,
-    home_name: String,
-}
+pub struct HomeDB(TypedDB);
 
 impl HomeDB {
-    /// Create new `HomeDB` given `db` and `home_name`
+    /// Instantiated new `HomeDB`
     pub fn new(db: DB, home_name: String) -> Self {
-        Self { db, home_name }
+        Self(TypedDB::new(db, home_name))
     }
-
-    fn full_prefix(&self, prefix: impl AsRef<[u8]>) -> Vec<u8> {
-        let mut full_prefix = vec![];
-        full_prefix.extend(self.home_name.as_ref() as &[u8]);
-        full_prefix.extend(prefix.as_ref());
-        full_prefix
-    }
-
     /// Store encodable with `self.home_name` prefixed to key
     pub fn store_encodable<V: Encode>(
         &self,
@@ -51,8 +40,7 @@ impl HomeDB {
         key: impl AsRef<[u8]>,
         value: &V,
     ) -> Result<(), DbError> {
-        self.db
-            .store_encodable(&self.full_prefix(prefix), key, value)
+        self.0.store_encodable(prefix, key, value)
     }
 
     /// Retrieve encodable with `self.home_name` prefixed to key
@@ -61,7 +49,7 @@ impl HomeDB {
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
     ) -> Result<Option<V>, DbError> {
-        self.db.retrieve_decodable(&self.full_prefix(prefix), key)
+        self.0.retrieve_decodable(prefix, key)
     }
 
     /// Store encodable with `self.home_name` prefixed to key
@@ -71,7 +59,7 @@ impl HomeDB {
         key: &K,
         value: &V,
     ) -> Result<(), DbError> {
-        self.store_encodable(prefix, key.to_vec(), value)
+        self.0.store_encodable(prefix, key.to_vec(), value)
     }
 
     /// Retrieve encodable with `self.home_name` prefixed to key
@@ -80,7 +68,7 @@ impl HomeDB {
         prefix: impl AsRef<[u8]>,
         key: &K,
     ) -> Result<Option<V>, DbError> {
-        self.retrieve_decodable(prefix, key.to_vec())
+        self.0.retrieve_decodable(prefix, key.to_vec())
     }
 
     /// Store a raw committed message
@@ -123,7 +111,7 @@ impl HomeDB {
     }
 
     /// Store the leaf_hash keyed by leaf_index
-    pub fn store_leaf(
+    fn store_leaf(
         &self,
         leaf_index: u32,
         destination_and_nonce: u64,
@@ -201,7 +189,7 @@ impl HomeDB {
             "storing update in DB"
         );
 
-        // If there is no latet root, or if this update is on the latest root
+        // If there is no latest root, or if this update is on the latest root
         // update latest root
         match self.retrieve_latest_root()? {
             Some(root) => {
@@ -240,7 +228,7 @@ impl HomeDB {
 
     /// Iterate over all leaves
     pub fn leaf_iterator(&self) -> PrefixIterator<H256> {
-        PrefixIterator::new(self.db.prefix_iterator(LEAF_IDX), LEAF_IDX.as_ref())
+        PrefixIterator::new(self.0.db().prefix_iterator(LEAF_IDX), LEAF_IDX.as_ref())
     }
 
     /// Store a proof by its leaf index
