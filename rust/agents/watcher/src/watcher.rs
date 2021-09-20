@@ -63,7 +63,6 @@ where
     }
 
     async fn poll_and_send_update(&mut self) -> Result<()> {
-        // Calls out to DB
         let update_opt = self
             .contract
             .signed_update_by_old_root(self.committed_root)
@@ -121,7 +120,6 @@ where
     }
 
     async fn update_history(&mut self) -> Result<()> {
-        // Calls out to DB
         let previous_update = self
             .contract
             .signed_update_by_new_root(self.committed_root)
@@ -439,7 +437,7 @@ impl OpticsAgent for Watcher {
         tokio::spawn(async move {
             info!("Starting Watcher tasks");
 
-            // indexer setup
+            // Indexer setup
             let block_height = self
                 .as_ref()
                 .metrics
@@ -455,7 +453,7 @@ impl OpticsAgent for Watcher {
                 .home()
                 .index(indexer.from(), indexer.chunk_size(), block_height);
 
-            // watcher run loop setup
+            // Watcher run loop setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
             let run_task = Watcher::run_loop(
                 self.db(),
@@ -472,7 +470,7 @@ impl OpticsAgent for Watcher {
             let tasks = vec![index_task, run_task];
             let (_, _, remaining) = select_all(tasks).await;
 
-            // Cancel laggard task
+            // Cancel lagging task and watcher polling/syncing tasks
             for task in remaining.into_iter() {
                 cancel_task!(task);
             }
