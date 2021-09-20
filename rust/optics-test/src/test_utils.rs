@@ -46,7 +46,7 @@ mod test {
     };
 
     #[tokio::test]
-    async fn it_stores_and_retrieves_messages() {
+    async fn home_db_stores_and_retrieves_messages() {
         run_test_db(|db| async move {
             let home_db = HomeDB::new(db, "home_1".to_owned());
 
@@ -90,7 +90,7 @@ mod test {
     }
 
     #[tokio::test]
-    async fn it_stores_and_retrieves_proofs() {
+    async fn home_db_stores_and_retrieves_proofs() {
         run_test_db(|db| async move {
             let home_db = HomeDB::new(db, "home_1".to_owned());
 

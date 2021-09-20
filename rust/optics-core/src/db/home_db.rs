@@ -22,7 +22,7 @@ static LATEST_ROOT: &str = "update_latest_root_";
 static PROOF: &str = "proof_";
 static LATEST_LEAF: &str = "latest_known_leaf_";
 
-/// DB handle for storing home-specific data.
+/// DB handle for storing data tied to a specific home.
 ///
 /// Key structure: ```<home_name>_<type_prefix>_<key>```
 #[derive(Debug, Clone)]
