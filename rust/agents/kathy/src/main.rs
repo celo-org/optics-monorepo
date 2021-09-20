@@ -23,8 +23,7 @@ async fn _main() -> Result<()> {
         .as_ref()
         .settings
         .tracing
-        .start_tracing(agent.metrics().span_duration())
-        .expect("tracing is unhappy");
+        .start_tracing(agent.metrics().span_duration())?;
     let _ = agent.metrics().run_http_server();
 
     agent.run_all().await?
