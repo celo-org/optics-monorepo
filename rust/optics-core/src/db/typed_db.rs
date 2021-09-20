@@ -12,7 +12,7 @@ pub struct TypedDB {
 }
 
 impl TypedDB {
-    /// Create new `HomeDB` given `db` and `home_name`
+    /// Instantiate new `TypedDB`
     pub fn new(db: DB, type_prefix: impl Into<Vec<u8>>) -> Self {
         Self {
             db,
@@ -32,7 +32,7 @@ impl TypedDB {
         full_prefix
     }
 
-    /// Store encodable with `self.home_name` prefixed to key
+    /// Store encodable value
     pub fn store_encodable<V: Encode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -43,7 +43,7 @@ impl TypedDB {
             .store_encodable(&self.full_prefix(prefix), key, value)
     }
 
-    /// Retrieve encodable with `self.home_name` prefixed to key
+    /// Retrieve decodable value
     pub fn retrieve_decodable<V: Decode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -52,7 +52,7 @@ impl TypedDB {
         self.db.retrieve_decodable(&self.full_prefix(prefix), key)
     }
 
-    /// Store encodable with `self.home_name` prefixed to key
+    /// Store encodable kv pair
     pub fn store_keyed_encodable<K: Encode, V: Encode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -62,7 +62,7 @@ impl TypedDB {
         self.store_encodable(prefix, key.to_vec(), value)
     }
 
-    /// Retrieve encodable with `self.home_name` prefixed to key
+    /// Retrieve decodable value given encodable key
     pub fn retrieve_keyed_decodable<K: Encode, V: Decode>(
         &self,
         prefix: impl AsRef<[u8]>,

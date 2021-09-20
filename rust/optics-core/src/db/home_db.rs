@@ -33,7 +33,8 @@ impl HomeDB {
     pub fn new(db: DB, home_name: String) -> Self {
         Self(TypedDB::new(db, home_name))
     }
-    /// Store encodable with `self.home_name` prefixed to key
+
+    /// Store encodable value
     pub fn store_encodable<V: Encode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -43,7 +44,7 @@ impl HomeDB {
         self.0.store_encodable(prefix, key, value)
     }
 
-    /// Retrieve encodable with `self.home_name` prefixed to key
+    /// Retrieve decodable value
     pub fn retrieve_decodable<V: Decode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -52,7 +53,7 @@ impl HomeDB {
         self.0.retrieve_decodable(prefix, key)
     }
 
-    /// Store encodable with `self.home_name` prefixed to key
+    /// Store encodable kv pair
     pub fn store_keyed_encodable<K: Encode, V: Encode>(
         &self,
         prefix: impl AsRef<[u8]>,
@@ -62,7 +63,7 @@ impl HomeDB {
         self.0.store_encodable(prefix, key.to_vec(), value)
     }
 
-    /// Retrieve encodable with `self.home_name` prefixed to key
+    /// Retrieve decodable value given encodable key
     pub fn retrieve_keyed_decodable<K: Encode, V: Decode>(
         &self,
         prefix: impl AsRef<[u8]>,
