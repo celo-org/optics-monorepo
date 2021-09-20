@@ -3,23 +3,24 @@ use color_eyre::{eyre::bail, Report, Result};
 use thiserror::Error;
 
 use ethers::core::types::H256;
-use futures_util::future::{join, join_all};
+use futures_util::future::{join, join_all, select_all};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::{
-    sync::{mpsc, RwLock},
+    sync::{mpsc, oneshot, RwLock},
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{info_span, instrument::Instrumented, Instrument};
+use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task,
     home::Homes,
+    replica::Replicas,
     xapp::ConnectionManagers,
 };
 use optics_core::{
-    db::HomeDB,
+    db::{HomeDB, DB},
     traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
     FailureNotification, SignedUpdate, Signers,
 };
@@ -223,12 +224,14 @@ impl UpdateHandler {
     }
 }
 
+type TaskMap = Arc<RwLock<HashMap<String, Instrumented<JoinHandle<Result<()>>>>>>;
+
 #[derive(Debug)]
 pub struct Watcher {
     signer: Arc<Signers>,
     interval_seconds: u64,
-    sync_tasks: RwLock<HashMap<String, Instrumented<JoinHandle<Result<()>>>>>,
-    watch_tasks: RwLock<HashMap<String, Instrumented<JoinHandle<Result<()>>>>>,
+    sync_tasks: TaskMap,
+    watch_tasks: TaskMap,
     connection_managers: Vec<ConnectionManagers>,
     core: AgentCore,
 }
@@ -307,6 +310,68 @@ impl Watcher {
             .chain(unenroll_res.into_iter())
             .collect()
     }
+
+    fn run_loop(
+        db: DB,
+        home: Arc<Homes>,
+        replicas: HashMap<String, Arc<Replicas>>,
+        interval_seconds: u64,
+        sync_tasks: TaskMap,
+        watch_tasks: TaskMap,
+        double_update_tx: oneshot::Sender<DoubleUpdate>,
+    ) -> Instrumented<JoinHandle<Result<()>>> {
+        tokio::spawn(async move {
+            // Spawn update handler
+            let (tx, rx) = mpsc::channel(200);
+            let handler =
+                UpdateHandler::new(rx, HomeDB::new(db, home.name().to_owned()), home.clone())
+                    .spawn();
+
+            // For each replica, spawn polling and history syncing tasks
+            for (name, replica) in replicas {
+                let from = replica.committed_root().await?;
+
+                watch_tasks.write().await.insert(
+                    (*name).to_owned(),
+                    ContractWatcher::new(interval_seconds, from, tx.clone(), replica.clone())
+                        .spawn()
+                        .in_current_span(),
+                );
+                sync_tasks.write().await.insert(
+                    (*name).to_owned(),
+                    HistorySync::new(interval_seconds, from, tx.clone(), replica)
+                        .spawn()
+                        .in_current_span(),
+                );
+            }
+
+            // Spawn polling and history syncing tasks for home
+            let from = home.committed_root().await?;
+            let home_watcher =
+                ContractWatcher::new(interval_seconds, from, tx.clone(), home.clone())
+                    .spawn()
+                    .in_current_span();
+            let home_sync = HistorySync::new(interval_seconds, from, tx.clone(), home)
+                .spawn()
+                .in_current_span();
+
+            // Wait for update handler to encounter error OR fraud
+            let double_update_res = handler.await?;
+
+            // Cancel running tasks
+            tracing::info!("Update handler has resolved. Cancelling all other tasks");
+            cancel_task!(home_watcher);
+            cancel_task!(home_sync);
+
+            // If double update found, send through oneshot
+            if let Err(e) = double_update_tx.send(double_update_res?) {
+                bail!("Failed to send double update through oneshot: {:?}", e);
+            }
+
+            Ok(())
+        })
+        .in_current_span()
+    }
 }
 
 #[async_trait]
@@ -372,67 +437,69 @@ impl OpticsAgent for Watcher {
         Self: Sized + 'static,
     {
         tokio::spawn(async move {
-            let (tx, rx) = mpsc::channel(200);
-            let handler = UpdateHandler::new(
-                rx,
-                HomeDB::new(self.db(), self.home().name().to_owned()),
+            info!("Starting Watcher tasks");
+
+            // indexer setup
+            let block_height = self
+                .as_ref()
+                .metrics
+                .new_int_gauge(
+                    "block_height",
+                    "Height of a recently observed block",
+                    &["network", "agent"],
+                )
+                .expect("failed to register block_height metric")
+                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+            let indexer = &self.as_ref().indexer;
+            let index_task = self
+                .home()
+                .index(indexer.from(), indexer.chunk_size(), block_height);
+
+            // watcher run loop setup
+            let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
+            let run_task = Watcher::run_loop(
+                self.db(),
                 self.home(),
-            )
-            .spawn();
+                self.replicas().clone(),
+                self.interval_seconds,
+                self.sync_tasks.clone(),
+                self.watch_tasks.clone(),
+                double_update_tx,
+            );
 
-            for (name, replica) in self.replicas().clone() {
-                let from = replica.committed_root().await?;
+            // Race index and run tasks
+            info!("selecting");
+            let tasks = vec![index_task, run_task];
+            let (_, _, remaining) = select_all(tasks).await;
 
-                self.watch_tasks.write().await.insert(
-                    (*name).to_owned(),
-                    ContractWatcher::new(self.interval_seconds, from, tx.clone(), replica.clone())
-                        .spawn()
-                        .in_current_span(),
-                );
-                self.sync_tasks.write().await.insert(
-                    (*name).to_owned(),
-                    HistorySync::new(self.interval_seconds, from, tx.clone(), replica)
-                        .spawn()
-                        .in_current_span(),
-                );
+            // Cancel laggard task
+            for task in remaining.into_iter() {
+                cancel_task!(task);
             }
-
-            let home = self.home();
-            let from = home.committed_root().await?;
-
-            let home_watcher =
-                ContractWatcher::new(self.interval_seconds, from, tx.clone(), home.clone())
-                    .spawn()
-                    .in_current_span();
-            let home_sync = HistorySync::new(self.interval_seconds, from, tx.clone(), home)
-                .spawn()
-                .in_current_span();
-
-            let join_result = handler.await;
-
-            tracing::info!("Update handler has resolved. Cancelling all other tasks");
-            cancel_task!(home_watcher);
-            cancel_task!(home_sync);
             self.shutdown().await;
 
-            let double_update = join_result??;
+            // Check if double update was sent during run task
+            match double_update_rx.try_recv() {
+                Ok(double_update) => {
+                    tracing::error!(
+                        "Double update detected! Notifying all contracts and unenrolling replicas!"
+                    );
+                    self.handle_failure(&double_update)
+                        .await
+                        .iter()
+                        .for_each(|res| tracing::info!("{:#?}", res));
 
-            tracing::error!(
-                "Double update detected! Notifying all contracts and unenrolling replicas!"
-            );
-            self.handle_failure(&double_update)
-                .await
-                .iter()
-                .for_each(|res| tracing::info!("{:#?}", res));
-
-            bail!(
-                r#"
-                Double update detected!
-                All contracts notified!
-                Replicas unenrolled!
-                Watcher has been shut down!
-            "#
-            )
+                    bail!(
+                        r#"
+                        Double update detected!
+                        All contracts notified!
+                        Replicas unenrolled!
+                        Watcher has been shut down!
+                    "#
+                    )
+                }
+                Err(_) => Ok(()),
+            }
         })
         .instrument(info_span!("Watcher::run_all"))
     }
