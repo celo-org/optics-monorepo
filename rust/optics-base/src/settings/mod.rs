@@ -166,7 +166,7 @@ impl IndexSettings {
 ///     }
 /// }
 /// ```
-#[derive(Default, Debug, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// The path to use for the DB file
@@ -192,6 +192,7 @@ impl Settings {
         Self {
             db: self.db.clone(),
             metrics: self.metrics.clone(),
+            index: self.index.clone(),
             home: self.home.clone(),
             replicas: self.replicas.clone(),
             tracing: self.tracing.clone(),

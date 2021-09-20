@@ -105,7 +105,15 @@ macro_rules! construct_http_box_contract {
     }};
 }
 
-/// Ethereum connection configuration
+/// Ethereum RPC node connection metadata
+///
+/// Absent your own geth-or-whatever, LinkPool operates a public endpoint:
+///
+/// ```rs
+/// EthereumConnection::Ws { url: "wss://main-light.eth.linkpool.io/ws".into() }
+/// ```
+///
+/// Free decentriwisdom: running your own is always a good idea!
 #[derive(Debug, serde::Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum EthereumConnection {
@@ -119,14 +127,6 @@ pub enum EthereumConnection {
         /// Fully qualified string to connect to
         url: String,
     },
-}
-
-impl Default for EthereumConnection {
-    fn default() -> Self {
-        EthereumConnection::Ws {
-            url: "wss://main-light.eth.linkpool.io/ws".into(),
-        }
-    }
 }
 
 impl EthereumConnection {
