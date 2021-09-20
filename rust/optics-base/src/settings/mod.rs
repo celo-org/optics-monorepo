@@ -187,7 +187,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    /// Private so that
+    /// Private to preserve linearity of AgentCore::from_settings -- creating an agent consumes the settings.
     fn clone(&self) -> Self {
         Self {
             db: self.db.clone(),
