@@ -1,35 +1,59 @@
 import { mainnet } from "@optics-xyz/multi-provider";
-import { xapps } from '@optics-xyz/ts-interface'
+import { xapps } from '@optics-xyz/ts-interface';
 import config from "./config";
 import { ethers } from "ethers";
-import { getSendEvents, processSendEvents } from "./events";
+import { getSendEvents, getTokenDeployedEvents, processSendEvents, processTokenDeployedEvents, SendEvent, TokenDeployedEvent } from "./events";
 import { getBlockHeight } from "./utils";
-import { TypedEvent } from "@optics-xyz/ts-interface/dist/optics-xapps/commons";
-
-interface LooseObject {
-    [key: string]: any
-}
-
+import { uploadDeployedTokens } from "./googleSheets";
 
 mainnet.registerRpcProvider('celo', config.CeloRpc);
 mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
 mainnet.registerRpcProvider('polygon', config.PolygonRpc);
 
+const networks = [{name: "ethereum", blockHeight: 13187674}, {name: "celo", blockHeight: 8712249}, {name: "polygon", blockHeight: 18895794}]
+
+async function eventTokenDeployedMetrics() {
+    let events: TokenDeployedEvent[] = []
+
+    for (let index = 0; index < networks.length; index++) {
+        const network = networks[index];
+
+        if (network.name == "polygon") {
+            let currentBlockHeight = await getBlockHeight(mainnet, network.name)
+            console.log(`Processing ${(currentBlockHeight - network.blockHeight) / 10000} pages for Polygon`)
+            for (let index = network.blockHeight; index < currentBlockHeight; index+=10000) {
+                let checkpoint = await getTokenDeployedEvents(mainnet, network.name, index, index+10000)
+                //console.log(index, index+10000)
+                events = events.concat(checkpoint)
+            }
+        }
+        else {
+            events = await getTokenDeployedEvents(mainnet, network.name, network.blockHeight)
+        }
+    
+        console.log(`Got ${events.length} Events from ${network.name}`)
+        
+        let details = await processTokenDeployedEvents(mainnet, network.name, events);
+        
+        console.log(`Tokens Deployed to ${network.name}:`)
+        for (var key in details ){
+            console.log(`Token Name: \t${details[key].name}`)
+            console.log(`Token Symbol: \t${details[key].symbol}`)
+            console.log(`Token Address: \t${details[key].address}`)
+            console.log(`Decimals: \t${details[key].decimals}`)
+            console.log()
+        } 
+        await uploadDeployedTokens(config.GoogleCredentialsFile, network.name, details)
+        console.log('Tokens uploaded to sheets.')
+    }
+}
 
 async function eventSendMetrics() {
-    let networks = [{name: "ethereum", blockHeight: 13187674}, {name: "celo", blockHeight: 8712249}, {name: "polygon", blockHeight: 18895794}]
-
     networks.forEach(async (network) => {
         //console.log(`Processing sends on ${network.name}`)
         
         // get Send events
-        let events: TypedEvent<[string, string, number, string, ethers.BigNumber] & {
-            token: string;
-            from: string;
-            toDomain: number;
-            toId: string;
-            amount: ethers.BigNumber;
-        }>[] = []
+        let events: SendEvent[] = []
 
         if (network.name == "polygon") {
             let currentBlockHeight = await getBlockHeight(mainnet, network.name)
@@ -73,5 +97,5 @@ async function eventSendMetrics() {
 };
 
 (async function main() {
-    await eventSendMetrics()
+    await eventTokenDeployedMetrics()
 })()

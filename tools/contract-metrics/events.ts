@@ -18,9 +18,17 @@ interface SendDetails {
     [key: string]: SendDetail
 }
 
+interface TokenDeployDetail {
+    name?: string;
+    symbol?: string;
+    decimals?: number;
+    address: string;
+    id: string;
+    domain: number;
+}
 
 interface TokenDeployDetails {
-    
+    [key: string]: TokenDeployDetail
 }
 
 async function getSendEvents(context:OpticsContext, networkName:string, fromBlock:number, toBlock?:number) {
@@ -90,12 +98,45 @@ async function getTokenDeployedEvents(context:OpticsContext, networkName:string,
     }
 }
 
-async function processTokenDeployedEvents(context: OpticsContext, networkName:string, events: SendEvent[]){
+async function processTokenDeployedEvents(context: OpticsContext, networkName:string, events: TokenDeployedEvent[]){
     let token = new xapps.BridgeToken__factory()
-    
+    let details: TokenDeployDetails = {};
 
-
+    for (let index = 0; index < events.length; index++) {
+        const event = events[index];
+        const address = event.args["representation"]
+        const tokenId = event.args["id"]
+        const domain = event.args["domain"]
+        
+        try {
+            let contract = token.attach(address).connect(context.getProvider(networkName) ?? "")
+            let name = await contract.name()
+            let symbol = await contract.symbol()
+            let decimals = await contract.decimals()
+            details[address] = {
+                name: name,
+                symbol: symbol,
+                address: address,
+                decimals: decimals,
+                id: tokenId,
+                domain: domain
+            }
+        } catch(error) {
+            console.log(error)
+            console.log(event)
+            details[address] = {
+                address: address,
+                id: tokenId,
+                domain: domain
+            }
+        }
+        
+    } 
+    return details
 }
 
 export { getSendEvents };
+export { getTokenDeployedEvents };
 export { processSendEvents };
+export { processTokenDeployedEvents };
+export { TokenDeployDetails }
