@@ -8,13 +8,16 @@ use color_eyre::Result;
 #[derive(Debug, Clone)]
 pub struct TypedDB {
     db: DB,
-    type_prefix: String,
+    type_prefix: Vec<u8>,
 }
 
 impl TypedDB {
     /// Create new `HomeDB` given `db` and `home_name`
-    pub fn new(db: DB, type_prefix: String) -> Self {
-        Self { db, type_prefix }
+    pub fn new(db: DB, type_prefix: impl Into<Vec<u8>>) -> Self {
+        Self {
+            db,
+            type_prefix: type_prefix.into(),
+        }
     }
 
     /// Return reference to raw db
