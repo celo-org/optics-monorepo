@@ -107,13 +107,15 @@ def top_up(ctx):
         for role, address in config["homes"][home]["addresses"].items():
             logging.info(f"Processing {role}-{address} on {home}")    
             # fetch config params 
-            home_threshold = config["networks"][home]["threshold"]
+            home_upper_bound = config["networks"][home]["threshold"]
+            # don't top up until balance has gone beneath lower bound
+            home_lower_bound = home_upper_bound / 3
             home_endpoint = config["networks"][home]["endpoint"]
             home_bank_signer = config["networks"][home]["bank"]["signer"]
             home_bank_address = config["networks"][home]["bank"]["address"]
             
             # check if balance is below threshold at home
-            threshold_difference = is_wallet_below_threshold(address, home_threshold, home_endpoint)
+            threshold_difference = is_wallet_below_threshold(address, home_lower_bound, home_upper_bound, home_endpoint)
             # get nonce
             home_bank_nonce = get_nonce(home_bank_address, home_endpoint)
             
@@ -127,12 +129,14 @@ def top_up(ctx):
 
             for replica in config["homes"][home]["replicas"]:
                  # fetch config params 
-                replica_threshold = config["networks"][replica]["threshold"]
+                replica_upper_bound = config["networks"][replica]["threshold"] 
+                # don't top up until balance has gone beneath lower bound
+                replica_lower_bound = replica_upper_bound / 3
                 replica_endpoint = config["networks"][replica]["endpoint"]
                 replica_bank_signer = config["networks"][replica]["bank"]["signer"]
                 replica_bank_address = config["networks"][replica]["bank"]["address"]
                 # check if balance is below threshold at replica
-                threshold_difference = is_wallet_below_threshold(address, replica_threshold, replica_endpoint)
+                threshold_difference = is_wallet_below_threshold(address, replica_lower_bound, replica_upper_bound, replica_endpoint)
                 # get nonce
                 replica_bank_nonce = get_nonce(replica_bank_address, replica_endpoint)
                 # if so, enqueue top up with (threshold - balance) ether

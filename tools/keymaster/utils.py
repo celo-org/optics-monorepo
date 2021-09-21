@@ -3,14 +3,16 @@ from web3 import Web3
 # Checks if an address is below the threshold
 # returns difference in wei if true
 # returns False if not
-def is_wallet_below_threshold(address:str, threshold:int, endpoint:str):
+def is_wallet_below_threshold(address:str, lower_bound:int, upper_bound:int, endpoint:str):
     w3 = Web3(Web3.HTTPProvider(endpoint))
     address = Web3.toChecksumAddress(address)
     # get balance
     wallet_wei = w3.eth.get_balance(address)
-    # if balance below threshold
-    if wallet_wei < threshold:
-        return threshold - wallet_wei
+    # if balance below lower bound
+    if wallet_wei < lower_bound:
+        # return the amount we have to top up
+        # to reach upper bound 
+        return upper_bound - wallet_wei
     else: 
         return False
 
