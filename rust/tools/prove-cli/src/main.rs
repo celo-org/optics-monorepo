@@ -6,11 +6,11 @@ use optics_ethereum::EthereumReplica;
 use clap::Clap;
 use ethers::{
     core::k256::ecdsa::SigningKey,
-    prelude::{Http, Provider, SignerMiddleware},
+    prelude::{Http, Middleware, Provider, SignerMiddleware},
 };
 
 use color_eyre::Result;
-use ethers_signers::Wallet;
+use ethers_signers::{Signer, Wallet};
 
 #[derive(Clap)]
 struct Opts {
@@ -39,7 +39,10 @@ struct Opts {
 async fn main() -> Result<()> {
     let opts = Opts::parse();
     let provider = Provider::<Http>::try_from(opts.rpc.as_ref())?;
-    let signer = opts.key.parse::<Wallet<SigningKey>>()?;
+    let signer = opts
+        .key
+        .parse::<Wallet<SigningKey>>()?
+        .with_chain_id(provider.get_chainid().await?.low_u64());
 
     let middleware = SignerMiddleware::new(provider, signer);
 
