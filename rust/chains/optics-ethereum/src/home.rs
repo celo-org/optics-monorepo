@@ -136,11 +136,7 @@ where
                     next_height,
                     to
                 );
-                // WARN: update and leave syncing running concurrently means db
-                // may have snapshots where leaf and update state are
-                // temporarily out of sync!
-                // TODO(luke/james): add extra synchronization to ensure update
-                // and leaf state always read from db when in sync
+
                 try_join!(
                     self.sync_updates(next_height, to),
                     self.sync_leaves(next_height, to)
