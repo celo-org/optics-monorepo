@@ -1,6 +1,10 @@
 use std::{convert::TryFrom, sync::Arc};
 
-use optics_core::{db::DB, traits::Replica, Decode, OpticsMessage};
+use optics_core::{
+    db::DB,
+    traits::{MessageStatus, Replica},
+    Decode, OpticsMessage,
+};
 use optics_ethereum::EthereumReplica;
 
 use clap::Clap;
@@ -56,7 +60,15 @@ async fn main() -> Result<()> {
         .expect("no message");
     let message = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
 
-    let outcome = replica.prove_and_process(&message, &proof).await?;
+    let status = replica.message_status(message.to_leaf()).await?;
+    let outcome = match status {
+        MessageStatus::None => replica.prove_and_process(&message, &proof).await?,
+        MessageStatus::Proven => replica.process(&message).await?,
+        _ => {
+            println!("Message already processed.");
+            return Ok(());
+        }
+    };
 
     println!("{:?}", outcome);
 
