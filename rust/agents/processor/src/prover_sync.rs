@@ -79,7 +79,8 @@ impl ProverSync {
                 );
                 Ok(())
             }
-            // ignore the storage request if it's out of range
+            // ignore the storage request if it's out of range (e.g. leaves 
+            // up-to-date but no update containing leaves produced yet)
             Err(ProverError::ZeroProof { index: _, count: _ }) => Ok(()),
             // bubble up any other errors
             Err(e) => Err(e.into()),
