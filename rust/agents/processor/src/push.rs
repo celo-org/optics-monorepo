@@ -67,7 +67,7 @@ impl Pusher {
     }
 
     fn key(&self, proof: &Proof) -> String {
-        format!("{}_{:?}", self.name, proof.leaf)
+        format!("{}_{}", self.name, proof.index)
     }
 
     /// Spawn the pusher task and return a joinhandle
