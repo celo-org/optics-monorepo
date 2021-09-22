@@ -172,16 +172,25 @@ impl CoreMetrics {
                     port = port
                 );
                 tokio::spawn(async move {
-                    warp::serve(warp::path!("metrics").map(move || {
-                        warp::reply::with_header(
-                            self.gather().expect("failed to encode metrics"),
-                            "Content-Type",
-                            // OpenMetrics specs demands "application/openmetrics-text; version=1.0.0; charset=utf-8"
-                            // but the prometheus scraper itself doesn't seem to care?
-                            // try text/plain to make web browsers happy.
-                            "text/plain; charset=utf-8",
-                        )
-                    }))
+                    warp::serve(
+                        warp::path!("metrics")
+                            .map(move || {
+                                warp::reply::with_header(
+                                    self.gather().expect("failed to encode metrics"),
+                                    "Content-Type",
+                                    // OpenMetrics specs demands "application/openmetrics-text; version=1.0.0; charset=utf-8"
+                                    // but the prometheus scraper itself doesn't seem to care?
+                                    // try text/plain to make web browsers happy.
+                                    "text/plain; charset=utf-8",
+                                )
+                            })
+                            .or(warp::any().map(|| {
+                                warp::reply::with_status(
+                                    "go look at /metrics",
+                                    warp::http::StatusCode::NOT_FOUND,
+                                )
+                            })),
+                    )
                     .run(([0, 0, 0, 0], port))
                     .await;
                 })
