@@ -49,29 +49,38 @@ where
 {
     #[instrument(err, skip(self))]
     async fn sync_updates(&self, from: u32, to: u32) -> Result<()> {
-        let events = self
+        let mut events = self
             .contract
             .update_filter()
             .from_block(from)
             .to_block(to)
-            .query()
+            .query_with_meta()
             .await?;
 
+        events.sort_by(|a, b| {
+            let mut ordering = a.1.block_number.cmp(&b.1.block_number);
+            if ordering == std::cmp::Ordering::Equal {
+                ordering = a.1.transaction_index.cmp(&b.1.transaction_index);
+            }
+
+            ordering
+        });
+
         let updates = events.iter().map(|event| {
-            let signature = Signature::try_from(event.signature.as_slice())
+            let signature = Signature::try_from(event.0.signature.as_slice())
                 .expect("chain accepted invalid signature");
 
             let update = Update {
-                home_domain: event.home_domain,
-                previous_root: event.old_root.into(),
-                new_root: event.new_root.into(),
+                home_domain: event.0.home_domain,
+                previous_root: event.0.old_root.into(),
+                new_root: event.0.new_root.into(),
             };
 
             SignedUpdate { update, signature }
         });
 
         for update in updates {
-            self.home_db.store_update(&update)?;
+            self.db.store_latest_update(&update)?;
         }
 
         Ok(())
@@ -127,7 +136,11 @@ where
                     next_height,
                     to
                 );
-                // TODO(james): these shouldn't have to go in lockstep
+                // WARN: update and leave syncing running concurrently means db
+                // may have snapshots where leaf and update state are
+                // temporarily out of sync!
+                // TODO(luke/james): add extra synchronization to ensure update
+                // and leaf state always read from db when in sync
                 try_join!(
                     self.sync_updates(next_height, to),
                     self.sync_leaves(next_height, to)

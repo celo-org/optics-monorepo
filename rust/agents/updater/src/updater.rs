@@ -157,7 +157,7 @@ impl UpdateHandler {
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
-        self.home_db.store_update(&signed)?;
+        self.db.store_latest_update(&signed)?;
         Ok(())
         // guard dropped here
     }

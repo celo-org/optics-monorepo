@@ -187,7 +187,7 @@ impl UpdateHandler {
                 }
             }
             None => {
-                self.db.store_update(update).expect("!db_put");
+                self.db.store_latest_update(update).expect("!db_put");
             }
         }
 
