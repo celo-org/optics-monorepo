@@ -2504,6 +2504,8 @@ dependencies = [
  "paste",
  "prometheus",
  "rocksdb",
+ "rusoto_core",
+ "rusoto_s3",
  "serde 1.0.130",
  "serde_json",
  "thiserror",
@@ -2894,6 +2896,19 @@ dependencies = [
  "rusoto_core",
  "serde 1.0.130",
  "serde_json",
+]
+
+[[package]]
+name = "rusoto_s3"
+version = "0.47.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "048c2fe811a823ad5a9acc976e8bf4f1d910df719dcf44b15c3e96c5b7a51027"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures",
+ "rusoto_core",
+ "xml-rs",
 ]
 
 [[package]]

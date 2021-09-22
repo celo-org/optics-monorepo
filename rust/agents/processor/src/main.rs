@@ -11,6 +11,7 @@
 mod processor;
 mod prover;
 mod prover_sync;
+mod push;
 mod settings;
 
 use color_eyre::Result;
