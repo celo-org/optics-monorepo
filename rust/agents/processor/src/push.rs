@@ -22,6 +22,8 @@ impl std::fmt::Debug for Pusher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Pusher")
             .field("region", &self.region)
+            .field("bucket", &self.bucket)
+            .field("name", &self.name)
             .finish()
     }
 }
