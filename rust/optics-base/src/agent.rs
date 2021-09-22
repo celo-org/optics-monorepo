@@ -9,7 +9,7 @@ use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
 use optics_core::{
-    db::DB,
+    db::{HomeDB, DB},
     traits::{Common, Home},
 };
 use tracing::instrument::Instrumented;
@@ -59,6 +59,11 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     /// Return a handle to the DB
     fn db(&self) -> DB {
         self.as_ref().db.clone()
+    }
+
+    /// Return a handle to the DB with the home schema
+    fn home_db(&self) -> HomeDB {
+        HomeDB::new(self.as_ref().db.clone(), self.home().name().to_owned())
     }
 
     /// Return a reference to a home contract

@@ -11,7 +11,7 @@ use std::{
     time::Duration,
 };
 use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
-use tracing::{error, info, info_span, instrument, instrument::Instrumented, Instrument};
+use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
 use optics_base::{
     agent::{AgentCore, OpticsAgent},
@@ -326,23 +326,22 @@ impl OpticsAgent for Processor {
         let home = self.home();
         let next_message_nonce = self.next_message_nonce.clone();
         let interval = self.interval;
+        let home_db = self.home_db();
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
-        let db = self.db();
 
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();
 
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
-            let home_name = home.name().to_owned();
 
             Replica {
                 interval,
                 replica,
                 home,
-                home_db: HomeDB::new(db, home_name),
+                home_db,
                 allowed,
                 denied,
                 next_message_nonce,
@@ -361,12 +360,11 @@ impl OpticsAgent for Processor {
             info!("Starting Processor tasks");
 
             // tree sync
-            let sync = ProverSync::from_disk(HomeDB::new(
-                self.core.db.clone(),
-                self.home().name().to_owned(),
-            ));
+            info!("Starting ProverSync");
+            let sync = ProverSync::from_disk(self.home_db());
             let sync_task = sync.spawn();
 
+            info!("Starting indexer");
             // indexer setup
             let block_height = self
                 .as_ref()
@@ -396,18 +394,20 @@ impl OpticsAgent for Processor {
 
             // if we have a bucket, add a task to push to it
             if let Some(config) = &self.config {
+                info!(bucket = %config.bucket, "Starting S3 push tasks");
                 tasks.push(
                     Pusher::new(
                         self.core.home.name(),
                         &config.bucket,
                         config.region.parse().expect("invalid s3 region"),
-                        HomeDB::new(self.db(), self.core.home.name().to_owned()),
+                        self.home_db(),
                     )
                     .spawn(),
                 )
             }
 
             // find the first task to shut down. Then cancel all others
+            debug!(tasks = tasks.len(), "Selecting across Processor tasks");
             let (res, _, remaining) = select_all(tasks).await;
             for task in remaining.into_iter() {
                 cancel_task!(task);
