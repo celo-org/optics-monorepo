@@ -55,9 +55,11 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
     const approveLog = logs.find(element => element.address === tokenAddress)
     const dispatchLog = logs.find(element => element.address === originHome.address)!
 
+
     const decodedDispatch = originHome.interface.parseLog(dispatchLog)
     const committedRoot = decodedDispatch.args["committedRoot"]
     const messageHash = decodedDispatch.args["messageHash"]
+    const leafIndex = decodedDispatch.args["leafIndex"]
 
     details.push({
         event: "Send",
@@ -66,6 +68,7 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
         metadata: {
             committedRoot: committedRoot,
             messageHash: messageHash,
+            leafIndex: leafIndex.toNumber()
         }
     })
 
