@@ -10,5 +10,6 @@ members = [
     "agents/relayer",
     # "agents/watcher",
     "agents/processor",
-    "kms-cli",
+    "tools/kms-cli",
+    "tools/prove-cli",
 ]

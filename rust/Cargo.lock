@@ -2535,6 +2535,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23129d50f2c9355ced935fce8a08bd706ee2e7ce2b3b33bf61dace0e379ac63a"
 
 [[package]]
+name = "prove-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "ethers",
+ "ethers-signers",
+ "hex",
+ "once_cell",
+ "optics-core",
+ "optics-ethereum",
+ "rusoto_core",
+ "rusoto_kms",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
