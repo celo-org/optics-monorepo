@@ -51,15 +51,13 @@ impl Opts {
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
         let db = DB::from_path(&self.db)?;
 
-        let idx = if let Some(idx) = self.leaf_index {
-            idx
-        } else if let Some(leaf_hash) = self.leaf_hash {
-            match db.message_by_leaf_hash(leaf_hash)? {
+        let idx = match (self.leaf_index, self.leaf_hash) {
+            (Some(idx), _) => idx,
+            (None, Some(digest)) => match db.message_by_leaf_hash(digest)? {
                 Some(leaf) => leaf.leaf_index,
                 None => bail!("No leaf index or "),
-            }
-        } else {
-            bail!("Must provide leaf index or leaf hash");
+            },
+            (None, None) => bail!("Must provide leaf index or leaf hash"),
         };
 
         let proof = db.proof_by_leaf_index(idx)?.expect("no proof");
