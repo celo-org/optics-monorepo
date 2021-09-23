@@ -12,7 +12,7 @@ RUN apt-get update && \
 # Add workspace to workdir 
 COPY agents ./agents
 COPY chains ./chains
-COPY kms-cli ./kms-cli
+COPY tools ./tools
 COPY optics-base ./optics-base 
 COPY optics-core ./optics-core
 COPY optics-test ./optics-test
@@ -34,6 +34,8 @@ RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/relea
 # RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/watcher .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/processor .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/kathy .
+RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/kms-cli .
+RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/prove-cli .
 
 # 2: Copy the binaries to release image
 FROM ubuntu:20.04
