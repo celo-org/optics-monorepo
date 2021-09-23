@@ -1,5 +1,6 @@
 import { mainnet, OpticsContext } from "@optics-xyz/multi-provider";
 import config from "./config";
+import {getEvents} from "./events"
 import {ethers} from "ethers"
 
 mainnet.registerRpcProvider('celo', config.CeloRpc);
@@ -168,5 +169,5 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
 }
 
 (async function main() {
-    await traceTransfer(mainnet, "celo", "0x2d06570742cbfc04e56e1eefba7ed9af7b9761989ef5bafefd3b8e9f1ad81536")
+    await traceTransfer(mainnet, "celo", "0xce72db6edb12acc30a03d8ba69f180145691981b3e34f0d57d277f542c4f81b3")
 })()

@@ -1,10 +1,18 @@
 import { OpticsContext } from "@optics-xyz/multi-provider";
-import { xapps } from '@optics-xyz/ts-interface'
-import { TypedEvent } from "@optics-xyz/ts-interface/dist/optics-xapps/commons";
+import { xapps, core } from '@optics-xyz/ts-interface'
+import { TypedEvent, TypedEventFilter } from "@optics-xyz/ts-interface/dist/optics-xapps/commons";
 import { BigNumber, ethers } from "ethers";
+import { getBlockHeight } from "./utils";
+import config from "./config";
 
 export type SendEvent = TypedEvent<[string, string, number, string, BigNumber] & { token: string; from: string; toDomain: number; toId: string; amount: BigNumber; }>
 export type TokenDeployedEvent = TypedEvent<[number, string, string] & { domain: number; id: string; representation: string }>
+
+export type UpdateEvent = TypedEvent<[number, string, string, string] & {homeDomain: number; oldRoot: string; newRoot: string; signature: string;}>
+export type ProcessEvent = TypedEvent<[string, boolean, string] & { messageHash: string; success: boolean; returnData: string;}>
+
+export type ProcessEventFilter = TypedEventFilter<[string, boolean, string], {messageHash: string; success: boolean; returnData: string;}>
+export type UpdateFilter = TypedEventFilter<[number, string, string, string], {homeDomain: number; oldRoot: string; newRoot: string; signature: string;}>
 
 interface SendDetail {
     name?: string;
@@ -30,6 +38,30 @@ interface TokenDeployDetail {
 interface TokenDeployDetails {
     [key: string]: TokenDeployDetail
 }
+
+
+async function getEvents<EventArgsArray extends Array<any>, EventArgsObject>(context: OpticsContext, contract: core.Replica | core.Home, filter: TypedEventFilter<EventArgsArray, EventArgsObject> ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>> {
+    let events: Array<TypedEvent<EventArgsArray & EventArgsObject>> = []
+    // Handle the special case where polygon has to be processed in 10k block chunks
+    // Like a scrub... 
+    const localDomain = await contract.localDomain()
+    const network = config.Networks[localDomain]
+    const localDomainName = config.Networks[localDomain].name
+    if (localDomain == 1886350457) {
+        let currentBlockHeight = await getBlockHeight(context, localDomain)
+        console.log(`Processing ${(currentBlockHeight - network.deployedAt) / 10000} pages for Polygon`)
+        for (let index = network.deployedAt; index < currentBlockHeight; index+=10000) {
+            let checkpoint = await contract.queryFilter<EventArgsArray, EventArgsObject>(filter, index, index+10000)
+            events = events.concat(checkpoint)
+        }
+        return events
+    } 
+    // Eth and Celo we can just query normally 
+    else {
+        return await contract.queryFilter<EventArgsArray, EventArgsObject>(filter, network.deployedAt);
+    }
+    
+}   
 
 async function getSendEvents(context:OpticsContext, networkName:string, fromBlock:number, toBlock?:number) {
     let router = context.mustGetBridge(networkName).bridgeRouter;
@@ -140,3 +172,4 @@ export { getTokenDeployedEvents };
 export { processSendEvents };
 export { processTokenDeployedEvents };
 export { TokenDeployDetails }
+export {getEvents}
