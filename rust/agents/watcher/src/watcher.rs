@@ -20,7 +20,7 @@ use optics_base::{
     xapp::ConnectionManagers,
 };
 use optics_core::{
-    db::{HomeDB, DB},
+    db::HomeDB,
     traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
     FailureNotification, SignedUpdate, Signers,
 };
@@ -310,7 +310,7 @@ impl Watcher {
     }
 
     fn run_loop(
-        db: DB,
+        home_db: HomeDB,
         home: Arc<Homes>,
         replicas: HashMap<String, Arc<Replicas>>,
         interval_seconds: u64,
@@ -321,9 +321,7 @@ impl Watcher {
         tokio::spawn(async move {
             // Spawn update handler
             let (tx, rx) = mpsc::channel(200);
-            let handler =
-                UpdateHandler::new(rx, HomeDB::new(db, home.name().to_owned()), home.clone())
-                    .spawn();
+            let handler = UpdateHandler::new(rx, home_db, home.clone()).spawn();
 
             // For each replica, spawn polling and history syncing tasks
             for (name, replica) in replicas {
@@ -450,7 +448,7 @@ impl OpticsAgent for Watcher {
             // Watcher run loop setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
             let run_task = Watcher::run_loop(
-                self.db(),
+                HomeDB::new(self.db(), self.home().name().to_owned()),
                 self.home(),
                 self.replicas().clone(),
                 self.interval_seconds,
