@@ -417,17 +417,11 @@ impl OpticsAgent for Watcher {
 
     #[tracing::instrument]
     fn run(&self, _name: &str) -> Instrumented<tokio::task::JoinHandle<Result<()>>> {
-        tokio::spawn(
-            async move { bail!("Watcher::run should not be called. Always call run_many") },
-        )
-        .in_current_span()
+        panic!("Watcher::run should not be called. Always call run_all")
     }
 
     fn run_many(&self, _replicas: &[&str]) -> Instrumented<JoinHandle<Result<()>>> {
-        tokio::spawn(
-            async move { bail!("Watcher::run_many should not be called. Always call run_all") },
-        )
-        .in_current_span()
+        panic!("Watcher::run_many should not be called. Always call run_all")
     }
 
     fn run_all(self) -> Instrumented<JoinHandle<Result<()>>>
