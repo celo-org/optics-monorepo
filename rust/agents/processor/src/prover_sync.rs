@@ -79,7 +79,7 @@ impl ProverSync {
                 );
                 Ok(())
             }
-            // ignore the storage request if it's out of range (e.g. leaves 
+            // ignore the storage request if it's out of range (e.g. leaves
             // up-to-date but no update containing leaves produced yet)
             Err(ProverError::ZeroProof { index: _, count: _ }) => Ok(()),
             // bubble up any other errors
@@ -124,7 +124,7 @@ impl ProverSync {
         };
 
         // Ensure proofs exist for all leaves
-        for i in 0.. {
+        for i in 0..sync.prover.count() as u32 {
             match (
                 sync.db.leaf_by_leaf_index(i).expect("db error"),
                 sync.db.proof_by_leaf_index(i).expect("db error"),
