@@ -80,7 +80,7 @@ where
         });
 
         for update in updates {
-            self.db.store_latest_update(&update)?;
+            self.home_db.store_latest_update(&update)?;
         }
 
         Ok(())
@@ -137,6 +137,7 @@ where
                     to
                 );
 
+                // TODO(james): these shouldn't have to go in lockstep
                 try_join!(
                     self.sync_updates(next_height, to),
                     self.sync_leaves(next_height, to)

@@ -6,7 +6,7 @@ use crate::{
 use color_eyre::Result;
 use ethers::core::types::H256;
 use tokio::time::sleep;
-use tracing::debug;
+use tracing::{debug, warn};
 
 use std::future::Future;
 use std::time::Duration;
@@ -73,10 +73,7 @@ impl HomeDB {
     }
 
     /// Store a raw committed message
-    pub fn store_raw_committed_message(
-        &self,
-        message: &RawCommittedMessage,
-    ) -> Result<(), DbError> {
+    pub fn store_raw_committed_message(&self, message: &RawCommittedMessage) -> Result<()> {
         let parsed = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
 
         let destination_and_nonce = parsed.destination_and_nonce();
@@ -182,8 +179,8 @@ impl HomeDB {
         self.store_encodable("", LATEST_ROOT, &root)
     }
 
-    /// Store a signed update
-    pub fn store_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
+    /// Store a signed update building off latest root
+    pub fn store_latest_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         debug!(
             previous_root = ?update.update.previous_root,
             new_root = ?update.update.new_root,
@@ -196,6 +193,11 @@ impl HomeDB {
             Some(root) => {
                 if root == update.update.previous_root {
                     self.store_latest_root(update.update.new_root)?;
+                } else {
+                    warn!(
+                        "Attempted to store update not building off latest root: {:?}",
+                        update
+                    )
                 }
             }
             None => self.store_latest_root(update.update.new_root)?,
@@ -248,7 +250,7 @@ impl HomeDB {
     pub fn wait_for_leaf(
         &self,
         leaf_index: u32,
-    ) -> impl Future<Output = Result<Option<H256>, DbError>> + '_ {
+    ) -> impl Future<Output = Result<Option<H256>, DbError>> {
         let slf = self.clone();
         async move {
             loop {

@@ -124,7 +124,7 @@ impl ProverSync {
         };
 
         // Ensure proofs exist for all leaves
-        for i in 0..sync.prover.count() as u32 {
+        for i in 0.. {
             match (
                 sync.db.leaf_by_leaf_index(i).expect("db error"),
                 sync.db.proof_by_leaf_index(i).expect("db error"),
