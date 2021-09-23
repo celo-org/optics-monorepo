@@ -474,7 +474,9 @@ impl OpticsAgent for Watcher {
             match double_update_rx.try_recv() {
                 Ok(double_update) => {
                     tracing::error!(
-                        "Double update detected! Notifying all contracts and unenrolling replicas!"
+                        double_update = ?double_update,
+                        "Double update detected! Notifying all contracts and unenrolling replicas! Double update: {:?}",
+                        double_update
                     );
                     self.handle_failure(&double_update)
                         .await
