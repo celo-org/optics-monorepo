@@ -129,6 +129,14 @@ pub enum EthereumConnection {
     },
 }
 
+impl Default for EthereumConnection {
+    fn default() -> Self {
+        Self::Http {
+            url: Default::default(),
+        }
+    }
+}
+
 impl EthereumConnection {
     /// Try to convert this into a home contract
     #[tracing::instrument(err)]
