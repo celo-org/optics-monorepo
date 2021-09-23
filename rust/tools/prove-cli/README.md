@@ -6,15 +6,16 @@ messages and proofs, and dispatches them to the contracts.
 ### Usage
 
 - `cargo run --bin prove-cli`
-  - `--leaf-index` OR `--leaf_hash` - specify the leaf to prove
-    - `leaf_index` takes precedence if both are specified
+  - `--leaf-index` - specify the leaf to prove
+  - `--leaf-hash` - specify the leaf to prove
+    - if both are specified `--leaf-index` takes precedence
   - `--rpc` specify the RPC endpoint
   - `--key` specify the hex key to use to sign txns
     - in future versions this will be an env var or a node or aws signer
   - `--db` specify the filepath to the DB
   - `--address` specify the Replica address to submit to
 
-### Exampl
+### Example
 
 Submit a proof of leaf 23 in SOME tree to celo.
 

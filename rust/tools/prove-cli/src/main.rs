@@ -23,11 +23,11 @@ type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Wallet<S
 #[derive(Clap)]
 struct Opts {
     /// Leaf index to prove
-    #[clap(short, long)]
+    #[clap(long)]
     leaf_index: Option<u32>,
 
     /// Leaf index to prove
-    #[clap(short, long)]
+    #[clap(long)]
     leaf_hash: Option<H256>,
 
     /// Path to db containing proof
@@ -39,7 +39,7 @@ struct Opts {
     key: String,
 
     /// replica contract address
-    #[clap(short, long)]
+    #[clap(long)]
     address: String,
 
     /// RPC connection details
