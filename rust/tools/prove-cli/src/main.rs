@@ -2,7 +2,7 @@ use std::{convert::TryFrom, sync::Arc};
 
 use optics_core::{
     accumulator::merkle::Proof,
-    db::DB,
+    db::{HomeDB, DB},
     traits::{MessageStatus, Replica},
     Decode, OpticsMessage,
 };
@@ -49,7 +49,7 @@ struct Opts {
 
 impl Opts {
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = DB::from_path(&self.db)?;
+        let db = HomeDB::new(DB::from_path(&self.db)?, self.rpc.clone());
 
         let idx = match (self.leaf_index, self.leaf_hash) {
             (Some(idx), _) => idx,
