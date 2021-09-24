@@ -1,10 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
-import { ContractReceipt, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeContracts, OpticsContext } from '..';
 import { xapps } from '@optics-xyz/ts-interface';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
-import { OpticsMessage, parseMessage } from './OpticsMessage';
+import {DispatchEvent, OpticsMessage, parseMessage} from './OpticsMessage';
 
 const ACTION_LEN = {
   identifier: 1,
@@ -15,19 +15,19 @@ const ACTION_LEN = {
 };
 
 type Transfer = {
-  action: 'transfer';
+  type: 'transfer';
   to: string;
   amount: BigNumber;
 };
 
 export type Details = {
-  action: 'details';
+  type: 'details';
   name: string;
   symbol: string;
   decimals: number;
 };
 
-export type RequestDetails = { action: 'requestDetails' };
+export type RequestDetails = { type: 'requestDetails' };
 
 export type Action = Transfer | Details | RequestDetails;
 
@@ -42,7 +42,7 @@ export type ParsedRequestDetailsMesasage = ParsedBridgeMessage<RequestDetails>;
 
 function parseAction(buf: Uint8Array): Action {
   if (buf.length === ACTION_LEN.requestDetails) {
-    return { action: 'requestDetails' };
+    return { type: 'requestDetails' };
   }
 
   // Transfer
@@ -50,7 +50,7 @@ function parseAction(buf: Uint8Array): Action {
     // trim identifer
     buf = buf.slice(ACTION_LEN.identifier);
     return {
-      action: 'transfer',
+      type: 'transfer',
       to: hexlify(buf.slice(0, 32)),
       amount: BigNumber.from(hexlify(buf.slice(32))),
     };
@@ -62,8 +62,7 @@ function parseAction(buf: Uint8Array): Action {
     buf = buf.slice(ACTION_LEN.identifier);
     // TODO(james): improve this to show real strings
     return {
-      action: 'details',
-
+      type: 'details',
       name: hexlify(buf.slice(0, 32)),
       symbol: hexlify(buf.slice(32, 64)),
       decimals: buf[64],
@@ -90,7 +89,7 @@ function parseBody(
     token,
   };
 
-  switch (action.action) {
+  switch (action.type) {
     case 'transfer':
       return parsedMessage as ParsedTransferMessage;
     case 'details':
@@ -102,12 +101,11 @@ function parseBody(
 
 class BridgeMessage extends OpticsMessage {
   readonly token: TokenIdentifier;
-
   readonly fromBridge: BridgeContracts;
   readonly toBridge: BridgeContracts;
 
   constructor(
-    receipt: ContractReceipt,
+    event: DispatchEvent,
     token: TokenIdentifier,
     context: OpticsContext,
     callerKnowsWhatTheyAreDoing: boolean,
@@ -115,7 +113,7 @@ class BridgeMessage extends OpticsMessage {
     if (!callerKnowsWhatTheyAreDoing) {
       throw new Error('Use `fromReceipt` to instantiate');
     }
-    super(receipt, context);
+    super(event, context);
 
     const fromBridge = context.mustGetBridge(this.message.from);
     const toBridge = context.mustGetBridge(this.message.destination);
@@ -125,35 +123,30 @@ class BridgeMessage extends OpticsMessage {
     this.token = token;
   }
 
-  static fromReceipt(
-    receipt: ethers.ContractReceipt,
+  static fromEvent(
+    event: DispatchEvent,
     context: OpticsContext,
   ): TransferMessage | DetailsMessage | RequestDetailsMessage {
-    // kinda hate this but ok
-    const oMessage = new OpticsMessage(receipt, context);
+    const parsedMessage = parseMessage(event.args.message);
+    const parsedMessageBody = parseBody(parsedMessage.body);
 
-    let event = oMessage.event;
-
-    const parsedEvent = parseMessage(event.args.message);
-    const parsed = parseBody(parsedEvent.body);
-
-    switch (parsed.action.action) {
+    switch (parsedMessageBody.action.type) {
       case 'transfer':
         return new TransferMessage(
-          receipt,
-          parsed as ParsedTransferMessage,
+            event,
+          parsedMessageBody as ParsedTransferMessage,
           context,
         );
       case 'details':
         return new DetailsMessage(
-          receipt,
-          parsed as ParsedDetailsMessage,
+            event,
+          parsedMessageBody as ParsedDetailsMessage,
           context,
         );
       case 'requestDetails':
         return new RequestDetailsMessage(
-          receipt,
-          parsed as ParsedRequestDetailsMesasage,
+            event,
+          parsedMessageBody as ParsedRequestDetailsMesasage,
           context,
         );
     }
@@ -178,11 +171,11 @@ export class TransferMessage extends BridgeMessage {
   action: Transfer;
 
   constructor(
-    receipt: ContractReceipt,
+    event: DispatchEvent,
     parsed: ParsedTransferMessage,
     context: OpticsContext,
   ) {
-    super(receipt, parsed.token, context, true);
+    super(event, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -210,11 +203,11 @@ export class DetailsMessage extends BridgeMessage {
   action: Details;
 
   constructor(
-    receipt: ContractReceipt,
+    event: DispatchEvent,
     parsed: ParsedDetailsMessage,
     context: OpticsContext,
   ) {
-    super(receipt, parsed.token, context, true);
+    super(event, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -235,11 +228,11 @@ export class RequestDetailsMessage extends BridgeMessage {
   action: RequestDetails;
 
   constructor(
-    receipt: ContractReceipt,
+    event: DispatchEvent,
     parsed: ParsedRequestDetailsMesasage,
     context: OpticsContext,
   ) {
-    super(receipt, parsed.token, context, true);
+    super(event, parsed.token, context, true);
     this.action = parsed.action;
   }
 }

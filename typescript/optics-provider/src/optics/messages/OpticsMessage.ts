@@ -1,9 +1,6 @@
-import { LogDescription } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
-import { ContractReceipt } from '@ethersproject/contracts';
 import { OpticsContext } from '..';
-import { core } from '@optics-xyz/ts-interface';
 import { delay } from '../../utils';
 
 // match the typescript declaration
@@ -35,58 +32,31 @@ enum MessageStatus {
 
 export function parseMessage(message: string): ParsedMessage {
   const buf = Buffer.from(arrayify(message));
-
   const from = buf.readUInt32BE(0);
   const sender = hexlify(buf.slice(4, 36));
   const nonce = buf.readUInt32BE(36);
   const destination = buf.readUInt32BE(40);
   const recipient = hexlify(buf.slice(44, 76));
   const body = hexlify(buf.slice(76));
-
   return { from, sender, nonce, destination, recipient, body };
 }
 
 export class OpticsMessage {
-  readonly receipt: ContractReceipt;
   readonly event: DispatchEvent;
   readonly messageHash: string;
   readonly leafIndex: BigNumber;
   readonly destinationAndNonce: BigNumber;
   readonly committedRoot: string;
   readonly message: ParsedMessage;
-
   protected context: OpticsContext;
 
-  constructor(receipt: ContractReceipt, context: OpticsContext) {
-    this.receipt = receipt;
-
-    // find the first dispatch log by attempting to parse them
-    let event;
-    const iface = new core.Home__factory().interface;
-    for (const log of receipt.logs) {
-      let parsed: LogDescription;
-      try {
-        parsed = iface.parseLog(log);
-      } catch (e) {
-        continue;
-      }
-      if (parsed.name === 'Dispatch') {
-        event = parsed as unknown as DispatchEvent;
-      }
-    }
-
-    if (!event) {
-      throw new Error('No matching event found');
-    }
-
+  constructor(event: DispatchEvent, context: OpticsContext) {
     this.event = event;
-
     this.messageHash = event.args.messageHash;
     this.leafIndex = event.args.leafIndex;
     this.destinationAndNonce = event.args.destinationAndNonce;
     this.committedRoot = event.args.committedRoot;
     this.message = parseMessage(event.args.message);
-
     this.context = context;
   }
 
@@ -148,6 +118,6 @@ export class OpticsMessage {
   }
 
   get transactionHash(): string {
-    return this.receipt.transactionHash;
+    return this.event.transactionHash;
   }
 }
