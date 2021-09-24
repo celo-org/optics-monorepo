@@ -299,7 +299,7 @@ impl OpticsAgent for Processor {
             settings.as_ref().try_into_core(AGENT_NAME).await?,
             settings.allowed,
             settings.denied,
-            settings.index.is_some(),
+            settings.index_only.is_some(),
         ))
     }
 
