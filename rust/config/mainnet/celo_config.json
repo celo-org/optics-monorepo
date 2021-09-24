@@ -2,7 +2,7 @@
   "environment": "prod",
   "index": {
     "from": "8712249",
-    "chunk": "9999"
+    "chunk": "2000"
   },
   "signers": {
     "celo": {
