@@ -35,6 +35,10 @@ struct Opts {
     #[clap(long)]
     leaf_hash: Option<H256>,
 
+    /// The name of the home chain, used to lookup keys in the db
+    #[clap(long)]
+    home: String,
+
     /// Path to db containing proof
     #[clap(long)]
     db: String,
@@ -61,6 +65,7 @@ struct Opts {
 }
 
 impl Opts {
+    // mostly copied from optics-base settings
     async fn signer(&self) -> Result<Signers> {
         if let Some(key) = &self.key {
             Ok(Signers::Local(key.parse()?))
@@ -86,7 +91,7 @@ impl Opts {
     }
 
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = HomeDB::new(DB::from_path(&self.db)?, self.rpc.clone());
+        let db = HomeDB::new(DB::from_path(&self.db)?, self.home.clone());
 
         let idx = match (self.leaf_index, self.leaf_hash) {
             (Some(idx), _) => idx,
