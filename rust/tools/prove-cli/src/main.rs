@@ -4,21 +4,26 @@ use optics_core::{
     accumulator::merkle::Proof,
     db::{HomeDB, DB},
     traits::{MessageStatus, Replica},
-    Decode, OpticsMessage,
+    Decode, OpticsMessage, Signers,
 };
 use optics_ethereum::EthereumReplica;
 
 use clap::Clap;
 use ethers::{
-    core::k256::ecdsa::SigningKey,
-    prelude::{Http, Middleware, Provider, SignerMiddleware},
+    prelude::{Http, Provider, SignerMiddleware},
     types::H256,
 };
 
 use color_eyre::{eyre::bail, Result};
-use ethers_signers::{Signer, Wallet};
+use ethers_signers::AwsSigner;
 
-type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
+use once_cell::sync::OnceCell;
+use rusoto_core::{credential::EnvironmentProvider, HttpClient};
+use rusoto_kms::KmsClient;
+
+static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
+
+type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Signers>>;
 
 #[derive(Clap)]
 struct Opts {
@@ -36,7 +41,15 @@ struct Opts {
 
     /// HexKey to use (please be careful)
     #[clap(long)]
-    key: String,
+    key: Option<String>,
+
+    /// If using AWS signer, the key ID
+    #[clap(long)]
+    key_id: Option<String>,
+
+    /// If using AWS signer, the region
+    #[clap(long)]
+    aws_region: Option<String>,
 
     /// replica contract address
     #[clap(long)]
@@ -48,6 +61,30 @@ struct Opts {
 }
 
 impl Opts {
+    async fn signer(&self) -> Result<Signers> {
+        if let Some(key) = &self.key {
+            Ok(Signers::Local(key.parse()?))
+        } else {
+            match (&self.key_id, &self.aws_region) {
+                (Some(id), Some(region)) => {
+                    let client = KMS_CLIENT.get_or_init(|| {
+                        KmsClient::new_with_client(
+                            rusoto_core::Client::new_with(
+                                EnvironmentProvider::default(),
+                                HttpClient::new().unwrap(),
+                            ),
+                            region.parse().expect("invalid region"),
+                        )
+                    });
+                    let signer = AwsSigner::new(client, id, 0).await?;
+                    Ok(Signers::Aws(signer))
+                }
+
+                _ => bail!("missing signer information"),
+            }
+        }
+    }
+
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
         let db = HomeDB::new(DB::from_path(&self.db)?, self.rpc.clone());
 
@@ -69,11 +106,7 @@ impl Opts {
 
     async fn replica(&self) -> Result<ConcreteReplica> {
         let provider = Provider::<Http>::try_from(self.rpc.as_ref())?;
-        let signer = self
-            .key
-            .parse::<Wallet<SigningKey>>()?
-            .with_chain_id(provider.get_chainid().await?.low_u64());
-
+        let signer = self.signer().await?;
         let middleware = SignerMiddleware::new(provider, signer);
         Ok(EthereumReplica::new(
             "",
