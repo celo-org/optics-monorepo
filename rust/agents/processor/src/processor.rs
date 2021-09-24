@@ -249,6 +249,7 @@ decl_agent!(
         allowed: Option<Arc<HashSet<H256>>>,
         denied: Option<Arc<HashSet<H256>>>,
         next_message_index: prometheus::IntGaugeVec,
+        process: bool,
     }
 );
 
@@ -259,6 +260,7 @@ impl Processor {
         core: AgentCore,
         allowed: Option<HashSet<H256>>,
         denied: Option<HashSet<H256>>,
+        process: bool,
     ) -> Self {
         let next_message_index = core
             .metrics
@@ -276,6 +278,7 @@ impl Processor {
             allowed: allowed.map(Arc::new),
             denied: denied.map(Arc::new),
             next_message_index,
+            process,
         }
     }
 }
@@ -296,6 +299,7 @@ impl OpticsAgent for Processor {
             settings.as_ref().try_into_core(AGENT_NAME).await?,
             settings.allowed,
             settings.denied,
+            settings.index.is_none(),
         ))
     }
 
@@ -362,15 +366,16 @@ impl OpticsAgent for Processor {
 
             info!("started indexer and sync");
 
-            // this is the unused must use
-            let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
-            let run_task = self.run_many(&names);
+            // instantiate task array here so we can optionally push to to
+            let mut tasks = vec![index_task, sync_task];
 
-            // info!("resting");
-            // sleep(Duration::from_secs(5000)).await;
+            if self.process {
+                // this is the unused must use
+                let names: Vec<&str> = self.replicas().keys().map(|k| k.as_str()).collect();
+                tasks.push(self.run_many(&names));
+            }
 
             info!("selecting");
-            let tasks = vec![index_task, run_task, sync_task];
             let (res, _, remaining) = select_all(tasks).await;
 
             for task in remaining.into_iter() {

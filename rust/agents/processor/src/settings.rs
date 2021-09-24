@@ -11,4 +11,6 @@ decl_settings!(Processor {
     allowed: Option<HashSet<H256>>,
     /// A deny list of message senders
     denied: Option<HashSet<H256>>,
+    /// Only index transactions if this key is set
+    index: Option<String>,
 });
