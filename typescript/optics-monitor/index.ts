@@ -23,7 +23,7 @@ async function getLogs(chainName: string, context: OpticsContext, contract: Base
     // TODO: this is a major kludge, will update to be more general within multi-provider
     const POLYGON_FIRST_BLOCK = 18895794;
     const POLYGON = "polygon";
-    const BLOCKS_PER_PAGE = 5000;
+    const BLOCKS_PER_PAGE = 2500;
     if (chainName == POLYGON) {
         const provider = context.getProvider(chainName);
         let currentBlockHeight = await provider!.getBlockNumber();
