@@ -1,7 +1,7 @@
 import { OpticsContext } from "@optics-xyz/multi-provider";
 import { xapps, core } from '@optics-xyz/ts-interface'
 import { TypedEvent, TypedEventFilter } from "@optics-xyz/ts-interface/dist/optics-xapps/commons";
-import { BigNumber, ethers } from "ethers";
+import { Event, BaseContract, BigNumber, ethers } from "ethers";
 import { getBlockHeight } from "./utils";
 import config from "./config";
 
@@ -40,28 +40,30 @@ interface TokenDeployDetails {
 }
 
 
-async function getEvents<EventArgsArray extends Array<any>, EventArgsObject>(context: OpticsContext, contract: core.Replica | core.Home, filter: TypedEventFilter<EventArgsArray, EventArgsObject> ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>> {
-    let events: Array<TypedEvent<EventArgsArray & EventArgsObject>> = []
-    // Handle the special case where polygon has to be processed in 10k block chunks
-    // Like a scrub... 
-    const localDomain = await contract.localDomain()
-    const network = config.Networks[localDomain]
-    const localDomainName = config.Networks[localDomain].name
-    if (localDomain == 1886350457) {
-        let currentBlockHeight = await getBlockHeight(context, localDomain)
-        console.log(`Processing ${(currentBlockHeight - network.deployedAt) / 10000} pages for Polygon`)
-        for (let index = network.deployedAt; index < currentBlockHeight; index+=10000) {
-            let checkpoint = await contract.queryFilter<EventArgsArray, EventArgsObject>(filter, index, index+10000)
-            events = events.concat(checkpoint)
+async function getLogs(chainName: string, context: OpticsContext, contract: BaseContract, logFilter: TypedEventFilter<any, any>): Promise<Array<Event>> {
+    // TODO: this is a major kludge, will update to be more general within multi-provider
+    const POLYGON_FIRST_BLOCK = 18895794;
+    const POLYGON = "polygon";
+    const BLOCKS_PER_PAGE = 5000;
+    if (chainName == POLYGON || chainName == "matic") {
+        const provider = context.getProvider("polygon");
+        let currentBlockHeight = await provider!.getBlockNumber();
+        let logsPromises = [];
+        for (let index = POLYGON_FIRST_BLOCK; index < currentBlockHeight; index += BLOCKS_PER_PAGE) {
+            let endBlock = index + BLOCKS_PER_PAGE > currentBlockHeight ? currentBlockHeight : index + BLOCKS_PER_PAGE;
+            const logsPromise = contract.queryFilter(logFilter, index, endBlock);
+            logsPromises.push(logsPromise);
         }
-        return events
-    } 
-    // Eth and Celo we can just query normally 
-    else {
-        return await contract.queryFilter<EventArgsArray, EventArgsObject>(filter, network.deployedAt);
+        const logsArrays = await Promise.all(logsPromises);
+        let logs: Array<Event> = [];
+        for(let logsArray of logsArrays) {
+            logs = logs.concat(logsArray);
+        }
+        return logs;
+    } else {
+        return await contract.queryFilter(logFilter);
     }
-    
-}   
+}
 
 async function getSendEvents(context:OpticsContext, networkName:string, fromBlock:number, toBlock?:number) {
     let router = context.mustGetBridge(networkName).bridgeRouter;
@@ -172,4 +174,4 @@ export { getTokenDeployedEvents };
 export { processSendEvents };
 export { processTokenDeployedEvents };
 export { TokenDeployDetails }
-export {getEvents}
+export {getLogs}

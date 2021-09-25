@@ -1,6 +1,6 @@
 import { mainnet, OpticsContext } from "@optics-xyz/multi-provider";
 import config from "./config";
-import {getEvents} from "./events"
+import {getLogs} from "./events"
 import {ethers} from "ethers"
 
 mainnet.registerRpcProvider('celo', config.CeloRpc);
@@ -77,9 +77,10 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
     // Hop Two - The Update Transaction 
 
     const updateLogFilter = originHome.filters.Update(undefined, committedRoot)
-    const homeUpdateLogs = await originHome.queryFilter(updateLogFilter);
+    let network = (await originHome.provider.getNetwork()).name
+    const homeUpdateLogs = await getLogs(network, context, originHome, updateLogFilter)
     const updateLog = homeUpdateLogs[0]
-
+    console.log('it worked yo')
     try {
         const updateTx = await updateLog.getTransaction()
         
@@ -88,9 +89,9 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
             blockNumber: updateTx.blockNumber!,
             transactionHash: updateTx.hash,
             metadata: {
-                homeDomain: updateLog.args.homeDomain,
+                homeDomain: updateLog!.args!.homeDomain,
                 newRoot: committedRoot,
-                oldRoot: updateLog.args.oldRoot
+                oldRoot: updateLog!.args!.oldRoot
             }
         })
     } catch {
@@ -108,7 +109,8 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
     // Hop Three - The Replica Update Transaction 
     const replica = context.mustGetCore(destinationDomain).replicas.get(originDomain)!
     const replicaLogFilter = replica.contract.filters.Update(undefined, committedRoot)
-    const replicaUpdateLogs = await replica.contract.queryFilter(replicaLogFilter)
+    let replicaNetwork = (await replica.contract.provider.getNetwork()).name
+    const replicaUpdateLogs = await getLogs(replicaNetwork, context, replica.contract, replicaLogFilter)
     const replicaUpdateLog = replicaUpdateLogs[0]
 
     try{
@@ -118,9 +120,9 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
             blockNumber: replicaUpdateTx.blockNumber!,
             transactionHash: replicaUpdateTx.hash,
             metadata: {
-                homeDomain: replicaUpdateLog.args.homeDomain,
-                newRoot: replicaUpdateLog.args.newRoot,
-                oldRoot: replicaUpdateLog.args.oldRoot
+                homeDomain: replicaUpdateLog!.args!.homeDomain,
+                newRoot: replicaUpdateLog!.args!.newRoot,
+                oldRoot: replicaUpdateLog!.args!.oldRoot
             }
         })
     }
@@ -137,8 +139,10 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
     }
     // Hop Four - The Token Mint Transaction 
     const processFilter = replica.contract.filters.Process(messageHash)
-    const processLogs = await replica.contract.queryFilter(processFilter)
+    network = (await replica.contract.provider.getNetwork()).name
+    const processLogs = await getLogs(network, context, replica.contract, processFilter)
     const processLog = processLogs[0]
+
     try {
         const processTx = await processLog.getTransaction()
         const processTxReceipt = await provider.getTransactionReceipt(processTx.hash)
@@ -169,5 +173,5 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
 }
 
 (async function main() {
-    await traceTransfer(mainnet, "celo", "0xce72db6edb12acc30a03d8ba69f180145691981b3e34f0d57d277f542c4f81b3")
+    await traceTransfer(mainnet, "celo", "0xbadcaf0ac0947eff56a9c26852d573056abbc5ef7fdb7a51089b7c963b019de5")
 })()
