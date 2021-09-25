@@ -40,7 +40,10 @@ interface TokenDeployDetails {
 }
 
 
-async function getLogs(chainName: string, context: OpticsContext, contract: BaseContract, logFilter: TypedEventFilter<any, any>): Promise<Array<Event>> {
+async function getLogs(chainName: string, context: OpticsContext, contract: BaseContract, logFilter: TypedEventFilter<any, any>, blockNumber?: number): Promise<Array<Event>> {
+    if(blockNumber) {
+        return contract.queryFilter(logFilter, blockNumber, blockNumber);
+    }
     // TODO: this is a major kludge, will update to be more general within multi-provider
     const POLYGON_FIRST_BLOCK = 18895794;
     const POLYGON = "polygon";
