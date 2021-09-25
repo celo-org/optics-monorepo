@@ -1,7 +1,5 @@
 import * as dotenv from 'dotenv';
-import { processSendEvents } from './events';
-
-dotenv.config({ path: __dirname+'/.env' });
+dotenv.config();
 
 export default {
     CeloRpc: process.env.CELO_RPC ?? '',
