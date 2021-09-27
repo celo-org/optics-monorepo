@@ -10,7 +10,7 @@ use optics_ethereum::EthereumReplica;
 
 use clap::Clap;
 use ethers::{
-    prelude::{Http, Middleware, Provider, SignerMiddleware},
+    prelude::{Http, Middleware, Provider, SignerMiddleware, H160},
     types::H256,
 };
 
@@ -20,6 +20,9 @@ use ethers_signers::{AwsSigner, Signer};
 use once_cell::sync::OnceCell;
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
+
+mod replicas;
+mod rpc;
 
 static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
@@ -57,11 +60,11 @@ struct Opts {
 
     /// replica contract address
     #[clap(long)]
-    address: String,
+    address: Option<String>,
 
     /// RPC connection details
     #[clap(long)]
-    rpc: String,
+    rpc: Option<String>,
 }
 
 impl Opts {
@@ -109,17 +112,30 @@ impl Opts {
         Ok((message, proof))
     }
 
-    async fn replica(&self) -> Result<ConcreteReplica> {
-        let provider = Provider::<Http>::try_from(self.rpc.as_ref())?;
+    async fn replica(&self, origin: u32, destination: u32) -> Result<ConcreteReplica> {
+        // bit ugly. Tries passed-in rpc first, then defaults to lookup by
+        // domain
+        let provider = self
+            .rpc
+            .as_ref()
+            .map(|rpc| Provider::<Http>::try_from(rpc.as_ref()))
+            .transpose()?
+            .unwrap_or_else(|| rpc::fetch_rpc_connection(destination).unwrap());
+
         let chain_id = provider.get_chainid().await?;
         let signer = self.signer().await?.with_chain_id(chain_id.low_u64());
         let middleware = SignerMiddleware::new(provider, signer);
-        Ok(EthereumReplica::new(
-            "",
-            0,
-            self.address.parse()?,
-            Arc::new(middleware),
-        ))
+
+        // bit ugly. Tries passed-in address first, then defaults to lookup by
+        // domain
+        let address = self
+            .address
+            .as_ref()
+            .map(|addr| addr.parse::<H160>())
+            .transpose()?
+            .unwrap_or_else(|| replicas::address_by_domain_pair(origin, destination).unwrap());
+
+        Ok(EthereumReplica::new("", 0, address, Arc::new(middleware)))
     }
 }
 
@@ -128,7 +144,7 @@ async fn main() -> Result<()> {
     let opts = Opts::parse();
 
     let (message, proof) = opts.fetch_proof()?;
-    let replica = opts.replica().await?;
+    let replica = opts.replica(message.origin, message.destination).await?;
 
     let status = replica.message_status(message.to_leaf()).await?;
     let outcome = match status {
