@@ -65,7 +65,7 @@ impl Pusher {
             ..Default::default()
         };
         let resp = self.client.get_object(req).await?;
-        Ok(resp.body.is_some())
+        Ok(resp.content_length.unwrap_or_default() > 0)
     }
 
     fn key(&self, proof: &Proof) -> String {
@@ -74,10 +74,9 @@ impl Pusher {
 
     /// Spawn the pusher task and return a joinhandle
     ///
-    /// The pusher task accepts proofs and attempts to push them to an S3 bucket
+    /// The pusher task polls the DB for new proofs and attempts to push them
+    /// to an S3 bucket
     pub fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
-        let span = info_span!("ProofPusher");
-
         tokio::spawn(async move {
             let mut index = 0;
             loop {
@@ -96,6 +95,6 @@ impl Pusher {
                 }
             }
         })
-        .instrument(span)
+        .instrument(info_span!("ProofPusher"))
     }
 }
