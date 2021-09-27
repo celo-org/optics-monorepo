@@ -6,10 +6,11 @@ export {
   RequestDetailsMessage,
 } from './messages/BridgeMessage';
 export { OpticsMessage } from './messages/OpticsMessage';
-export { ResolvedTokenInfo, TokenIdentifier, tokens, testnetTokens } from './tokens';
+export type { ResolvedTokenInfo, TokenIdentifier } from './tokens';
+export { tokens, testnetTokens } from './tokens';
 
+export type { OpticsDomain } from './domains';
 export {
-  OpticsDomain,
   mainnetDomains,
   devDomains,
   stagingDomains,
