@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import { Domain } from './domains';
-import {TransactionReceipt} from "@ethersproject/abstract-provider";
 
 type Provider = ethers.providers.Provider;
 
@@ -112,12 +111,6 @@ export class MultiProvider {
 
   async getAddress(nameOrDomain: string | number): Promise<string | undefined> {
     const signer = this.getSigner(nameOrDomain);
-
     return await signer?.getAddress();
-  }
-
-  async getTransactionReceipt(nameOrDomain: string | number, transactionHash: string): Promise<TransactionReceipt> {
-    const provider = this.mustGetProvider(nameOrDomain);
-    return provider.getTransactionReceipt(transactionHash);
   }
 }

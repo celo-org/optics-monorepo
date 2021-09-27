@@ -115,6 +115,17 @@ export class OpticsContext extends MultiProvider {
       ?.contract;
   }
 
+  mustGetReplicaFor(
+      home: string | number,
+      remote: string | number,
+  ): core.Replica {
+    const replica = this.getReplicaFor(home, remote);
+    if (!replica) {
+      throw new Error(`Missing replica for home ${home} & remote ${remote}`);
+    }
+    return replica;
+  }
+
   // resolve the local repr of a token on its domain
   async resolveTokenRepresentation(
     nameOrDomain: string | number,
