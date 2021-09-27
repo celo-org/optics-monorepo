@@ -1,21 +1,10 @@
-import { BigNumber } from '@ethersproject/bignumber';
-import { arrayify, hexlify } from '@ethersproject/bytes';
-import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
-import { core } from '@optics-xyz/ts-interface';
-import { OpticsContext } from '..';
-import { delay } from '../../utils';
-
-// match the typescript declaration
-export interface DispatchEvent {
-  transactionHash: string;
-  args: {
-    messageHash: string;
-    leafIndex: BigNumber;
-    destinationAndNonce: BigNumber;
-    committedRoot: string;
-    message: string;
-  };
-}
+import {BigNumber} from '@ethersproject/bignumber';
+import {arrayify, hexlify} from '@ethersproject/bytes';
+import {TransactionReceipt} from '@ethersproject/abstract-provider';
+import {core} from '@optics-xyz/ts-interface';
+import {OpticsContext} from '..';
+import {delay} from '../../utils';
+import {MultiEvents, OpticsStatus, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
 
 export type ParsedMessage = {
   from: number;

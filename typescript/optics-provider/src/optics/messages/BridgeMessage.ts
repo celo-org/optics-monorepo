@@ -5,7 +5,8 @@ import { ethers } from 'ethers';
 import { xapps } from '@optics-xyz/ts-interface';
 import { BridgeContracts, OpticsContext } from '..';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
-import { DispatchEvent, OpticsMessage } from './OpticsMessage';
+import { OpticsMessage } from './OpticsMessage';
+import {DispatchEvent} from "../events";
 
 const ACTION_LEN = {
   identifier: 1,
