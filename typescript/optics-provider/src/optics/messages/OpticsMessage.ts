@@ -99,7 +99,7 @@ export class OpticsMessage {
       context: OpticsContext,
   ): OpticsMessage {
     const messages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
-    if (messages.length > 1) {
+    if (messages.length !== 1) {
       throw new Error("Expected single Dispatch in transaction");
     }
     return messages[0];
@@ -150,6 +150,9 @@ export class OpticsMessage {
     // attempt to get Replica process
     const process = await this.processEvent();
     if (!process) {
+      // NOTE: when this is the status, you may way to
+      // query confirmAt() to check if challenge period
+      // on the Replica has elapsed or not
       return {
         status: "Relayed", // the message was sent, included in an Update, then relayed to the Replica
         events
@@ -162,6 +165,14 @@ export class OpticsMessage {
     };
   }
 
+  // Note: return the timestamp after which it is possible to process messages within an Update
+  // the timestamp is most relevant during the time AFTER the Update has been Relayed to the Replica
+  // and BEFORE the message in question has been Processed.
+  // ****
+  // - the timestamp will be 0 if the Update has not been relayed to the Replica
+  // - after the Update has been relayed to the Replica, the timestamp will be non-zero forever (even after all messages in the Update have been processed)
+  // - if the timestamp is in the future, the challenge period has not elapsed yet; messages in the Update cannot be processed yet
+  // - if the timestamp is in the past, this does not necessarily mean that all messages in the Update have been processed
   async confirmAt(): Promise<BigNumber> {
     const update = await this.replicaUpdateEvent();
     const {newRoot} = update.args;
