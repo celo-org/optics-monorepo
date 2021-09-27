@@ -1,10 +1,11 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { TransactionReceipt } from "@ethersproject/abstract-provider";
 import { ethers } from 'ethers';
-import { BridgeContracts, OpticsContext } from '..';
 import { xapps } from '@optics-xyz/ts-interface';
+import { BridgeContracts, OpticsContext } from '..';
 import { ResolvedTokenInfo, TokenIdentifier } from '../tokens';
-import {DispatchEvent, OpticsMessage, parseMessage} from './OpticsMessage';
+import { DispatchEvent, OpticsMessage } from './OpticsMessage';
 
 const ACTION_LEN = {
   identifier: 1,
@@ -36,6 +37,7 @@ export type ParsedBridgeMessage<T extends Action> = {
   action: T;
 };
 
+export type AnyBridgeMessage = TransferMessage | DetailsMessage | RequestDetailsMessage;
 export type ParsedTransferMessage = ParsedBridgeMessage<Transfer>;
 export type ParsedDetailsMessage = ParsedBridgeMessage<Details>;
 export type ParsedRequestDetailsMesasage = ParsedBridgeMessage<RequestDetails>;
@@ -106,6 +108,7 @@ class BridgeMessage extends OpticsMessage {
 
   constructor(
     event: DispatchEvent,
+    receipt: TransactionReceipt,
     token: TokenIdentifier,
     context: OpticsContext,
     callerKnowsWhatTheyAreDoing: boolean,
@@ -113,7 +116,7 @@ class BridgeMessage extends OpticsMessage {
     if (!callerKnowsWhatTheyAreDoing) {
       throw new Error('Use `fromReceipt` to instantiate');
     }
-    super(event, context);
+    super(event, receipt, context);
 
     const fromBridge = context.mustGetBridge(this.message.from);
     const toBridge = context.mustGetBridge(this.message.destination);
@@ -123,33 +126,68 @@ class BridgeMessage extends OpticsMessage {
     this.token = token;
   }
 
-  static fromEvent(
-    event: DispatchEvent,
-    context: OpticsContext,
-  ): TransferMessage | DetailsMessage | RequestDetailsMessage {
-    const parsedMessage = parseMessage(event.args.message);
-    const parsedMessageBody = parseBody(parsedMessage.body);
-
+  static fromOpticsMessage(
+      opticsMessage: OpticsMessage,
+      context: OpticsContext
+  ): AnyBridgeMessage {
+    const parsedMessageBody = parseBody(opticsMessage.message.body);
     switch (parsedMessageBody.action.type) {
       case 'transfer':
         return new TransferMessage(
-            event,
-          parsedMessageBody as ParsedTransferMessage,
-          context,
+            opticsMessage.event,
+            opticsMessage.receipt,
+            parsedMessageBody as ParsedTransferMessage,
+            context,
         );
       case 'details':
         return new DetailsMessage(
-            event,
+          opticsMessage.event,
+          opticsMessage.receipt,
           parsedMessageBody as ParsedDetailsMessage,
           context,
-        );
+      );
       case 'requestDetails':
         return new RequestDetailsMessage(
-            event,
+          opticsMessage.event,
+          opticsMessage.receipt,
           parsedMessageBody as ParsedRequestDetailsMesasage,
           context,
-        );
+      );
     }
+  }
+
+  static async fromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<AnyBridgeMessage[]> {
+    const opticsMessages: OpticsMessage[] = await OpticsMessage.fromTransactionHash(nameOrDomain, transactionHash, context);
+    return opticsMessages.map(opticsMessage => BridgeMessage.fromOpticsMessage(opticsMessage, context));
+  }
+
+  static async singleFromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<OpticsMessage> {
+    const opticsMessage: OpticsMessage = await OpticsMessage.singleFromTransactionHash(nameOrDomain, transactionHash, context);
+    return BridgeMessage.fromOpticsMessage(opticsMessage, context);
+  }
+
+  static fromReceipt(
+    receipt: TransactionReceipt,
+    context: OpticsContext,
+  ): AnyBridgeMessage[] {
+    const opticsMessages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
+    return opticsMessages.map(opticsMessage => BridgeMessage.fromOpticsMessage(opticsMessage, context));
+  }
+
+  static singleFromReceipt(
+      receipt: TransactionReceipt,
+      context: OpticsContext,
+  ): AnyBridgeMessage {
+    const opticsMessage: OpticsMessage = OpticsMessage.singleFromReceipt(receipt, context);
+    return BridgeMessage.fromOpticsMessage(opticsMessage, context);
   }
 
   async asset(): Promise<ResolvedTokenInfo> {
@@ -172,10 +210,11 @@ export class TransferMessage extends BridgeMessage {
 
   constructor(
     event: DispatchEvent,
+    receipt: TransactionReceipt,
     parsed: ParsedTransferMessage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context, true);
+    super(event, receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -204,10 +243,11 @@ export class DetailsMessage extends BridgeMessage {
 
   constructor(
     event: DispatchEvent,
+    receipt: TransactionReceipt,
     parsed: ParsedDetailsMessage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context, true);
+    super(event, receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 
@@ -229,10 +269,11 @@ export class RequestDetailsMessage extends BridgeMessage {
 
   constructor(
     event: DispatchEvent,
+    receipt: TransactionReceipt,
     parsed: ParsedRequestDetailsMesasage,
     context: OpticsContext,
   ) {
-    super(event, parsed.token, context, true);
+    super(event, receipt, parsed.token, context, true);
     this.action = parsed.action;
   }
 }

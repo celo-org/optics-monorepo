@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { Domain } from './domains';
+import {TransactionReceipt} from "@ethersproject/abstract-provider";
 
 type Provider = ethers.providers.Provider;
 
@@ -63,6 +64,14 @@ export class MultiProvider {
     return this.providers.get(domain);
   }
 
+  mustGetProvider(nameOrDomain: string | number): Provider {
+    const provider = this.getProvider(nameOrDomain);
+    if (!provider) {
+      throw new Error("unregistered name or domain");
+    }
+    return provider;
+  }
+
   registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
     const domain = this.resolveDomain(nameOrDomain);
 
@@ -105,5 +114,10 @@ export class MultiProvider {
     const signer = this.getSigner(nameOrDomain);
 
     return await signer?.getAddress();
+  }
+
+  async getTransactionReceipt(nameOrDomain: string | number, transactionHash: string): Promise<TransactionReceipt> {
+    const provider = this.mustGetProvider(nameOrDomain);
+    return provider.getTransactionReceipt(transactionHash);
   }
 }

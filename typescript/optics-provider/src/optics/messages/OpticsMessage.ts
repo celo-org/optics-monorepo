@@ -1,5 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { arrayify, hexlify } from '@ethersproject/bytes';
+import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
+import { core } from '@optics-xyz/ts-interface';
 import { OpticsContext } from '..';
 import { delay } from '../../utils';
 
@@ -41,8 +43,20 @@ export function parseMessage(message: string): ParsedMessage {
   return { from, sender, nonce, destination, recipient, body };
 }
 
+function tryDispatchEvent(log: Log): DispatchEvent | undefined {
+  const home = new core.Home__factory().interface;
+  try {
+    const parsed = home.parseLog(log);
+    if (parsed.name === 'Dispatch') {
+      return parsed as unknown as DispatchEvent;
+    }
+  } catch (e) {}
+  return undefined;
+}
+
 export class OpticsMessage {
   readonly event: DispatchEvent;
+  readonly receipt: TransactionReceipt;
   readonly messageHash: string;
   readonly leafIndex: BigNumber;
   readonly destinationAndNonce: BigNumber;
@@ -50,14 +64,59 @@ export class OpticsMessage {
   readonly message: ParsedMessage;
   protected context: OpticsContext;
 
-  constructor(event: DispatchEvent, context: OpticsContext) {
+  constructor(event: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
     this.event = event;
+    this.receipt = receipt;
     this.messageHash = event.args.messageHash;
     this.leafIndex = event.args.leafIndex;
     this.destinationAndNonce = event.args.destinationAndNonce;
     this.committedRoot = event.args.committedRoot;
     this.message = parseMessage(event.args.message);
     this.context = context;
+  }
+
+  static async fromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<OpticsMessage[]> {
+    const receipt = await context.getTransactionReceipt(nameOrDomain, transactionHash);
+    return OpticsMessage.fromReceipt(receipt!, context);
+  }
+
+  static async singleFromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<OpticsMessage> {
+    const receipt = await context.getTransactionReceipt(nameOrDomain, transactionHash);
+    return OpticsMessage.singleFromReceipt(receipt!, context);
+  }
+
+  static fromReceipt(
+      receipt: TransactionReceipt,
+      context: OpticsContext,
+  ): OpticsMessage[] {
+    let messages: OpticsMessage[] = [];
+    for (const log of receipt.logs) {
+      const event = tryDispatchEvent(log);
+      if (event) {
+        const message = new OpticsMessage(event, receipt, context);
+        messages.push(message);
+      }
+    }
+    return messages;
+  }
+
+  static singleFromReceipt(
+      receipt: TransactionReceipt,
+      context: OpticsContext,
+  ): OpticsMessage {
+    const messages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
+    if (messages.length > 1) {
+      throw new Error("Expected single Dispatch in transaction");
+    }
+    return messages[0];
   }
 
   async status(): Promise<MessageStatus> {
