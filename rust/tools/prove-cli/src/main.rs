@@ -10,12 +10,12 @@ use optics_ethereum::EthereumReplica;
 
 use clap::Clap;
 use ethers::{
-    prelude::{Http, Provider, SignerMiddleware},
+    prelude::{Http, Middleware, Provider, SignerMiddleware},
     types::H256,
 };
 
 use color_eyre::{eyre::bail, Result};
-use ethers_signers::AwsSigner;
+use ethers_signers::{AwsSigner, Signer};
 
 use once_cell::sync::OnceCell;
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
@@ -111,7 +111,8 @@ impl Opts {
 
     async fn replica(&self) -> Result<ConcreteReplica> {
         let provider = Provider::<Http>::try_from(self.rpc.as_ref())?;
-        let signer = self.signer().await?;
+        let chain_id = provider.get_chainid().await?;
+        let signer = self.signer().await?.with_chain_id(chain_id.low_u64());
         let middleware = SignerMiddleware::new(provider, signer);
         Ok(EthereumReplica::new(
             "",
