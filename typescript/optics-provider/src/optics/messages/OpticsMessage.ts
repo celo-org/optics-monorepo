@@ -4,7 +4,7 @@ import {TransactionReceipt} from '@ethersproject/abstract-provider';
 import {core} from '@optics-xyz/ts-interface';
 import {OpticsContext} from '..';
 import {delay} from '../../utils';
-import {MultiEvents, OpticsStatus, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
+import {getEvents, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
 
 export type ParsedMessage = {
   from: number;
@@ -55,7 +55,6 @@ export class OpticsMessage {
   readonly home: core.Home;
   readonly replica: core.Replica;
   protected context: OpticsContext;
-  protected eventProvider: MultiEvents;
 
   constructor(event: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
     this.event = event;
@@ -66,9 +65,38 @@ export class OpticsMessage {
     this.committedRoot = event.args.committedRoot;
     this.message = parseMessage(event.args.message);
     this.context = context;
-    this.eventProvider = new MultiEvents(context);
     this.home = context.mustGetCore(this.message.from).home;
     this.replica = context.mustGetReplicaFor(this.message.from, this.message.destination);
+  }
+
+  static fromReceipt(
+      receipt: TransactionReceipt,
+      context: OpticsContext,
+  ): OpticsMessage[] {
+    const messages: OpticsMessage[] = [];
+    const home = new core.Home__factory().interface;
+    for (let log of receipt.logs) {
+      try {
+        const parsed = home.parseLog(log);
+        if (parsed.name === "Dispatch") {
+          const dispatch = parsed as unknown as DispatchEvent;
+          const message = new OpticsMessage(dispatch, receipt, context);
+          messages.push(message);
+        }
+      } catch (e) {}
+    }
+    return messages;
+  }
+
+  static singleFromReceipt(
+      receipt: TransactionReceipt,
+      context: OpticsContext,
+  ): OpticsMessage {
+    const messages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
+    if (messages.length !== 1) {
+      throw new Error("Expected single Dispatch in transaction");
+    }
+    return messages[0];
   }
 
   static async fromTransactionHash(
@@ -91,51 +119,25 @@ export class OpticsMessage {
     return OpticsMessage.singleFromReceipt(receipt!, context);
   }
 
-  static fromReceipt(
-      receipt: TransactionReceipt,
-      context: OpticsContext,
-  ): OpticsMessage[] {
-    let messages: OpticsMessage[] = [];
-    for (const log of receipt.logs) {
-      const event = MultiEvents.tryDispatchEvent(log);
-      if (event) {
-        const message = new OpticsMessage(event, receipt, context);
-        messages.push(message);
-      }
-    }
-    return messages;
-  }
-
-  static singleFromReceipt(
-      receipt: TransactionReceipt,
-      context: OpticsContext,
-  ): OpticsMessage {
-    const messages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
-    if (messages.length !== 1) {
-      throw new Error("Expected single Dispatch in transaction");
-    }
-    return messages[0];
-  }
-
   dispatchEvent(): DispatchEvent {
     return this.event;
   }
 
   async homeUpdateEvent(): Promise<UpdateEvent> {
     const updateFilter = this.home.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await this.eventProvider.getEvents(this.from, this.home, updateFilter);
+    const updateLogs = await getEvents(this.context, this.from, this.home, updateFilter);
     return updateLogs[0] as unkown as UpdateEvent;
   }
 
   async replicaUpdateEvent(): Promise<UpdateEvent> {
     const updateFilter = this.replica.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await this.eventProvider.getEvents(this.destination, this.replica, updateFilter);
+    const updateLogs = await getEvents(this.context, this.destination, this.replica, updateFilter);
     return updateLogs[0] as unkown as UpdateEvent;
   }
 
   async processEvent(): Promise<ProcessEvent> {
     const processFilter = this.replica.filters.Process(this.messageHash);
-    const processLogs = await this.eventProvider.getEvents(this.destination, this.replica, processFilter);
+    const processLogs = await getEvents(this.context, this.destination, this.replica, processFilter);
     return processLogs[0] as unkown as ProcessEvent;
   }
 
