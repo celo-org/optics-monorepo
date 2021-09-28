@@ -47,10 +47,6 @@ export function parseMessage(message: string): ParsedMessage {
 export class OpticsMessage {
   readonly event: DispatchEvent;
   readonly receipt: TransactionReceipt;
-  readonly messageHash: string;
-  readonly leafIndex: BigNumber;
-  readonly destinationAndNonce: BigNumber;
-  readonly committedRoot: string;
   readonly message: ParsedMessage;
   readonly home: core.Home;
   readonly replica: core.Replica;
@@ -59,12 +55,8 @@ export class OpticsMessage {
   constructor(event: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
     this.event = event;
     this.receipt = receipt;
-    this.messageHash = event.args.messageHash;
-    this.leafIndex = event.args.leafIndex;
-    this.destinationAndNonce = event.args.destinationAndNonce;
-    this.committedRoot = event.args.committedRoot;
-    this.message = parseMessage(event.args.message);
     this.context = context;
+    this.message = parseMessage(event.args.message);
     this.home = context.mustGetCore(this.message.from).home;
     this.replica = context.mustGetReplicaFor(this.message.from, this.message.destination);
   }
@@ -245,5 +237,21 @@ export class OpticsMessage {
 
   get transactionHash(): string {
     return this.event.transactionHash;
+  }
+
+  get messageHash(): string {
+    return this.event.args.messageHash;
+  }
+
+  get leafIndex(): BigNumber {
+    return this.event.args.leafIndex;
+  }
+
+  get destinationAndNonce(): BigNumber {
+    return this.event.args.destinationAndNonce;
+  }
+
+  get committedRoot(): string {
+    return this.event.args.committedRoot;
   }
 }
