@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "unprocessed": "ts-node unprocessed.ts"
+    "monitor": "ts-node unprocessed.ts",
+    "trace": "ts-node messageTracer.ts"
   },
   "dependencies": {
     "@optics-xyz/multi-provider": "^0.0.4",
