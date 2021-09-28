@@ -4,7 +4,7 @@ import {TransactionReceipt} from '@ethersproject/abstract-provider';
 import {core} from '@optics-xyz/ts-interface';
 import {OpticsContext} from '..';
 import {delay} from '../../utils';
-import {getEvents, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
+import {getRichEvents, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
 
 export type ParsedMessage = {
   from: number;
@@ -122,7 +122,7 @@ export class OpticsMessage {
     }
     // if not, attempt to query the event
     const updateFilter = this.home.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await getEvents(this.context, this.from, this.home, updateFilter);
+    const updateLogs = await getRichEvents(this.context, this.from, this.home, updateFilter);
     if (updateLogs.length === 1) {
       // if event is returned, store it to the object
       this.storedHomeUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
@@ -141,7 +141,7 @@ export class OpticsMessage {
     }
     // if not, attempt to query the event
     const updateFilter = this.replica.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await getEvents(this.context, this.destination, this.replica, updateFilter);
+    const updateLogs = await getRichEvents(this.context, this.destination, this.replica, updateFilter);
     if (updateLogs.length === 1) {
       // if event is returned, store it to the object
       this.storedReplicaUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
@@ -160,7 +160,7 @@ export class OpticsMessage {
     }
     // if not, attempt to query the event
     const processFilter = this.replica.filters.Process(this.messageHash);
-    const processLogs = await getEvents(this.context, this.destination, this.replica, processFilter);
+    const processLogs = await getRichEvents(this.context, this.destination, this.replica, processFilter);
     if (processLogs.length === 1) {
       // if event is returned, store it to the object
       this.storedProcessEvent = processLogs[0] as unknown as ProcessEvent;

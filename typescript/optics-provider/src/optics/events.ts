@@ -1,22 +1,23 @@
-import {Log} from "@ethersproject/abstract-provider";
 import {BigNumber} from "@ethersproject/bignumber";
 import {BaseContract, Event} from "ethers";
-import {core} from "@optics-xyz/ts-interface";
 import {TypedEventFilter} from "@optics-xyz/ts-interface/dist/optics-core/commons";
+import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
 import {OpticsContext} from "./OpticsContext";
 
 export type OpticsEvent = DispatchEvent | UpdateEvent | ProcessEvent;
 
+// NOTE: can add any fields
+// from TransactionReceipt or TransactionResponse
 interface RichEvent {
     // optics
-    domain?: number;
-    // block
-    timestamp?: number;
+    nameOrDomain: string | number;
     // transaction receipt
     blockNumber: number;
     blockHash: string;
     transactionHash: string;
     transactionIndex: number;
+    // transaction response
+    timestamp: number;
 }
 
 // DISPATCH
@@ -47,6 +48,23 @@ export interface ProcessEvent extends RichEvent {
         success: boolean;
         returnData: string;
     };
+}
+
+export async function eventToRichEvent(context: OpticsContext, nameOrDomain: string | number, event: Event): Promise<RichEvent> {
+    const receipt: TransactionReceipt = await event.getTransactionReceipt();
+    const transaction: TransactionResponse = await event.getTransaction();
+    return {
+        nameOrDomain,
+        ... event,
+        ...receipt,
+        timestamp: transaction.timestamp!, // timestamp will exist in TransactionResponse because transaction has definitely mined (because TransactionReceipt already returned)
+    };
+}
+
+export async function getRichEvents(context: OpticsContext, nameOrDomain: string | number, contract: BaseContract, logFilter: TypedEventFilter<any, any>, startBlock?: number, endBlock?: number): Promise<Array<RichEvent>> {
+    const events = await getEvents(context, nameOrDomain, contract, logFilter, startBlock, endBlock);
+    const richEventPromises = events.map(event => eventToRichEvent(context, nameOrDomain, event));
+    return Promise.all(richEventPromises);
 }
 
 export async function getEvents(context: OpticsContext, nameOrDomain: string | number, contract: BaseContract, logFilter: TypedEventFilter<any, any>, startBlock?: number, endBlock?: number): Promise<Array<Event>> {
