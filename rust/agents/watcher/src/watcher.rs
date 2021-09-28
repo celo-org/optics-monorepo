@@ -16,7 +16,6 @@ use optics_base::{
     agent::{AgentCore, OpticsAgent},
     cancel_task,
     home::Homes,
-    replica::Replicas,
     xapp::ConnectionManagers,
 };
 use optics_core::{
@@ -309,15 +308,17 @@ impl Watcher {
             .collect()
     }
 
-    fn run_loop(
-        home_db: HomeDB,
-        home: Arc<Homes>,
-        replicas: HashMap<String, Arc<Replicas>>,
-        interval_seconds: u64,
-        sync_tasks: TaskMap,
-        watch_tasks: TaskMap,
+    fn run_watch_tasks(
+        &self,
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
+        let home_db = HomeDB::new(self.db(), self.home().name().to_owned());
+        let home = self.home();
+        let replicas = self.replicas().clone();
+        let interval_seconds = self.interval_seconds;
+        let sync_tasks = self.sync_tasks.clone();
+        let watch_tasks = self.watch_tasks.clone();
+
         tokio::spawn(async move {
             // Spawn update handler
             let (tx, rx) = mpsc::channel(200);
@@ -445,21 +446,13 @@ impl OpticsAgent for Watcher {
                 .home()
                 .index(indexer.from(), indexer.chunk_size(), block_height);
 
-            // Watcher run loop setup
+            // Watcher watch tasks setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
-            let run_task = Watcher::run_loop(
-                HomeDB::new(self.db(), self.home().name().to_owned()),
-                self.home(),
-                self.replicas().clone(),
-                self.interval_seconds,
-                self.sync_tasks.clone(),
-                self.watch_tasks.clone(),
-                double_update_tx,
-            );
+            let watch_tasks = self.run_watch_tasks(double_update_tx);
 
             // Race index and run tasks
             info!("selecting");
-            let tasks = vec![index_task, run_task];
+            let tasks = vec![index_task, watch_tasks];
             let (_, _, remaining) = select_all(tasks).await;
 
             // Cancel lagging task and watcher polling/syncing tasks
