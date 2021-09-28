@@ -45,18 +45,21 @@ export function parseMessage(message: string): ParsedMessage {
 }
 
 export class OpticsMessage {
-  readonly event: DispatchEvent;
+  readonly dispatchEvent: DispatchEvent;
   readonly receipt: TransactionReceipt;
   readonly message: ParsedMessage;
   readonly home: core.Home;
   readonly replica: core.Replica;
   protected context: OpticsContext;
+  protected storedHomeUpdateEvent: UpdateEvent | undefined;
+  protected storedReplicaUpdateEvent: UpdateEvent | undefined;
+  protected storedProcessEvent: ProcessEvent | undefined;
 
-  constructor(event: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
-    this.event = event;
+  constructor(dispatchEvent: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
+    this.dispatchEvent = dispatchEvent;
     this.receipt = receipt;
     this.context = context;
-    this.message = parseMessage(event.args.message);
+    this.message = parseMessage(dispatchEvent.args.message);
     this.home = context.mustGetCore(this.message.from).home;
     this.replica = context.mustGetReplicaFor(this.message.from, this.message.destination);
   }
@@ -111,30 +114,65 @@ export class OpticsMessage {
     return OpticsMessage.singleFromReceipt(receipt!, context);
   }
 
-  dispatchEvent(): DispatchEvent {
-    return this.event;
-  }
-
-  async homeUpdateEvent(): Promise<UpdateEvent> {
+  async homeUpdateEvent(): Promise<UpdateEvent | undefined> {
+    // if we have already gotten the event,
+    // return it without re-querying
+    if (this.storedHomeUpdateEvent) {
+      return this.storedHomeUpdateEvent;
+    }
+    // if not, attempt to query the event
     const updateFilter = this.home.filters.Update(this.from, this.committedRoot);
     const updateLogs = await getEvents(this.context, this.from, this.home, updateFilter);
-    return updateLogs[0] as unkown as UpdateEvent;
+    if (updateLogs.length === 1) {
+      // if event is returned, store it to the object
+      this.storedHomeUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
+    } else if (updateLogs.length > 1) {
+      throw new Error("multiple home updates for same root");
+    }
+    // return the event or undefined if it doesn't exist
+    return this.storedHomeUpdateEvent;
   }
 
-  async replicaUpdateEvent(): Promise<UpdateEvent> {
+  async replicaUpdateEvent(): Promise<UpdateEvent | undefined> {
+    // if we have already gotten the event,
+    // return it without re-querying
+    if (this.storedReplicaUpdateEvent) {
+      return this.storedReplicaUpdateEvent;
+    }
+    // if not, attempt to query the event
     const updateFilter = this.replica.filters.Update(this.from, this.committedRoot);
     const updateLogs = await getEvents(this.context, this.destination, this.replica, updateFilter);
-    return updateLogs[0] as unkown as UpdateEvent;
+    if (updateLogs.length === 1) {
+      // if event is returned, store it to the object
+      this.storedReplicaUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
+    } else if (updateLogs.length > 1) {
+      throw new Error("multiple replica updates for same root");
+    }
+    // return the event or undefined if it wasn't found
+    return this.storedReplicaUpdateEvent;
   }
 
-  async processEvent(): Promise<ProcessEvent> {
+  async processEvent(): Promise<ProcessEvent | undefined> {
+    // if we have already gotten the event,
+    // return it without re-querying
+    if (this.storedProcessEvent) {
+      return this.storedProcessEvent;
+    }
+    // if not, attempt to query the event
     const processFilter = this.replica.filters.Process(this.messageHash);
     const processLogs = await getEvents(this.context, this.destination, this.replica, processFilter);
-    return processLogs[0] as unkown as ProcessEvent;
+    if (processLogs.length === 1) {
+      // if event is returned, store it to the object
+      this.storedProcessEvent = processLogs[0] as unknown as ProcessEvent;
+    } else if (processLogs.length > 1) {
+      throw new Error("multiple replica updates for same root");
+    }
+    // return the update or undefined if it doesn't exist
+    return this.storedProcessEvent;
   }
 
   async events(): Promise<OpticsStatus> {
-    const events: OpticsEvent[] = [this.event];
+    const events: OpticsEvent[] = [this.dispatchEvent];
     // attempt to get Home update
     const homeUpdate = await this.homeUpdateEvent();
     if (!homeUpdate) {
@@ -180,7 +218,10 @@ export class OpticsMessage {
   // - if the timestamp is in the future, the challenge period has not elapsed yet; messages in the Update cannot be processed yet
   // - if the timestamp is in the past, this does not necessarily mean that all messages in the Update have been processed
   async confirmAt(): Promise<BigNumber> {
-    const update = await this.replicaUpdateEvent();
+    const update = await this.homeUpdateEvent();
+    if (!update) {
+      return BigNumber.from(0);
+    }
     const {newRoot} = update.args;
     return this.replica.confirmAt(newRoot);
   }
@@ -236,22 +277,22 @@ export class OpticsMessage {
   }
 
   get transactionHash(): string {
-    return this.event.transactionHash;
+    return this.dispatchEvent.transactionHash;
   }
 
   get messageHash(): string {
-    return this.event.args.messageHash;
+    return this.dispatchEvent.args.messageHash;
   }
 
   get leafIndex(): BigNumber {
-    return this.event.args.leafIndex;
+    return this.dispatchEvent.args.leafIndex;
   }
 
   get destinationAndNonce(): BigNumber {
-    return this.event.args.destinationAndNonce;
+    return this.dispatchEvent.args.destinationAndNonce;
   }
 
   get committedRoot(): string {
-    return this.event.args.committedRoot;
+    return this.dispatchEvent.args.committedRoot;
   }
 }

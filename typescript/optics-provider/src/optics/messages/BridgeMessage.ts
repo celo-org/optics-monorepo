@@ -135,21 +135,21 @@ class BridgeMessage extends OpticsMessage {
     switch (parsedMessageBody.action.type) {
       case 'transfer':
         return new TransferMessage(
-            opticsMessage.event,
+            opticsMessage.dispatchEvent,
             opticsMessage.receipt,
             parsedMessageBody as ParsedTransferMessage,
             context,
         );
       case 'details':
         return new DetailsMessage(
-          opticsMessage.event,
+          opticsMessage.dispatchEvent,
           opticsMessage.receipt,
           parsedMessageBody as ParsedDetailsMessage,
           context,
       );
       case 'requestDetails':
         return new RequestDetailsMessage(
-          opticsMessage.event,
+          opticsMessage.dispatchEvent,
           opticsMessage.receipt,
           parsedMessageBody as ParsedRequestDetailsMesasage,
           context,
