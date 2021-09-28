@@ -3,6 +3,7 @@ import {BaseContract, Event} from "ethers";
 import {TypedEventFilter} from "@optics-xyz/ts-interface/dist/optics-core/commons";
 import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
 import {OpticsContext} from "./OpticsContext";
+import {Log} from "@ethersproject/abstract-provider/src.ts/index";
 
 export type OpticsEvent = DispatchEvent | UpdateEvent | ProcessEvent;
 
@@ -16,6 +17,9 @@ interface RichEvent {
     blockHash: string;
     transactionHash: string;
     transactionIndex: number;
+    to: string;
+    from: string;
+    allTransactionLogs: Array<Log>; // will be useful for parsing any other events emitted when sending OpticsMessage (like Send event for BridgeMessage Transfer)
     // transaction response
     timestamp: number;
 }
@@ -58,6 +62,7 @@ export async function eventToRichEvent(context: OpticsContext, nameOrDomain: str
         ... event,
         ...receipt,
         timestamp: transaction.timestamp!, // timestamp will exist in TransactionResponse because transaction has definitely mined (because TransactionReceipt already returned)
+        allTransactionLogs: receipt.logs,
     };
 }
 
