@@ -39,11 +39,6 @@ interface TraceInput {
     leafIndex?: number,
 }
 
-interface TraceOutput {
-    status: string,
-    events: QuietEvent[]
-}
-
 interface QuietEvent {
     event: string,
     nameOrDomain: string | number;
@@ -51,7 +46,7 @@ interface QuietEvent {
     transactionHash: string;
 }
 
-function transformEvent(opticsEvent: OpticsEvent) {
+function quietEvent(opticsEvent: OpticsEvent) {
     // TODO: transform nameOrDomain to human readable
     // TODO: add link to block explorer????
     const {event, nameOrDomain, blockNumber, transactionHash} = opticsEvent;
@@ -63,13 +58,13 @@ function transformEvent(opticsEvent: OpticsEvent) {
     }
 }
 
-function transformStatus(opticsStatus: OpticsStatus): TraceOutput {
+function printStatus(opticsStatus: OpticsStatus) {
     const {status, events} = opticsStatus;
-
-    return {
+    const printable = {
         status: STATUS_TO_STRING[status],
-        events: events.map(event => transformEvent(event))
-    }
+        events: events.map(event => quietEvent(event))
+    };
+    console.log(JSON.stringify(printable, null, 2));
 }
 
 async function traceTransfer(context: OpticsContext, origin:string, transactionHash:string) {
@@ -77,8 +72,6 @@ async function traceTransfer(context: OpticsContext, origin:string, transactionH
 
     const message = await OpticsMessage.singleFromTransactionHash(context, origin, transactionHash);
     const status = await message.events();
-    const printableStatus = transformStatus(status);
 
-    // Log Details
-    console.log(JSON.stringify(printableStatus, null, 2));
+    printStatus(status);
 }
