@@ -28,6 +28,7 @@ impl TypedDB {
     fn full_prefix(&self, prefix: impl AsRef<[u8]>) -> Vec<u8> {
         let mut full_prefix = vec![];
         full_prefix.extend(self.type_prefix.as_ref() as &[u8]);
+        full_prefix.extend("_".as_bytes());
         full_prefix.extend(prefix.as_ref());
         full_prefix
     }

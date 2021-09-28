@@ -13,14 +13,15 @@ use std::time::Duration;
 
 use crate::db::iterator::PrefixIterator;
 
-static NONCE: &str = "destination_and_nonce_";
+static DEST_AND_NONCE: &str = "destination_and_nonce_";
 static LEAF_IDX: &str = "leaf_index_";
 static LEAF_HASH: &str = "leaf_hash_";
 static PREV_ROOT: &str = "update_prev_root_";
 static NEW_ROOT: &str = "update_new_root_";
 static LATEST_ROOT: &str = "update_latest_root_";
 static PROOF: &str = "proof_";
-static LATEST_LEAF: &str = "latest_known_leaf_";
+static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
+static LATEST_NONCE_REPLICA_DOMAIN: &str = "latest_nonce_replica_domain_";
 
 /// DB handle for storing data tied to a specific home.
 ///
@@ -73,6 +74,11 @@ impl HomeDB {
     }
 
     /// Store a raw committed message
+    ///
+    /// Keys --> Values:
+    /// - `destination_and_nonce` --> `leaf_hash`
+    /// - `leaf_index` --> `leaf_hash`
+    /// - `leaf_hash` --> `message`
     pub fn store_raw_committed_message(&self, message: &RawCommittedMessage) -> Result<()> {
         let parsed = OpticsMessage::read_from(&mut message.message.clone().as_slice())?;
 
@@ -88,24 +94,26 @@ impl HomeDB {
             leaf_index = message.leaf_index,
             "storing raw committed message in db"
         );
-        self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
         self.store_leaf(message.leaf_index, destination_and_nonce, leaf_hash)?;
+        self.store_keyed_encodable(LEAF_HASH, &leaf_hash, message)?;
         Ok(())
     }
 
     /// Store the latest known leaf_index
+    ///
+    /// Key --> value: `LATEST_LEAF_INDEX` --> `leaf_index`
     pub fn update_latest_leaf_index(&self, leaf_index: u32) -> Result<(), DbError> {
         if let Ok(Some(idx)) = self.retrieve_latest_leaf_index() {
             if leaf_index <= idx {
                 return Ok(());
             }
         }
-        self.store_encodable("", LATEST_LEAF, &leaf_index)
+        self.store_encodable("", LATEST_LEAF_INDEX, &leaf_index)
     }
 
     /// Retrieve the highest known leaf_index
     pub fn retrieve_latest_leaf_index(&self) -> Result<Option<u32>, DbError> {
-        self.retrieve_decodable("", LATEST_LEAF)
+        self.retrieve_decodable("", LATEST_LEAF_INDEX)
     }
 
     /// Store the leaf_hash keyed by leaf_index
@@ -120,7 +128,7 @@ impl HomeDB {
             leaf_hash = ?leaf_hash,
             "storing leaf hash keyed by index and dest+nonce"
         );
-        self.store_keyed_encodable(NONCE, &destination_and_nonce, &leaf_hash)?;
+        self.store_keyed_encodable(DEST_AND_NONCE, &destination_and_nonce, &leaf_hash)?;
         self.store_keyed_encodable(LEAF_IDX, &leaf_index, &leaf_hash)?;
         self.update_latest_leaf_index(leaf_index)
     }
@@ -141,7 +149,7 @@ impl HomeDB {
     /// Retrieve the leaf hash keyed by destination and nonce
     pub fn leaf_by_nonce(&self, destination: u32, nonce: u32) -> Result<Option<H256>, DbError> {
         let key = utils::destination_and_nonce(destination, nonce);
-        self.retrieve_keyed_decodable(NONCE, &key)
+        self.retrieve_keyed_decodable(DEST_AND_NONCE, &key)
     }
 
     /// Retrieve a raw committed message by its leaf hash
@@ -169,6 +177,21 @@ impl HomeDB {
         }
     }
 
+    /// Stores the latest inspected nonce for a given replica domain
+    ///
+    /// Keys --> Values:
+    /// - `<LATEST_NONCE_REPLICA_DOMAIN>_<replica_domain>` --> `nonce`
+    pub fn store_latest_nonce(&self, replica_domain: u32, nonce: u32) -> Result<(), DbError> {
+        self.store_keyed_encodable(LATEST_NONCE_REPLICA_DOMAIN, &replica_domain, &nonce)?;
+
+        Ok(())
+    }
+
+    /// Retrieves the latest inspected nonce for a given replica domain
+    pub fn retrieve_latest_nonce(&self, replica_domain: u32) -> Result<Option<u32>, DbError> {
+        self.retrieve_keyed_decodable(LATEST_NONCE_REPLICA_DOMAIN, &replica_domain)
+    }
+
     /// Retrieve the latest committed
     pub fn retrieve_latest_root(&self) -> Result<Option<H256>, DbError> {
         self.retrieve_decodable("", LATEST_ROOT)
@@ -180,6 +203,11 @@ impl HomeDB {
     }
 
     /// Store a signed update building off latest root
+    ///
+    /// Keys --> Values:
+    /// - `LATEST_ROOT` --> `root`
+    /// - `prev_root` --> `update`
+    /// - `new_root` --> `update`
     pub fn store_latest_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         debug!(
             previous_root = ?update.update.previous_root,
@@ -235,6 +263,9 @@ impl HomeDB {
     }
 
     /// Store a proof by its leaf index
+    ///
+    /// Keys --> Values:
+    /// - `leaf_index` --> `proof`
     pub fn store_proof(&self, leaf_index: u32, proof: &Proof) -> Result<(), DbError> {
         debug!(leaf_index, "storing proof in DB");
         self.store_keyed_encodable(PROOF, &leaf_index, proof)

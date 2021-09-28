@@ -27,7 +27,6 @@ use optics_core::{
 
 use crate::{prover_sync::ProverSync, settings::ProcessorSettings as Settings};
 
-const LAST_INSPECTED: &str = "lastInspected";
 const AGENT_NAME: &str = "processor";
 
 /// The replica processor is responsible for polling messages and waiting until they validate
@@ -72,7 +71,7 @@ impl Replica {
                 // 5. Submit the proof to the replica
                 let mut next_message_index: u32 = self
                     .home_db
-                    .retrieve_decodable("", LAST_INSPECTED)?
+                    .retrieve_latest_nonce(domain)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
 
@@ -106,11 +105,8 @@ impl Replica {
                         .await
                     {
                         Ok(true) => {
-                            self.home_db.store_encodable(
-                                "",
-                                LAST_INSPECTED,
-                                &next_message_index,
-                            )?;
+                            self.home_db
+                                .store_latest_nonce(domain, next_message_index)?;
                             next_message_index += 1;
                         }
                         Ok(false) => {
