@@ -157,38 +157,50 @@ class BridgeMessage extends OpticsMessage {
     }
   }
 
-  static async fromTransactionHash(
-      nameOrDomain: string | number,
-      transactionHash: string,
-      context: OpticsContext,
-  ): Promise<AnyBridgeMessage[]> {
-    const opticsMessages: OpticsMessage[] = await OpticsMessage.fromTransactionHash(nameOrDomain, transactionHash, context);
-    return opticsMessages.map(opticsMessage => BridgeMessage.fromOpticsMessage(opticsMessage, context));
-  }
-
-  static async singleFromTransactionHash(
-      nameOrDomain: string | number,
-      transactionHash: string,
-      context: OpticsContext,
-  ): Promise<OpticsMessage> {
-    const opticsMessage: OpticsMessage = await OpticsMessage.singleFromTransactionHash(nameOrDomain, transactionHash, context);
-    return BridgeMessage.fromOpticsMessage(opticsMessage, context);
-  }
-
   static fromReceipt(
     receipt: TransactionReceipt,
     context: OpticsContext,
   ): AnyBridgeMessage[] {
     const opticsMessages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
-    return opticsMessages.map(opticsMessage => BridgeMessage.fromOpticsMessage(opticsMessage, context));
+    const bridgeMessages: AnyBridgeMessage[] = [];
+    for (let opticsMessage of opticsMessages) {
+      try {
+        const bridgeMessage = BridgeMessage.fromOpticsMessage(opticsMessage, context);
+        bridgeMessages.push(bridgeMessage);
+      } catch (e) {}
+    }
+    return bridgeMessages;
   }
 
   static singleFromReceipt(
       receipt: TransactionReceipt,
       context: OpticsContext,
   ): AnyBridgeMessage {
-    const opticsMessage: OpticsMessage = OpticsMessage.singleFromReceipt(receipt, context);
-    return BridgeMessage.fromOpticsMessage(opticsMessage, context);
+    const messages: AnyBridgeMessage[] = BridgeMessage.fromReceipt(receipt, context);
+    if (messages.length !== 1) {
+      throw new Error("Expected single Dispatch in transaction");
+    }
+    return messages[0];
+  }
+
+  static async fromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<AnyBridgeMessage[]> {
+    const provider = context.mustGetProvider(nameOrDomain);
+    const receipt = await provider.getTransactionReceipt(transactionHash);
+    return BridgeMessage.fromReceipt(receipt!, context);
+  }
+
+  static async singleFromTransactionHash(
+      nameOrDomain: string | number,
+      transactionHash: string,
+      context: OpticsContext,
+  ): Promise<AnyBridgeMessage> {
+    const provider = context.mustGetProvider(nameOrDomain);
+    const receipt = await provider.getTransactionReceipt(transactionHash);
+    return BridgeMessage.singleFromReceipt(receipt!, context);
   }
 
   async asset(): Promise<ResolvedTokenInfo> {
