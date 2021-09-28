@@ -39,7 +39,7 @@ pub(crate) struct Replica {
     home_db: HomeDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
-    next_message_index: prometheus::IntGaugeVec,
+    next_nonce: prometheus::IntGaugeVec,
 }
 
 impl std::fmt::Display for Replica {
@@ -69,24 +69,24 @@ impl Replica {
                 //      - If not, wait and poll again
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
-                let mut next_message_index: u32 = self
+                let mut next_nonce: u32 = self
                     .home_db
                     .retrieve_latest_nonce(domain)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
 
-                self.next_message_index
+                self.next_nonce
                     .with_label_values(&[self.replica.name(), AGENT_NAME])
-                    .set(next_message_index as i64);
+                    .set(next_nonce as i64);
 
                 info!(
                     domain,
-                    nonce = next_message_index,
+                    nonce = next_nonce,
                     replica = self.replica.name(),
                     "Starting processor for {} {} at nonce {}",
                     domain,
                     self.replica.name(),
-                    next_message_index
+                    next_nonce
                 );
 
                 loop {
@@ -94,20 +94,19 @@ impl Replica {
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
-                        nonce = next_message_index,
+                        nonce = next_nonce,
                         replica_domain = self.replica.local_domain(),
                         home_domain = self.home.local_domain(),
                     );
 
                     match self
-                        .try_msg_by_domain_and_nonce(domain, next_message_index)
+                        .try_msg_by_domain_and_nonce(domain, next_nonce)
                         .instrument(seq_span)
                         .await
                     {
                         Ok(true) => {
-                            self.home_db
-                                .store_latest_nonce(domain, next_message_index)?;
-                            next_message_index += 1;
+                            self.home_db.store_latest_nonce(domain, next_nonce)?;
+                            next_nonce += 1;
                         }
                         Ok(false) => {
                             // there was some fault, let's wait and then try again later when state may have moved
@@ -263,7 +262,7 @@ impl Processor {
             .new_int_gauge(
                 "next_message_index",
                 "Index of the next message to inspect",
-                &["replica", "agent"],
+                &["home", "agent"],
             )
             .expect("processor metric already registered -- should have be a singleton");
 
@@ -301,6 +300,7 @@ impl OpticsAgent for Processor {
 
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let home = self.home();
+        let metrics = self.metrics();
         let interval = self.interval;
 
         let replica_opt = self.replica_by_name(name);
@@ -310,11 +310,17 @@ impl OpticsAgent for Processor {
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();
 
-        let next_message_index = self.next_message_index.clone();
-
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
             let home_name = home.name().to_owned();
+
+            let next_nonce = metrics
+                .new_int_gauge(
+                    "next_nonce",
+                    "Next nonce of a replica to inspect",
+                    &["replica", "agent"],
+                )
+                .expect("processor metric already registered -- should have be a singleton");
 
             Replica {
                 interval,
@@ -323,7 +329,7 @@ impl OpticsAgent for Processor {
                 home_db: HomeDB::new(db, home_name),
                 allowed,
                 denied,
-                next_message_index,
+                next_nonce,
             }
             .main()
             .await?
