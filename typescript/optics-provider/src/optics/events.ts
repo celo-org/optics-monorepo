@@ -1,14 +1,10 @@
 import {Log} from "@ethersproject/abstract-provider";
-import {OpticsContext} from "./OpticsContext";
-import {BaseContract, Event} from "ethers";
-import {TypedEventFilter} from "@optics-xyz/ts-interface/dist/optics-core/commons";
 import {BigNumber} from "@ethersproject/bignumber";
+import {BaseContract, Event} from "ethers";
 import {core} from "@optics-xyz/ts-interface";
+import {TypedEventFilter} from "@optics-xyz/ts-interface/dist/optics-core/commons";
+import {OpticsContext} from "./OpticsContext";
 
-export type OpticsStatus = {
-    status: string;
-    events: OpticsEvent[];
-}
 export type OpticsEvent = DispatchEvent | UpdateEvent | ProcessEvent;
 
 interface RichEvent {

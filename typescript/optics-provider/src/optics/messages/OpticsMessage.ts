@@ -15,7 +15,19 @@ export type ParsedMessage = {
   body: string;
 };
 
-enum MessageStatus {
+export type OpticsStatus = {
+  status: MessageStatus;
+  events: OpticsEvent[];
+}
+
+export enum MessageStatus {
+  Dispatched = 0,
+  Included = 1,
+  Relayed = 2,
+  Processed = 3
+};
+
+enum ReplicaMessageStatus {
   None = 0,
   Proven,
   Processed,
@@ -133,7 +145,7 @@ export class OpticsMessage {
     const homeUpdate = await this.homeUpdateEvent();
     if (!homeUpdate) {
       return {
-        status: "Dispatched", // the message has been sent; nothing more
+        status: MessageStatus.Dispatched, // the message has been sent; nothing more
         events
       };
     }
@@ -142,7 +154,7 @@ export class OpticsMessage {
     const replicaUpdate = await this.replicaUpdateEvent();
     if (!replicaUpdate) {
       return {
-        status: "Included", // the message was sent, then included in an Update on Home
+        status: MessageStatus.Included, // the message was sent, then included in an Update on Home
         events
       };
     }
@@ -154,13 +166,13 @@ export class OpticsMessage {
       // query confirmAt() to check if challenge period
       // on the Replica has elapsed or not
       return {
-        status: "Relayed", // the message was sent, included in an Update, then relayed to the Replica
+        status: MessageStatus.Relayed, // the message was sent, included in an Update, then relayed to the Replica
         events
       };
     }
     events.push(process);
     return {
-      status: "Processed", // the message was processed
+      status: MessageStatus.Processed, // the message was processed
       events
     };
   }
@@ -179,14 +191,14 @@ export class OpticsMessage {
     return this.replica.confirmAt(newRoot);
   }
 
-  async replicaStatus(): Promise<MessageStatus> {
+  async replicaStatus(): Promise<ReplicaMessageStatus> {
     return this.replica.messages(this.messageHash);
   }
 
   /// Returns true when the message is delivered
   async delivered(): Promise<boolean> {
     const status = await this.replicaStatus();
-    return status === MessageStatus.Processed;
+    return status === ReplicaMessageStatus.Processed;
   }
 
   /// Resolves when the message has been delivered.
