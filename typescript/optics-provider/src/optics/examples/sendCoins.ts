@@ -1,6 +1,6 @@
 import * as ethers from 'ethers';
 
-import { mainnet } from '../index';
+import { mainnet } from '..';
 
 const celoTokenAddr = '0x471EcE3750Da237f93B8E339c536989b8978a438';
 
