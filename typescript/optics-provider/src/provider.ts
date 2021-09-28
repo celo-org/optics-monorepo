@@ -15,11 +15,7 @@ export class MultiProvider {
   }
 
   registerDomain(domain: Domain) {
-    this.domains.set(domain.domain, domain);
-  }
-
-  getDomain(domain: number): Domain | undefined {
-    return this.domains.get(domain);
+    this.domains.set(domain.id, domain);
   }
 
   get domainNumbers(): number[] {
@@ -28,20 +24,37 @@ export class MultiProvider {
 
   resolveDomain(nameOrDomain: string | number): number {
     if (typeof nameOrDomain === 'string') {
-      return Array.from(this.domains.values()).filter(
+      const domains = Array.from(this.domains.values()).filter(
         (domain) => domain.name === nameOrDomain,
-      )[0].domain;
+      );
+      if (domains.length === 0) {
+        throw new Error(`Domain not found: ${nameOrDomain}`);
+      }
+      return domains[0].id;
     } else {
       return nameOrDomain;
     }
   }
 
-  registerProvider(nameOrDomain: string | number, provider: Provider) {
-    const domain = this.resolveDomain(nameOrDomain);
+  getDomain(nameOrDomain: number | string): Domain | undefined {
+    return this.domains.get(this.resolveDomain(nameOrDomain));
+  }
 
-    if (!this.domains.get(domain)) {
-      throw new Error('Must have domain to register provider');
+  mustGetDomain(nameOrDomain: number | string): Domain {
+    const domain = this.getDomain(nameOrDomain);
+    if (!domain) {
+      throw new Error(`Domain not found: ${nameOrDomain}`);
     }
+
+    return domain;
+  }
+
+  resolveDomainName(nameOrDomain: number | string): string | undefined {
+    return this.getDomain(nameOrDomain)?.name;
+  }
+
+  registerProvider(nameOrDomain: string | number, provider: Provider) {
+    const domain = this.mustGetDomain(nameOrDomain).id;
 
     this.providers.set(domain, provider);
     const signer = this.signers.get(domain);
@@ -66,7 +79,7 @@ export class MultiProvider {
   mustGetProvider(nameOrDomain: string | number): Provider {
     const provider = this.getProvider(nameOrDomain);
     if (!provider) {
-      throw new Error("unregistered name or domain");
+      throw new Error('unregistered name or domain');
     }
     return provider;
   }

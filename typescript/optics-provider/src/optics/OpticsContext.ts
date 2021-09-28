@@ -116,8 +116,8 @@ export class OpticsContext extends MultiProvider {
   }
 
   mustGetReplicaFor(
-      home: string | number,
-      remote: string | number,
+    home: string | number,
+    remote: string | number,
   ): core.Replica {
     const replica = this.getReplicaFor(home, remote);
     if (!replica) {
@@ -229,7 +229,7 @@ export class OpticsContext extends MultiProvider {
     );
     const receipt = await tx.wait();
 
-    const message = TransferMessage.fromReceipt(receipt, this);
+    const message = TransferMessage.singleFromReceipt(this, from, receipt);
     if (!message) {
       throw new Error();
     }
@@ -256,7 +256,7 @@ export class OpticsContext extends MultiProvider {
     const tx = await ethHelper.sendToEVMLike(toDomain, recipient, overrides);
     const receipt = await tx.wait();
 
-    const message = TransferMessage.fromReceipt(receipt, this);
+    const message = TransferMessage.singleFromReceipt(this, from, receipt);
     if (!message) {
       throw new Error();
     }

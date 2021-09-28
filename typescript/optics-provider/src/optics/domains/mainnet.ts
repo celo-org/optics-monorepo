@@ -2,7 +2,7 @@ import { OpticsDomain } from './domain';
 
 export const ethereum: OpticsDomain = {
   name: 'ethereum',
-  domain: 6648936,
+  id: 6648936,
   bridgeRouter: '0x6a39909e805A3eaDd2b61fFf61147796ca6aBB47',
   ethHelper: '0xf1c1413096ff2278C3Df198a28F8D54e0369cF3A',
   home: '0xf25C5932bb6EFc7afA4895D9916F2abD7151BF97',
@@ -20,7 +20,11 @@ export const ethereum: OpticsDomain = {
 
 export const polygon: OpticsDomain = {
   name: 'polygon',
-  domain: 1886350457,
+  id: 1886350457,
+  paginate: {
+    blocks: 1999,
+    from: 18895794,
+  },
   bridgeRouter: '0xf244eA81F715F343040569398A4E7978De656bf6',
   ethHelper: '0xc494bFEE14b5E1E118F93CfedF831f40dFA720fA',
   home: '0x97bbda9A1D45D86631b243521380Bc070D6A4cBD',
@@ -35,7 +39,7 @@ export const polygon: OpticsDomain = {
 
 export const celo: OpticsDomain = {
   name: 'celo',
-  domain: 1667591279,
+  id: 1667591279,
   bridgeRouter: '0xf244eA81F715F343040569398A4E7978De656bf6',
   home: '0x97bbda9A1D45D86631b243521380Bc070D6A4cBD',
   replicas: [

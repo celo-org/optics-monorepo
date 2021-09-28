@@ -1,4 +1,10 @@
+export interface Pagination {
+  blocks: number;
+  from: number;
+}
+
 export interface Domain {
-  domain: number;
+  id: number;
   name: string;
+  paginate?: Pagination;
 }

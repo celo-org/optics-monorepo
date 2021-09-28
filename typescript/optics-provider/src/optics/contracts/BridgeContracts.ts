@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { ethers } from 'ethers';
 import { xapps } from '@optics-xyz/ts-interface';
 import { Contracts } from '../../contracts';
@@ -32,22 +31,15 @@ export class BridgeContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer) {
-    if (!data.domain || !data.bridgeRouter) {
-      throw new Error('missing address');
+    if (!data.id || !data.bridgeRouter) {
+      throw new Error('missing address or domain');
     }
 
-    const domain = data.domain;
+    const id = data.id;
     const br = data.bridgeRouter.proxy ?? data.bridgeRouter;
     const eh = data.ethHelper;
 
-    return new BridgeContracts(domain, br, eh);
-  }
-
-  static loadJson(filepath: string, signer?: ethers.Signer) {
-    return this.fromObject(
-      JSON.parse(fs.readFileSync(filepath, 'utf8')),
-      signer,
-    );
+    return new BridgeContracts(id, br, eh, signer);
   }
 
   toObject(): any {

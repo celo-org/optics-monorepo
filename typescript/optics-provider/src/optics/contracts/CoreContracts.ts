@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import { ethers } from 'ethers';
 import { core } from '@optics-xyz/ts-interface';
 import { Contracts } from '../../contracts';
@@ -61,16 +59,9 @@ export class CoreContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer): CoreContracts {
-    if (!data.domain || !data.home || !data.replicas) {
+    if (!data.id || !data.home || !data.replicas) {
       throw new Error('Missing key');
     }
-    return new CoreContracts(data.domain, data.home, data.replicas, signer);
-  }
-
-  static loadJson(filepath: string, signer?: ethers.Signer) {
-    return this.fromObject(
-      JSON.parse(fs.readFileSync(filepath, 'utf8')),
-      signer,
-    );
+    return new CoreContracts(data.id, data.home, data.replicas, signer);
   }
 }

@@ -2,6 +2,8 @@ node_modules
 test_deploy.env
 
 typescript/optics-deploy/.env
+**/.env
+
 
 rust/vendor/
 rust/tmp_db

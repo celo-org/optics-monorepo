@@ -2,7 +2,7 @@ import { OpticsDomain } from './domain';
 
 export const alfajores: OpticsDomain = {
   name: 'alfajores',
-  domain: 1000,
+  id: 1000,
   bridgeRouter: '0xd6930Ee55C141E5Bb4079d5963cF64320956bb3E',
   home: '0x47AaF05B1C36015eC186892C43ba4BaF91246aaA',
   replicas: [
@@ -16,7 +16,7 @@ export const alfajores: OpticsDomain = {
 
 export const kovan: OpticsDomain = {
   name: 'kovan',
-  domain: 3000,
+  id: 3000,
   bridgeRouter: '0x359089D34687bDbFD019fCC5093fFC21bE9905f5',
   ethHelper: '0x411ABcFD947212a0D64b97C9882556367b61704a',
   home: '0x5B55C29A10aEe6D5750F128C6a8f490de763ccc7',
@@ -31,7 +31,7 @@ export const kovan: OpticsDomain = {
 
 export const rinkeby: OpticsDomain = {
   name: 'rinkeby',
-  domain: 2000,
+  id: 2000,
   bridgeRouter: '0x8FbEA25D0bFDbff68F2B920df180e9498E9c856A',
   ethHelper: '0x1BEBC8F1260d16EE5d1CFEE9366bB474bD13DC5f',
   home: '0x6E6010E6bd43a9d2F7AE3b7eA9f61760e58758f3',

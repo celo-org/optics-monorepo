@@ -1,10 +1,23 @@
-import {BigNumber} from '@ethersproject/bignumber';
-import {arrayify, hexlify} from '@ethersproject/bytes';
-import {TransactionReceipt} from '@ethersproject/abstract-provider';
-import {core} from '@optics-xyz/ts-interface';
-import {OpticsContext} from '..';
-import {delay} from '../../utils';
-import {getRichEvents, OpticsEvent, DispatchEvent, UpdateEvent, ProcessEvent} from "../events";
+import { BigNumber } from '@ethersproject/bignumber';
+import { arrayify, hexlify } from '@ethersproject/bytes';
+import { TransactionReceipt } from '@ethersproject/abstract-provider';
+import { core } from '@optics-xyz/ts-interface';
+import { OpticsContext } from '..';
+import { delay } from '../../utils';
+import {
+  DispatchEvent,
+  AnnotatedDispatch,
+  annotate,
+  AnnotatedUpdate,
+  AnnotatedProcess,
+  UpdateTypes,
+  UpdateArgs,
+  ProcessTypes,
+  ProcessArgs,
+  AnnotatedLifecycleEvent,
+} from '../events';
+
+import { queryAnnotatedEvents } from '..';
 
 export type ParsedMessage = {
   from: number;
@@ -17,21 +30,27 @@ export type ParsedMessage = {
 
 export type OpticsStatus = {
   status: MessageStatus;
-  events: OpticsEvent[];
-}
+  events: AnnotatedLifecycleEvent[];
+};
 
 export enum MessageStatus {
   Dispatched = 0,
   Included = 1,
   Relayed = 2,
-  Processed = 3
-};
+  Processed = 3,
+}
 
-enum ReplicaMessageStatus {
+export enum ReplicaMessageStatus {
   None = 0,
   Proven,
   Processed,
 }
+
+export type EventCache = {
+  homeUpdate?: AnnotatedUpdate;
+  replicaUpdate?: AnnotatedUpdate;
+  process?: AnnotatedProcess;
+};
 
 export function parseMessage(message: string): ParsedMessage {
   const buf = Buffer.from(arrayify(message));
@@ -45,37 +64,65 @@ export function parseMessage(message: string): ParsedMessage {
 }
 
 export class OpticsMessage {
-  readonly dispatchEvent: DispatchEvent;
-  readonly receipt: TransactionReceipt;
+  readonly dispatch: AnnotatedDispatch;
   readonly message: ParsedMessage;
   readonly home: core.Home;
   readonly replica: core.Replica;
-  protected context: OpticsContext;
-  protected storedHomeUpdateEvent: UpdateEvent | undefined;
-  protected storedReplicaUpdateEvent: UpdateEvent | undefined;
-  protected storedProcessEvent: ProcessEvent | undefined;
 
-  constructor(dispatchEvent: DispatchEvent, receipt: TransactionReceipt, context: OpticsContext) {
-    this.dispatchEvent = dispatchEvent;
-    this.receipt = receipt;
+  readonly context: OpticsContext;
+  protected cache: EventCache;
+
+  constructor(context: OpticsContext, dispatch: AnnotatedDispatch) {
     this.context = context;
-    this.message = parseMessage(dispatchEvent.args.message);
+    this.message = parseMessage(dispatch.event.args.message);
+    this.dispatch = dispatch;
     this.home = context.mustGetCore(this.message.from).home;
-    this.replica = context.mustGetReplicaFor(this.message.from, this.message.destination);
+    this.replica = context.mustGetReplicaFor(
+      this.message.from,
+      this.message.destination,
+    );
+    this.cache = {};
+  }
+
+  get receipt(): TransactionReceipt {
+    return this.dispatch.receipt;
   }
 
   static fromReceipt(
-      receipt: TransactionReceipt,
-      context: OpticsContext,
+    context: OpticsContext,
+    nameOrDomain: string | number,
+    receipt: TransactionReceipt,
   ): OpticsMessage[] {
     const messages: OpticsMessage[] = [];
     const home = new core.Home__factory().interface;
+
     for (let log of receipt.logs) {
       try {
         const parsed = home.parseLog(log);
-        if (parsed.name === "Dispatch") {
-          const dispatch = parsed as unknown as DispatchEvent;
-          const message = new OpticsMessage(dispatch, receipt, context);
+        if (parsed.name === 'Dispatch') {
+          const dispatch = parsed as any;
+          dispatch.getBlock = () => {
+            return context
+              .mustGetProvider(nameOrDomain)
+              .getBlock(log.blockHash);
+          };
+          dispatch.getTransaction = () => {
+            return context
+              .mustGetProvider(nameOrDomain)
+              .getTransaction(log.transactionHash);
+          };
+          dispatch.getTransactionReceipt = () => {
+            return context
+              .mustGetProvider(nameOrDomain)
+              .getTransactionReceipt(log.transactionHash);
+          };
+
+          const annotated = annotate(
+            context.resolveDomain(nameOrDomain),
+            receipt,
+            dispatch as DispatchEvent,
+          );
+          const message = new OpticsMessage(context, annotated);
           messages.push(message);
         }
       } catch (e) {}
@@ -84,128 +131,159 @@ export class OpticsMessage {
   }
 
   static singleFromReceipt(
-      receipt: TransactionReceipt,
-      context: OpticsContext,
+    context: OpticsContext,
+    nameOrDomain: string | number,
+    receipt: TransactionReceipt,
   ): OpticsMessage {
-    const messages: OpticsMessage[] = OpticsMessage.fromReceipt(receipt, context);
+    const messages: OpticsMessage[] = OpticsMessage.fromReceipt(
+      context,
+      nameOrDomain,
+      receipt,
+    );
     if (messages.length !== 1) {
-      throw new Error("Expected single Dispatch in transaction");
+      throw new Error('Expected single Dispatch in transaction');
     }
     return messages[0];
   }
 
   static async fromTransactionHash(
-      nameOrDomain: string | number,
-      transactionHash: string,
-      context: OpticsContext,
+    context: OpticsContext,
+    nameOrDomain: string | number,
+    transactionHash: string,
   ): Promise<OpticsMessage[]> {
     const provider = context.mustGetProvider(nameOrDomain);
     const receipt = await provider.getTransactionReceipt(transactionHash);
-    return OpticsMessage.fromReceipt(receipt!, context);
+    if (!receipt) {
+      throw new Error(`No receipt for ${transactionHash} on ${nameOrDomain}`);
+    }
+    return OpticsMessage.fromReceipt(context, nameOrDomain, receipt);
   }
 
   static async singleFromTransactionHash(
-      nameOrDomain: string | number,
-      transactionHash: string,
-      context: OpticsContext,
+    context: OpticsContext,
+    nameOrDomain: string | number,
+    transactionHash: string,
   ): Promise<OpticsMessage> {
     const provider = context.mustGetProvider(nameOrDomain);
     const receipt = await provider.getTransactionReceipt(transactionHash);
-    return OpticsMessage.singleFromReceipt(receipt!, context);
+    if (!receipt) {
+      throw new Error(`No receipt for ${transactionHash} on ${nameOrDomain}`);
+    }
+    return OpticsMessage.singleFromReceipt(context, nameOrDomain, receipt);
   }
 
-  async homeUpdateEvent(): Promise<UpdateEvent | undefined> {
+  async getHomeUpdate(): Promise<AnnotatedUpdate | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
-    if (this.storedHomeUpdateEvent) {
-      return this.storedHomeUpdateEvent;
+    if (this.cache.homeUpdate) {
+      return this.cache.homeUpdate;
     }
+
     // if not, attempt to query the event
-    const updateFilter = this.home.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await getRichEvents(this.context, this.from, this.home, updateFilter);
+    const updateFilter = this.home.filters.Update(
+      undefined,
+      this.committedRoot,
+    );
+
+    const updateLogs: AnnotatedUpdate[] = await queryAnnotatedEvents<
+      UpdateTypes,
+      UpdateArgs
+    >(this.context, this.origin, this.home, updateFilter);
+
     if (updateLogs.length === 1) {
       // if event is returned, store it to the object
-      this.storedHomeUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
+      this.cache.homeUpdate = updateLogs[0];
     } else if (updateLogs.length > 1) {
-      throw new Error("multiple home updates for same root");
+      throw new Error('multiple home updates for same root');
     }
     // return the event or undefined if it doesn't exist
-    return this.storedHomeUpdateEvent;
+    return this.cache.homeUpdate;
   }
 
-  async replicaUpdateEvent(): Promise<UpdateEvent | undefined> {
+  async getReplicaUpdate(): Promise<AnnotatedUpdate | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
-    if (this.storedReplicaUpdateEvent) {
-      return this.storedReplicaUpdateEvent;
+    if (this.cache.replicaUpdate) {
+      return this.cache.replicaUpdate;
     }
     // if not, attempt to query the event
-    const updateFilter = this.replica.filters.Update(this.from, this.committedRoot);
-    const updateLogs = await getRichEvents(this.context, this.destination, this.replica, updateFilter);
+    const updateFilter = this.replica.filters.Update(
+      undefined,
+      this.committedRoot,
+    );
+    const updateLogs: AnnotatedUpdate[] = await queryAnnotatedEvents<
+      UpdateTypes,
+      UpdateArgs
+    >(this.context, this.destination, this.replica, updateFilter);
     if (updateLogs.length === 1) {
       // if event is returned, store it to the object
-      this.storedReplicaUpdateEvent = updateLogs[0] as unknown as UpdateEvent;
+      this.cache.replicaUpdate = updateLogs[0];
     } else if (updateLogs.length > 1) {
-      throw new Error("multiple replica updates for same root");
+      throw new Error('multiple replica updates for same root');
     }
     // return the event or undefined if it wasn't found
-    return this.storedReplicaUpdateEvent;
+    return this.cache.replicaUpdate;
   }
 
-  async processEvent(): Promise<ProcessEvent | undefined> {
+  async getProcess(): Promise<AnnotatedProcess | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
-    if (this.storedProcessEvent) {
-      return this.storedProcessEvent;
+    if (this.cache.process) {
+      return this.cache.process;
     }
     // if not, attempt to query the event
     const processFilter = this.replica.filters.Process(this.messageHash);
-    const processLogs = await getRichEvents(this.context, this.destination, this.replica, processFilter);
+    const processLogs = await queryAnnotatedEvents<ProcessTypes, ProcessArgs>(
+      this.context,
+      this.destination,
+      this.replica,
+      processFilter,
+    );
     if (processLogs.length === 1) {
       // if event is returned, store it to the object
-      this.storedProcessEvent = processLogs[0] as unknown as ProcessEvent;
+      this.cache.process = processLogs[0];
     } else if (processLogs.length > 1) {
-      throw new Error("multiple replica updates for same root");
+      throw new Error('multiple replica updates for same root');
     }
     // return the update or undefined if it doesn't exist
-    return this.storedProcessEvent;
+    return this.cache.process;
   }
 
   async events(): Promise<OpticsStatus> {
-    const events: OpticsEvent[] = [this.dispatchEvent];
+    const events: AnnotatedLifecycleEvent[] = [this.dispatch];
     // attempt to get Home update
-    const homeUpdate = await this.homeUpdateEvent();
+    const homeUpdate = await this.getHomeUpdate();
     if (!homeUpdate) {
       return {
         status: MessageStatus.Dispatched, // the message has been sent; nothing more
-        events
+        events,
       };
     }
     events.push(homeUpdate);
     // attempt to get Replica update
-    const replicaUpdate = await this.replicaUpdateEvent();
+    const replicaUpdate = await this.getReplicaUpdate();
     if (!replicaUpdate) {
       return {
         status: MessageStatus.Included, // the message was sent, then included in an Update on Home
-        events
+        events,
       };
     }
     events.push(replicaUpdate);
     // attempt to get Replica process
-    const process = await this.processEvent();
+    const process = await this.getProcess();
     if (!process) {
       // NOTE: when this is the status, you may way to
       // query confirmAt() to check if challenge period
       // on the Replica has elapsed or not
       return {
         status: MessageStatus.Relayed, // the message was sent, included in an Update, then relayed to the Replica
-        events
+        events,
       };
     }
     events.push(process);
     return {
       status: MessageStatus.Processed, // the message was processed
-      events
+      events,
     };
   }
 
@@ -218,11 +296,11 @@ export class OpticsMessage {
   // - if the timestamp is in the future, the challenge period has not elapsed yet; messages in the Update cannot be processed yet
   // - if the timestamp is in the past, this does not necessarily mean that all messages in the Update have been processed
   async confirmAt(): Promise<BigNumber> {
-    const update = await this.homeUpdateEvent();
+    const update = await this.getHomeUpdate();
     if (!update) {
       return BigNumber.from(0);
     }
-    const {newRoot} = update.args;
+    const { newRoot } = update.event.args;
     return this.replica.confirmAt(newRoot);
   }
 
@@ -277,22 +355,22 @@ export class OpticsMessage {
   }
 
   get transactionHash(): string {
-    return this.dispatchEvent.transactionHash;
+    return this.dispatch.event.transactionHash;
   }
 
   get messageHash(): string {
-    return this.dispatchEvent.args.messageHash;
+    return this.dispatch.event.args.messageHash;
   }
 
   get leafIndex(): BigNumber {
-    return this.dispatchEvent.args.leafIndex;
+    return this.dispatch.event.args.leafIndex;
   }
 
   get destinationAndNonce(): BigNumber {
-    return this.dispatchEvent.args.destinationAndNonce;
+    return this.dispatch.event.args.destinationAndNonce;
   }
 
   get committedRoot(): string {
-    return this.dispatchEvent.args.committedRoot;
+    return this.dispatch.event.args.committedRoot;
   }
 }
