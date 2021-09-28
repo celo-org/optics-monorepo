@@ -4,7 +4,8 @@
     "trace": "ts-node messageTracer.ts",
     "build": "tsc",
     "check": "tsc --noEmit",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "relink": "cd ../../typescript/optics-provider && npm run build && cd ../../tools/contract-metrics && npm link @optics-xyz/multi-provider"
   },
   "dependencies": {
     "@optics-xyz/multi-provider": "^0.0.4",
