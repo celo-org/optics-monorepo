@@ -25,7 +25,7 @@ pub struct RawCommittedMessage {
 impl RawCommittedMessage {
     /// Return the `leaf` for this raw message
     ///
-    /// The leaf hash is the keccak256 digest of the message, which is committed
+    /// The leaf is the keccak256 digest of the message, which is committed
     /// in the message tree
     pub fn leaf(&self) -> H256 {
         keccak256(&self.message).into()

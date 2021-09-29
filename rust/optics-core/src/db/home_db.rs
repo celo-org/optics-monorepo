@@ -177,7 +177,7 @@ impl HomeDB {
     /// Stores the latest inspected nonce for a given replica domain
     ///
     /// Keys --> Values:
-    /// - `<replica_domain>` --> `nonce`
+    /// - `replica_domain` --> `nonce`
     pub fn store_latest_nonce(&self, replica_domain: u32, nonce: u32) -> Result<(), DbError> {
         self.store_keyed_encodable(LATEST_NONCE, &replica_domain, &nonce)?;
 
@@ -204,7 +204,7 @@ impl HomeDB {
     /// Keys --> Values:
     /// - `LATEST_ROOT` --> `root`
     /// - `prev_root` --> `update`
-    /// - `new_root` --> `update`
+    /// - `new_root` --> `prev_root`
     pub fn store_latest_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         debug!(
             previous_root = ?update.update.previous_root,
