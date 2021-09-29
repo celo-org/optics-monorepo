@@ -76,7 +76,7 @@ impl Replica {
                     .unwrap_or_default();
 
                 self.next_nonce
-                    .with_label_values(&[self.replica.name(), AGENT_NAME])
+                    .with_label_values(&[self.home.name(), self.replica.name(), AGENT_NAME])
                     .set(next_nonce as i64);
 
                 info!(
