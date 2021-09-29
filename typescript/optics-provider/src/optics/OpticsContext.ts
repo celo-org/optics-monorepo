@@ -269,7 +269,8 @@ export class OpticsContext extends MultiProvider {
     const approved = await fromToken.allowance(senderAddress, bridgeAddress);
     // Approve if necessary
     if (approved.lt(amount)) {
-      await fromToken.approve(bridgeAddress, amount, overrides);
+      let tx = await fromToken.approve(bridgeAddress, amount, overrides);
+      await tx.wait();
     }
 
     const tx = await fromBridge.bridgeRouter.send(
