@@ -98,7 +98,7 @@ impl Opts {
 
         let idx = match (self.leaf_index, self.leaf_hash) {
             (Some(idx), _) => idx,
-            (None, Some(digest)) => match db.message_by_leaf_hash(digest)? {
+            (None, Some(digest)) => match db.message_by_leaf(digest)? {
                 Some(leaf) => leaf.leaf_index,
                 None => bail!("No leaf index or "),
             },

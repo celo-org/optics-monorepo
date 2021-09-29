@@ -203,8 +203,8 @@ impl HomeDB {
     ///
     /// Keys --> Values:
     /// - `LATEST_ROOT` --> `root`
-    /// - `prev_root` --> `update`
     /// - `new_root` --> `prev_root`
+    /// - `prev_root` --> `update`
     pub fn store_latest_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         debug!(
             previous_root = ?update.update.previous_root,
