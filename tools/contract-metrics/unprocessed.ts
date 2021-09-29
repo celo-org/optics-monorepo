@@ -1,16 +1,16 @@
-import { OpticsContext, mainnet } from "@optics-xyz/multi-provider";
-import { queryAnnotatedEvents } from "@optics-xyz/multi-provider/dist/optics/events";
-import fs from "fs";
-import config from "./config";
+import { OpticsContext, mainnet } from '@optics-xyz/multi-provider';
+import { queryAnnotatedEvents } from '@optics-xyz/multi-provider/dist/optics/events';
+import fs from 'fs';
+import config from './config';
 
-mainnet.registerRpcProvider("celo", config.CeloRpc);
-mainnet.registerRpcProvider("ethereum", config.EthereumRpc);
-mainnet.registerRpcProvider("polygon", config.PolygonRpc);
+mainnet.registerRpcProvider('celo', config.CeloRpc);
+mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
+mainnet.registerRpcProvider('polygon', config.PolygonRpc);
 
-export const mainnets = ["ethereum", "celo", "polygon"];
+export const mainnets = ['ethereum', 'celo', 'polygon'];
 
 monitorAll().then(() => {
-  console.log("DONE!");
+  console.log('DONE!');
   process.exit();
 });
 
@@ -25,9 +25,9 @@ async function monitorAll() {
 async function getProcessedLogs(
   context: OpticsContext,
   remote: string,
-  origin: string
+  origin: string,
 ) {
-  console.log("Get Process logs from ", remote, " for ", origin);
+  console.log('Get Process logs from ', remote, ' for ', origin);
   // get replica
   const originDomain = context.resolveDomain(origin);
   const remoteDomain = context.resolveDomain(remote);
@@ -38,7 +38,7 @@ async function getProcessedLogs(
     context,
     remote,
     replica.contract,
-    processFilter
+    processFilter,
   );
   const logsWithChain = logs.map((log) => {
     return {
@@ -51,7 +51,7 @@ async function getProcessedLogs(
 }
 
 async function getDispatchLogs(context: OpticsContext, origin: string) {
-  console.log("Get Dispatch logs from ", origin);
+  console.log('Get Dispatch logs from ', origin);
   // get home
   const home = context.mustGetCore(origin).home;
   // query dispatch logs
@@ -60,7 +60,7 @@ async function getDispatchLogs(context: OpticsContext, origin: string) {
     context,
     origin,
     home,
-    dispatchFilter
+    dispatchFilter,
   );
   const logsWithChain = logs.map((log) => {
     return {
@@ -75,13 +75,13 @@ async function getDispatchLogs(context: OpticsContext, origin: string) {
 async function writeUnprocessedMessages(
   processedLogs: any[],
   dispatchLogs: any[],
-  origin: string
+  origin: string,
 ) {
   const processedMessageHashes = processedLogs.map(
-    (log: any) => log.args.messageHash
+    (log: any) => log.args.messageHash,
   );
   const unprocessedMessages = dispatchLogs.filter(
-    (log: any) => !processedMessageHashes.includes(log.args.messageHash)
+    (log: any) => !processedMessageHashes.includes(log.args.messageHash),
   );
 
   const unprocessedDetails = [];
@@ -96,23 +96,23 @@ async function writeUnprocessedMessages(
     });
   }
 
-  console.log(origin, "Summary: ");
-  console.log("   Num dispatched: ", dispatchLogs.length);
-  console.log("   Num processed: ", processedLogs.length);
-  console.log("   Num unprocessed: ", unprocessedMessages.length);
-  fs.mkdirSync("unprocessed", { recursive: true });
+  console.log(origin, 'Summary: ');
+  console.log('   Num dispatched: ', dispatchLogs.length);
+  console.log('   Num processed: ', processedLogs.length);
+  console.log('   Num unprocessed: ', unprocessedMessages.length);
+  fs.mkdirSync('unprocessed', { recursive: true });
   fs.writeFileSync(
     `unprocessed/${origin}.json`,
-    JSON.stringify(unprocessedDetails, null, 2)
+    JSON.stringify(unprocessedDetails, null, 2),
   );
 }
 
 async function monitor(
   context: OpticsContext,
   origin: string,
-  remotes: string[]
+  remotes: string[],
 ) {
-  console.log("Check ", origin);
+  console.log('Check ', origin);
   const dispatchLogs = await getDispatchLogs(context, origin);
 
   const processedLogs = [];

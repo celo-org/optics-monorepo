@@ -1,4 +1,4 @@
-import { OpticsContext } from "@optics-xyz/multi-provider";
+import { OpticsContext } from '@optics-xyz/multi-provider';
 
 async function getBlockHeight(context: OpticsContext, domain: string | number) {
   // wtf why

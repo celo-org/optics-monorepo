@@ -1,27 +1,27 @@
-import { mainnet } from "@optics-xyz/multi-provider";
-import config from "./config";
-import { ethers } from "ethers";
+import { mainnet } from '@optics-xyz/multi-provider';
+import config from './config';
+import { ethers } from 'ethers';
 import {
   getSendEvents,
   getTokenDeployedEvents,
   processSendEvents,
   processTokenDeployedEvents,
-} from "./events";
-import { getBlockHeight } from "./utils";
-import { uploadDeployedTokens } from "./googleSheets";
+} from './events';
+import { getBlockHeight } from './utils';
+import { uploadDeployedTokens } from './googleSheets';
 import {
   AnnotatedSend,
   AnnotatedTokenDeployed,
-} from "@optics-xyz/multi-provider/dist/optics/events/bridgeEvents";
+} from '@optics-xyz/multi-provider/dist/optics/events/bridgeEvents';
 
-mainnet.registerRpcProvider("celo", config.CeloRpc);
-mainnet.registerRpcProvider("ethereum", config.EthereumRpc);
-mainnet.registerRpcProvider("polygon", config.PolygonRpc);
+mainnet.registerRpcProvider('celo', config.CeloRpc);
+mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
+mainnet.registerRpcProvider('polygon', config.PolygonRpc);
 
 const networks = [
-  { name: "ethereum", blockHeight: 13187674 },
-  { name: "celo", blockHeight: 8712249 },
-  { name: "polygon", blockHeight: 18895794 },
+  { name: 'ethereum', blockHeight: 13187674 },
+  { name: 'celo', blockHeight: 8712249 },
+  { name: 'polygon', blockHeight: 18895794 },
 ];
 
 export async function eventTokenDeployedMetrics() {
@@ -30,12 +30,12 @@ export async function eventTokenDeployedMetrics() {
   for (let index = 0; index < networks.length; index++) {
     const network = networks[index];
 
-    if (network.name == "polygon") {
+    if (network.name == 'polygon') {
       let currentBlockHeight = await getBlockHeight(mainnet, network.name);
       console.log(
         `Processing ${
           (currentBlockHeight - network.blockHeight) / 10000
-        } pages for Polygon`
+        } pages for Polygon`,
       );
       for (
         let index = network.blockHeight;
@@ -46,7 +46,7 @@ export async function eventTokenDeployedMetrics() {
           mainnet,
           network.name,
           index,
-          index + 10000
+          index + 10000,
         );
         //console.log(index, index+10000)
         events = events.concat(checkpoint);
@@ -55,7 +55,7 @@ export async function eventTokenDeployedMetrics() {
       events = await getTokenDeployedEvents(
         mainnet,
         network.name,
-        network.blockHeight
+        network.blockHeight,
       );
     }
 
@@ -64,7 +64,7 @@ export async function eventTokenDeployedMetrics() {
     let details = await processTokenDeployedEvents(
       mainnet,
       network.name,
-      events
+      events,
     );
 
     console.log(`Tokens Deployed to ${network.name}:`);
@@ -78,9 +78,9 @@ export async function eventTokenDeployedMetrics() {
     await uploadDeployedTokens(
       config.GoogleCredentialsFile,
       network.name,
-      details
+      details,
     );
-    console.log("Tokens uploaded to sheets.");
+    console.log('Tokens uploaded to sheets.');
   }
 }
 
@@ -91,12 +91,12 @@ export async function eventSendMetrics() {
     // get Send events
     let events: AnnotatedSend[] = [];
 
-    if (network.name == "polygon") {
+    if (network.name == 'polygon') {
       let currentBlockHeight = await getBlockHeight(mainnet, network.name);
       console.log(
         `Processing ${
           (currentBlockHeight - network.blockHeight) / 10000
-        } pages for Polygon`
+        } pages for Polygon`,
       );
       for (
         let index = network.blockHeight;
@@ -107,7 +107,7 @@ export async function eventSendMetrics() {
           mainnet,
           network.name,
           index,
-          index + 10000
+          index + 10000,
         );
         //console.log(index, index+10000)
         events = events.concat(checkpoint);
@@ -128,14 +128,14 @@ export async function eventSendMetrics() {
       console.log(`Decimals: \t${details[key].decimals}`);
       if (details[key].decimals == 18) {
         console.log(
-          `Total Sent: \t${ethers.utils.formatEther(details[key].total)}`
+          `Total Sent: \t${ethers.utils.formatEther(details[key].total)}`,
         );
       } else {
         if (details[key].decimals) {
           console.log(
             `Total Sent: \t${
               details[key].total.toNumber() * 10 ** -details[key].decimals!
-            }`
+            }`,
           );
         } else {
           console.log(`Total Sent: \t${details[key].total}`);

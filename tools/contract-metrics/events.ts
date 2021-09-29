@@ -1,6 +1,6 @@
-import { OpticsContext } from "@optics-xyz/multi-provider";
-import { xapps } from "@optics-xyz/ts-interface";
-import { BigNumber } from "ethers";
+import { OpticsContext } from '@optics-xyz/multi-provider';
+import { xapps } from '@optics-xyz/ts-interface';
+import { BigNumber } from 'ethers';
 
 import {
   AnnotatedSend,
@@ -9,13 +9,13 @@ import {
   SendTypes,
   TokenDeployedArgs,
   TokenDeployedTypes,
-} from "@optics-xyz/multi-provider/dist/optics/events/bridgeEvents";
-import { queryAnnotatedEvents } from "@optics-xyz/multi-provider/dist/optics/events";
+} from '@optics-xyz/multi-provider/dist/optics/events/bridgeEvents';
+import { queryAnnotatedEvents } from '@optics-xyz/multi-provider/dist/optics/events';
 import {
   TypedEvent,
   TypedEventFilter,
-} from "@optics-xyz/ts-interface/dist/optics-core/commons";
-import { Result } from "ethers/lib/utils";
+} from '@optics-xyz/ts-interface/dist/optics-core/commons';
+import { Result } from 'ethers/lib/utils';
 
 export interface SendDetail {
   name?: string;
@@ -46,7 +46,7 @@ interface TSContract<T extends Result, U> {
   queryFilter(
     event: TypedEventFilter<T, U>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<T & U>>>;
 }
 
@@ -54,7 +54,7 @@ export async function getSendEvents(
   context: OpticsContext,
   networkName: string,
   fromBlock: number,
-  toBlock?: number
+  toBlock?: number,
 ): Promise<Array<AnnotatedSend>> {
   let router = context.mustGetBridge(networkName).bridgeRouter;
   let filter: TypedEventFilter<SendTypes, SendArgs> = router.filters.Send();
@@ -65,7 +65,7 @@ export async function getSendEvents(
       router as TSContract<SendTypes, SendArgs>,
       filter,
       fromBlock,
-      toBlock
+      toBlock,
     );
   } else {
     return await queryAnnotatedEvents<SendTypes, SendArgs>(
@@ -73,7 +73,7 @@ export async function getSendEvents(
       networkName,
       router as TSContract<SendTypes, SendArgs>,
       filter,
-      fromBlock
+      fromBlock,
     );
   }
 }
@@ -81,7 +81,7 @@ export async function getSendEvents(
 export async function processSendEvents(
   context: OpticsContext,
   networkName: string,
-  events: AnnotatedSend[]
+  events: AnnotatedSend[],
 ) {
   let token = new xapps.BridgeToken__factory();
   let details: SendDetails = {};
@@ -96,12 +96,12 @@ export async function processSendEvents(
       if (address in details) {
         //console.log(`adding ${event.args["amount"]} to ${address}`)
         details[address].total = details[address].total.add(
-          event.event.args.amount
+          event.event.args.amount,
         );
       } else {
         let contract = token
           .attach(address)
-          .connect(context.getProvider(networkName) ?? "");
+          .connect(context.getProvider(networkName) ?? '');
         let name = await contract.name();
         let symbol = await contract.symbol();
         let decimals = await contract.decimals();
@@ -132,7 +132,7 @@ export async function getTokenDeployedEvents(
   context: OpticsContext,
   networkName: string,
   fromBlock: number,
-  toBlock?: number
+  toBlock?: number,
 ): Promise<Array<AnnotatedTokenDeployed>> {
   let router = context.mustGetBridge(networkName).bridgeRouter;
   let filter = router.filters.TokenDeployed();
@@ -143,7 +143,7 @@ export async function getTokenDeployedEvents(
       router as TSContract<TokenDeployedTypes, TokenDeployedArgs>,
       filter,
       fromBlock,
-      toBlock
+      toBlock,
     );
   } else {
     return await queryAnnotatedEvents<TokenDeployedTypes, TokenDeployedArgs>(
@@ -151,7 +151,7 @@ export async function getTokenDeployedEvents(
       networkName,
       router as TSContract<TokenDeployedTypes, TokenDeployedArgs>,
       filter,
-      fromBlock
+      fromBlock,
     );
   }
 }
@@ -159,7 +159,7 @@ export async function getTokenDeployedEvents(
 export async function processTokenDeployedEvents(
   context: OpticsContext,
   networkName: string,
-  events: AnnotatedTokenDeployed[]
+  events: AnnotatedTokenDeployed[],
 ) {
   let token = new xapps.BridgeToken__factory();
   let details: TokenDeployDetails = {};
@@ -173,7 +173,7 @@ export async function processTokenDeployedEvents(
     try {
       let contract = token
         .attach(address)
-        .connect(context.getProvider(networkName) ?? "");
+        .connect(context.getProvider(networkName) ?? '');
       let name = await contract.name();
       let symbol = await contract.symbol();
       let decimals = await contract.decimals();

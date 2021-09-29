@@ -1,39 +1,39 @@
-import config from "./config";
+import config from './config';
 import {
   mainnet,
   OpticsContext,
   OpticsMessage,
   OpticsStatus,
-} from "@optics-xyz/multi-provider";
+} from '@optics-xyz/multi-provider';
 import {
   AnnotatedLifecycleEvent,
   MessageStatus,
-} from "@optics-xyz/multi-provider/dist/optics";
+} from '@optics-xyz/multi-provider/dist/optics';
 
-mainnet.registerRpcProvider("celo", config.CeloRpc);
-mainnet.registerRpcProvider("ethereum", config.EthereumRpc);
-mainnet.registerRpcProvider("polygon", config.PolygonRpc);
+mainnet.registerRpcProvider('celo', config.CeloRpc);
+mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
+mainnet.registerRpcProvider('polygon', config.PolygonRpc);
 
 const STATUS_TO_STRING = {
-  [MessageStatus.Dispatched]: "Dispatched on Home",
-  [MessageStatus.Included]: "Included in Home Update",
-  [MessageStatus.Relayed]: "Relayed to Replica",
-  [MessageStatus.Processed]: "Processed",
+  [MessageStatus.Dispatched]: 'Dispatched on Home',
+  [MessageStatus.Included]: 'Included in Home Update',
+  [MessageStatus.Relayed]: 'Relayed to Replica',
+  [MessageStatus.Processed]: 'Processed',
 };
 
 const input: TraceInput[] = [
   {
-    chain: "polygon",
+    chain: 'polygon',
     transactionHash:
-      "0xb1946cde07ad1741f4b6574ea0cf43f3020a1a1764052405ebeb5c0729286f4b",
+      '0xb1946cde07ad1741f4b6574ea0cf43f3020a1a1764052405ebeb5c0729286f4b',
     messageHash:
-      "0x5ef2c496b77ec7d0433b5b2a6a5bf760cf26952e447078405ddc9573f63a156c",
+      '0x5ef2c496b77ec7d0433b5b2a6a5bf760cf26952e447078405ddc9573f63a156c',
     leafIndex: 428,
   },
 ];
 
 traceMany(input).then(() => {
-  console.log("DONE!");
+  console.log('DONE!');
 });
 
 async function traceMany(inputs: TraceInput[]) {
@@ -59,14 +59,14 @@ interface QuietEvent {
 
 function quietEvent(
   context: OpticsContext,
-  lifecyleEvent: AnnotatedLifecycleEvent
+  lifecyleEvent: AnnotatedLifecycleEvent,
 ): QuietEvent {
   // TODO: transform nameOrDomain to human readable
   // TODO: add link to block explorer????
   const { event, domain } = lifecyleEvent;
   const domainName = context.resolveDomainName(domain);
   if (!domainName) {
-    throw new Error("I have no name");
+    throw new Error('I have no name');
   }
   return {
     event: lifecyleEvent.name!,
@@ -88,16 +88,16 @@ function printStatus(context: OpticsContext, opticsStatus: OpticsStatus) {
 async function traceTransfer(
   context: OpticsContext,
   origin: string,
-  transactionHash: string
+  transactionHash: string,
 ) {
   console.log(`Trace ${transactionHash} on ${origin}`);
 
   const message = await OpticsMessage.singleFromTransactionHash(
     context,
     origin,
-    transactionHash
+    transactionHash,
   );
-  const status = await message.events();
 
+  const status = await message.events();
   printStatus(context, status);
 }
