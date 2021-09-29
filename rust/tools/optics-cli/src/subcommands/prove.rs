@@ -1,4 +1,7 @@
+use clap::Clap;
 use std::{convert::TryFrom, sync::Arc};
+
+use crate::{replicas, rpc};
 
 use optics_core::{
     accumulator::merkle::Proof,
@@ -8,7 +11,6 @@ use optics_core::{
 };
 use optics_ethereum::EthereumReplica;
 
-use clap::Clap;
 use ethers::{
     prelude::{Http, Middleware, Provider, SignerMiddleware, H160},
     types::H256,
@@ -21,15 +23,12 @@ use once_cell::sync::OnceCell;
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
 
-mod replicas;
-mod rpc;
-
 static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
 type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Signers>>;
 
 #[derive(Clap)]
-struct Opts {
+pub struct ProveCommand {
     /// Leaf index to prove
     #[clap(long)]
     leaf_index: Option<u32>,
@@ -67,7 +66,25 @@ struct Opts {
     rpc: Option<String>,
 }
 
-impl Opts {
+impl ProveCommand {
+    pub async fn run(&self) -> Result<()> {
+        let (message, proof) = self.fetch_proof()?;
+        let replica = self.replica(message.origin, message.destination).await?;
+
+        let status = replica.message_status(message.to_leaf()).await?;
+        let outcome = match status {
+            MessageStatus::None => replica.prove_and_process(&message, &proof).await?,
+            MessageStatus::Proven => replica.process(&message).await?,
+            _ => {
+                println!("Message already processed.");
+                return Ok(());
+            }
+        };
+
+        println!("{:?}", outcome);
+        Ok(())
+    }
+
     // mostly copied from optics-base settings
     async fn signer(&self) -> Result<Signers> {
         if let Some(key) = &self.key {
@@ -137,26 +154,4 @@ impl Opts {
 
         Ok(EthereumReplica::new("", 0, address, Arc::new(middleware)))
     }
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let opts = Opts::parse();
-
-    let (message, proof) = opts.fetch_proof()?;
-    let replica = opts.replica(message.origin, message.destination).await?;
-
-    let status = replica.message_status(message.to_leaf()).await?;
-    let outcome = match status {
-        MessageStatus::None => replica.prove_and_process(&message, &proof).await?,
-        MessageStatus::Proven => replica.process(&message).await?,
-        _ => {
-            println!("Message already processed.");
-            return Ok(());
-        }
-    };
-
-    println!("{:?}", outcome);
-
-    Ok(())
 }

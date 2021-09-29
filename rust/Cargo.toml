@@ -11,5 +11,5 @@ members = [
     # "agents/watcher",
     "agents/processor",
     "tools/kms-cli",
-    "tools/prove-cli",
+    "tools/optics-cli",
 ]
