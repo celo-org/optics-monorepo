@@ -224,7 +224,7 @@ impl Replica {
                     domain = message.message.destination,
                     nonce = message.message.nonce,
                     leaf_index = message.leaf_index,
-                    leaf_hash = ?message.message.to_leaf(),
+                    leaf = ?message.message.to_leaf(),
                     "Message {}:{} already processed",
                     message.message.destination,
                     message.message.nonce

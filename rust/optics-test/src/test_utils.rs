@@ -64,7 +64,7 @@ mod test {
                 committed_root: H256::from_low_u64_be(3),
                 message: m.to_vec(),
             };
-            assert_eq!(m.to_leaf(), message.leaf_hash());
+            assert_eq!(m.to_leaf(), message.leaf());
 
             home_db.store_raw_committed_message(&message).unwrap();
 
@@ -74,10 +74,7 @@ mod test {
                 .unwrap();
             assert_eq!(by_nonce, message);
 
-            let by_leaf = home_db
-                .message_by_leaf_hash(message.leaf_hash())
-                .unwrap()
-                .unwrap();
+            let by_leaf = home_db.message_by_leaf(message.leaf()).unwrap().unwrap();
             assert_eq!(by_leaf, message);
 
             let by_index = home_db

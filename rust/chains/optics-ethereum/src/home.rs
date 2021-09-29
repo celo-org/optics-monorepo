@@ -331,7 +331,7 @@ where
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.message_by_leaf_hash(leaf)? {
+            if let Some(update) = self.home_db.message_by_leaf(leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
