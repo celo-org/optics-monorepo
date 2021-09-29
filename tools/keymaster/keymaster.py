@@ -109,7 +109,7 @@ def top_up(ctx):
             # fetch config params 
             home_upper_bound = config["networks"][home]["threshold"]
             # don't top up until balance has gone beneath lower bound
-            home_lower_bound = home_upper_bound / 3
+            home_lower_bound = 150000000000000000
             home_endpoint = config["networks"][home]["endpoint"]
             home_bank_signer = config["networks"][home]["bank"]["signer"]
             home_bank_address = config["networks"][home]["bank"]["address"]
@@ -131,7 +131,7 @@ def top_up(ctx):
                  # fetch config params 
                 replica_upper_bound = config["networks"][replica]["threshold"] 
                 # don't top up until balance has gone beneath lower bound
-                replica_lower_bound = replica_upper_bound / 3
+                replica_lower_bound = 150000000000000000
                 replica_endpoint = config["networks"][replica]["endpoint"]
                 replica_bank_signer = config["networks"][replica]["bank"]["signer"]
                 replica_bank_address = config["networks"][replica]["bank"]["address"]
