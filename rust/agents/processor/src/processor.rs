@@ -39,7 +39,7 @@ pub(crate) struct Replica {
     home_db: HomeDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
-    next_nonce: prometheus::IntGaugeVec,
+    next_nonce: Arc<prometheus::IntGaugeVec>,
 }
 
 impl std::fmt::Display for Replica {
@@ -243,7 +243,7 @@ decl_agent!(
         replica_tasks: RwLock<HashMap<String, JoinHandle<Result<()>>>>,
         allowed: Option<Arc<HashSet<H256>>>,
         denied: Option<Arc<HashSet<H256>>>,
-        next_message_index: prometheus::IntGaugeVec,
+        next_nonce: Arc<prometheus::IntGaugeVec>,
         index_only: bool,
     }
 );
@@ -257,12 +257,12 @@ impl Processor {
         denied: Option<HashSet<H256>>,
         index_only: bool,
     ) -> Self {
-        let next_message_index = core
+        let next_nonce = core
             .metrics
             .new_int_gauge(
-                "next_message_index",
-                "Index of the next message to inspect",
-                &["home", "agent"],
+                "next_nonce",
+                "Next nonce of a replica processor to inspect",
+                &["home", "replica", "agent"],
             )
             .expect("processor metric already registered -- should have be a singleton");
 
@@ -272,7 +272,7 @@ impl Processor {
             replica_tasks: Default::default(),
             allowed: allowed.map(Arc::new),
             denied: denied.map(Arc::new),
-            next_message_index,
+            next_nonce: Arc::new(next_nonce),
             index_only,
         }
     }
@@ -300,7 +300,7 @@ impl OpticsAgent for Processor {
 
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let home = self.home();
-        let metrics = self.metrics();
+        let next_nonce = self.next_nonce.clone();
         let interval = self.interval;
 
         let replica_opt = self.replica_by_name(name);
@@ -313,14 +313,6 @@ impl OpticsAgent for Processor {
         tokio::spawn(async move {
             let replica = replica_opt.ok_or_else(|| eyre!("No replica named {}", name))?;
             let home_name = home.name().to_owned();
-
-            let next_nonce = metrics
-                .new_int_gauge(
-                    "next_nonce",
-                    "Next nonce of a replica to inspect",
-                    &["replica", "agent"],
-                )
-                .expect("processor metric already registered -- should have be a singleton");
 
             Replica {
                 interval,
