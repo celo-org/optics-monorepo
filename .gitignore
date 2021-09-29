@@ -3,7 +3,7 @@ test_deploy.env
 
 typescript/optics-deploy/.env
 **/.env
-
+**/tsconfig.tsbuildinfo
 
 rust/vendor/
 rust/tmp_db
