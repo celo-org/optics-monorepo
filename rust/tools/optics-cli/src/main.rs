@@ -1,19 +1,19 @@
-use clap::Clap;
 use color_eyre::Result;
+use structopt::StructOpt;
 
-mod args;
+mod commands;
 mod replicas;
 mod rpc;
 mod subcommands;
 
-use args::{Args, SubCommands};
+use commands::Commands;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let opts = Args::parse();
+    let command = Commands::from_args();
 
-    match opts.subcommands {
-        SubCommands::Prove(prove) => prove.run().await,
-        SubCommands::ProcessorState(_processor_state) => Ok(()),
+    match command {
+        Commands::Prove(prove) => prove.run().await,
+        Commands::ProcessorState(_processor_state) => Ok(()),
     }
 }

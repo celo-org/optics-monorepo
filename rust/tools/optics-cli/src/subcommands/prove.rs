@@ -1,5 +1,5 @@
-use clap::Clap;
 use std::{convert::TryFrom, sync::Arc};
+use structopt::StructOpt;
 
 use crate::{replicas, rpc};
 
@@ -27,43 +27,48 @@ static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
 type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Signers>>;
 
-#[derive(Clap)]
+#[derive(StructOpt, Debug)]
 pub struct ProveCommand {
-    /// Leaf index to prove
-    #[clap(long)]
-    leaf_index: Option<u32>,
-
-    /// Leaf index to prove
-    #[clap(long)]
-    leaf_hash: Option<H256>,
+    /// Leaf or leaf index
+    #[structopt(flatten)]
+    leaf_or_leaf_index: LeafOrLeafIndex,
 
     /// The name of the home chain, used to lookup keys in the db
-    #[clap(long)]
+    #[structopt(long)]
     home: String,
 
     /// Path to db containing proof
-    #[clap(long)]
+    #[structopt(long)]
     db: String,
 
     /// HexKey to use (please be careful)
-    #[clap(long)]
+    #[structopt(long)]
     key: Option<String>,
 
     /// If using AWS signer, the key ID
-    #[clap(long)]
+    #[structopt(long)]
     key_id: Option<String>,
 
     /// If using AWS signer, the region
-    #[clap(long)]
+    #[structopt(long)]
     aws_region: Option<String>,
 
     /// replica contract address
-    #[clap(long)]
+    #[structopt(long)]
     address: Option<String>,
 
     /// RPC connection details
-    #[clap(long)]
+    #[structopt(long)]
     rpc: Option<String>,
+}
+
+/// Leaf or leaf index
+#[derive(StructOpt, Debug)]
+pub struct LeafOrLeafIndex {
+    /// Leaf to prove
+    leaf: Option<H256>,
+    /// Leaf index to prove
+    leaf_index: Option<u32>,
 }
 
 impl ProveCommand {
@@ -113,7 +118,10 @@ impl ProveCommand {
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
         let db = HomeDB::new(DB::from_path(&self.db)?, self.home.clone());
 
-        let idx = match (self.leaf_index, self.leaf_hash) {
+        let idx = match (
+            self.leaf_or_leaf_index.leaf_index,
+            self.leaf_or_leaf_index.leaf,
+        ) {
             (Some(idx), _) => idx,
             (None, Some(digest)) => match db.message_by_leaf(digest)? {
                 Some(leaf) => leaf.leaf_index,
