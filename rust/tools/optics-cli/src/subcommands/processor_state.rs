@@ -1,4 +1,4 @@
-use clap::Clap;
+use structopt::StructOpt;
 
-#[derive(Clap)]
+#[derive(StructOpt)]
 pub struct ProcessorStateCommand {}
