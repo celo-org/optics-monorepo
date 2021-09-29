@@ -63,7 +63,7 @@ function quietEvent(
 ): QuietEvent {
   // TODO: transform nameOrDomain to human readable
   // TODO: add link to block explorer????
-  const { event, domain } = lifecyleEvent;
+  const { domain, receipt } = lifecyleEvent;
   const domainName = context.resolveDomainName(domain);
   if (!domainName) {
     throw new Error('I have no name');
@@ -71,8 +71,8 @@ function quietEvent(
   return {
     event: lifecyleEvent.name!,
     domainName,
-    blockNumber: event.blockNumber,
-    transactionHash: event.transactionHash,
+    blockNumber: receipt.blockNumber,
+    transactionHash: receipt.transactionHash,
   };
 }
 
