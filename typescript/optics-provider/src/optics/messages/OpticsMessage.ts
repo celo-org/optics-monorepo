@@ -122,6 +122,8 @@ export class OpticsMessage {
             receipt,
             dispatch as DispatchEvent,
           );
+          annotated.name = 'Dispatch';
+          annotated.event.blockNumber = annotated.receipt.blockNumber;
           const message = new OpticsMessage(context, annotated);
           messages.push(message);
         }
