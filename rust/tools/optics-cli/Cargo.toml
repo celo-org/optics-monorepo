@@ -1,5 +1,5 @@
 [package]
-name = "prove-cli"
+name = "optics-cli"
 version = "0.1.0"
 edition = "2018"
 
