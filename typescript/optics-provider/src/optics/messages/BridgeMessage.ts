@@ -175,7 +175,9 @@ class BridgeMessage extends OpticsMessage {
           opticsMessage,
         );
         bridgeMessages.push(bridgeMessage);
-      } catch (e) {}
+      } catch (e) {
+        // catch error if OpticsMessage isn't a BridgeMessage
+      }
     }
     return bridgeMessages;
   }
