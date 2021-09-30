@@ -21,6 +21,18 @@ const STATUS_TO_STRING = {
   [MessageStatus.Processed]: 'Processed',
 };
 
+function blockExplorerURL(domainName: string, transactionHash: string): string | undefined {
+  switch (domainName) {
+    case "celo":
+        return `https://explorer.celo.org/tx/${transactionHash}`;
+    case "ethereum":
+      return `https://etherscan.io/tx/${transactionHash}`;
+    case "polygon":
+      return `https://polygonscan.com/tx/${transactionHash}`;
+  }
+  return undefined;
+};
+
 const input: TraceInput[] = [
   {
     chain: 'polygon',
@@ -53,6 +65,7 @@ interface TraceInput {
 interface QuietEvent {
   event: string;
   domainName: string;
+  url: string | undefined;
   blockNumber: number;
   transactionHash: string;
 }
@@ -61,8 +74,6 @@ function quietEvent(
   context: OpticsContext,
   lifecyleEvent: AnnotatedLifecycleEvent,
 ): QuietEvent {
-  // TODO: transform nameOrDomain to human readable
-  // TODO: add link to block explorer????
   const { domain, receipt } = lifecyleEvent;
   const domainName = context.resolveDomainName(domain);
   if (!domainName) {
@@ -71,6 +82,7 @@ function quietEvent(
   return {
     event: lifecyleEvent.name!,
     domainName,
+    url: blockExplorerURL(domainName, receipt.transactionHash),
     blockNumber: receipt.blockNumber,
     transactionHash: receipt.transactionHash,
   };
