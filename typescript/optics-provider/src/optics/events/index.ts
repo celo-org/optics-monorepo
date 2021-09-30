@@ -1,5 +1,3 @@
-import { TransactionReceipt } from '@ethersproject/abstract-provider';
-
 export type {
   AnnotatedDispatch,
   AnnotatedUpdate,
@@ -17,6 +15,8 @@ export type {
   DispatchTypes,
 } from './opticsEvents';
 
+export { Annotated } from './opticsEvents';
+
 export type {
   SendTypes,
   SendArgs,
@@ -28,23 +28,4 @@ export type {
   AnnotatedTokenDeployed,
 } from './bridgeEvents';
 
-export type Annotated<T> = {
-  // What domain did it occur on?
-  domain: number;
-
-  // Receipt for the tx where it occurred
-  receipt: TransactionReceipt;
-
-  // event name
-  name?: string;
-
-  // The event
-  event: T;
-};
-
-export {
-  queryAnnotatedEvents,
-  annotate,
-  annotateEvent,
-  annotateEvents,
-} from './fetch';
+export { queryAnnotatedEvents } from './fetch';

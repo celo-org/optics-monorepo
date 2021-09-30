@@ -19,16 +19,7 @@ export { tokens, testnetTokens } from './tokens';
 export type { OpticsDomain } from './domains';
 export { mainnetDomains, devDomains, stagingDomains } from './domains';
 
-export type {
-  AnnotatedLifecycleEvent,
-  OpticsLifecyleEvent,
-  Annotated,
-} from './events';
-export {
-  queryAnnotatedEvents,
-  annotate,
-  annotateEvent,
-  annotateEvents,
-} from './events';
+export type { AnnotatedLifecycleEvent, OpticsLifecyleEvent } from './events';
+export { queryAnnotatedEvents, Annotated } from './events';
 
 export { OpticsContext, mainnet, dev, staging } from './OpticsContext';

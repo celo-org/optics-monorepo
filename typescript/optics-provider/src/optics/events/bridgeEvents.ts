@@ -22,5 +22,8 @@ export type TokenDeployedEvent = TypedEvent<
   TokenDeployedTypes & TokenDeployedArgs
 >;
 
-export type AnnotatedSend = Annotated<SendEvent>;
-export type AnnotatedTokenDeployed = Annotated<TokenDeployedEvent>;
+export type AnnotatedSend = Annotated<SendTypes, SendEvent>;
+export type AnnotatedTokenDeployed = Annotated<
+  TokenDeployedTypes,
+  TokenDeployedEvent
+>;

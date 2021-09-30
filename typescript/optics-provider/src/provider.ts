@@ -83,7 +83,7 @@ export class MultiProvider {
   registerRpcProvider(nameOrDomain: string | number, rpc: string) {
     const domain = this.resolveDomain(nameOrDomain);
 
-    const provider = new ethers.providers.JsonRpcProvider(rpc);
+    const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
     this.registerProvider(domain, provider);
   }
 

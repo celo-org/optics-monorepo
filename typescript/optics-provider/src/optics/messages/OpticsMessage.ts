@@ -7,7 +7,6 @@ import { delay } from '../../utils';
 import {
   DispatchEvent,
   AnnotatedDispatch,
-  annotate,
   AnnotatedUpdate,
   AnnotatedProcess,
   UpdateTypes,
@@ -15,6 +14,8 @@ import {
   ProcessTypes,
   ProcessArgs,
   AnnotatedLifecycleEvent,
+  Annotated,
+  DispatchTypes,
 } from '../events';
 
 import { queryAnnotatedEvents } from '..';
@@ -116,13 +117,14 @@ export class OpticsMessage {
               .mustGetProvider(nameOrDomain)
               .getTransactionReceipt(log.transactionHash);
           };
+          dispatch.name = 'Dispatch';
 
-          const annotated = annotate(
+          const annotated = new Annotated<DispatchTypes, DispatchEvent>(
             context.resolveDomain(nameOrDomain),
             receipt,
             dispatch as DispatchEvent,
+            true,
           );
-          annotated.name = 'Dispatch';
           annotated.event.blockNumber = annotated.receipt.blockNumber;
           const message = new OpticsMessage(context, annotated);
           messages.push(message);

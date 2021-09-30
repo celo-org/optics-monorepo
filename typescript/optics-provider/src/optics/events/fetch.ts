@@ -1,7 +1,6 @@
 import { Annotated } from '.';
 import { OpticsContext } from '..';
 import { Domain } from '../../domains';
-import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Result } from '@ethersproject/abi';
 import {
   TypedEvent,
@@ -17,34 +16,6 @@ export interface TSContract<T extends Result, U> {
   ): Promise<Array<TypedEvent<T & U>>>;
 }
 
-export function annotate<U extends Result, T extends TypedEvent<U>>(
-  domain: number,
-  receipt: TransactionReceipt,
-  event: T,
-): Annotated<T> {
-  return {
-    domain,
-    receipt,
-    name: event.eventSignature?.split('(')[0],
-    event,
-  };
-}
-
-export async function annotateEvent<U extends Result, T extends TypedEvent<U>>(
-  domain: number,
-  event: T,
-): Promise<Annotated<T>> {
-  const receipt = await event.getTransactionReceipt();
-  return annotate(domain, receipt, event);
-}
-
-export async function annotateEvents<U extends Result, T extends TypedEvent<U>>(
-  domain: number,
-  events: T[],
-): Promise<Annotated<T>[]> {
-  return Promise.all(events.map(async (event) => annotateEvent(domain, event)));
-}
-
 export async function queryAnnotatedEvents<T extends Result, U>(
   context: OpticsContext,
   nameOrDomain: string | number,
@@ -52,7 +23,7 @@ export async function queryAnnotatedEvents<T extends Result, U>(
   filter: TypedEventFilter<T, U>,
   startBlock?: number,
   endBlock?: number,
-): Promise<Array<Annotated<TypedEvent<T & U>>>> {
+): Promise<Array<Annotated<T, TypedEvent<T & U>>>> {
   const events = await getEvents(
     context,
     nameOrDomain,
@@ -61,7 +32,7 @@ export async function queryAnnotatedEvents<T extends Result, U>(
     startBlock,
     endBlock,
   );
-  return annotateEvents(context.resolveDomain(nameOrDomain), events);
+  return Annotated.fromEvents(context.resolveDomain(nameOrDomain), events);
 }
 
 export async function getEvents<T extends Result, U>(
