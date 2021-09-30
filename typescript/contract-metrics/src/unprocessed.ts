@@ -3,9 +3,9 @@ import { queryAnnotatedEvents } from '@optics-xyz/multi-provider/dist/optics/eve
 import fs from 'fs';
 import config from './config';
 
-mainnet.registerRpcProvider('celo', config.CeloRpc);
-mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
-mainnet.registerRpcProvider('polygon', config.PolygonRpc);
+mainnet.registerRpcProvider('celo', config.celoRpc);
+mainnet.registerRpcProvider('ethereum', config.ethereumRpc);
+mainnet.registerRpcProvider('polygon', config.polygonRpc);
 
 export const mainnets = ['ethereum', 'celo', 'polygon'];
 

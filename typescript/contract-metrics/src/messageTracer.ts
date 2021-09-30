@@ -10,9 +10,9 @@ import {
   MessageStatus,
 } from '@optics-xyz/multi-provider/dist/optics';
 
-mainnet.registerRpcProvider('celo', config.CeloRpc);
-mainnet.registerRpcProvider('ethereum', config.EthereumRpc);
-mainnet.registerRpcProvider('polygon', config.PolygonRpc);
+mainnet.registerRpcProvider('celo', config.celoRpc);
+mainnet.registerRpcProvider('ethereum', config.ethereumRpc);
+mainnet.registerRpcProvider('polygon', config.polygonRpc);
 
 const STATUS_TO_STRING = {
   [MessageStatus.Dispatched]: 'Dispatched on Home',
