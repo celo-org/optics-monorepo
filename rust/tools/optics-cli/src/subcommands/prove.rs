@@ -29,9 +29,13 @@ type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Signers>
 
 #[derive(StructOpt, Debug)]
 pub struct ProveCommand {
-    /// Leaf or leaf index
-    #[structopt(flatten)]
-    leaf_or_leaf_index: LeafOrLeafIndex,
+    /// Leaf to prove
+    #[structopt(long, required_unless = "leaf_index")]
+    leaf: Option<H256>,
+
+    /// Leaf index to prove
+    #[structopt(long, required_unless = "leaf")]
+    leaf_index: Option<u32>,
 
     /// The name of the home chain, used to lookup keys in the db
     #[structopt(long)]
@@ -60,15 +64,6 @@ pub struct ProveCommand {
     /// RPC connection details
     #[structopt(long)]
     rpc: Option<String>,
-}
-
-/// Leaf or leaf index
-#[derive(StructOpt, Debug)]
-pub struct LeafOrLeafIndex {
-    /// Leaf to prove
-    leaf: Option<H256>,
-    /// Leaf index to prove
-    leaf_index: Option<u32>,
 }
 
 impl ProveCommand {
@@ -118,10 +113,7 @@ impl ProveCommand {
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
         let db = HomeDB::new(DB::from_path(&self.db)?, self.home.clone());
 
-        let idx = match (
-            self.leaf_or_leaf_index.leaf_index,
-            self.leaf_or_leaf_index.leaf,
-        ) {
+        let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
             (None, Some(digest)) => match db.message_by_leaf(digest)? {
                 Some(leaf) => leaf.leaf_index,
