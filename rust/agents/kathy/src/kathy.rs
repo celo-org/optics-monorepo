@@ -1,10 +1,10 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use color_eyre::eyre::bail;
 use ethers::core::types::H256;
 use optics_core::traits::Replica;
-use tokio::{task::JoinHandle, time::sleep};
+use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -24,6 +24,7 @@ use crate::settings::KathySettings as Settings;
 decl_agent!(Kathy {
     duration: u64,
     generator: ChatGenerator,
+    home_lock: Arc<Mutex<()>>,
 });
 
 impl Kathy {
@@ -32,6 +33,7 @@ impl Kathy {
             duration,
             generator,
             core,
+            home_lock: Arc::new(Mutex::new(())),
         }
     }
 }
@@ -55,6 +57,7 @@ impl OpticsAgent for Kathy {
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
         let home = self.home();
+        let home_lock = self.home_lock.clone();
 
         let mut generator = self.generator.clone();
         let duration = Duration::from_secs(self.duration);
@@ -67,8 +70,6 @@ impl OpticsAgent for Kathy {
             let destination = replica.local_domain();
 
             loop {
-                sleep(duration).await;
-
                 let msg = generator.gen_chat();
                 let recipient = generator.gen_recipient();
 
@@ -86,13 +87,19 @@ impl OpticsAgent for Kathy {
                             destination = message.destination,
                             recipient = message.recipient
                         );
+
+                        let _guard = home_lock.lock().await;
                         home.dispatch(&message).await?;
+
+                        // Drop home_lock after dispatch
                     }
                     _ => {
                         info!("Reached the end of the static message queue. Shutting down.");
                         return Ok(());
                     }
                 }
+
+                sleep(duration).await;
             }
         })
         .in_current_span()
