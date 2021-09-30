@@ -11,13 +11,13 @@ export class BridgeContracts extends Contracts {
 
   constructor(
     domain: number,
-    br: Address,
+    bridgeRouter: Address,
     ethHelper?: Address,
     signer?: ethers.Signer,
   ) {
-    super(domain, br, ethHelper, signer);
+    super(domain, bridgeRouter, ethHelper, signer);
     this.domain = domain;
-    this.bridgeRouter = new xapps.BridgeRouter__factory(signer).attach(br);
+    this.bridgeRouter = new xapps.BridgeRouter__factory(signer).attach(bridgeRouter);
     if (ethHelper) {
       this.ethHelper = new xapps.ETHHelper__factory(signer).attach(ethHelper);
     }
@@ -31,15 +31,12 @@ export class BridgeContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer) {
-    if (!data.id || !data.bridgeRouter) {
-      throw new Error('missing address or domain');
+    const {id, bridgeRouter, ethHelper} = data;
+    if (!id || !bridgeRouter) {
+      throw new Error('missing domain or bridgeRouter address');
     }
-
-    const id = data.id;
-    const br = data.bridgeRouter.proxy ?? data.bridgeRouter;
-    const eh = data.ethHelper;
-
-    return new BridgeContracts(id, br, eh, signer);
+    const router = bridgeRouter.proxy ?? bridgeRouter;
+    return new BridgeContracts(id, router, ethHelper, signer);
   }
 
   toObject(): any {
