@@ -19,6 +19,7 @@ static PREV_ROOT: &str = "update_prev_root_";
 static PROOF: &str = "proof_";
 static MESSAGE: &str = "message_";
 static UPDATE: &str = "update_";
+static BLOCK_NUMBER: &str = "block_number_";
 static LATEST_ROOT: &str = "update_latest_root_";
 static LATEST_NONCE: &str = "latest_nonce_";
 static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
@@ -197,6 +198,22 @@ impl HomeDB {
     fn store_latest_root(&self, root: H256) -> Result<(), DbError> {
         debug!(root = ?root, "storing new latest root in DB");
         self.store_encodable("", LATEST_ROOT, &root)
+    }
+
+    /// Store block number of an update (by new root)
+    pub fn store_update_block_number(
+        &self,
+        new_root: H256,
+        block_number: u64,
+    ) -> Result<(), DbError> {
+        debug!(new_root = ?new_root, block_number = ?block_number, "storing update block_number in DB");
+
+        self.store_keyed_encodable(BLOCK_NUMBER, &new_root, &block_number)
+    }
+
+    /// Retrieve block number of an update (by new root)
+    pub fn retrieve_update_block_number(&self, new_root: H256) -> Result<Option<u64>, DbError> {
+        self.retrieve_keyed_decodable(BLOCK_NUMBER, &new_root)
     }
 
     /// Store a signed update building off latest root

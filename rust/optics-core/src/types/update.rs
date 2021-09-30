@@ -94,6 +94,15 @@ impl Update {
     }
 }
 
+/// A Signed Optics Update with Metadata
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SignedUpdateWithMeta {
+    /// Signed update
+    pub signed_update: SignedUpdate,
+    /// Block number
+    pub block_number: u64,
+}
+
 /// A Signed Optics Update
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SignedUpdate {

@@ -5,6 +5,7 @@ use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256};
 use optics_core::db::{HomeDB, DB};
+use optics_core::SignedUpdateWithMeta;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
@@ -66,7 +67,7 @@ where
             ordering
         });
 
-        let updates = events.iter().map(|event| {
+        let updates_with_meta = events.iter().map(|event| {
             let signature = Signature::try_from(event.0.signature.as_slice())
                 .expect("chain accepted invalid signature");
 
@@ -76,11 +77,19 @@ where
                 new_root: event.0.new_root.into(),
             };
 
-            SignedUpdate { update, signature }
+            SignedUpdateWithMeta {
+                signed_update: SignedUpdate { update, signature },
+                block_number: event.1.block_number.as_u64(),
+            }
         });
 
-        for update in updates {
-            self.home_db.store_latest_update(&update)?;
+        for update_with_meta in updates_with_meta {
+            self.home_db
+                .store_latest_update(&update_with_meta.signed_update)?;
+            self.home_db.store_update_block_number(
+                update_with_meta.signed_update.update.new_root,
+                update_with_meta.block_number,
+            )?;
         }
 
         Ok(())
