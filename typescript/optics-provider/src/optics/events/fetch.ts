@@ -42,7 +42,7 @@ export async function annotateEvents<U extends Result, T extends TypedEvent<U>>(
   domain: number,
   events: T[],
 ): Promise<Annotated<T>[]> {
-  return await Promise.all(
+  return Promise.all(
     events.map(async (event) => annotateEvent(domain, event)),
   );
 }
@@ -63,7 +63,7 @@ export async function queryAnnotatedEvents<T extends Result, U>(
     startBlock,
     endBlock,
   );
-  return await annotateEvents(context.resolveDomain(nameOrDomain), events);
+  return annotateEvents(context.resolveDomain(nameOrDomain), events);
 }
 
 export async function getEvents<T extends Result, U>(
@@ -98,7 +98,7 @@ export async function getPaginatedEvents<T extends Result, U>(
 ): Promise<Array<TypedEvent<T & U>>> {
   // get the first block by params
   // or domain deployment block
-  const firstBlock = startBlock ? startBlock : domain.paginate!.from;
+  const firstBlock = startBlock ? Math.max(startBlock, domain.paginate!.from) : domain.paginate!.from;
   // get the last block by params
   // or current block number
   let lastBlock;
@@ -109,30 +109,18 @@ export async function getPaginatedEvents<T extends Result, U>(
     lastBlock = endBlock;
   }
   // query domain pagination limit at a time, concurrently
-  const callArgs = [];
-  for (
-    let from = firstBlock;
-    from < lastBlock;
-    from += domain.paginate!.blocks
-  ) {
-    let nextPage = from + domain.paginate!.blocks;
-    let to = nextPage > lastBlock ? lastBlock : nextPage;
-    callArgs.push({ filter, from, to });
-  }
-
   const eventArrayPromises = [];
   for (
-    let currStartBlock = firstBlock;
-    currStartBlock < lastBlock;
-    currStartBlock += domain.paginate!.blocks
+    let from = firstBlock;
+    from <= lastBlock;
+    from += domain.paginate!.blocks
   ) {
-    let attemptedEndBlock = currStartBlock + domain.paginate!.blocks;
-    let currEndBlock =
-      attemptedEndBlock > lastBlock ? lastBlock : attemptedEndBlock;
+    const nextFrom = from + domain.paginate!.blocks;
+    const to = Math.min(nextFrom, lastBlock);
     const eventArrayPromise = contract.queryFilter(
       filter,
-      currStartBlock,
-      currEndBlock,
+      from,
+      to,
     );
     eventArrayPromises.push(eventArrayPromise);
   }
