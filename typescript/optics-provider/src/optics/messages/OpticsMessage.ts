@@ -245,7 +245,7 @@ export class OpticsMessage {
       // if event is returned, store it to the object
       this.cache.process = processLogs[0];
     } else if (processLogs.length > 1) {
-      throw new Error('multiple replica updates for same root');
+      throw new Error('multiple replica process for same message');
     }
     // return the update or undefined if it doesn't exist
     return this.cache.process;
