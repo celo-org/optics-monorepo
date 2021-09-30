@@ -88,10 +88,9 @@ impl OpticsAgent for Kathy {
                             recipient = message.recipient
                         );
 
-                        let _guard = home_lock.lock().await;
+                        let guard = home_lock.lock().await;
                         home.dispatch(&message).await?;
-
-                        // Drop home_lock after dispatch
+                        drop(guard);
                     }
                     _ => {
                         info!("Reached the end of the static message queue. Shutting down.");
