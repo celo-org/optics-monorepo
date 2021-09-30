@@ -1,5 +1,5 @@
-pub mod processor_state;
+pub mod db_state;
 pub mod prove;
 
-pub use processor_state::*;
+pub use db_state::*;
 pub use prove::*;
