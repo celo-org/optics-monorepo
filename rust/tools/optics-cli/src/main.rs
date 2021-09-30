@@ -14,6 +14,6 @@ async fn main() -> Result<()> {
 
     match command {
         Commands::Prove(prove) => prove.run().await,
-        Commands::ProcessorState(_processor_state) => Ok(()),
+        Commands::DbState(_db_state) => Ok(()),
     }
 }

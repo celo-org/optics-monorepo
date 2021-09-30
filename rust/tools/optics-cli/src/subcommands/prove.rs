@@ -39,11 +39,11 @@ pub struct ProveCommand {
 
     /// The name of the home chain, used to lookup keys in the db
     #[structopt(long)]
-    home: String,
+    home_name: String,
 
     /// Path to db containing proof
     #[structopt(long)]
-    db: String,
+    db_path: String,
 
     /// HexKey to use (please be careful)
     #[structopt(long)]
@@ -111,7 +111,7 @@ impl ProveCommand {
     }
 
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = HomeDB::new(DB::from_path(&self.db)?, self.home.clone());
+        let db = HomeDB::new(DB::from_path(&self.db_path)?, self.home_name.clone());
 
         let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
