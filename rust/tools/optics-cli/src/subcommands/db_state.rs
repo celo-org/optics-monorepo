@@ -1,5 +1,6 @@
 use color_eyre::Result;
-use std::{collections::HashMap, convert::TryInto};
+use serde_json::{json, Value};
+use std::{collections::HashMap, convert::TryInto, fs::OpenOptions, io::Write};
 use structopt::StructOpt;
 
 use optics_core::{
@@ -18,12 +19,15 @@ pub struct DbStateCommand {
     /// Name of associated home
     #[structopt(long)]
     home_name: String,
+
+    /// Save output to json file
+    #[structopt(long)]
+    json: bool,
 }
 
 type OutputVec = Vec<((H256, u64), Vec<CommittedMessage>)>;
 
 impl DbStateCommand {
-    #[allow(dead_code)]
     pub async fn run(&self) -> Result<()> {
         let db = HomeDB::new(DB::from_path(&self.db_path)?, self.home_name.clone());
 
@@ -31,7 +35,11 @@ impl DbStateCommand {
 
         let output_vec = DbStateCommand::create_output_vec(&db, messages_by_committed_roots)?;
 
-        DbStateCommand::print_output(output_vec);
+        if self.json {
+            DbStateCommand::save_to_json(output_vec)?;
+        } else {
+            DbStateCommand::print_output(output_vec);
+        }
 
         Ok(())
     }
@@ -92,13 +100,15 @@ impl DbStateCommand {
             }
         }
 
+        // Convert hashmap into vector of k,v pairs and sort the entries by
+        // update block number
         let mut output_vec: Vec<_> = output_map.into_iter().collect();
         output_vec.sort_by(|x, y| x.0 .1.cmp(&y.0 .1));
 
         Ok(output_vec)
     }
 
-    fn print_output(output_vec: Vec<((H256, u64), Vec<CommittedMessage>)>) {
+    fn print_output(output_vec: OutputVec) {
         for ((update_root, block_number), mut bucket) in output_vec {
             println!("Update root: {:?}", update_root);
             println!("Block number: {}", block_number);
@@ -111,5 +121,33 @@ impl DbStateCommand {
 
             println!("\n");
         }
+    }
+
+    fn save_to_json(output_vec: OutputVec) -> Result<()> {
+        let mut json_entries: Vec<Value> = Vec::new();
+        for ((update_root, block_number), mut bucket) in output_vec {
+            bucket.sort_by(|x, y| x.leaf_index.cmp(&y.leaf_index));
+            let leaf_indexes: Vec<_> = bucket.iter().map(|leaf| leaf.leaf_index).collect();
+
+            json_entries.push(json!({
+                "updateRoot": update_root,
+                "blockNumber": block_number,
+                "leaves": leaf_indexes,
+            }));
+        }
+
+        let json = json!(json_entries).to_string();
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open("dbState.json")
+            .expect("Failed to open/create file");
+
+        file.write_all(json.as_bytes())
+            .expect("Failed to write to file");
+
+        Ok(())
     }
 }
