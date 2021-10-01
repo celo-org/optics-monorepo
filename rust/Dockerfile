@@ -35,7 +35,7 @@ RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/relea
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/processor .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/kathy .
 RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/kms-cli .
-RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/prove-cli .
+RUN --mount=id=cargo,type=cache,target=/usr/src/target  cp /usr/src/target/release/optics-cli .
 
 # 2: Copy the binaries to release image
 FROM ubuntu:20.04
