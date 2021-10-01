@@ -103,8 +103,8 @@ impl DbStateCommand {
     }
 
     fn print_output(output_vec: Vec<((H256, u64), Vec<CommittedMessage>)>) {
-        for ((comitted_root, block_number), mut bucket) in output_vec {
-            println!("Update root: {:?}", comitted_root);
+        for ((update_root, block_number), mut bucket) in output_vec {
+            println!("Update root: {:?}", update_root);
             println!("Block number: {}", block_number);
 
             bucket.sort_by(|x, y| x.leaf_index.cmp(&y.leaf_index));
