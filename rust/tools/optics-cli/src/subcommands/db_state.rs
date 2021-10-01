@@ -88,16 +88,15 @@ impl DbStateCommand {
             match containing_update_opt {
                 Some(containing_update) => {
                     let new_root = containing_update.update.new_root;
-                    let update_block_number = db
-                        .retrieve_update_block_number(new_root)?
-                        .unwrap_or_else(|| {
+                    let update_metadata =
+                        db.retrieve_update_metadata(new_root)?.unwrap_or_else(|| {
                             panic!(
                                 "Couldn't find block number for update {:?}",
                                 containing_update
                             )
                         });
 
-                    output_map.insert((new_root, update_block_number), bucket);
+                    output_map.insert((new_root, update_metadata.block_number), bucket);
                 }
                 // No more updates left
                 None => break,
