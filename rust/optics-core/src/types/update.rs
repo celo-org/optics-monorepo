@@ -94,13 +94,46 @@ impl Update {
     }
 }
 
+/// Metadata stored about an update
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UpdateMeta {
+    /// Block number
+    pub block_number: u64,
+}
+
+impl Encode for UpdateMeta {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        let mut written = 0;
+        written += self.block_number.write_to(writer)?;
+        Ok(written)
+    }
+}
+
+impl Decode for UpdateMeta {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let mut block_number = [0u8; 8];
+        reader.read_exact(&mut block_number)?;
+
+        Ok(Self {
+            block_number: u64::from_be_bytes(block_number),
+        })
+    }
+}
+
 /// A Signed Optics Update with Metadata
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SignedUpdateWithMeta {
     /// Signed update
     pub signed_update: SignedUpdate,
-    /// Block number
-    pub block_number: u64,
+    /// Metadata
+    pub metadata: UpdateMeta,
 }
 
 /// A Signed Optics Update

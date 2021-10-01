@@ -10,7 +10,7 @@ use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
-    Message, SignedUpdate, Update,
+    Message, SignedUpdate, Update, UpdateMeta,
 };
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
@@ -79,16 +79,18 @@ where
 
             SignedUpdateWithMeta {
                 signed_update: SignedUpdate { update, signature },
-                block_number: event.1.block_number.as_u64(),
+                metadata: UpdateMeta {
+                    block_number: event.1.block_number.as_u64(),
+                },
             }
         });
 
         for update_with_meta in updates_with_meta {
             self.home_db
                 .store_latest_update(&update_with_meta.signed_update)?;
-            self.home_db.store_update_block_number(
+            self.home_db.store_update_metadata(
                 update_with_meta.signed_update.update.new_root,
-                update_with_meta.block_number,
+                update_with_meta.metadata,
             )?;
         }
 
