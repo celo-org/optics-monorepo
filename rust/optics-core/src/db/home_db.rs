@@ -1,4 +1,5 @@
 use crate::db::{DbError, TypedDB, DB};
+use crate::UpdateMeta;
 use crate::{
     accumulator::merkle::Proof, traits::RawCommittedMessage, utils, Decode, Encode, OpticsMessage,
     SignedUpdate,
@@ -200,19 +201,19 @@ impl HomeDB {
         self.store_encodable("", LATEST_ROOT, &root)
     }
 
-    /// Store block number of an update (by new root)
-    pub fn store_update_block_number(
+    /// Store update metadata (by update's new root)
+    pub fn store_update_metadata(
         &self,
         new_root: H256,
-        block_number: u64,
+        metadata: UpdateMeta,
     ) -> Result<(), DbError> {
-        debug!(new_root = ?new_root, block_number = ?block_number, "storing update block_number in DB");
+        debug!(new_root = ?new_root, metadata = ?metadata, "storing update metadata in DB");
 
-        self.store_keyed_encodable(BLOCK_NUMBER, &new_root, &block_number)
+        self.store_keyed_encodable(BLOCK_NUMBER, &new_root, &metadata)
     }
 
-    /// Retrieve block number of an update (by new root)
-    pub fn retrieve_update_block_number(&self, new_root: H256) -> Result<Option<u64>, DbError> {
+    /// Retrieve update metadata (by update's new root)
+    pub fn retrieve_update_metadata(&self, new_root: H256) -> Result<Option<UpdateMeta>, DbError> {
         self.retrieve_keyed_decodable(BLOCK_NUMBER, &new_root)
     }
 
