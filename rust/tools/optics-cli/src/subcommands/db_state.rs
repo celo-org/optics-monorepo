@@ -23,8 +23,10 @@ pub struct DbStateCommand {
 impl DbStateCommand {
     #[allow(dead_code)]
     pub async fn run(&self) -> Result<()> {
+        println!("Run!");
         let db = HomeDB::new(DB::from_path(&self.db_path)?, self.home_name.clone());
 
+        println!("Creating mapping of committed roots to messages");
         let mut messages_by_committed_roots: HashMap<H256, Vec<CommittedMessage>> = HashMap::new();
         for index in 0.. {
             match db.message_by_leaf_index(index)? {
@@ -51,8 +53,9 @@ impl DbStateCommand {
             }
         }
 
-        // Create mapping of (update_root, block_number) --> [leaves]
-        let mut map: HashMap<(H256, u64), Vec<CommittedMessage>> = HashMap::new();
+        // Create mapping of (update_root, block_number) --> [messages]
+        println!("Creating mapping of update roots to messages");
+        let mut output_map: HashMap<(H256, u64), Vec<CommittedMessage>> = HashMap::new();
         for (committed_root, bucket) in messages_by_committed_roots {
             let containing_update_opt = db.update_by_previous_root(committed_root)?;
 
@@ -68,11 +71,23 @@ impl DbStateCommand {
                             )
                         });
 
-                    map.insert((new_root, update_block_number), bucket);
+                        output_map.insert((new_root, update_block_number), bucket);
                 }
                 // No more updates left
                 None => break,
             }
+        }
+
+        for ((comitted_root, block_number), bucket) in output_map {
+            println!("Committed root: {}", comitted_root);
+            println!("Block number: {}", block_number);
+
+            println!("Leaves:");
+            for message in bucket {
+                println!("\t{:?}", message);
+            }
+            
+            println!();
         }
 
         Ok(())
