@@ -1,5 +1,4 @@
-FROM python:3.7-stretch
-
+FROM python:3.9-bullseye
 WORKDIR /code
 
 # Allows docker to cache installed dependencies between builds

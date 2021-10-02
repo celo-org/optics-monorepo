@@ -1,5 +1,4 @@
-click
-python-json-config
-web3
-prometheus_client
-websockets>=10.0 # not directly required, pinned by Snyk to avoid a vulnerability
+click==8.0.1
+python-json-config==1.2.3
+web3==5.22.0
+prometheus-client==0.11.0
