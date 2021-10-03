@@ -1,4 +1,5 @@
 from web3 import Web3
+import backoff 
 
 # Checks if an address is below the threshold
 # returns difference in wei if true
@@ -7,7 +8,7 @@ def is_wallet_below_threshold(address:str, lower_bound:int, upper_bound:int, end
     w3 = Web3(Web3.HTTPProvider(endpoint))
     address = Web3.toChecksumAddress(address)
     # get balance
-    wallet_wei = w3.eth.get_balance(address)
+    wallet_wei = get_balance(address)
     # if balance below lower bound
     if wallet_wei < lower_bound:
         # return the amount we have to top up
@@ -15,19 +16,6 @@ def is_wallet_below_threshold(address:str, lower_bound:int, upper_bound:int, end
         return upper_bound - wallet_wei
     else: 
         return False
-
-# gets the current nonce for an address 
-def get_nonce(address:str, endpoint:str):
-    w3 = Web3(Web3.HTTPProvider(endpoint))
-    address = Web3.toChecksumAddress(address)
-    nonce = w3.eth.get_transaction_count(address)
-    return nonce
-
-def get_balance(address:str, endpoint:str):
-    w3 = Web3(Web3.HTTPProvider(endpoint))
-    address = Web3.toChecksumAddress(address)
-    wallet_wei = w3.eth.get_balance(address)
-    return wallet_wei
 
 # creates a transaction for a sender and recipient
 # given a network RPC endpoint
@@ -51,9 +39,43 @@ def create_transaction(sender_key:str, recipient_address:int, amount:int, nonce:
     signed_txn = w3.eth.account.sign_transaction(tx_params,sender_key)
     return (tx_params, signed_txn)
 
+
+# gets the current nonce for an address 
+@backoff.on_exception(backoff.expo,
+                      ValueError,
+                      max_tries=18)
+def get_nonce(address:str, endpoint:str):
+    w3 = Web3(Web3.HTTPProvider(endpoint))
+    address = Web3.toChecksumAddress(address)
+    nonce = w3.eth.get_transaction_count(address)
+    return nonce
+
+# gets the current nonce for an address 
+@backoff.on_exception(backoff.expo,
+                      ValueError,
+                      max_tries=8)
+def get_block_height(endpoint:str):
+    w3 = Web3(Web3.HTTPProvider(endpoint))
+    block_height = w3.eth.get_block_number()
+    return block_height
+
+@backoff.on_exception(backoff.expo,
+                      ValueError,
+                      max_tries=8)
+def get_balance(address:str, endpoint:str):
+    w3 = Web3(Web3.HTTPProvider(endpoint))
+    address = Web3.toChecksumAddress(address)
+    wallet_wei = w3.eth.get_balance(address)
+    return wallet_wei
+    
 # dispatches a signed transaction from create_transaction
+@backoff.on_exception(backoff.expo,
+                      ValueError,
+                      max_tries=8)
 def dispatch_signed_transaction(signed_transaction, endpoint:str):
     # Set up w3 provider with network endpoint
     w3 = Web3(Web3.HTTPProvider(endpoint))
     hash = w3.eth.send_raw_transaction(signed_transaction.rawTransaction)  
     return hash
+
+

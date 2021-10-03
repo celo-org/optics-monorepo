@@ -7,7 +7,7 @@ from utils import dispatch_signed_transaction
 from web3 import Web3
 from prometheus_client import start_http_server, Counter, Gauge
 from config import load_config
-from utils import create_transaction, is_wallet_below_threshold, get_nonce, get_balance
+from utils import create_transaction, is_wallet_below_threshold, get_nonce, get_balance, get_block_height
 
 import click
 import logging
@@ -72,12 +72,14 @@ def monitor(ctx, metrics_port, pause_duration):
         # for each rpc
         for name, network in config["networks"].items():
             endpoint = network["endpoint"]
-            w3 = Web3(Web3.HTTPProvider(endpoint))
 
             # Fetch block height
-            block_height = w3.eth.get_block_number()
-            metrics["block_number"].labels(network=name).set(block_height)
-
+            try:
+                block_height = get_block_height(endpoint)
+                metrics["block_number"].labels(network=name).set(block_height)
+            except ValueError:
+                continue
+            
             # fetch bank balance
             account = network["bank"]["address"]
             logging.info(f"Fetching metrics for {account} via {endpoint}")
