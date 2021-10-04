@@ -90,10 +90,7 @@ impl DbStateCommand {
                     let new_root = containing_update.update.new_root;
                     let update_metadata =
                         db.retrieve_update_metadata(new_root)?.unwrap_or_else(|| {
-                            panic!(
-                                "Couldn't find block number for update {:?}",
-                                containing_update
-                            )
+                            panic!("Couldn't find metadata for update {:?}", containing_update)
                         });
 
                     output_map.insert((new_root, update_metadata.block_number), bucket);

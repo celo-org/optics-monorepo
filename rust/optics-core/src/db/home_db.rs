@@ -202,6 +202,9 @@ impl HomeDB {
     }
 
     /// Store update metadata (by update's new root)
+    ///
+    /// Keys --> Values:
+    /// - `update_new_root` --> `update_metadata`
     pub fn store_update_metadata(
         &self,
         new_root: H256,
