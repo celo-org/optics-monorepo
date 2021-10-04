@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use rusoto_core::{credential::EnvironmentProvider, HttpClient, Region};
-use rusoto_s3::{GetObjectRequest, PutObjectRequest, S3Client, S3};
+use rusoto_core::{credential::EnvironmentProvider, HttpClient, Region, RusotoError};
+use rusoto_s3::{GetObjectError, GetObjectRequest, PutObjectRequest, S3Client, S3};
 
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{bail, Result};
 
 use optics_core::{accumulator::merkle::Proof, db::HomeDB};
 use tokio::{task::JoinHandle, time::sleep};
@@ -64,8 +64,13 @@ impl Pusher {
             bucket: self.bucket.clone(),
             ..Default::default()
         };
-        let resp = self.client.get_object(req).await?;
-        Ok(resp.content_length.unwrap_or_default() > 0)
+        let resp = self.client.get_object(req).await;
+
+        match resp {
+            Ok(_) => Ok(true),
+            Err(RusotoError::Service(GetObjectError::NoSuchKey(_))) => Ok(false),
+            Err(e) => bail!(e),
+        }
     }
 
     fn key(&self, proof: &Proof) -> String {
