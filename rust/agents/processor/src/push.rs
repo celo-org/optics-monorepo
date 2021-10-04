@@ -7,7 +7,7 @@ use color_eyre::eyre::{bail, Result};
 
 use optics_core::{accumulator::merkle::Proof, db::HomeDB};
 use tokio::{task::JoinHandle, time::sleep};
-use tracing::{info_span, instrument::Instrumented, Instrument};
+use tracing::{debug, info, info_span, instrument::Instrumented, Instrument};
 
 /// Pushes proofs to an S3 bucket
 pub struct Pusher {
@@ -54,6 +54,12 @@ impl Pusher {
             content_type: Some("application/json".to_owned()),
             ..Default::default()
         };
+        info!(
+            leaf = ?proof.leaf,
+            leaf_index = proof.index,
+            key = %self.key(proof),
+            "Storing proof in s3 bucket",
+        );
         self.client.put_object(req).await?;
         Ok(())
     }
@@ -67,7 +73,15 @@ impl Pusher {
         let resp = self.client.get_object(req).await;
 
         match resp {
-            Ok(_) => Ok(true),
+            Ok(_) => {
+                debug!(
+                    leaf = ?proof.leaf,
+                    leaf_index = proof.index,
+                    key = %self.key(proof),
+                    "Proof already stored in bucket"
+                );
+                Ok(true)
+            }
             Err(RusotoError::Service(GetObjectError::NoSuchKey(_))) => Ok(false),
             Err(e) => bail!(e),
         }
@@ -82,6 +96,12 @@ impl Pusher {
     /// The pusher task polls the DB for new proofs and attempts to push them
     /// to an S3 bucket
     pub fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
+        let span = info_span!(
+            "ProofPusher",
+            bucket = %self.bucket,
+            region = self.region.name(),
+            home = %self.name,
+        );
         tokio::spawn(async move {
             let mut index = 0;
             loop {
@@ -100,6 +120,6 @@ impl Pusher {
                 }
             }
         })
-        .instrument(info_span!("ProofPusher"))
+        .instrument(span)
     }
 }
