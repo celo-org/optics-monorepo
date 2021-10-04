@@ -42,9 +42,7 @@ export async function annotateEvents<U extends Result, T extends TypedEvent<U>>(
   domain: number,
   events: T[],
 ): Promise<Annotated<T>[]> {
-  return Promise.all(
-    events.map(async (event) => annotateEvent(domain, event)),
-  );
+  return Promise.all(events.map(async (event) => annotateEvent(domain, event)));
 }
 
 export async function queryAnnotatedEvents<T extends Result, U>(
@@ -98,7 +96,9 @@ export async function getPaginatedEvents<T extends Result, U>(
 ): Promise<Array<TypedEvent<T & U>>> {
   // get the first block by params
   // or domain deployment block
-  const firstBlock = startBlock ? Math.max(startBlock, domain.paginate!.from) : domain.paginate!.from;
+  const firstBlock = startBlock
+    ? Math.max(startBlock, domain.paginate!.from)
+    : domain.paginate!.from;
   // get the last block by params
   // or current block number
   let lastBlock;
@@ -117,11 +117,7 @@ export async function getPaginatedEvents<T extends Result, U>(
   ) {
     const nextFrom = from + domain.paginate!.blocks;
     const to = Math.min(nextFrom, lastBlock);
-    const eventArrayPromise = contract.queryFilter(
-      filter,
-      from,
-      to,
-    );
+    const eventArrayPromise = contract.queryFilter(filter, from, to);
     eventArrayPromises.push(eventArrayPromise);
   }
   // await promises & concatenate results

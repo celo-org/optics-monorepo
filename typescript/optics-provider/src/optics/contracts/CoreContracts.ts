@@ -59,7 +59,7 @@ export class CoreContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer): CoreContracts {
-    const {id, home, replicas} = data;
+    const { id, home, replicas } = data;
     if (!id || !home || !replicas) {
       throw new Error('Missing key');
     }

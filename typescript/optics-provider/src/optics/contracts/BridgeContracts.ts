@@ -17,7 +17,9 @@ export class BridgeContracts extends Contracts {
   ) {
     super(domain, bridgeRouter, ethHelper, signer);
     this.domain = domain;
-    this.bridgeRouter = new xapps.BridgeRouter__factory(signer).attach(bridgeRouter);
+    this.bridgeRouter = new xapps.BridgeRouter__factory(signer).attach(
+      bridgeRouter,
+    );
     if (ethHelper) {
       this.ethHelper = new xapps.ETHHelper__factory(signer).attach(ethHelper);
     }
@@ -31,7 +33,7 @@ export class BridgeContracts extends Contracts {
   }
 
   static fromObject(data: any, signer?: ethers.Signer) {
-    const {id, bridgeRouter, ethHelper} = data;
+    const { id, bridgeRouter, ethHelper } = data;
     if (!id || !bridgeRouter) {
       throw new Error('missing domain or bridgeRouter address');
     }
