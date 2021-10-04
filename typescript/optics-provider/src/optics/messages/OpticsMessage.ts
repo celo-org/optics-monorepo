@@ -19,6 +19,7 @@ import {
 } from '../events';
 
 import { queryAnnotatedEvents } from '..';
+import { keccak256 } from 'ethers/lib/utils';
 
 export type ParsedMessage = {
   from: number;
@@ -97,11 +98,11 @@ export class OpticsMessage {
     const messages: OpticsMessage[] = [];
     const home = new core.Home__factory().interface;
 
-    for (let log of receipt.logs) {
+    for (const log of receipt.logs) {
       try {
         const parsed = home.parseLog(log);
         if (parsed.name === 'Dispatch') {
-          const dispatch = parsed as any;
+          const dispatch = parsed as unknown as DispatchEvent;
           dispatch.getBlock = () => {
             return context
               .mustGetProvider(nameOrDomain)
@@ -117,19 +118,20 @@ export class OpticsMessage {
               .mustGetProvider(nameOrDomain)
               .getTransactionReceipt(log.transactionHash);
           };
-          dispatch.name = 'Dispatch';
 
           const annotated = new Annotated<DispatchTypes, DispatchEvent>(
             context.resolveDomain(nameOrDomain),
             receipt,
-            dispatch as DispatchEvent,
+            dispatch,
             true,
           );
           annotated.event.blockNumber = annotated.receipt.blockNumber;
           const message = new OpticsMessage(context, annotated);
           messages.push(message);
         }
-      } catch (e) {}
+      } catch (e) {
+        continue;
+      }
     }
     return messages;
   }
@@ -236,7 +238,7 @@ export class OpticsMessage {
       return this.cache.process;
     }
     // if not, attempt to query the event
-    const processFilter = this.replica.filters.Process(this.messageHash);
+    const processFilter = this.replica.filters.Process(this.leaf);
     const processLogs = await queryAnnotatedEvents<ProcessTypes, ProcessArgs>(
       this.context,
       this.destination,
@@ -309,7 +311,7 @@ export class OpticsMessage {
   }
 
   async replicaStatus(): Promise<ReplicaMessageStatus> {
-    return this.replica.messages(this.messageHash);
+    return this.replica.messages(this.leaf);
   }
 
   /// Returns true when the message is delivered
@@ -322,7 +324,9 @@ export class OpticsMessage {
   /// May never resolve. May take hours to resolve.
   async wait(opts?: { pollTime?: number }): Promise<void> {
     const interval = opts?.pollTime ?? 5000;
-    while (true) {
+
+    // sad spider face
+    for (;;) {
       if (await this.delivered()) {
         return;
       }
@@ -357,12 +361,14 @@ export class OpticsMessage {
   get body(): string {
     return this.message.body;
   }
-
+  get bodyHash(): string {
+    return keccak256(this.body);
+  }
   get transactionHash(): string {
     return this.dispatch.event.transactionHash;
   }
 
-  get messageHash(): string {
+  get leaf(): string {
     return this.dispatch.event.args.messageHash;
   }
 

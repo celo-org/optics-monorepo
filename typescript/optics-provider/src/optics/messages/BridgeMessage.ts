@@ -168,7 +168,7 @@ class BridgeMessage extends OpticsMessage {
       receipt,
     );
     const bridgeMessages: AnyBridgeMessage[] = [];
-    for (let opticsMessage of opticsMessages) {
+    for (const opticsMessage of opticsMessages) {
       try {
         const bridgeMessage = BridgeMessage.fromOpticsMessage(
           context,
@@ -221,7 +221,7 @@ class BridgeMessage extends OpticsMessage {
     if (!receipt) {
       throw new Error(`No receipt for ${transactionHash} on ${nameOrDomain}`);
     }
-    return BridgeMessage.singleFromReceipt(context, nameOrDomain, receipt!);
+    return BridgeMessage.singleFromReceipt(context, nameOrDomain, receipt);
   }
 
   async asset(): Promise<ResolvedTokenInfo> {
@@ -254,7 +254,7 @@ export class TransferMessage extends BridgeMessage {
   async currentlyPrefilled(): Promise<boolean> {
     const bridge = this.context.mustGetBridge(this.destination);
     const lpAddress = await bridge.bridgeRouter.liquidityProvider(
-      this.messageHash,
+      this.prefillId,
     );
     if (lpAddress !== ethers.constants.AddressZero) {
       return true;
@@ -268,6 +268,10 @@ export class TransferMessage extends BridgeMessage {
 
   get to(): string {
     return this.action.to;
+  }
+
+  get prefillId(): string {
+    return this.bodyHash;
   }
 }
 

@@ -10,6 +10,12 @@ type InternalReplica = {
   contract: core.Replica;
 };
 
+interface Core {
+  id: number;
+  home: Address;
+  replicas: ReplicaInfo[];
+}
+
 export class CoreContracts extends Contracts {
   readonly domain;
   home: core.Home;
@@ -42,7 +48,7 @@ export class CoreContracts extends Contracts {
     });
   }
 
-  toObject(): any {
+  toObject(): Core {
     const replicas: ReplicaInfo[] = Array.from(this.replicas.values()).map(
       (replica) => {
         return {
@@ -53,12 +59,13 @@ export class CoreContracts extends Contracts {
     );
 
     return {
+      id: this.domain,
       home: this.home.address,
       replicas: replicas,
     };
   }
 
-  static fromObject(data: any, signer?: ethers.Signer): CoreContracts {
+  static fromObject(data: Core, signer?: ethers.Signer): CoreContracts {
     const { id, home, replicas } = data;
     if (!id || !home || !replicas) {
       throw new Error('Missing key');

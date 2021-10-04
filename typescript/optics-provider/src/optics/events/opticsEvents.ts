@@ -45,7 +45,7 @@ export class Annotated<U extends Result, T extends TypedEvent<U>> {
     domain: number,
     receipt: TransactionReceipt,
     event: T,
-    callerKnowsWhatTheyAreDoing: boolean = false,
+    callerKnowsWhatTheyAreDoing = false,
   ) {
     if (!callerKnowsWhatTheyAreDoing) {
       throw new Error('Please instantiate using fromEvent or fromEvents');
@@ -76,9 +76,12 @@ export class Annotated<U extends Result, T extends TypedEvent<U>> {
 
   get contractAddress(): string {
     // ok to use ! assertion here as we assume that the event is in the receipt
-    return this.receipt.logs.find(
+    const address = this.receipt.logs.find(
       (log) => log.logIndex === this.event.logIndex,
-    )!.address;
+    )?.address;
+    if (!address)
+      throw new Error('Missing receipt. Class is in an inconsistent state');
+    return address;
   }
 
   get transactionHash(): string {

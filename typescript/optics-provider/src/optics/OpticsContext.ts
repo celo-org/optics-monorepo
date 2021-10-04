@@ -63,13 +63,13 @@ export class OpticsContext extends MultiProvider {
   registerProvider(
     nameOrDomain: string | number,
     provider: ethers.providers.Provider,
-  ) {
+  ): void {
     const domain = this.resolveDomain(nameOrDomain);
     super.registerProvider(domain, provider);
     this.reconnect(domain);
   }
 
-  registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
+  registerSigner(nameOrDomain: string | number, signer: ethers.Signer): void {
     const domain = this.resolveDomain(nameOrDomain);
     super.registerSigner(domain, signer);
     this.reconnect(domain);
@@ -169,7 +169,7 @@ export class OpticsContext extends MultiProvider {
 
     await Promise.all(
       this.domainNumbers.map(async (domain) => {
-        let tok = await this.resolveRepresentation(domain, token);
+        const tok = await this.resolveRepresentation(domain, token);
         if (tok) {
           tokens.set(domain, tok);
         }
@@ -269,7 +269,7 @@ export class OpticsContext extends MultiProvider {
     const approved = await fromToken.allowance(senderAddress, bridgeAddress);
     // Approve if necessary
     if (approved.lt(amount)) {
-      let tx = await fromToken.approve(bridgeAddress, amount, overrides);
+      const tx = await fromToken.approve(bridgeAddress, amount, overrides);
       await tx.wait();
     }
 

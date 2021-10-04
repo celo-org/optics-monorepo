@@ -14,7 +14,7 @@ export class MultiProvider {
     this.signers = new Map();
   }
 
-  registerDomain(domain: Domain) {
+  registerDomain(domain: Domain): void {
     this.domains.set(domain.id, domain);
   }
 
@@ -67,7 +67,7 @@ export class MultiProvider {
     return this.getDomain(nameOrDomain)?.name;
   }
 
-  registerProvider(nameOrDomain: string | number, provider: Provider) {
+  registerProvider(nameOrDomain: string | number, provider: Provider): void {
     const domain = this.mustGetDomain(nameOrDomain).id;
     try {
       const signer = this.signers.get(domain);
@@ -80,7 +80,7 @@ export class MultiProvider {
     this.providers.set(domain, provider);
   }
 
-  registerRpcProvider(nameOrDomain: string | number, rpc: string) {
+  registerRpcProvider(nameOrDomain: string | number, rpc: string): void {
     const domain = this.resolveDomain(nameOrDomain);
 
     const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
@@ -101,7 +101,7 @@ export class MultiProvider {
     return provider;
   }
 
-  registerSigner(nameOrDomain: string | number, signer: ethers.Signer) {
+  registerSigner(nameOrDomain: string | number, signer: ethers.Signer): void {
     const domain = this.resolveDomain(nameOrDomain);
 
     const provider = this.providers.get(domain);
@@ -114,7 +114,9 @@ export class MultiProvider {
         signer = signer.connect(provider);
         this.signers.set(domain, signer.connect(provider));
         return;
-      } catch {}
+      } catch (_) {
+        // do nothing
+      }
     }
     if (!signer.provider) {
       throw new Error('Signer does not permit reconnect and has no provider');
@@ -124,28 +126,28 @@ export class MultiProvider {
     this.signers.set(domain, signer);
   }
 
-  unregisterSigner(nameOrDomain: string | number) {
+  unregisterSigner(nameOrDomain: string | number): void {
     const domain = this.resolveDomain(nameOrDomain);
     if (!this.signers.has(domain)) {
       return;
     }
 
     const signer = this.signers.get(domain);
-    if (!signer?.provider) {
+    if (signer == null || signer.provider == null) {
       throw new Error('signer was missing provider. How?');
     }
-    this.signers.delete(domain);
 
+    this.signers.delete(domain);
     if (!this.getProvider(nameOrDomain)) {
-      this.providers.set(domain, signer!.provider!);
+      this.providers.set(domain, signer.provider);
     }
   }
 
-  clearSigners() {
+  clearSigners(): void {
     this.domainNumbers.forEach((domain) => this.unregisterSigner(domain));
   }
 
-  registerWalletSigner(nameOrDomain: string | number, privkey: string) {
+  registerWalletSigner(nameOrDomain: string | number, privkey: string): void {
     const domain = this.resolveDomain(nameOrDomain);
 
     const wallet = new ethers.Wallet(privkey);

@@ -34,7 +34,8 @@ export const BAKLAVA_PARAMS: MetamaskNetwork = {
   iconUrls: ['future'],
 };
 
-export async function connect(params: MetamaskNetwork) {
+export async function connect(params: MetamaskNetwork): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const w = window as any;
   if (w.ethereum) {
     await w.ethereum.request({

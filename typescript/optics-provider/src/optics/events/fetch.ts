@@ -57,7 +57,7 @@ export async function getEvents<T extends Result, U>(
   return contract.queryFilter(filter, startBlock, endBlock);
 }
 
-export async function getPaginatedEvents<T extends Result, U>(
+async function getPaginatedEvents<T extends Result, U>(
   context: OpticsContext,
   domain: Domain,
   contract: TSContract<T, U>,
@@ -65,11 +65,14 @@ export async function getPaginatedEvents<T extends Result, U>(
   startBlock?: number,
   endBlock?: number,
 ): Promise<Array<TypedEvent<T & U>>> {
+  if (!domain.paginate) {
+    throw new Error('Domain need not be paginated');
+  }
   // get the first block by params
   // or domain deployment block
   const firstBlock = startBlock
-    ? Math.max(startBlock, domain.paginate!.from)
-    : domain.paginate!.from;
+    ? Math.max(startBlock, domain.paginate.from)
+    : domain.paginate.from;
   // get the last block by params
   // or current block number
   let lastBlock;
@@ -84,9 +87,9 @@ export async function getPaginatedEvents<T extends Result, U>(
   for (
     let from = firstBlock;
     from <= lastBlock;
-    from += domain.paginate!.blocks
+    from += domain.paginate.blocks
   ) {
-    const nextFrom = from + domain.paginate!.blocks;
+    const nextFrom = from + domain.paginate.blocks;
     const to = Math.min(nextFrom, lastBlock);
     const eventArrayPromise = contract.queryFilter(filter, from, to);
     eventArrayPromises.push(eventArrayPromise);
@@ -94,7 +97,7 @@ export async function getPaginatedEvents<T extends Result, U>(
   // await promises & concatenate results
   const eventArrays = await Promise.all(eventArrayPromises);
   let events: Array<TypedEvent<T & U>> = [];
-  for (let eventArray of eventArrays) {
+  for (const eventArray of eventArrays) {
     events = events.concat(eventArray);
   }
   return events;
