@@ -283,7 +283,7 @@ impl Processor {
                 .new_int_gauge(
                     "next_message_nonce",
                     "Index of the next message to inspect",
-                    &["replica", "agent"],
+                    &["home", "replica", "agent"],
                 )
                 .expect("processor metric already registered -- should have be a singleton"),
         );
