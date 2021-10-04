@@ -8,7 +8,7 @@ def is_wallet_below_threshold(address:str, lower_bound:int, upper_bound:int, end
     w3 = Web3(Web3.HTTPProvider(endpoint))
     address = Web3.toChecksumAddress(address)
     # get balance
-    wallet_wei = get_balance(address)
+    wallet_wei = get_balance(address, endpoint)
     # if balance below lower bound
     if wallet_wei < lower_bound:
         # return the amount we have to top up
