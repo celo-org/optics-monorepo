@@ -7,6 +7,9 @@ pub mod replica;
 /// Interface for XAppConnectionManager contract
 pub mod xapp;
 
+/// Interface for chain provider
+pub mod home_events;
+
 /// Traits for canonical binary representations
 pub mod encode;
 
@@ -22,6 +25,7 @@ use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use home::*;
 pub use replica::*;
+pub use home_events::*;
 pub use xapp::*;
 
 /// Contract states

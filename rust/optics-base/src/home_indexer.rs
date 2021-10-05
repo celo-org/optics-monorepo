@@ -2,8 +2,8 @@ use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::Signature;
 use optics_core::db::HomeDB;
-use optics_core::SignedUpdateWithMeta;
-use optics_core::{traits::RawCommittedMessage, SignedUpdate, Update, UpdateMeta};
+use optics_core::{traits::{HomeEventProvider, RawCommittedMessage}, SignedUpdateWithMeta, SignedUpdate, Update, UpdateMeta};
+
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tokio::try_join;
