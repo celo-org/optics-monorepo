@@ -3,11 +3,17 @@ use std::time::Duration;
 use rusoto_core::{credential::EnvironmentProvider, HttpClient, Region, RusotoError};
 use rusoto_s3::{GetObjectError, GetObjectRequest, PutObjectRequest, S3Client, S3};
 
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::{bail, eyre, Result};
 
-use optics_core::{accumulator::merkle::Proof, db::HomeDB};
+use optics_core::{accumulator::merkle::Proof, db::HomeDB, Encode};
 use tokio::{task::JoinHandle, time::sleep};
 use tracing::{debug, info, info_span, instrument::Instrumented, Instrument};
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ProvenMessage {
+    message: Vec<u8>,
+    proof: Proof,
+}
 
 /// Pushes proofs to an S3 bucket
 pub struct Pusher {
@@ -45,28 +51,29 @@ impl Pusher {
         }
     }
 
-    async fn upload_proof(&self, proof: &Proof) -> Result<()> {
-        let proof_json = Vec::from(serde_json::to_string_pretty(&proof)?);
+    async fn upload_proof(&self, proven: &ProvenMessage) -> Result<()> {
+        let key = self.key(proven);
+        let proof_json = Vec::from(serde_json::to_string_pretty(proven)?);
+        info!(
+            leaf = ?proven.proof.leaf,
+            leaf_index = proven.proof.index,
+            key = %key,
+            "Storing proof in s3 bucket",
+        );
         let req = PutObjectRequest {
-            key: self.key(proof),
+            key,
             bucket: self.bucket.clone(),
             body: Some(proof_json.into()),
             content_type: Some("application/json".to_owned()),
             ..Default::default()
         };
-        info!(
-            leaf = ?proof.leaf,
-            leaf_index = proof.index,
-            key = %self.key(proof),
-            "Storing proof in s3 bucket",
-        );
         self.client.put_object(req).await?;
         Ok(())
     }
 
-    async fn already_uploaded(&self, proof: &Proof) -> Result<bool> {
+    async fn already_uploaded(&self, proven: &ProvenMessage) -> Result<bool> {
         let req = GetObjectRequest {
-            key: self.key(proof),
+            key: self.key(proven),
             bucket: self.bucket.clone(),
             ..Default::default()
         };
@@ -75,9 +82,9 @@ impl Pusher {
         match resp {
             Ok(_) => {
                 debug!(
-                    leaf = ?proof.leaf,
-                    leaf_index = proof.index,
-                    key = %self.key(proof),
+                    leaf = ?proven.proof.leaf,
+                    leaf_index = proven.proof.index,
+                    key = %self.key(proven),
                     "Proof already stored in bucket"
                 );
                 Ok(true)
@@ -87,8 +94,8 @@ impl Pusher {
         }
     }
 
-    fn key(&self, proof: &Proof) -> String {
-        format!("{}_{}", self.name, proof.index)
+    fn key(&self, proven: &ProvenMessage) -> String {
+        format!("{}_{}", self.name, proven.proof.index)
     }
 
     /// Spawn the pusher task and return a joinhandle
@@ -106,12 +113,19 @@ impl Pusher {
             let mut index = 0;
             loop {
                 let proof = self.db.proof_by_leaf_index(index)?;
-
                 match proof {
                     Some(proof) => {
+                        let message = self
+                            .db
+                            .message_by_leaf_index(index)?
+                            .ok_or_else(|| eyre!("Missing message for known proof"))?;
+                        let proven = ProvenMessage {
+                            proof,
+                            message: message.to_vec(),
+                        };
                         // upload if not already present
-                        if !self.already_uploaded(&proof).await? {
-                            self.upload_proof(&proof).await?;
+                        if !self.already_uploaded(&proven).await? {
+                            self.upload_proof(&proven).await?;
                         }
 
                         index += 1;
