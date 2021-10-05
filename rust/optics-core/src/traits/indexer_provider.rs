@@ -5,7 +5,10 @@ use crate::{traits::RawCommittedMessage, SignedUpdateWithMeta};
 
 /// Interface for retrieving event data from a home contract
 #[async_trait]
-pub trait HomeEventProvider: Send + Sync + std::fmt::Debug {
+pub trait IndexerProvider: Send + Sync + std::fmt::Debug {
+    /// Return latest block number
+    async fn get_block_number(&self) -> Result<u32>;
+
     /// Return updates with metadata between blocks `to` to `from`
     async fn get_updates_with_meta(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>>;
 

@@ -25,6 +25,9 @@ pub mod home;
 /// HomeIndexer type
 pub mod home_indexer;
 
+/// HomeIndexer provider
+pub mod indexer_provider;
+
 /// Replica type
 pub mod replica;
 

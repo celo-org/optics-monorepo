@@ -10,7 +10,7 @@ mod macros;
 #[cfg(not(doctest))]
 mod home;
 
-mod home_events;
+mod indexer_provider;
 
 /// Replica abi
 #[cfg(not(doctest))]
@@ -24,4 +24,7 @@ mod xapp;
 pub mod settings;
 
 #[cfg(not(doctest))]
-pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager, home_events::*};
+pub use crate::{
+    home::EthereumHome, indexer_provider::*, replica::EthereumReplica,
+    xapp::EthereumConnectionManager,
+};

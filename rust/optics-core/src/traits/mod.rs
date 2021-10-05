@@ -8,9 +8,9 @@ pub mod replica;
 pub mod xapp;
 
 /// Interface for chain provider
-pub mod home_events;
+pub mod indexer_provider;
 
-/// Traits for canonical binary representations
+/// Traits for cdanonical binary representations
 pub mod encode;
 
 use async_trait::async_trait;
@@ -24,8 +24,8 @@ use std::error::Error as StdError;
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use home::*;
+pub use indexer_provider::*;
 pub use replica::*;
-pub use home_events::*;
 pub use xapp::*;
 
 /// Contract states
