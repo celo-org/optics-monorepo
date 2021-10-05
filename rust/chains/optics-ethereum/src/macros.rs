@@ -39,7 +39,7 @@ macro_rules! report_tx {
 }
 
 macro_rules! contract {
-    (@finish $provider:expr, $abi:ident, $signer:ident, $($tail:tt)*) => {{
+    (@finish $provider:expr, $abi:ident, $signer:ident, $locator:ident, $($tail:tt)*) => {{
         if let Some(signer) = $signer {
             // If there's a provided signer, we want to manage every aspect
             // locally
@@ -56,9 +56,9 @@ macro_rules! contract {
             // Manage signing locally
             let signing_provider = ethers::middleware::SignerMiddleware::new(provider, signer);
 
-            Box::new(crate::$abi::new(signing_provider.into(), $($tail)*))
+            Box::new(crate::$abi::new(signing_provider.into(), $locator, $($tail)*))
         } else {
-            Box::new(crate::$abi::new($provider, $($tail)*))
+            Box::new(crate::$abi::new($provider, $locator, $($tail)*))
         }
     }};
     (@ws $url:expr, $($tail:tt)*) => {{

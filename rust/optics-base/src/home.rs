@@ -2,12 +2,12 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-    ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
+    ChainCommunicationError, Common, DoubleUpdate, Home, Message,
     SignedUpdate, State, TxOutcome, Update,
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
-use tracing::{instrument, instrument::Instrumented};
+use tracing::instrument;
 
 /// Home type
 #[derive(Debug)]
@@ -64,61 +64,11 @@ impl Home for Homes {
         }
     }
 
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        metric: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        match self {
-            Homes::Ethereum(home) => home.index(from_height, chunk_size, metric),
-            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size, metric),
-            Homes::Other(home) => home.index(from_height, chunk_size, metric),
-        }
-    }
-
     fn home_domain_hash(&self) -> H256 {
         match self {
             Homes::Ethereum(home) => home.home_domain_hash(),
             Homes::Mock(mock_home) => mock_home.home_domain_hash(),
             Homes::Other(home) => home.home_domain_hash(),
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.raw_message_by_nonce(destination, nonce).await,
-            Homes::Mock(mock_home) => mock_home.raw_message_by_nonce(destination, nonce).await,
-            Homes::Other(home) => home.raw_message_by_nonce(destination, nonce).await,
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.raw_message_by_leaf(leaf).await,
-            Homes::Mock(mock_home) => mock_home.raw_message_by_leaf(leaf).await,
-            Homes::Other(home) => home.raw_message_by_leaf(leaf).await,
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.leaf_by_tree_index(tree_index).await,
-            Homes::Mock(mock_home) => mock_home.leaf_by_tree_index(tree_index).await,
-            Homes::Other(home) => home.leaf_by_tree_index(tree_index).await,
         }
     }
 
@@ -208,28 +158,6 @@ impl Common for Homes {
             Homes::Ethereum(home) => home.committed_root().await,
             Homes::Mock(mock_home) => mock_home.committed_root().await,
             Homes::Other(home) => home.committed_root().await,
-        }
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.signed_update_by_old_root(old_root).await,
-            Homes::Mock(mock_home) => mock_home.signed_update_by_old_root(old_root).await,
-            Homes::Other(home) => home.signed_update_by_old_root(old_root).await,
-        }
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.signed_update_by_new_root(new_root).await,
-            Homes::Mock(mock_home) => mock_home.signed_update_by_new_root(new_root).await,
-            Homes::Other(home) => home.signed_update_by_new_root(new_root).await,
         }
     }
 

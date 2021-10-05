@@ -1,10 +1,10 @@
 use color_eyre::Report;
 use serde::Deserialize;
 
-use optics_core::{db::DB, ContractLocator, Signers};
+use optics_core::{ContractLocator, Signers};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
-use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
+use crate::{home::Homes, home_indexer::HomeIndexers, replica::Replicas, xapp::ConnectionManagers};
 
 /// A connection to _some_ blockchain.
 ///
@@ -43,7 +43,7 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self, signer: Option<Signers>, db: DB) -> Result<Homes, Report> {
+    pub async fn try_into_home(&self, signer: Option<Signers>) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 make_home(
@@ -54,7 +54,6 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    db,
                 )
                 .await?,
             )),
@@ -96,6 +95,16 @@ impl ChainSetup {
                     signer,
                 )
                 .await?,
+            )),
+        }
+    }
+
+    /// Try to convert chain setting into HomeIndexer (which contains a home
+    /// contract)
+    pub async fn try_into_home_indexer(&self) -> Result<HomeIndexers, Report> {
+        match &self.chain {
+            ChainConf::Ethereum(conf) => Ok(HomeIndexers::Ethereum(
+                conf.try_into_home_indexer(self.address.parse()?).await?,
             )),
         }
     }

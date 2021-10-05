@@ -1,9 +1,10 @@
 //! Interfaces to the ethereum contracts
-
+#![cfg(not(doctest))]
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
+use color_eyre::Report;
 use ethers::prelude::*;
 use num::Num;
 use optics_core::*;
@@ -14,15 +15,13 @@ use std::sync::Arc;
 mod macros;
 
 /// Home abi
-#[cfg(not(doctest))]
-mod home;
+pub(crate) mod home;
+mod home_indexer;
 
 /// Replica abi
-#[cfg(not(doctest))]
 mod replica;
 
 /// XAppConnectionManager abi
-#[cfg(not(doctest))]
 mod xapp;
 
 /// Ethereum connection configuration
@@ -49,8 +48,34 @@ impl Default for Connection {
     }
 }
 
+impl Connection {
+    /// Try to convert this into an HomeIndexer
+    pub async fn try_into_home_indexer(
+        &self,
+        address: ethers::types::Address,
+    ) -> Result<Box<dyn HomeIndexer>, Report> {
+        let b: Box<dyn HomeIndexer> = match &self {
+            Connection::Http { url } => {
+                let provider = Arc::new(
+                    ethers::providers::Provider::<ethers::providers::Http>::try_from(url.as_ref())?,
+                );
+                Box::new(EthereumHomeIndexer::new(address, provider))
+            }
+            Connection::Ws { url } => {
+                let ws = ethers::providers::Ws::connect(url).await?;
+                let provider = Arc::new(ethers::providers::Provider::new(ws));
+                Box::new(EthereumHomeIndexer::new(address, provider))
+            }
+        };
+
+        Ok(b)
+    }
+}
+
 #[cfg(not(doctest))]
-pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};
+pub use crate::{
+    home::EthereumHome, home_indexer::*, replica::EthereumReplica, xapp::EthereumConnectionManager,
+};
 
 #[allow(dead_code)]
 /// A live connection to an ethereum-compatible chain.
@@ -60,7 +85,7 @@ pub struct Chain {
 }
 
 contract!(make_replica, EthereumReplica, Replica,);
-contract!(make_home, EthereumHome, Home, db: optics_core::db::DB);
+contract!(make_home, EthereumHome, Home,);
 contract!(
     make_conn_manager,
     EthereumConnectionManager,

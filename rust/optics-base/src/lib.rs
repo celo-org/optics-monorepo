@@ -6,7 +6,7 @@
 //! ought to live here.
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
 mod settings;
@@ -25,6 +25,12 @@ pub use macros::*;
 /// Home type
 mod home;
 pub use home::*;
+
+/// Continuously syncing HomeDB
+pub mod syncing_home_db;
+
+/// HomeIndexer provider
+pub mod home_indexer;
 
 /// Replica type
 mod replica;

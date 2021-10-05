@@ -7,31 +7,12 @@ use ethers::core::types::H256;
 
 use optics_core::*;
 
-use tracing::{instrument::Instrumented, Instrument};
-
 mock! {
     pub HomeContract {
         // Home
         pub fn _local_domain(&self) -> u32 {}
 
         pub fn _home_domain_hash(&self) -> H256 {}
-
-        pub fn _raw_message_by_nonce(
-            &self,
-            destination: u32,
-            nonce: u32,
-        ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
-
-        pub fn _raw_message_by_leaf(
-            &self,
-            leaf: H256,
-        ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {}
-
-
-        pub fn _leaf_by_tree_index(
-            &self,
-            tree_index: usize,
-        ) -> Result<Option<H256>, ChainCommunicationError> {}
 
         pub fn _nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {}
 
@@ -56,16 +37,6 @@ mock! {
         pub fn _state(&self) -> Result<State, ChainCommunicationError> {}
 
         pub fn _committed_root(&self) -> Result<H256, ChainCommunicationError> {}
-
-        pub fn _signed_update_by_old_root(
-            &self,
-            old_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
-
-        pub fn _signed_update_by_new_root(
-            &self,
-            new_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
 
         pub fn _update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {}
 
@@ -92,28 +63,6 @@ impl Home for MockHomeContract {
         self._home_domain_hash()
     }
 
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_nonce(destination, nonce)
-    }
-
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_leaf(leaf)
-    }
-
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        self._leaf_by_tree_index(tree_index)
-    }
-
     async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         self._nonces(destination)
     }
@@ -135,15 +84,6 @@ impl Home for MockHomeContract {
 
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         self._produce_update()
-    }
-
-    fn index(
-        &self,
-        _from_height: u32,
-        _chunk_size: u32,
-        _indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        tokio::spawn(async move { Ok(()) }).in_current_span()
     }
 }
 
@@ -167,20 +107,6 @@ impl Common for MockHomeContract {
 
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         self._committed_root()
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_old_root(old_root)
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_new_root(new_root)
     }
 
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {

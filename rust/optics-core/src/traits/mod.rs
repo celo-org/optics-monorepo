@@ -1,5 +1,6 @@
 mod encode;
 mod home;
+mod home_indexer;
 mod replica;
 mod xapp;
 
@@ -15,6 +16,7 @@ use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use encode::*;
 pub use home::*;
+pub use home_indexer::*;
 pub use replica::*;
 pub use xapp::*;
 
@@ -101,28 +103,6 @@ pub trait Common: Sync + Send + std::fmt::Debug {
 
     /// Fetch the current root.
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError>;
-
-    /// Fetch the first signed update building off of `old_root`. If `old_root`
-    /// was never accepted or has never been updated, this will return `Ok(None )`.
-    /// This should fetch events from the chain API
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
-
-    /// Fetch the first signed update with a new root of `new_root`. If update
-    /// has not been produced, this will return `Ok(None)`. This should fetch
-    /// events from the chain API
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError>;
-
-    /// Fetch most recent signed_update.
-    async fn poll_signed_update(&self) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        let committed_root = self.committed_root().await?;
-        self.signed_update_by_new_root(committed_root).await
-    }
 
     /// Submit a signed update for inclusion
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError>;

@@ -36,11 +36,19 @@
 //!    intended to be used by a specific agent.
 //!    E.g. `export OPT_KATHY_CHAT_TYPE="static message"`
 
-use crate::{agent::AgentCore, home::Homes, replica::Replicas};
+use crate::{
+    agent::AgentCore, home::Homes, home_indexer::HomeIndexers, replica::Replicas,
+    syncing_home_db::SyncingHomeDB,
+};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use ethers::prelude::AwsSigner;
-use optics_core::{db::DB, utils::HexString, Signers};
+use optics_core::{
+    db::{HomeDB, DB},
+    utils::HexString,
+    Common, Signers,
+};
+
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
 use serde::Deserialize;
@@ -225,9 +233,14 @@ impl Settings {
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self, db: DB) -> Result<Homes, Report> {
+    pub async fn try_home(&self) -> Result<Homes, Report> {
         let signer = self.get_signer(&self.home.name).await;
-        self.home.try_into_home(signer, db).await
+        self.home.try_into_home(signer).await
+    }
+
+    /// Try to get a home indexer object
+    pub async fn try_home_indexer(&self) -> Result<HomeIndexers, Report> {
+        self.home.try_into_home_indexer().await
     }
 
     /// Try to generate an agent core for a named agent
@@ -241,13 +254,31 @@ impl Settings {
         )?);
 
         let db = DB::from_path(&self.db)?;
-        let home = Arc::new(self.try_home(db.clone()).await?);
+        let home = Arc::new(self.try_home().await?);
         let replicas = self.try_replicas().await?;
+        let home_indexer = Arc::new(self.try_home_indexer().await?);
+
+        let block_height = metrics
+            .new_int_gauge(
+                "block_height",
+                "Height of a recently observed block",
+                &["network", "agent"],
+            )
+            .expect("failed to register block_height metric")
+            .with_label_values(&[home.name(), name]);
+
+        let syncing_home_db = SyncingHomeDB::new(
+            home_indexer,
+            HomeDB::new(db.clone(), home.name().to_owned()),
+            self.index.clone(),
+            block_height,
+        );
 
         Ok(AgentCore {
             home,
             replicas,
             db,
+            syncing_home_db,
             settings: self.clone(),
             metrics,
             indexer: self.index.clone(),

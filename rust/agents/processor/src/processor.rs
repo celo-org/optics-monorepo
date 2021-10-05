@@ -17,6 +17,7 @@ use optics_base::{cancel_task, decl_agent, AgentCore, Homes, OpticsAgent, Replic
 use optics_core::{
     accumulator::merkle::Proof, db::HomeDB, CommittedMessage, Common, Home, MessageStatus,
 };
+use std::convert::TryInto;
 
 use crate::{
     prover_sync::ProverSync,
@@ -155,9 +156,9 @@ impl Replica {
     async fn try_msg_by_domain_and_nonce(&self, domain: u32, nonce: u32) -> Result<Flow> {
         use optics_core::Replica;
 
-        let message = match self.home.message_by_nonce(domain, nonce).await {
-            Ok(Some(m)) => m,
-            Ok(None) => {
+        let message: CommittedMessage = match self.home_db.message_by_nonce(domain, nonce)? {
+            Some(m) => m.try_into()?,
+            None => {
                 info!(
                     domain = domain,
                     sequence = nonce,
@@ -167,7 +168,6 @@ impl Replica {
                 );
                 return Ok(Flow::Repeat);
             }
-            Err(e) => bail!(e),
         };
 
         info!(target: "seen_committed_messages", leaf_index = message.leaf_index);
@@ -396,21 +396,7 @@ impl OpticsAgent for Processor {
 
             info!("Starting indexer");
             // indexer setup
-            let block_height = self
-                .as_ref()
-                .metrics
-                .new_int_gauge(
-                    "block_height",
-                    "Height of a recently observed block",
-                    &["network", "agent"],
-                )
-                .expect("failed to register block_height metric")
-                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
-            let indexer = &self.as_ref().indexer;
-            let index_task = self
-                .home()
-                .index(indexer.from(), indexer.chunk_size(), block_height);
-
+            let index_task = self.syncing_home_db().index();
             info!("started indexer and sync");
 
             // instantiate task array here so we can optionally push run_task

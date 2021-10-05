@@ -58,7 +58,7 @@ where
     async fn poll_and_send_update(&mut self) -> Result<()> {
         let update_opt = self
             .contract
-            .signed_update_by_old_root(self.committed_root)
+            .update_by_previous_root(self.committed_root)
             .await?;
 
         if update_opt.is_none() {
@@ -527,7 +527,7 @@ mod test {
             // home.signed_update_by_old_root called once and
             // returns mock value signed_update when called with first_root
             mock_home
-                .expect__signed_update_by_old_root()
+                .expect__signed_update_by_previous_root()
                 .withf(move |r: &H256| *r == first_root)
                 .times(1)
                 .return_once(move |_| Ok(Some(signed_update)));
