@@ -24,6 +24,7 @@ use optics_core::{
     db::HomeDB,
     traits::{CommittedMessage, Common, Home, MessageStatus},
 };
+use std::convert::TryInto;
 
 use crate::{
     prover_sync::ProverSync,
@@ -162,9 +163,9 @@ impl Replica {
     async fn try_msg_by_domain_and_nonce(&self, domain: u32, nonce: u32) -> Result<Flow> {
         use optics_core::traits::Replica;
 
-        let message = match self.home.message_by_nonce(domain, nonce).await {
-            Ok(Some(m)) => m,
-            Ok(None) => {
+        let message: CommittedMessage = match self.home_db.message_by_nonce(domain, nonce)? {
+            Some(m) => m.try_into()?,
+            None => {
                 info!(
                     domain = domain,
                     sequence = nonce,
@@ -174,7 +175,6 @@ impl Replica {
                 );
                 return Ok(Flow::Repeat);
             }
-            Err(e) => bail!(e),
         };
 
         info!(target: "seen_committed_messages", leaf_index = message.leaf_index);

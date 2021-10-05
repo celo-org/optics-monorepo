@@ -9,7 +9,7 @@ use optics_base::{
     home::Homes,
     replica::Replicas,
 };
-use optics_core::traits::Common;
+use optics_core::{db::HomeDB, traits::Common};
 
 use crate::settings::RelayerSettings as Settings;
 
@@ -17,6 +17,7 @@ use crate::settings::RelayerSettings as Settings;
 struct UpdatePoller {
     duration: Duration,
     home: Arc<Homes>,
+    home_db: HomeDB,
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
 }
@@ -32,9 +33,10 @@ impl std::fmt::Display for UpdatePoller {
 }
 
 impl UpdatePoller {
-    fn new(home: Arc<Homes>, replica: Arc<Replicas>, duration: u64) -> Self {
+    fn new(home: Arc<Homes>, home_db: HomeDB, replica: Arc<Replicas>, duration: u64) -> Self {
         Self {
             home,
+            home_db,
             replica,
             duration: Duration::from_secs(duration),
             semaphore: Mutex::new(()),
@@ -53,7 +55,7 @@ impl UpdatePoller {
         );
 
         // Check for first signed update building off of the replica's current root
-        let signed_update_opt = self.home.signed_update_by_old_root(old_root).await?;
+        let signed_update_opt = self.home_db.update_by_previous_root(old_root)?;
 
         // If signed update exists, update replica's current root
         if let Some(signed_update) = signed_update_opt {
@@ -134,6 +136,7 @@ impl OpticsAgent for Relayer {
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let replica_opt = self.replica_by_name(name);
         let home = self.home();
+        let db = self.db();
         let name = name.to_owned();
 
         let duration = self.duration;
@@ -143,8 +146,10 @@ impl OpticsAgent for Relayer {
                 bail!("No replica named {}", name);
             }
             let replica = replica_opt.unwrap();
+            let home_name = home.name().to_owned();
 
-            let update_poller = UpdatePoller::new(home, replica.clone(), duration);
+            let update_poller =
+                UpdatePoller::new(home, HomeDB::new(db, home_name), replica.clone(), duration);
             update_poller.spawn().await?
         })
         .in_current_span()
