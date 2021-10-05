@@ -22,6 +22,9 @@ pub mod macros;
 /// Home type
 pub mod home;
 
+/// HomeIndexer type
+pub mod home_indexer;
+
 /// Replica type
 pub mod replica;
 
