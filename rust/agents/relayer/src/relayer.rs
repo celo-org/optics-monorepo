@@ -136,7 +136,7 @@ impl OpticsAgent for Relayer {
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let replica_opt = self.replica_by_name(name);
         let home = self.home();
-        let db = self.db();
+        let home_db = self.home_db();
         let name = name.to_owned();
 
         let duration = self.duration;
@@ -146,10 +146,9 @@ impl OpticsAgent for Relayer {
                 bail!("No replica named {}", name);
             }
             let replica = replica_opt.unwrap();
-            let home_name = home.name().to_owned();
 
             let update_poller =
-                UpdatePoller::new(home, HomeDB::new(db, home_name), replica.clone(), duration);
+                UpdatePoller::new(home, home_db, replica.clone(), duration);
             update_poller.spawn().await?
         })
         .in_current_span()

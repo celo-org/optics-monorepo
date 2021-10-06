@@ -32,7 +32,7 @@ async fn _main() -> Result<()> {
 
     let _ = agent.metrics().run_http_server();
 
-    let index_task = agent.home_db().index();
+    let index_task = agent.syncing_home_db().index();
     let run_task = agent.run("");
 
     let futs = vec![index_task, run_task];

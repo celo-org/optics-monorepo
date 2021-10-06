@@ -257,7 +257,7 @@ impl Settings {
         let db = DB::from_path(&self.db)?;
         let home = Arc::new(self.try_home(db.clone()).await?);
         let replicas = self.try_replicas().await?;
-        let indexer_provider = Arc::new(self.try_home_indexer().await?);
+        let home_indexer = Arc::new(self.try_home_indexer().await?);
 
         let block_height = metrics
             .new_int_gauge(
@@ -268,8 +268,8 @@ impl Settings {
             .expect("failed to register block_height metric")
             .with_label_values(&[home.name(), name]);
 
-        let home_db = SyncingHomeDB::new(
-            indexer_provider,
+        let syncing_home_db = SyncingHomeDB::new(
+            home_indexer,
             HomeDB::new(db.clone(), home.name().to_owned()),
             self.index.clone(),
             block_height,
@@ -279,7 +279,7 @@ impl Settings {
             home,
             replicas,
             db,
-            home_db,
+            syncing_home_db,
             settings: self.clone(),
             metrics,
             indexer: self.index.clone(),

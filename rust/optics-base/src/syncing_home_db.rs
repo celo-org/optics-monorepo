@@ -24,7 +24,7 @@ static LAST_INSPECTED: &str = "home_indexer_last_inspected_";
 #[derive(Debug, Clone)]
 pub struct SyncingHomeDB {
     provider: Arc<HomeIndexers>,
-    home_db: HomeDB,
+    pub home_db: HomeDB,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,

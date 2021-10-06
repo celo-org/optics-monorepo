@@ -32,7 +32,6 @@ use optics_core::{
 #[derive(Debug)]
 struct UpdateHandler {
     home: Arc<Homes>,
-
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
@@ -273,7 +272,7 @@ impl OpticsAgent for Updater {
             rx,
             self.update_pause,
             self.signer.clone(),
-            HomeDB::new(self.db(), self.home().name().to_owned()),
+            self.home_db(),
             Default::default(),
             self.signed_attestation_count.clone(),
         );

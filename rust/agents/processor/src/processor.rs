@@ -367,6 +367,7 @@ impl OpticsAgent for Processor {
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
+        let home_db = self.home_db();
 
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();
@@ -403,7 +404,7 @@ impl OpticsAgent for Processor {
 
             info!("Starting indexer");
             // indexer setup
-            let index_task = self.home_db().index();
+            let index_task = self.syncing_home_db().index();
             info!("started indexer and sync");
 
             // instantiate task array here so we can optionally push run_task

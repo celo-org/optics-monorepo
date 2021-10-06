@@ -1,16 +1,9 @@
-use crate::{
-    cancel_task,
-    home::Homes,
-    metrics::CoreMetrics,
-    replica::Replicas,
-    settings::{IndexSettings, Settings},
-    syncing_home_db::SyncingHomeDB,
-};
+use crate::{cancel_task, home::Homes, metrics::CoreMetrics, replica::Replicas, settings::{IndexSettings, Settings}, syncing_home_db::SyncingHomeDB};
 
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::db::DB;
+use optics_core::db::{DB, HomeDB};
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 
@@ -26,7 +19,7 @@ pub struct AgentCore {
     /// A persistent KV Store (currently implemented as rocksdb)
     pub db: DB,
     /// Continuously syncing HomeDB
-    pub home_db: SyncingHomeDB,
+    pub syncing_home_db: SyncingHomeDB,
     /// Prometheus metrics
     pub metrics: Arc<CoreMetrics>,
     /// The height at which to start indexing the Home
@@ -62,8 +55,12 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
         self.as_ref().db.clone()
     }
 
-    fn home_db(&self) -> SyncingHomeDB {
-        self.as_ref().home_db.clone()
+    fn syncing_home_db(&self) -> SyncingHomeDB {
+        self.as_ref().syncing_home_db.clone()
+    }
+
+    fn home_db(&self) -> HomeDB {
+        self.syncing_home_db().home_db.clone()
     }
 
     /// Return a reference to a home contract
@@ -134,7 +131,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
 
             // kludge
             if Self::AGENT_NAME != "kathy" {
-                let index_task = self.home_db().index();
+                let index_task = self.syncing_home_db().index();
                 tasks.push(index_task);
             }
 
