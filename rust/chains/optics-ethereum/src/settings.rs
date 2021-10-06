@@ -1,12 +1,21 @@
 use color_eyre::{Report, Result};
+use ethers::contract::abigen;
 use ethers::prelude::{Address, Middleware};
-use std::convert::TryFrom;
+use std::{convert::TryFrom, sync::Arc};
 
 use optics_core::{
     db::DB,
-    traits::{ConnectionManager, Home, Replica},
+    traits::{ConnectionManager, Home, HomeIndexer, Replica},
     Signers,
 };
+
+use crate::EthereumHomeIndexer;
+
+#[allow(missing_docs)]
+abigen!(
+    EthereumHomeInternal,
+    "./chains/optics-ethereum/abis/Home.abi.json"
+);
 
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.
@@ -202,6 +211,28 @@ impl EthereumConnection {
                 )
             }
         };
+        Ok(b)
+    }
+
+    /// Try to convert this into an HomeIndexer
+    pub async fn try_into_home_indexer(
+        &self,
+        address: Address,
+    ) -> Result<Box<dyn HomeIndexer>, Report> {
+        let b: Box<dyn HomeIndexer> = match &self {
+            EthereumConnection::Http { url } => {
+                let provider = Arc::new(
+                    ethers::providers::Provider::<ethers::providers::Http>::try_from(url.as_ref())?,
+                );
+                Box::new(EthereumHomeIndexer::new(address, provider))
+            }
+            EthereumConnection::Ws { url } => {
+                let ws = ethers::providers::Ws::connect(url).await?;
+                let provider = Arc::new(ethers::providers::Provider::new(ws));
+                Box::new(EthereumHomeIndexer::new(address, provider))
+            }
+        };
+
         Ok(b)
     }
 }

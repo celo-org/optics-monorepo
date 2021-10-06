@@ -36,11 +36,20 @@
 //!    intended to be used by a specific agent.
 //!    E.g. `export OPT_KATHY_CHAT_TYPE="static message"`
 
-use crate::{agent::AgentCore, home::Homes, replica::Replicas};
+use crate::{
+    agent::AgentCore, home::Homes, home_indexer::HomeIndexers, replica::Replicas,
+    syncing_home_db::SyncingHomeDB,
+};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use ethers::prelude::AwsSigner;
-use optics_core::{db::DB, utils::HexString, Signers};
+use optics_core::{
+    db::{HomeDB, DB},
+    traits::Common,
+    utils::HexString,
+    Signers,
+};
+
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
 use serde::Deserialize;
@@ -230,6 +239,11 @@ impl Settings {
         self.home.try_into_home(signer, db).await
     }
 
+    /// Try to get an indexer provider object
+    pub async fn try_home_indexer(&self) -> Result<HomeIndexers, Report> {
+        self.home.try_into_home_indexer().await
+    }
+
     /// Try to generate an agent core for a named agent
     pub async fn try_into_core(&self, name: &str) -> Result<AgentCore, Report> {
         let metrics = Arc::new(crate::metrics::CoreMetrics::new(
@@ -243,11 +257,29 @@ impl Settings {
         let db = DB::from_path(&self.db)?;
         let home = Arc::new(self.try_home(db.clone()).await?);
         let replicas = self.try_replicas().await?;
+        let indexer_provider = Arc::new(self.try_home_indexer().await?);
+
+        let block_height = metrics
+            .new_int_gauge(
+                "block_height",
+                "Height of a recently observed block",
+                &["network", "agent"],
+            )
+            .expect("failed to register block_height metric")
+            .with_label_values(&[home.name(), name]);
+
+        let home_db = SyncingHomeDB::new(
+            indexer_provider,
+            HomeDB::new(db.clone(), home.name().to_owned()),
+            self.index.clone(),
+            block_height,
+        );
 
         Ok(AgentCore {
             home,
             replicas,
             db,
+            home_db,
             settings: self.clone(),
             metrics,
             indexer: self.index.clone(),

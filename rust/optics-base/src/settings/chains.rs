@@ -3,7 +3,7 @@ use optics_core::{db::DB, Signers};
 use optics_ethereum::settings::EthereumConnection;
 use serde::Deserialize;
 
-use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
+use crate::{home::Homes, home_indexer::HomeIndexers, replica::Replicas, xapp::ConnectionManagers};
 
 /// A connection to _some_ blockchain.
 ///
@@ -80,6 +80,16 @@ impl ChainSetup {
                     signer,
                 )
                 .await?,
+            )),
+        }
+    }
+
+    /// Try to convert chain setting into HomeIndexer (which contains a home
+    /// contract)
+    pub async fn try_into_home_indexer(&self) -> Result<HomeIndexers, Report> {
+        match &self.chain {
+            ChainConf::Ethereum(conf) => Ok(HomeIndexers::Ethereum(
+                conf.try_into_home_indexer(self.address.parse()?).await?,
             )),
         }
     }

@@ -8,7 +8,7 @@ pub mod replica;
 pub mod xapp;
 
 /// Interface for chain provider
-pub mod indexer_provider;
+pub mod home_indexer;
 
 /// Traits for cdanonical binary representations
 pub mod encode;
@@ -24,7 +24,7 @@ use std::error::Error as StdError;
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use home::*;
-pub use indexer_provider::*;
+pub use home_indexer::*;
 pub use replica::*;
 pub use xapp::*;
 

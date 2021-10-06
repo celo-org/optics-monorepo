@@ -1,7 +1,7 @@
 //! Interfaces to the ethereum contracts
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
 mod macros;
@@ -10,7 +10,7 @@ mod macros;
 #[cfg(not(doctest))]
 mod home;
 
-mod indexer_provider;
+mod home_indexer;
 
 /// Replica abi
 #[cfg(not(doctest))]
@@ -25,6 +25,5 @@ pub mod settings;
 
 #[cfg(not(doctest))]
 pub use crate::{
-    home::EthereumHome, indexer_provider::*, replica::EthereumReplica,
-    xapp::EthereumConnectionManager,
+    home::EthereumHome, home_indexer::*, replica::EthereumReplica, xapp::EthereumConnectionManager,
 };

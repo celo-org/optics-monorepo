@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
-use ethers::core::types::Signature;
+use ethers::core::types::{Address, Signature};
 use optics_core::SignedUpdateWithMeta;
 use optics_core::{
-    traits::{ChainCommunicationError, IndexerProvider, RawCommittedMessage},
+    traits::{HomeIndexer, RawCommittedMessage},
     SignedUpdate, Update, UpdateMeta,
 };
 
@@ -18,7 +18,7 @@ abigen!(
 
 /// Home event provider for Ethereum
 #[derive(Debug)]
-pub struct EthereumIndexerProvider<M>
+pub struct EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
@@ -26,8 +26,22 @@ where
     provider: Arc<M>,
 }
 
+impl<M> EthereumHomeIndexer<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    /// Create a reference to a Home at a specific Ethereum address on some
+    /// chain
+    pub fn new(address: Address, provider: Arc<M>) -> Self {
+        Self {
+            contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
+            provider,
+        }
+    }
+}
+
 #[async_trait]
-impl<M> IndexerProvider for EthereumIndexerProvider<M>
+impl<M> HomeIndexer for EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {

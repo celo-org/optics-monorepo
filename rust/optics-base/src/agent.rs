@@ -4,7 +4,9 @@ use crate::{
     metrics::CoreMetrics,
     replica::Replicas,
     settings::{IndexSettings, Settings},
+    syncing_home_db::SyncingHomeDB,
 };
+
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
@@ -26,6 +28,8 @@ pub struct AgentCore {
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
     pub db: DB,
+    /// Continuously syncing HomeDB
+    pub home_db: SyncingHomeDB,
     /// Prometheus metrics
     pub metrics: Arc<CoreMetrics>,
     /// The height at which to start indexing the Home
