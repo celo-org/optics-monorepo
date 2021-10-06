@@ -147,8 +147,7 @@ impl OpticsAgent for Relayer {
             }
             let replica = replica_opt.unwrap();
 
-            let update_poller =
-                UpdatePoller::new(home, home_db, replica.clone(), duration);
+            let update_poller = UpdatePoller::new(home, home_db, replica.clone(), duration);
             update_poller.spawn().await?
         })
         .in_current_span()

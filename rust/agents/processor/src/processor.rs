@@ -367,7 +367,6 @@ impl OpticsAgent for Processor {
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
-        let home_db = self.home_db();
 
         let allowed = self.allowed.clone();
         let denied = self.denied.clone();

@@ -1,9 +1,16 @@
-use crate::{cancel_task, home::Homes, metrics::CoreMetrics, replica::Replicas, settings::{IndexSettings, Settings}, syncing_home_db::SyncingHomeDB};
+use crate::{
+    cancel_task,
+    home::Homes,
+    metrics::CoreMetrics,
+    replica::Replicas,
+    settings::{IndexSettings, Settings},
+    syncing_home_db::SyncingHomeDB,
+};
 
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::db::{DB, HomeDB};
+use optics_core::db::{HomeDB, DB};
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 
@@ -60,7 +67,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     fn home_db(&self) -> HomeDB {
-        self.syncing_home_db().home_db.clone()
+        self.syncing_home_db().home_db
     }
 
     /// Return a reference to a home contract
