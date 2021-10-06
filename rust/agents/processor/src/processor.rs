@@ -117,9 +117,26 @@ impl Replica {
                             self.home_db
                                 .store_latest_nonce(domain, next_message_nonce)?;
                             next_message_nonce += 1;
+
+                            self.next_message_nonce
+                                .with_label_values(&[
+                                    self.home.name(),
+                                    self.replica.name(),
+                                    AGENT_NAME,
+                                ])
+                                .set(next_message_nonce as i64);
                         }
                         Ok(Flow::Repeat) => {
                             // there was some fault, let's wait and then try again later when state may have moved
+                            info!(
+                                domain,
+                                nonce = next_message_nonce,
+                                replica = self.replica.name(),
+                                "Failed to find message_by_nonce or proof_by_leaf_index. Processor retrying message. Replica: {}. Nonce: {}. Domain: {}.",
+                                self.replica.name(),
+                                next_message_nonce,
+                                domain,
+                            );
                             sleep(Duration::from_secs(self.interval)).await
                         }
                         Err(e) => {
@@ -161,22 +178,31 @@ impl Replica {
         };
 
         info!(target: "seen_committed_messages", leaf_index = message.leaf_index);
+        let sender = message.message.sender;
 
         // if we have an allow list, filter senders not on it
-        if let Some(false) = self
-            .allowed
-            .as_ref()
-            .map(|set| set.contains(&message.message.sender))
-        {
+        if let Some(false) = self.allowed.as_ref().map(|set| set.contains(&sender)) {
+            info!(
+                sender = ?sender,
+                nonce = nonce,
+                "Skipping message because sender not on allow list. Sender: {}. Domain: {}. Nonce: {}",
+                sender,
+                domain,
+                nonce
+            );
             return Ok(Flow::Advance);
         }
 
         // if we have a deny list, filter senders on it
-        if let Some(true) = self
-            .denied
-            .as_ref()
-            .map(|set| set.contains(&message.message.sender))
-        {
+        if let Some(true) = self.denied.as_ref().map(|set| set.contains(&sender)) {
+            info!(
+                sender = ?sender,
+                nonce = nonce,
+                "Skipping message because sender on deny list. Sender: {}. Domain: {}. Nonce: {}",
+                sender,
+                domain,
+                nonce
+            );
             return Ok(Flow::Advance);
         }
 
