@@ -11,7 +11,7 @@ use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
-    utils, Decode, Encode, Message, OpticsMessage, SignedUpdate, Update, UpdateMeta
+    Message, SignedUpdate, Update, UpdateMeta,
 };
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
