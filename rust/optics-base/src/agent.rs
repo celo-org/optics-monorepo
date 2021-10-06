@@ -10,10 +10,7 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::{
-    db::{HomeDB, DB},
-    traits::{Common, Home},
-};
+use optics_core::db::DB;
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 
@@ -65,9 +62,8 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
         self.as_ref().db.clone()
     }
 
-    /// Return a handle to the DB with the home schema
-    fn home_db(&self) -> HomeDB {
-        HomeDB::new(self.as_ref().db.clone(), self.home().name().to_owned())
+    fn home_db(&self) -> SyncingHomeDB {
+        self.as_ref().home_db.clone()
     }
 
     /// Return a reference to a home contract
@@ -138,22 +134,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
 
             // kludge
             if Self::AGENT_NAME != "kathy" {
-                let block_height = self
-                    .as_ref()
-                    .metrics
-                    .new_int_gauge(
-                        "block_height",
-                        "Height of a recently observed block",
-                        &["network", "agent"],
-                    )
-                    .expect("failed to register block_height metric")
-                    .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
-
-                let indexer = &self.as_ref().indexer;
-                let index_task =
-                    self.home()
-                        .index(indexer.from(), indexer.chunk_size(), block_height);
-
+                let index_task = self.home_db().index();
                 tasks.push(index_task);
             }
 

@@ -403,21 +403,7 @@ impl OpticsAgent for Processor {
 
             info!("Starting indexer");
             // indexer setup
-            let block_height = self
-                .as_ref()
-                .metrics
-                .new_int_gauge(
-                    "block_height",
-                    "Height of a recently observed block",
-                    &["network", "agent"],
-                )
-                .expect("failed to register block_height metric")
-                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
-            let indexer = &self.as_ref().indexer;
-            let index_task = self
-                .home()
-                .index(indexer.from(), indexer.chunk_size(), block_height);
-
+            let index_task = self.home_db().index();
             info!("started indexer and sync");
 
             // instantiate task array here so we can optionally push run_task

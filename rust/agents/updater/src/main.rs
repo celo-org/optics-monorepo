@@ -14,10 +14,8 @@ use color_eyre::Result;
 
 use futures_util::future::select_all;
 
-use optics_base::{agent::OpticsAgent, cancel_task};
-use optics_core::traits::{Common, Home};
-
 use crate::{settings::UpdaterSettings as Settings, updater::Updater};
+use optics_base::{agent::OpticsAgent, cancel_task};
 
 #[allow(unused_must_use)]
 async fn _main() -> Result<()> {
@@ -34,25 +32,7 @@ async fn _main() -> Result<()> {
 
     let _ = agent.metrics().run_http_server();
 
-    // this is deliberately different from other agents because the updater
-    // does not run replicas. As a result, most of the contents of run_all are
-    // broken out here
-    let indexer = &agent.as_ref().indexer;
-
-    let block_height = agent
-        .as_ref()
-        .metrics
-        .new_int_gauge(
-            "block_height",
-            "Height of a recently observed block",
-            &["network", "agent"],
-        )
-        .expect("failed to register block_height metric")
-        .with_label_values(&[agent.home().name(), Updater::AGENT_NAME]);
-
-    let index_task = agent
-        .home()
-        .index(indexer.from(), indexer.chunk_size(), block_height);
+    let index_task = agent.home_db().index();
     let run_task = agent.run("");
 
     let futs = vec![index_task, run_task];

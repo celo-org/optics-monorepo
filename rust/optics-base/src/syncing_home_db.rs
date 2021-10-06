@@ -21,7 +21,7 @@ static LAST_INSPECTED: &str = "home_indexer_last_inspected_";
 
 /// Struct that indexes event data emitted by a home contract
 /// and stores it in a HomeDB.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SyncingHomeDB {
     provider: Arc<HomeIndexers>,
     home_db: HomeDB,
@@ -45,6 +45,10 @@ impl SyncingHomeDB {
             chunk_size: index_settings.chunk_size(),
             indexed_height: block_height,
         }
+    }
+
+    pub fn home_db(&self) -> HomeDB {
+        self.home_db.clone()
     }
 
     #[instrument(err, skip(self))]
@@ -89,7 +93,7 @@ impl SyncingHomeDB {
     }
 
     /// Spawn HomeDB sync task
-    pub fn spawn_sync(self) -> Instrumented<JoinHandle<Result<()>>> {
+    pub fn index(self) -> Instrumented<JoinHandle<Result<()>>> {
         let span = info_span!("HomeIndexer");
         let provider = self.provider.clone();
 
