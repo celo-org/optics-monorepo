@@ -239,7 +239,7 @@ impl Settings {
         self.home.try_into_home(signer, db).await
     }
 
-    /// Try to get an indexer provider object
+    /// Try to get a home indexer object
     pub async fn try_home_indexer(&self) -> Result<HomeIndexers, Report> {
         self.home.try_into_home_indexer().await
     }

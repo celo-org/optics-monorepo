@@ -16,8 +16,8 @@ impl<M> From<EthereumHomeIndexer<M>> for HomeIndexers
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn from(indexer_provider: EthereumHomeIndexer<M>) -> Self {
-        HomeIndexers::Ethereum(Box::new(indexer_provider))
+    fn from(home_indexer: EthereumHomeIndexer<M>) -> Self {
+        HomeIndexers::Ethereum(Box::new(home_indexer))
     }
 }
 

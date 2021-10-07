@@ -22,7 +22,7 @@ pub mod macros;
 /// Home type
 pub mod home;
 
-/// Continuously indexing HomeDB
+/// Continuously syncing HomeDB
 pub mod syncing_home_db;
 
 /// HomeIndexer provider

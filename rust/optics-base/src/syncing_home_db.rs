@@ -23,8 +23,8 @@ static LAST_INSPECTED: &str = "home_indexer_last_inspected_";
 /// and stores it in a HomeDB.
 #[derive(Debug, Clone)]
 pub struct SyncingHomeDB {
-    provider: Arc<HomeIndexers>,
-    pub home_db: HomeDB,
+    home_indexer: Arc<HomeIndexers>,
+    home_db: HomeDB,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -33,13 +33,13 @@ pub struct SyncingHomeDB {
 impl SyncingHomeDB {
     /// Instantiate new SyncingHomeDB
     pub fn new(
-        provider: Arc<HomeIndexers>,
+        home_indexer: Arc<HomeIndexers>,
         home_db: HomeDB,
         index_settings: IndexSettings,
         block_height: prometheus::IntGauge,
     ) -> Self {
         Self {
-            provider,
+            home_indexer,
             home_db,
             from_height: index_settings.from(),
             chunk_size: index_settings.chunk_size(),
@@ -69,8 +69,8 @@ impl SyncingHomeDB {
 
     /// Retrieve new signed updates based on a particular chain API
     async fn get_updates_with_meta(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
-        match self.provider.as_ref() {
-            HomeIndexers::Ethereum(provider) => provider.get_updates_with_meta(from, to).await,
+        match self.home_indexer.as_ref() {
+            HomeIndexers::Ethereum(home_indexer) => home_indexer.get_updates_with_meta(from, to).await,
         }
     }
 
@@ -87,15 +87,15 @@ impl SyncingHomeDB {
 
     /// Retrieve new messages based on a particular chain API
     async fn get_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
-        match self.provider.as_ref() {
-            HomeIndexers::Ethereum(provider) => provider.get_messages(from, to).await,
+        match self.home_indexer.as_ref() {
+            HomeIndexers::Ethereum(home_indexer) => home_indexer.get_messages(from, to).await,
         }
     }
 
-    /// Spawn HomeDB sync task
+    /// Spawn HomeDB indexing task
     pub fn index(self) -> Instrumented<JoinHandle<Result<()>>> {
         let span = info_span!("HomeIndexer");
-        let provider = self.provider.clone();
+        let home_indexer = self.home_indexer.clone();
 
         tokio::spawn(async move {
             let mut next_height: u32 = self
@@ -110,7 +110,7 @@ impl SyncingHomeDB {
 
             loop {
                 self.indexed_height.set(next_height as i64);
-                let tip: u32 = provider.get_block_number().await?;
+                let tip: u32 = home_indexer.get_block_number().await?;
                 let candidate = next_height + self.chunk_size;
                 let to = min(tip, candidate);
 

@@ -67,7 +67,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     fn home_db(&self) -> HomeDB {
-        self.syncing_home_db().home_db
+        self.syncing_home_db().home_db()
     }
 
     /// Return a reference to a home contract

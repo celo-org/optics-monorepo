@@ -3,7 +3,7 @@ use color_eyre::Result;
 
 use crate::{traits::RawCommittedMessage, SignedUpdateWithMeta};
 
-/// Interface for retrieving event data from a home contract
+/// Interface for indexing/retrieving event-based data from a home contract
 #[async_trait]
 pub trait HomeIndexer: Send + Sync + std::fmt::Debug {
     /// Return latest block number

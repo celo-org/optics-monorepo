@@ -16,7 +16,7 @@ abigen!(
     "./chains/optics-ethereum/abis/Home.abi.json"
 );
 
-/// Home event provider for Ethereum
+/// Home event-related data provider for Ethereum
 #[derive(Debug)]
 pub struct EthereumHomeIndexer<M>
 where
@@ -30,8 +30,7 @@ impl<M> EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    /// Create a reference to a Home at a specific Ethereum address on some
-    /// chain
+    /// Create a new HomeIndexer for a home contract on Ethereum
     pub fn new(address: Address, provider: Arc<M>) -> Self {
         Self {
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
