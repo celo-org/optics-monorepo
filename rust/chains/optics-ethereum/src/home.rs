@@ -126,8 +126,9 @@ where
 
             let committed_message: CommittedMessage = message.try_into()?;
             info!(
-                "Stored new message in db. Leaf index: {}. Domain: {}. Nonce: {}.",
+                "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
                 &committed_message.leaf_index,
+                &committed_message.message.origin,
                 &committed_message.message.destination,
                 &committed_message.message.nonce
             );
