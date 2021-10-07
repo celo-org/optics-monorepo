@@ -7,7 +7,6 @@ use ethers::core::types::{Signature, H256};
 use optics_core::db::{OpticsDB, DB};
 /*
 use optics_core::traits::CommittedMessage;
-use optics_core::SignedUpdateWithMeta;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
@@ -19,6 +18,7 @@ use optics_core::{
     ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
+use optics_core::{SignedUpdateWithMeta};
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tokio::try_join;
