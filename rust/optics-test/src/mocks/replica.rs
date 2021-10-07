@@ -39,16 +39,6 @@ mock! {
 
         pub fn _committed_root(&self) -> Result<H256, ChainCommunicationError> {}
 
-        pub fn _signed_update_by_old_root(
-            &self,
-            old_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
-
-        pub fn _signed_update_by_new_root(
-            &self,
-            new_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
-
         pub fn _update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _double_update(
@@ -126,20 +116,6 @@ impl Common for MockReplicaContract {
 
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         self._committed_root()
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_old_root(old_root)
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_new_root(new_root)
     }
 
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {

@@ -162,28 +162,6 @@ impl Common for Replicas {
         }
     }
 
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.signed_update_by_old_root(old_root).await,
-            Replicas::Mock(mock_replica) => mock_replica.signed_update_by_old_root(old_root).await,
-            Replicas::Other(replica) => replica.signed_update_by_old_root(old_root).await,
-        }
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.signed_update_by_new_root(new_root).await,
-            Replicas::Mock(mock_replica) => mock_replica.signed_update_by_new_root(new_root).await,
-            Replicas::Other(replica) => replica.signed_update_by_new_root(new_root).await,
-        }
-    }
-
     #[instrument(fields(update = %update.update))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {

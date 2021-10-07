@@ -8,8 +8,6 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::{core::types::H256, utils::keccak256};
-use tokio::task::JoinHandle;
-use tracing::instrument::Instrumented;
 
 /// A Stamped message that has been committed at some leaf index
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -111,73 +109,10 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// Return the domain ID
     fn local_domain(&self) -> u32;
 
-    /// Run a task indexing the chain (if necessary)
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<JoinHandle<Result<()>>>;
-
     /// Return the domain hash
     fn home_domain_hash(&self) -> H256 {
         home_domain_hash(self.local_domain())
     }
-
-    /// Fetch the message to destination at the nonce (or error).
-    /// This should fetch events from the chain API.
-    ///
-    /// Used by processors to get messages in order
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
-
-    /// Fetch the message to destination at the nonce (or error).
-    /// This should fetch events from the chain API
-    async fn message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
-        self.raw_message_by_nonce(destination, nonce)
-            .await?
-            .map(CommittedMessage::try_from)
-            .transpose()
-            .map_err(Into::into)
-    }
-
-    /// Look up a message by its hash.
-    /// This should fetch events from the chain API
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError>;
-
-    /// Look up a message by its hash.
-    /// This should fetch events from the chain API
-    async fn message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<CommittedMessage>, ChainCommunicationError> {
-        self.raw_message_by_leaf(leaf)
-            .await?
-            .map(CommittedMessage::try_from)
-            .transpose()
-            .map_err(Into::into)
-    }
-
-    /// Fetch the tree_index-th leaf inserted into the merkle tree.
-    /// Returns `Ok(None)` if no leaf exists for given `tree_size` (`Ok(None)`
-    /// serves as the return value for an index error). If tree_index == 0,
-    /// this will return the first inserted leaf.  This is because the Home
-    /// emits the index at which the leaf was inserted in (`tree.count() - 1`),
-    /// thus the first inserted leaf has an index of 0.
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError>;
 
     /// Fetch the nonce
     async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError>;

@@ -4,7 +4,6 @@ use ethers::prelude::{Address, Middleware};
 use std::{convert::TryFrom, sync::Arc};
 
 use optics_core::{
-    db::DB,
     traits::{ConnectionManager, Home, HomeIndexer, Replica},
     Signers,
 };
@@ -52,7 +51,7 @@ macro_rules! construct_box_contract {
             ))
         }
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $provider:expr, $signer:expr) => {{
         if let Some(signer) = $signer {
             // If there's a provided signer, we want to manage every aspect
             // locally
@@ -74,7 +73,6 @@ macro_rules! construct_box_contract {
                 $domain,
                 $address,
                 signing_provider.into(),
-                $db,
             ))
         } else {
             Box::new(crate::$contract::new(
@@ -82,7 +80,6 @@ macro_rules! construct_box_contract {
                 $domain,
                 $address,
                 $provider.into(),
-                $db,
             ))
         }
     }};
@@ -94,10 +91,10 @@ macro_rules! construct_ws_box_contract {
         let provider = ethers::providers::Provider::new(ws);
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
         let ws = ethers::providers::Ws::connect($url).await?;
         let provider = ethers::providers::Provider::new(ws);
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
+        construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
 }
 
@@ -107,10 +104,10 @@ macro_rules! construct_http_box_contract {
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
         construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
-    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr, $db:expr) => {{
+    ($contract:ident, $name:expr, $domain:expr, $address:expr, $url:expr, $signer:expr) => {{
         let provider =
             ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?;
-        construct_box_contract!($contract, $name, $domain, $address, provider, $signer, $db)
+        construct_box_contract!($contract, $name, $domain, $address, provider, $signer)
     }};
 }
 
@@ -147,14 +144,13 @@ impl EthereumConnection {
         domain: u32,
         address: Address,
         signer: Option<Signers>,
-        db: DB,
     ) -> Result<Box<dyn Home>, Report> {
         let b: Box<dyn Home> = match &self {
             EthereumConnection::Http { url } => {
-                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer, db)
+                construct_http_box_contract!(EthereumHome, name, domain, address, url, signer)
             }
             EthereumConnection::Ws { url } => {
-                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer, db)
+                construct_ws_box_contract!(EthereumHome, name, domain, address, url, signer)
             }
         };
         Ok(b)

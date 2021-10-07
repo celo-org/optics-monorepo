@@ -234,9 +234,9 @@ impl Settings {
     }
 
     /// Try to get a home object
-    pub async fn try_home(&self, db: DB) -> Result<Homes, Report> {
+    pub async fn try_home(&self) -> Result<Homes, Report> {
         let signer = self.get_signer(&self.home.name).await;
-        self.home.try_into_home(signer, db).await
+        self.home.try_into_home(signer).await
     }
 
     /// Try to get a home indexer object
@@ -255,7 +255,7 @@ impl Settings {
         )?);
 
         let db = DB::from_path(&self.db)?;
-        let home = Arc::new(self.try_home(db.clone()).await?);
+        let home = Arc::new(self.try_home().await?);
         let replicas = self.try_replicas().await?;
         let home_indexer = Arc::new(self.try_home_indexer().await?);
 

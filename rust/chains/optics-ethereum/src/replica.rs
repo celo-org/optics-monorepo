@@ -2,15 +2,15 @@
 
 use async_trait::async_trait;
 use ethers::contract::abigen;
-use ethers::core::types::{Address, Signature, H256};
+use ethers::core::types::{Address, H256};
 use optics_core::traits::MessageStatus;
 use optics_core::{
     accumulator::merkle::Proof,
     traits::{ChainCommunicationError, Common, DoubleUpdate, Replica, State, TxOutcome},
-    Encode, OpticsMessage, SignedUpdate, Update,
+    Encode, OpticsMessage, SignedUpdate,
 };
 
-use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
+use std::{error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
 
@@ -89,62 +89,6 @@ where
     #[tracing::instrument(err)]
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         Ok(self.contract.committed_root().call().await?.into())
-    }
-
-    #[tracing::instrument(err)]
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic2(old_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
-    }
-
-    #[tracing::instrument(err)]
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic3(new_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
     }
 
     #[tracing::instrument(err)]
