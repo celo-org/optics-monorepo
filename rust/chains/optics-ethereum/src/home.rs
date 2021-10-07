@@ -5,13 +5,14 @@ use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256};
 use optics_core::db::{HomeDB, DB};
-use optics_core::SignedUpdateWithMeta;
+use optics_core::traits::CommittedMessage;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
     Message, SignedUpdate, Update, UpdateMeta,
 };
+use optics_core::{SignedUpdateWithMeta};
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tokio::try_join;
@@ -20,7 +21,7 @@ use tracing::{instrument::Instrumented, Instrument};
 
 use std::cmp::min;
 use std::time::Duration;
-use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
+use std::{convert::TryFrom, convert::TryInto, error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
 
@@ -92,6 +93,13 @@ where
                 update_with_meta.signed_update.update.new_root,
                 update_with_meta.metadata,
             )?;
+
+            info!(
+                "Stored new update in db. Block number: {}. Previous root: {}. New root: {}.",
+                &update_with_meta.metadata.block_number,
+                &update_with_meta.signed_update.update.previous_root,
+                &update_with_meta.signed_update.update.new_root,
+            );
         }
 
         Ok(())
@@ -115,6 +123,14 @@ where
 
         for message in messages {
             self.home_db.store_raw_committed_message(&message)?;
+
+            let committed_message: CommittedMessage = message.try_into()?;
+            info!(
+                "Stored new message in db. Leaf index: {}. Domain: {}. Nonce: {}.",
+                &committed_message.leaf_index,
+                &committed_message.message.destination,
+                &committed_message.message.nonce
+            );
         }
 
         Ok(())

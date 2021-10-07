@@ -95,7 +95,7 @@ impl Update {
 }
 
 /// Metadata stored about an update
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UpdateMeta {
     /// Block number
     pub block_number: u64,
