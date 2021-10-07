@@ -6,13 +6,13 @@ use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature, H256};
 use optics_core::db::{HomeDB, DB};
 use optics_core::traits::CommittedMessage;
+use optics_core::SignedUpdateWithMeta;
 use optics_core::{
     traits::{
         ChainCommunicationError, Common, DoubleUpdate, Home, RawCommittedMessage, State, TxOutcome,
     },
     Message, SignedUpdate, Update, UpdateMeta,
 };
-use optics_core::{SignedUpdateWithMeta};
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 use tokio::try_join;
