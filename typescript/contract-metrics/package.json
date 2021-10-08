@@ -1,7 +1,7 @@
 {
   "scripts": {
     "monitor": "ts-node src/monitor.ts",
-    "trace": "ts-node src/traceMessage.ts",
+    "trace": "ts-node src/trace.ts",
     "build": "rm tsconfig.tsbuildinfo & tsc",
     "check": "rm tsconfig.tsbuildinfo & tsc --noEmit",
     "prettier": "prettier --write .",
