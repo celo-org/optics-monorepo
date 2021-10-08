@@ -6,7 +6,7 @@ type ContractInput = {
   address: string;
   constructorArguments: any[];
   isProxy?: boolean;
-}
+};
 type VerificationInput = ContractInput[];
 
 /*
@@ -62,7 +62,7 @@ export function getPathToLatestDeployConfig() {
  * */
 function getPathToLatestConfig(
   configPath: string,
-  ignoreFolders: string[] = [],
+  ignoreFolders = ['development', 'staging', 'mainnet', 'default'],
 ) {
   // get the names of all non-default config directories within the relative configPath
   let configFolders: string[] = fs
@@ -96,7 +96,10 @@ function getPathToLatestConfig(
  * @param path relative path to deploy config folder ("../../rust/config/1625570709419")
  * @param network target network to parse ("alfajores", "kovan")
  * */
-export function getVerificationInputFromDeploy(path: any, network: any): VerificationInput {
+export function getVerificationInputFromDeploy(
+  path: any,
+  network: any,
+): VerificationInput {
   return parseFileFromDeploy(path, network, 'verification');
 }
 
@@ -116,8 +119,7 @@ export function getPathToLatestBridgeDeploy(): string {
  * */
 export function getPathToLatestDeploy(): string {
   const configPath = '../../rust/config';
-  const ignoreFolders = ['default'];
-  return getPathToLatestConfig(configPath, ignoreFolders);
+  return getPathToLatestConfig(configPath);
 }
 
 /*
