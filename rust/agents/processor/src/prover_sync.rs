@@ -213,7 +213,8 @@ impl ProverSync {
         // if we don't already have a proof in the DB
         // calculate a proof under the current root for each leaf
         // store all calculated proofs in the db
-        for idx in start..end {
+        // TODO(luke): refactor prover_sync so we dont have to iterate over every leaf (match from_disk implementation)
+        for idx in 0..self.prover.count() {
             if self.db.proof_by_leaf_index(idx as u32)?.is_none() {
                 self.store_proof(idx as u32)?;
             }
@@ -273,7 +274,7 @@ impl ProverSync {
                 leaves.push(leaf);
                 current_root = incremental.root();
             } else {
-                // break on no leaf
+                // break on no leaf (warn: path never taken)
                 current_root = incremental.root();
                 break;
             }
@@ -315,7 +316,7 @@ impl ProverSync {
                 //      If no update produced the local root, we error.
                 if let Some(signed_update) = signed_update_opt {
                     info!(
-                        "have signed update from {} to {}",
+                        "Have signed update from {} to {}",
                         signed_update.update.previous_root, signed_update.update.new_root,
                     );
                     self.update_full(local_root, signed_update.update.new_root)

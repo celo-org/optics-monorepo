@@ -51,6 +51,10 @@ impl DbStateCommand {
         for index in 0.. {
             match db.message_by_leaf_index(index)? {
                 Some(message) => {
+                    if db.proof_by_leaf_index(index)?.is_none() {
+                        println!("Failed to find proof for leaf index {}!", index);
+                    }
+
                     let committed_root = message.committed_root;
                     let bucket_opt = messages_by_committed_roots.get_mut(&committed_root);
 
