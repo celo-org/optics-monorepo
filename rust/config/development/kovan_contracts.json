@@ -1,27 +1,27 @@
 {
-  "upgradeBeaconController": "0xd0366eFF58a534BC6B6db53E09c21A335329FDa3",
-  "xAppConnectionManager": "0x64E6A670c5A24f4B824e03984a31af609440594c",
-  "updaterManager": "0xD4582876f15f5F8e78db6BcBF78d556d61F8dbC8",
+  "upgradeBeaconController": "0x74d7bB9E0DEf2E0d8d684979Bef402eB2159591A",
+  "xAppConnectionManager": "0xAF24a3DB95Ca55eEFADD7b1753F71c774810Df80",
+  "updaterManager": "0xC13d45adb0C66fA90392Be865698565577673951",
   "governance": {
-    "implementation": "0x660a3a3B3FA9A21003A37CdFDdf9F6d37ba71Fcc",
-    "proxy": "0x0b1d23e4D3c8991396b13F47264000ED89A77Bf3",
-    "beacon": "0x2DD7e0bc3aFb66757faf7Ad30DEf347Bb7296ED4"
+    "implementation": "0x69842bfB14a2e7142c32339f501AF3B38A306e57",
+    "proxy": "0xcd256379089d39B075a4270e33976B582A7641E2",
+    "beacon": "0xD2dfE96E41327435f70572521cc965ED052F7010"
   },
   "home": {
-    "implementation": "0xe0d510Ae3D0D33960b4c6982ef19fc504273B46c",
-    "proxy": "0x5B55C29A10aEe6D5750F128C6a8f490de763ccc7",
-    "beacon": "0x8E8cfeAc0229590898d1C48d3d032eB9E5D745E1"
+    "implementation": "0x5dC555C92554a14300dd02440045EB68Cfc553b3",
+    "proxy": "0x0ED518F19fEbbd3737e39a55a8a708AFe8a9BE59",
+    "beacon": "0xc60C01eD8609611586d34a7bef6dC87cFDB90f60"
   },
   "replicas": {
     "1000": {
-      "implementation": "0x285033FDF2E5eF224D4396AE185Adf469664CE81",
-      "proxy": "0xE63E73339501EE3A8d2928d6C88cf30aC8556Ee0",
-      "beacon": "0xd8ee8F0E99b882Acf0901B672D238219F5D65fA1"
+      "implementation": "0x96e26cCc4b4682ce594a92B264baAdaF5DA64584",
+      "proxy": "0xC6b39Ac67FBE3e029708390ffea130c8C0E7D30b",
+      "beacon": "0xf15e1eb4702344Ba744da084172046dAdc360d0f"
     },
     "2000": {
-      "implementation": "0x285033FDF2E5eF224D4396AE185Adf469664CE81",
-      "proxy": "0xC1AB4d72548Cc1C248EAdcD340035C3b213a47C3",
-      "beacon": "0xd8ee8F0E99b882Acf0901B672D238219F5D65fA1"
+      "implementation": "0x96e26cCc4b4682ce594a92B264baAdaF5DA64584",
+      "proxy": "0x6776ef96A04a40a4dCB835D42bF59649aA9daFeA",
+      "beacon": "0xf15e1eb4702344Ba744da084172046dAdc360d0f"
     }
   },
   "recoveryManager": "0x24F6c874F56533d9a1422e85e5C7A806ED11c036",

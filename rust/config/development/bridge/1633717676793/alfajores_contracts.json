@@ -1,0 +1,12 @@
+{
+  "bridgeRouter": {
+    "implementation": "0x3BF3a58De6F9Eb4d2AF6CB814ABBb18D89A3ce00",
+    "proxy": "0xDBbe03850fDF986Df1C8f1D856012f80A1f98eCc",
+    "beacon": "0x97003cF31A85AA8dc4b174924949E4a69105eb16"
+  },
+  "bridgeToken": {
+    "implementation": "0x2c9d5fc78758213c59A40dE52E61f0e566DD96d1",
+    "proxy": "0x18C8EcCF36E39D174d269c98B1eb8Fb082EF1cc1",
+    "beacon": "0x79977edB87EaCbf8923f4f81b62811Ffe4D8B27d"
+  }
+}

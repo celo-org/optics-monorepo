@@ -1,48 +1,48 @@
 [
   {
     "name": "UpgradeBeaconController",
-    "address": "0xd0366eFF58a534BC6B6db53E09c21A335329FDa3",
+    "address": "0x74d7bB9E0DEf2E0d8d684979Bef402eB2159591A",
     "constructorArguments": []
   },
   {
     "name": "UpdaterManager",
-    "address": "0xD4582876f15f5F8e78db6BcBF78d556d61F8dbC8",
+    "address": "0xC13d45adb0C66fA90392Be865698565577673951",
     "constructorArguments": [
       "0x4177372FD9581ceb2367e0Ce84adC5DAD9DF8D55"
     ]
   },
   {
     "name": "XAppConnectionManager",
-    "address": "0x64E6A670c5A24f4B824e03984a31af609440594c",
+    "address": "0xAF24a3DB95Ca55eEFADD7b1753F71c774810Df80",
     "constructorArguments": []
   },
   {
     "name": "Home Implementation",
-    "address": "0xe0d510Ae3D0D33960b4c6982ef19fc504273B46c",
+    "address": "0x5dC555C92554a14300dd02440045EB68Cfc553b3",
     "constructorArguments": [
       3000
     ]
   },
   {
     "name": "Home UpgradeBeacon",
-    "address": "0x8E8cfeAc0229590898d1C48d3d032eB9E5D745E1",
+    "address": "0xc60C01eD8609611586d34a7bef6dC87cFDB90f60",
     "constructorArguments": [
-      "0xe0d510Ae3D0D33960b4c6982ef19fc504273B46c",
-      "0xd0366eFF58a534BC6B6db53E09c21A335329FDa3"
+      "0x5dC555C92554a14300dd02440045EB68Cfc553b3",
+      "0x74d7bB9E0DEf2E0d8d684979Bef402eB2159591A"
     ]
   },
   {
     "name": "Home Proxy",
-    "address": "0x5B55C29A10aEe6D5750F128C6a8f490de763ccc7",
+    "address": "0x0ED518F19fEbbd3737e39a55a8a708AFe8a9BE59",
     "constructorArguments": [
-      "0x8E8cfeAc0229590898d1C48d3d032eB9E5D745E1",
-      "0xc4d66de8000000000000000000000000d4582876f15f5f8e78db6bcbf78d556d61f8dbc8"
+      "0xc60C01eD8609611586d34a7bef6dC87cFDB90f60",
+      "0xc4d66de8000000000000000000000000c13d45adb0c66fa90392be865698565577673951"
     ],
     "isProxy": true
   },
   {
     "name": "Governance Implementation",
-    "address": "0x660a3a3B3FA9A21003A37CdFDdf9F6d37ba71Fcc",
+    "address": "0x69842bfB14a2e7142c32339f501AF3B38A306e57",
     "constructorArguments": [
       3000,
       1
@@ -50,24 +50,24 @@
   },
   {
     "name": "Governance UpgradeBeacon",
-    "address": "0x2DD7e0bc3aFb66757faf7Ad30DEf347Bb7296ED4",
+    "address": "0xD2dfE96E41327435f70572521cc965ED052F7010",
     "constructorArguments": [
-      "0x660a3a3B3FA9A21003A37CdFDdf9F6d37ba71Fcc",
-      "0xd0366eFF58a534BC6B6db53E09c21A335329FDa3"
+      "0x69842bfB14a2e7142c32339f501AF3B38A306e57",
+      "0x74d7bB9E0DEf2E0d8d684979Bef402eB2159591A"
     ]
   },
   {
     "name": "Governance Proxy",
-    "address": "0x0b1d23e4D3c8991396b13F47264000ED89A77Bf3",
+    "address": "0xcd256379089d39B075a4270e33976B582A7641E2",
     "constructorArguments": [
-      "0x2DD7e0bc3aFb66757faf7Ad30DEf347Bb7296ED4",
-      "0x485cc95500000000000000000000000064e6a670c5a24f4b824e03984a31af609440594c00000000000000000000000024f6c874f56533d9a1422e85e5c7a806ed11c036"
+      "0xD2dfE96E41327435f70572521cc965ED052F7010",
+      "0x485cc955000000000000000000000000af24a3db95ca55eefadd7b1753f71c774810df8000000000000000000000000024f6c874f56533d9a1422e85e5c7a806ed11c036"
     ],
     "isProxy": true
   },
   {
     "name": "Replica Implementation",
-    "address": "0x285033FDF2E5eF224D4396AE185Adf469664CE81",
+    "address": "0x96e26cCc4b4682ce594a92B264baAdaF5DA64584",
     "constructorArguments": [
       3000,
       850000,
@@ -76,26 +76,26 @@
   },
   {
     "name": "Replica UpgradeBeacon",
-    "address": "0xd8ee8F0E99b882Acf0901B672D238219F5D65fA1",
+    "address": "0xf15e1eb4702344Ba744da084172046dAdc360d0f",
     "constructorArguments": [
-      "0x285033FDF2E5eF224D4396AE185Adf469664CE81",
-      "0xd0366eFF58a534BC6B6db53E09c21A335329FDa3"
+      "0x96e26cCc4b4682ce594a92B264baAdaF5DA64584",
+      "0x74d7bB9E0DEf2E0d8d684979Bef402eB2159591A"
     ]
   },
   {
     "name": "Replica Proxy",
-    "address": "0xE63E73339501EE3A8d2928d6C88cf30aC8556Ee0",
+    "address": "0x6776ef96A04a40a4dCB835D42bF59649aA9daFeA",
     "constructorArguments": [
-      "0xd8ee8F0E99b882Acf0901B672D238219F5D65fA1",
+      "0xf15e1eb4702344Ba744da084172046dAdc360d0f",
       "0xe7e7a7b700000000000000000000000000000000000000000000000000000000000003e80000000000000000000000004177372fd9581ceb2367e0ce84adc5dad9df8d550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a"
     ],
     "isProxy": true
   },
   {
     "name": "Replica Proxy",
-    "address": "0xC1AB4d72548Cc1C248EAdcD340035C3b213a47C3",
+    "address": "0x6776ef96A04a40a4dCB835D42bF59649aA9daFeA",
     "constructorArguments": [
-      "0xd8ee8F0E99b882Acf0901B672D238219F5D65fA1",
+      "0xf15e1eb4702344Ba744da084172046dAdc360d0f",
       "0xe7e7a7b700000000000000000000000000000000000000000000000000000000000007d00000000000000000000000004177372fd9581ceb2367e0ce84adc5dad9df8d550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a"
     ],
     "isProxy": true

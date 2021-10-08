@@ -1,8 +1,8 @@
 {
   "environment": "dev",
   "index": {
-    "from": "7121263",
-    "chunk": "9999"
+    "from": "7672149",
+    "chunk": "1999"
   },
   "signers": {
     "alfajores": {
@@ -20,34 +20,34 @@
   },
   "replicas": {
     "kovan": {
-      "address": "0xE63E73339501EE3A8d2928d6C88cf30aC8556Ee0",
+      "address": "0xC6b39Ac67FBE3e029708390ffea130c8C0E7D30b",
       "domain": "3000",
       "name": "kovan",
       "rpcStyle": "ethereum",
       "connection": {
         "type": "http",
-        "url": "https://eth-kovan.alchemyapi.io/v2/aJP38P1ZeHbXP3Td8vVh8vFmxkKT9pnR"
+        "url": ""
       }
     },
     "rinkeby": {
-      "address": "0x6A5F9531D1877ebE96Bc0631DbF64BBCf1f7421c",
+      "address": "0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4",
       "domain": "2000",
       "name": "rinkeby",
       "rpcStyle": "ethereum",
       "connection": {
         "type": "http",
-        "url": "https://eth-rinkeby.alchemyapi.io/v2/uOf-lO18qM7rAT6NOgMAZQoyuS__lhqN"
+        "url": ""
       }
     }
   },
   "home": {
-    "address": "0x47AaF05B1C36015eC186892C43ba4BaF91246aaA",
+    "address": "0x01652e694BbD82C0900776c0406C3DFaa00e1e91",
     "domain": "1000",
     "name": "alfajores",
     "rpcStyle": "ethereum",
     "connection": {
       "type": "http",
-      "url": "https://alfajores-forno.celo-testnet.org"
+      "url": ""
     }
   },
   "tracing": {
