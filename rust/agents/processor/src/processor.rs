@@ -128,7 +128,7 @@ impl Replica {
                         }
                         Ok(Flow::Repeat) => {
                             // there was some fault, let's wait and then try again later when state may have moved
-                            info!(
+                            debug!(
                                 domain,
                                 nonce = next_message_nonce,
                                 replica = self.replica.name(),
