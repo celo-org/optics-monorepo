@@ -35,9 +35,11 @@ async function monitorAll(shouldWrite: boolean) {
   for (let network of config.networks) {
     const origin = network;
     const remotes = config.networks.filter((m) => m != origin);
+    const cont = (config.environment == 'production') ? contexts.mainnet : contexts.dev
     try {
-      await monitor(contexts.mainnet, origin, remotes, shouldWrite);
+      await monitor(cont, origin, remotes, shouldWrite);
     } catch(e){
+      console.log(e)
       config.baseLogger.error({error: e}, `Encountered an Error while processing ${origin}!`)
       continue
     }
