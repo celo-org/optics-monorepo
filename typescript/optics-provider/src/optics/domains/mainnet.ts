@@ -1,4 +1,5 @@
 import { OpticsDomain } from './domain';
+import { OpticsDomain } from './domain';
 
 export const ethereum: OpticsDomain = {
   name: 'ethereum',
@@ -22,6 +23,7 @@ export const polygon: OpticsDomain = {
   name: 'polygon',
   id: 1886350457,
   paginate: {
+    // This needs to be stupidly low to avoid RPC timeouts
     blocks: 100,
     from: 18895794,
   },
