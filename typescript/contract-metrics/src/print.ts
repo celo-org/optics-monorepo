@@ -1,6 +1,7 @@
 import {AnnotatedLifecycleEvent, MessageStatus} from "@optics-xyz/multi-provider/dist/optics";
 import {OpticsContext, OpticsStatus} from "@optics-xyz/multi-provider";
 import fs from "fs";
+import config from "./config";
 
 export function blockExplorerURL(domainName: string, transactionHash: string): string | undefined {
     switch (domainName) {
@@ -68,9 +69,14 @@ export function writeUnprocessedMessages(
 }
 
 export function logMonitorMetrics(origin: string, dispatchLogs: any[], processedLogs: any[], unprocessedDetails: any[]) {
-    console.log(origin, 'Summary: ');
-    console.log('   Num dispatched: ', dispatchLogs.length);
-    console.log('   Num processed: ', processedLogs.length);
-    console.log('   Num unprocessed: ', unprocessedDetails.length);
-    console.log("   Oldest: ", blockExplorerURL(unprocessedDetails[0].chain, unprocessedDetails[0].transactionHash))
+    const summary = {
+        summary: {
+            network: origin,
+            dispatched: dispatchLogs.length,
+            processed: processedLogs.length,
+            unprocessed: unprocessedDetails.length,
+            oldest: blockExplorerURL(unprocessedDetails[0].chain, unprocessedDetails[0].transactionHash)
+        }
+    }
+    config.baseLogger.info(summary, `${origin} Summary`)
 }

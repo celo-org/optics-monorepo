@@ -2,19 +2,46 @@ import {OpticsContext} from '@optics-xyz/multi-provider';
 import {getEvents} from "@optics-xyz/multi-provider/dist/optics/events/fetch";
 import * as contexts from "./registerContext";
 import {logMonitorMetrics, writeUnprocessedMessages} from "./print";
+import config from './config';
 
-export const mainnets = ['ethereum', 'celo', 'polygon'];
+const cliArgs = process.argv.slice(2)
 
-monitorAll().then(() => {
-  console.log('DONE!');
-  process.exit();
-});
+switch (cliArgs[0]) {
+  case 'once':
+    main(false)
+    break;
 
-async function monitorAll() {
-  for (let network of mainnets) {
+  default:
+    main(true)
+    break;
+}
+
+
+async function main(forever: boolean) {
+  if(forever){
+    config.metrics.startServer(9090)
+  }
+  do {
+    // write results to disk if we're not running forever
+    await monitorAll(!forever);
+    if(forever){
+      config.baseLogger.info('Sleeping for 120 seconds.')
+      await new Promise(resolve => setTimeout(resolve, 120000));
+    }
+  } while (forever);
+}
+
+async function monitorAll(shouldWrite: boolean) {
+  for (let network of config.networks) {
     const origin = network;
-    const remotes = mainnets.filter((m) => m != origin);
-    await monitor(contexts.mainnet, origin, remotes);
+    const remotes = config.networks.filter((m) => m != origin);
+    try {
+      await monitor(contexts.mainnet, origin, remotes, shouldWrite);
+    } catch(e){
+      config.baseLogger.error({error: e}, `Encountered an Error while processing ${origin}!`)
+      continue
+    }
+    
   }
 }
 
@@ -22,9 +49,10 @@ async function monitor(
   context: OpticsContext,
   origin: string,
   remotes: string[],
+  shouldWrite: boolean
 ) {
-  console.log('Check ', origin);
-  console.log('Get Dispatch logs from ', origin);
+  config.baseLogger.info(`Checking ${origin}`);
+  config.baseLogger.info(`Get Dispatch logs from ${origin}`);
   const home = context.mustGetCore(origin).home;
   const dispatchFilter = home.filters.Dispatch();
   const dispatchLogs = await getEvents(
@@ -36,7 +64,7 @@ async function monitor(
 
   const processedLogs = [];
   for (let remote of remotes) {
-    console.log('Get Process logs from ', remote, ' for ', origin);
+    config.baseLogger.info(`Get Process logs from ${remote} for ${origin}`);
     const replica = context.mustGetReplicaFor(origin, remote);
     const processFilter = replica.filters.Process();
     const processLogs = await getEvents(
@@ -52,7 +80,7 @@ async function monitor(
 
   // console.log
   logMonitorMetrics(origin, dispatchLogs, processedLogs, unprocessedDetails);
-
+  config.metrics.setBridgeState(origin, config.environment, dispatchLogs.length, processedLogs.length, unprocessedDetails.length)
   // write details to file
   await writeUnprocessedMessages(unprocessedDetails, origin);
 }
