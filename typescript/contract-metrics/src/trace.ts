@@ -1,13 +1,13 @@
-import {OpticsContext, OpticsMessage} from '@optics-xyz/multi-provider';
-import * as contexts from "./registerContext";
-import {printStatus} from "./print";
+import { OpticsContext, OpticsMessage } from '@optics-xyz/multi-provider';
+import * as contexts from './registerContext';
+import { printStatus } from './print';
 
 const input: TraceInput[] = [
   {
-    chain: 'kovan',
-    context: contexts.dev,
+    chain: 'polygon',
+    context: contexts.mainnet,
     transactionHash:
-      '0x39322e91cbfe18391f252f063231065adceda35fe8c1ebd2292c98d0a7d10a1f',
+      '0x6f46be8292ea5f04d056d3a1167e6e5b59416e3fdab14520eb402bf1d5f2db3a',
   },
 ];
 
@@ -42,6 +42,9 @@ async function traceTransfer(
     origin,
     transactionHash,
   );
+
+  console.log(`Leaf index: ${message.leafIndex}`);
+  console.log(`Nonce: ${message.nonce}`);
 
   const status = await message.events();
   printStatus(context, status);
