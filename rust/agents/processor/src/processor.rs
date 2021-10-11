@@ -274,9 +274,20 @@ impl Replica {
                     message.message.destination,
                     message.message.nonce
                 );
+                return Ok(());
             }
         }
 
+        info!(
+            domain = message.message.destination,
+            nonce = message.message.nonce,
+            leaf_index = message.leaf_index,
+            leaf = ?message.message.to_leaf(),
+            "Processed message. Destination: {}. Nonce: {}. Leaf index: {}.",
+            message.message.destination,
+            message.message.nonce,
+            message.leaf_index,
+        );
         Ok(())
     }
 }
