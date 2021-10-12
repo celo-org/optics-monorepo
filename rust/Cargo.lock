@@ -2549,12 +2549,14 @@ dependencies = [
 name = "optics-ethereum"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "color-eyre",
  "ethers",
  "ethers-contract",
  "ethers-signers",
  "hex",
+ "num",
  "optics-core",
  "prometheus",
  "rocksdb",

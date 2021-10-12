@@ -4,7 +4,8 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
-use ethers::prelude::Middleware;
+use ethers::prelude::*;
+use num::Num;
 use optics_core::*;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -45,9 +46,9 @@ pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConn
 
 #[allow(dead_code)]
 /// A live connection to an ethereum-compatible chain.
-pub struct Chain<P> {
+pub struct Chain {
     creation_metadata: Connection,
-    ethers: ethers::providers::Provider<P>,
+    ethers: ethers::providers::Provider<ethers::providers::Http>,
 }
 
 contract!(make_replica, EthereumReplica, Replica,);
@@ -58,36 +59,25 @@ contract!(
     ConnectionManager,
 );
 
-/*
-impl Chain<ethers::providers::Ws> {
-    pub async fn connect(c: Connection) -> Self {
-        Chain {
-            creation_metadata: c.clone(),
-            ethers: match c {
-                Connection::Http { url } => Provider::connect(url),
-                Connection::Ws { url } => Provider::<connect(url),
-            },
-        }
-    }
-}
-impl Chain<ethers::providers::Http> {
-    pub async fn connect(c: Connection) -> Self {
-        Chain {
-            creation_metadata: c.clone(),
-            ethers: match c {
-                Connection::Http { url } => Provider::connect(url),
-                Connection::Ws { url } => Provider::<connect(url),
-            },
-        }
-    }
-}
-
-
 #[async_trait::async_trait]
-impl<P> optics_core::Chain for Chain<P> {
-    async fn query_balance(&self, addr: Address) -> anyhow::Result<optics_core::Balance> {
-        ethers::types::AddressOrBytes::Bytes(addr.inner());
-        let mesh = ethers::providers::Ws::connect(self.c.url).await?;
+impl optics_core::Chain for Chain {
+    async fn query_balance(
+        &self,
+        addr: optics_core::Address,
+    ) -> anyhow::Result<optics_core::Balance> {
+
+        let balance = format!(
+            "{:x}",
+            self.ethers
+                .get_balance(
+                    NameOrAddress::Address(H160::from_slice(&addr.0[..])),
+                    Some(BlockId::Number(BlockNumber::Latest))
+                )
+                .await?
+        );
+
+        Ok(optics_core::Balance(num::BigInt::from_str_radix(
+            &balance, 16,
+        )?))
     }
 }
-*/

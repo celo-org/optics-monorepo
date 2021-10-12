@@ -16,6 +16,8 @@ ethers-contract = { git = "https://github.com/gakonst/ethers-rs", branch = "mast
 async-trait = { version = "0.1.42", default-features = false }
 tracing = "0.1.22"
 color-eyre = "0.5.0"
+anyhow = "1"
+num = "0.4"
 
 optics-core = { path = "../../optics-core" }
 tokio = "1.7.1"

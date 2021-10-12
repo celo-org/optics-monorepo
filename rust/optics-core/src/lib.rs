@@ -52,7 +52,7 @@ pub use identifiers::OpticsIdentifier;
 
 use async_trait::async_trait;
 use ethers::{
-    core::types::{Address, Signature, SignatureError, H256},
+    core::types::{Address as EthAddress, Signature, SignatureError, H256},
     prelude::{transaction::eip2718::TypedTransaction, AwsSigner},
     signers::{AwsSignerError, LocalWallet, Signer},
 };
@@ -144,7 +144,7 @@ impl Signer for Signers {
         }
     }
 
-    fn address(&self) -> Address {
+    fn address(&self) -> EthAddress {
         match self {
             Signers::Local(signer) => signer.address(),
             Signers::Aws(signer) => signer.address(),
