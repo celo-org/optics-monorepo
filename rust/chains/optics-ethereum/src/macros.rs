@@ -26,9 +26,15 @@ macro_rules! report_tx {
             tx_hash
         );
 
-        let result = dispatched
-            .await?
-            .ok_or_else(|| optics_core::traits::ChainCommunicationError::DroppedError(tx_hash))?;
+        // Return error if confirmation wait time exceeds 15 min (900 sec)
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(900), dispatched).await {
+            Ok(result) => result,
+            Err(_) => Err(
+                ethers::prelude::ProviderError::CustomError(
+                    format!("Waiting for dispatched tx confirmation timed out! Tx_hash: {}.", tx_hash).into()
+                )),
+        }?
+        .ok_or_else(||optics_core::traits::ChainCommunicationError::DroppedError(tx_hash))?;
 
         tracing::info!(
             "confirmed transaction with tx_hash {:?}",
