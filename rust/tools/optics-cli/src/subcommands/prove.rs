@@ -6,8 +6,7 @@ use crate::{replicas, rpc};
 use optics_core::{
     accumulator::merkle::Proof,
     db::{HomeDB, DB},
-    traits::{MessageStatus, Replica},
-    Decode, OpticsMessage, Signers,
+    ContractLocator, Decode, MessageStatus, OpticsMessage, Replica, Signers,
 };
 use optics_ethereum::EthereumReplica;
 
@@ -152,6 +151,13 @@ impl ProveCommand {
             .transpose()?
             .unwrap_or_else(|| replicas::address_by_domain_pair(origin, destination).unwrap());
 
-        Ok(EthereumReplica::new("", 0, address, Arc::new(middleware)))
+        Ok(EthereumReplica::new(
+            Arc::new(middleware),
+            &ContractLocator {
+                name: "".into(),
+                domain: 0,
+                address: address.into(),
+            },
+        ))
     }
 }

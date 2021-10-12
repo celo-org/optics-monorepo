@@ -1,6 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
-use color_eyre::{Result, eyre::bail};
+use color_eyre::{eyre::bail, Result};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};

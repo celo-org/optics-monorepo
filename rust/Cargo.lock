@@ -195,7 +195,7 @@ dependencies = [
 name = "balance-exporter"
 version = "0.1.0"
 dependencies = [
- "clap",
+ "clap 3.0.0-beta.4",
  "color-eyre",
  "futures",
  "human-panic",

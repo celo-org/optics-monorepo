@@ -65,7 +65,6 @@ impl optics_core::Chain for Chain {
         &self,
         addr: optics_core::Address,
     ) -> anyhow::Result<optics_core::Balance> {
-
         let balance = format!(
             "{:x}",
             self.ethers

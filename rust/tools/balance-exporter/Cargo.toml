@@ -18,7 +18,7 @@ color-eyre = "0"
 clap = "3.0.0-beta.4"
 human-panic = "1"
 
-optics-base = { path = "../optics-base" }
+optics-base = { path = "../../optics-base" }
 
 # SMELL: reaching into the implementation details. abstract eventually.
-optics-ethereum = { path = "../chains/optics-ethereum" }
+optics-ethereum = { path = "../../chains/optics-ethereum" }

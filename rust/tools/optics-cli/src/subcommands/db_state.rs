@@ -5,7 +5,7 @@ use structopt::StructOpt;
 
 use optics_core::{
     db::{HomeDB, DB},
-    traits::CommittedMessage,
+    CommittedMessage,
 };
 
 use ethers::types::H256;
