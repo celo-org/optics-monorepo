@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use color_eyre::Result;
-use ethers::contract::abigen;
 use ethers::core::types::{Address, Signature};
 use optics_core::SignedUpdateWithMeta;
 use optics_core::{
@@ -9,12 +8,8 @@ use optics_core::{
 };
 
 use std::{convert::TryFrom, sync::Arc};
+use crate::home::EthereumHomeInternal;
 
-#[allow(missing_docs)]
-abigen!(
-    EthereumHomeInternal,
-    "./chains/optics-ethereum/abis/Home.abi.json"
-);
 
 /// Home event-related data provider for Ethereum
 #[derive(Debug)]

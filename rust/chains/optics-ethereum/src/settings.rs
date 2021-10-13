@@ -1,5 +1,4 @@
 use color_eyre::{Report, Result};
-use ethers::contract::abigen;
 use ethers::prelude::{Address, Middleware};
 use std::{convert::TryFrom, sync::Arc};
 
@@ -9,12 +8,6 @@ use optics_core::{
 };
 
 use crate::EthereumHomeIndexer;
-
-#[allow(missing_docs)]
-abigen!(
-    EthereumHomeInternal,
-    "./chains/optics-ethereum/abis/Home.abi.json"
-);
 
 // Construct boxed contracts in a big "if-else" chain to handle multiple
 // combinations of middleware.

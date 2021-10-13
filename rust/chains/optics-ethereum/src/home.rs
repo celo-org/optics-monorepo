@@ -20,6 +20,8 @@ abigen!(
     "./chains/optics-ethereum/abis/Home.abi.json"
 );
 
+pub use self::EthereumHomeInternal;
+
 /// A reference to a Home contract on some Ethereum chain
 #[derive(Debug)]
 pub struct EthereumHome<M>
