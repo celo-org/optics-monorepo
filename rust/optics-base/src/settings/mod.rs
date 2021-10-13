@@ -166,7 +166,7 @@ impl IndexSettings {
 ///     }
 /// }
 /// ```
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// The path to use for the DB file

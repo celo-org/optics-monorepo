@@ -20,7 +20,7 @@ use optics_base::{
 };
 use optics_core::{
     db::HomeDB,
-    traits::{ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome},
+    ChainCommunicationError, Common, ConnectionManager, DoubleUpdate, Home, TxOutcome,
     FailureNotification, SignedUpdate, Signers,
 };
 
@@ -499,7 +499,7 @@ mod test {
     use ethers::core::types::H256;
     use ethers::signers::{LocalWallet, Signer};
 
-    use optics_base::Replicas};
+    use optics_base::Replicas;
     use optics_core::{traits::DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
