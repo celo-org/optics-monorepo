@@ -70,7 +70,9 @@ impl SyncingHomeDB {
     /// Retrieve new signed updates based on a particular chain API
     async fn get_updates_with_meta(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         match self.home_indexer.as_ref() {
-            HomeIndexers::Ethereum(home_indexer) => home_indexer.get_updates_with_meta(from, to).await,
+            HomeIndexers::Ethereum(home_indexer) => {
+                home_indexer.get_updates_with_meta(from, to).await
+            }
         }
     }
 

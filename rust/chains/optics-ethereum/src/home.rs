@@ -5,9 +5,7 @@ use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Address, H256};
 use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, State, TxOutcome,
-    },
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Home, State, TxOutcome},
     Message, SignedUpdate, Update,
 };
 use std::{error::Error as StdError, sync::Arc};

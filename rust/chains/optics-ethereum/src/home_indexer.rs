@@ -7,9 +7,8 @@ use optics_core::{
     SignedUpdate, Update, UpdateMeta,
 };
 
-use std::{convert::TryFrom, sync::Arc};
 use crate::home::EthereumHomeInternal;
-
+use std::{convert::TryFrom, sync::Arc};
 
 /// Home event-related data provider for Ethereum
 #[derive(Debug)]

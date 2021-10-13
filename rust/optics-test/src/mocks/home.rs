@@ -6,9 +6,7 @@ use mockall::*;
 use ethers::core::types::H256;
 
 use optics_core::{
-    traits::{
-        ChainCommunicationError, Common, DoubleUpdate, Home, State, TxOutcome,
-    },
+    traits::{ChainCommunicationError, Common, DoubleUpdate, Home, State, TxOutcome},
     Message, SignedUpdate, Update,
 };
 
