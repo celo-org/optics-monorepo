@@ -39,7 +39,6 @@ async function monitorAll(shouldWrite: boolean) {
     try {
       await monitor(cont, origin, remotes, shouldWrite);
     } catch(e){
-      console.log(e)
       config.baseLogger.error({error: e}, `Encountered an Error while processing ${origin}!`)
       continue
     }

@@ -1,11 +1,9 @@
-import { mainnet } from '@optics-xyz/multi-provider';
+import { mainnet } from './registerContext';
 import config from './config';
 
 import {
   AnnotatedSend,
   AnnotatedTokenDeployed,
-  SendArgs,
-  SendTypes,
   TokenDeployedArgs,
   TokenDeployedTypes,
 } from '@optics-xyz/multi-provider/dist/optics/events/bridgeEvents';
@@ -14,7 +12,8 @@ import {
   queryAnnotatedEvents,
 } from '@optics-xyz/multi-provider/dist/optics';
 import { TSContract } from '@optics-xyz/multi-provider/dist/optics/events/fetch';
-import { ethers } from 'ethers';
+// import { ethers } from 'ethers';
+import { uploadDeployedTokens } from './googleSheets';
 
 export type TokenDetails = {
   name: string;
@@ -99,90 +98,19 @@ export async function printDeployedTokens(
   }
 }
 
-export async function getDomainSends(
+export async function persistDeployedTokens(
   context: OpticsContext,
-  nameOrDomain: string | number,
-): Promise<Send[]> {
-  const domain = context.resolveDomain(nameOrDomain);
-  const router = context.mustGetBridge(domain).bridgeRouter;
-  // get Send events
-  const annotated = await queryAnnotatedEvents<SendTypes, SendArgs>(
-    context,
-    domain,
-    router as TSContract<SendTypes, SendArgs>,
-    router.filters.Send(),
-    context.mustGetDomain(domain).paginate?.from,
-  );
-
-  return await Promise.all(
-    annotated.map(async (e: AnnotatedSend) => {
-      const repr = e.event.args.token;
-      const send = e as any;
-      const erc20 = await context.resolveCanonicalToken(domain, repr);
-      const [name, symbol, decimals] = await Promise.all([
-        erc20.name(),
-        erc20.symbol(),
-        erc20.decimals(),
-      ]);
-
-      send.token = {};
-      send.token.name = name;
-      send.token.symbol = symbol;
-      send.token.decimals = decimals;
-      return send as Send;
-    }),
-  );
-}
-
-export async function getSends(
-  context: OpticsContext,
-): Promise<Map<number, Send[]>> {
-  const events = new Map();
-  for (const domain of context.domainNumbers) {
-    console.log(
-      `gettings sends for ${domain} ${context.resolveDomainName(domain)}`,
-    );
-    const sends = await getDomainSends(context, domain);
-    console.log(`got sends for ${domain} ${context.resolveDomainName(domain)}`);
-    events.set(domain, sends);
+  credentials: string
+): Promise <void> {
+  const deployed = await getDeployedTokens(context);
+  for(let domain of deployed.keys()){
+    let domainName = context.resolveDomainName(domain)
+    const tokens = deployed.get(domain)
+    uploadDeployedTokens(domainName!, tokens!, credentials)
   }
-  return events;
-}
-
-function prettySend(context: OpticsContext, send: Send) {
-  const {
-    token: { name, symbol, decimals },
-    event: {
-      args: { from, toDomain, toId, amount },
-    },
-  } = send;
-
-  return {
-    name,
-    symbol,
-    decimals,
-    from,
-    toDomain,
-    toId,
-    amount: ethers.utils.formatUnits(amount, decimals),
-  };
-}
-
-export async function printSends(context: OpticsContext): Promise<void> {
-  const sends = await getSends(context);
-
-  for (const [key, value] of sends.entries()) {
-    const trimmed = value.map((send) => prettySend(context, send));
-
-    console.log(`DOMAIN: ${key} ${context.resolveDomainName(key)}`);
-    console.table(trimmed);
-  }
+  //
 }
 
 (async function main() {
-  mainnet.registerRpcProvider('celo', config.celoRpc);
-  mainnet.registerRpcProvider('ethereum', config.ethereumRpc);
-  mainnet.registerRpcProvider('polygon', config.polygonRpc);
-  await printDeployedTokens(mainnet);
-  await printSends(mainnet);
+  await persistDeployedTokens(mainnet, config.googleCredentialsFile)
 })();

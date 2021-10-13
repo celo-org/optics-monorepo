@@ -1,5 +1,5 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
-import { Deploy } from './eventMetrics';
+import { Deploy } from './tokens';
 
 import fs from 'fs';
 
