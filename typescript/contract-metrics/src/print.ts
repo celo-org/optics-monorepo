@@ -69,14 +69,15 @@ export function writeUnprocessedMessages(
 }
 
 export function logMonitorMetrics(origin: string, dispatchLogs: any[], processedLogs: any[], unprocessedDetails: any[]) {
+    const oldest = unprocessedDetails.length != 0 ? blockExplorerURL(unprocessedDetails[0].chain, unprocessedDetails[0].transactionHash) : "";
     const summary = {
         summary: {
             network: origin,
             dispatched: dispatchLogs.length,
             processed: processedLogs.length,
             unprocessed: unprocessedDetails.length,
-            oldest: blockExplorerURL(unprocessedDetails[0].chain, unprocessedDetails[0].transactionHash)
+            oldest
         }
     }
-    config.baseLogger.info(summary, `${origin} Summary`)
+    config.baseLogger.info(summary, `${origin} Summary`);
 }
