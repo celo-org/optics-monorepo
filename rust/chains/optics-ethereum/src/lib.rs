@@ -41,6 +41,14 @@ pub enum Connection {
     },
 }
 
+impl Default for Connection {
+    fn default() -> Self {
+        Self::Http {
+            url: Default::default(),
+        }
+    }
+}
+
 #[cfg(not(doctest))]
 pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};
 

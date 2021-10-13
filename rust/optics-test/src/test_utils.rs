@@ -42,9 +42,8 @@ mod test {
     use super::*;
     use ethers::types::H256;
     use optics_core::{
-        accumulator::merkle::Proof, db::HomeDB, traits::RawCommittedMessage, Encode, OpticsMessage,
+        accumulator::merkle::Proof, db::HomeDB, Encode, OpticsMessage, RawCommittedMessage,
     };
-    use optics_core::{accumulator::merkle::Proof, Encode, OpticsMessage, RawCommittedMessage};
 
     #[tokio::test]
     async fn home_db_stores_and_retrieves_messages() {

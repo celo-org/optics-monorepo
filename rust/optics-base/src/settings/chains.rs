@@ -17,9 +17,15 @@ pub enum ChainConf {
     Ethereum(Connection),
 }
 
+impl Default for ChainConf {
+    fn default() -> Self {
+        Self::Ethereum(Default::default())
+    }
+}
+
 /// A chain setup is a domain ID, an address on that chain (where the home or
 /// replica is deployed) and details for connecting to the chain API.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Default)]
 pub struct ChainSetup {
     /// Chain name
     pub name: String,
