@@ -1,6 +1,6 @@
 //! Configuration
-
 use optics_base::{decl_settings, ChainSetup, SignerConf};
+use std::collections::HashMap;
 
 decl_settings!(Watcher {
     /// The watcher's attestation signer
