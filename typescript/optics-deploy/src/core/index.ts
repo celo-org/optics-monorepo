@@ -181,10 +181,12 @@ export async function deployUnenrolledReplica(
     ? contracts.TestReplica__factory
     : contracts.Replica__factory;
 
+  const committedRoot = await remote.contracts.home!.proxy.committedRoot();
+
   let initData = replica.createInterface().encodeFunctionData('initialize', [
     remote.chain.domain,
     remote.config.updater,
-    ethers.constants.HashZero, // TODO: allow configuration
+    committedRoot,
     remote.config.optimisticSeconds,
   ]);
 
