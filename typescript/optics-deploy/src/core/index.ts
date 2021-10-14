@@ -632,6 +632,77 @@ export async function deployNChains(deploys: CoreDeploy[]) {
 }
 
 /**
+ * Deploy the entire suite of Optics contracts
+ * on a single new chain
+ * including the upgradable Home, Replicas, and GovernanceRouter
+ * that have been deployed, initialized, and configured
+ * according to the deployOptics script
+ *
+ * @param newDeploy - A single chain deploy for the new chain being added
+ * @param oldDeploys - An array of already-deployed chains, including chain, config, and deploy.contracts.governance.proxy
+ */
+export async function deployNewChain(newDeploy: CoreDeploy, oldDeploys: CoreDeploy[]) {
+  if (!newDeploy || oldDeploys.length == 0) {
+    throw new Error('Bad deploy input for deployNewChain');
+  }
+
+  // there exists any chain marked test
+  const isTestDeploy: boolean = newDeploy.test || oldDeploys.filter((c) => c.test).length > 0;
+
+  // log the deploy details
+  log(isTestDeploy, `Beginning New Chain deploy process for ${newDeploy.chain.name} with ${oldDeploys.length} existing chains`);
+  log(isTestDeploy, `Deploy env is ${newDeploy.config.environment}`);
+  log(
+      isTestDeploy,
+      `Updater for ${newDeploy.chain.name} Home is ${newDeploy.config.updater}`,
+  );
+
+  // wait for providers to be ready
+  log(isTestDeploy, 'awaiting provider ready');
+  await newDeploy.ready();
+  await Promise.all([
+    oldDeploys.map(async (deploy) => {
+      await deploy.ready();
+    }),
+  ]);
+  log(isTestDeploy, 'done readying');
+
+  // deploy optics on the new chain
+  await deployOptics(newDeploy);
+
+  // deploy remotes on new chain & one per old chain
+  for (let oldDeploy of oldDeploys) {
+    log(
+        isTestDeploy,
+        `connecting ${oldDeploy.chain.name} on ${newDeploy.chain.name}`,
+    );
+    // deploy and enroll replica for the old chain on the new chain
+    await enrollRemote(newDeploy, oldDeploy);
+    log(
+        isTestDeploy,
+        `connected ${oldDeploy.chain.name} on ${newDeploy.chain.name}`,
+    );
+
+    // deploy a replica for the new chain on each old Chain
+    // note: this will have to be enrolled via Governance messages
+    await deployUnenrolledReplica(oldDeploy, newDeploy);
+  }
+
+  // relinquish control of all chains
+  await relinquish(newDeploy);
+
+  // checks new chain deploy is correct
+  const govDomain = (oldDeploys.find(deploy => deploy.config.governor))!.chain.domain;
+  const remoteDomains = oldDeploys.map(deploy => deploy.chain.domain);
+  await checkCoreDeploy(newDeploy, remoteDomains, govDomain);
+
+  // write config outputs
+  if (!isTestDeploy) {
+    writeDeployOutput([newDeploy, ...oldDeploys]);
+  }
+}
+
+/**
  * Copies the partial configs from the default directory to the specified directory.
  *
  * @param dir - relative path to folder where partial configs will be written
