@@ -1,8 +1,8 @@
 {
   "environment": "dev",
   "index": {
-    "from": "9430441",
-    "chunk": "1999"
+    "from": "9247158",
+    "chunk": "9999"
   },
   "signers": {
     "rinkeby": {
@@ -26,7 +26,7 @@
       "rpcStyle": "ethereum",
       "connection": {
         "type": "http",
-        "url": ""
+        "url": "https://eth-kovan.alchemyapi.io/v2/aJP38P1ZeHbXP3Td8vVh8vFmxkKT9pnR"
       }
     },
     "alfajores": {
@@ -36,7 +36,7 @@
       "rpcStyle": "ethereum",
       "connection": {
         "type": "http",
-        "url": ""
+        "url": "https://alfajores-forno.celo-testnet.org"
       }
     }
   },
@@ -47,7 +47,7 @@
     "rpcStyle": "ethereum",
     "connection": {
       "type": "http",
-      "url": ""
+      "url": "https://eth-rinkeby.alchemyapi.io/v2/uOf-lO18qM7rAT6NOgMAZQoyuS__lhqN"
     }
   },
   "tracing": {
