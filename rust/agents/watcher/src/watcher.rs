@@ -378,7 +378,7 @@ impl OpticsAgent for Watcher {
         Self: Sized,
     {
         let mut connection_managers = vec![];
-        for chain_setup in settings.connection_managers.iter() {
+        for (_, chain_setup) in settings.managers.iter() {
             let signer = settings.base.get_signer(&chain_setup.name).await;
             let manager = chain_setup.try_into_connection_manager(signer).await;
             connection_managers.push(manager);
