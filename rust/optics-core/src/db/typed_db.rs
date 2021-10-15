@@ -8,7 +8,6 @@ use color_eyre::Result;
 #[derive(Debug, Clone)]
 pub struct TypedDB(DB);
 
-
 impl TypedDB {
     /// Instantiate new `TypedDB`
     pub fn new(db: DB) -> Self {
@@ -36,7 +35,8 @@ impl TypedDB {
         key: impl AsRef<[u8]>,
         value: &V,
     ) -> Result<(), DbError> {
-        self.0.store_encodable(TypedDB::full_prefix(entity, prefix), key, value)
+        self.0
+            .store_encodable(TypedDB::full_prefix(entity, prefix), key, value)
     }
 
     /// Retrieve decodable value
@@ -46,6 +46,30 @@ impl TypedDB {
         prefix: impl AsRef<[u8]>,
         key: impl AsRef<[u8]>,
     ) -> Result<Option<V>, DbError> {
-        self.0.retrieve_decodable(TypedDB::full_prefix(entity, prefix), key)
+        self.0
+            .retrieve_decodable(TypedDB::full_prefix(entity, prefix), key)
+    }
+
+    /// Store encodable kv pair
+    pub fn store_keyed_encodable<K: Encode, V: Encode>(
+        &self,
+        entity: impl AsRef<[u8]>,
+        prefix: impl AsRef<[u8]>,
+        key: &K,
+        value: &V,
+    ) -> Result<(), DbError> {
+        self.0
+            .store_encodable(TypedDB::full_prefix(entity, prefix), key.to_vec(), value)
+    }
+
+    /// Retrieve decodable value given encodable key
+    pub fn retrieve_keyed_decodable<K: Encode, V: Decode>(
+        &self,
+        entity: impl AsRef<[u8]>,
+        prefix: impl AsRef<[u8]>,
+        key: &K,
+    ) -> Result<Option<V>, DbError> {
+        self.0
+            .retrieve_decodable(TypedDB::full_prefix(entity, prefix), key.to_vec())
     }
 }
