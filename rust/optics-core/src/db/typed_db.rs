@@ -59,7 +59,7 @@ impl TypedDB {
         value: &V,
     ) -> Result<(), DbError> {
         self.0
-            .store_encodable(TypedDB::full_prefix(entity, prefix), key.to_vec(), value)
+            .store_keyed_encodable(TypedDB::full_prefix(entity, prefix), key, value)
     }
 
     /// Retrieve decodable value given encodable key
@@ -70,6 +70,6 @@ impl TypedDB {
         key: &K,
     ) -> Result<Option<V>, DbError> {
         self.0
-            .retrieve_decodable(TypedDB::full_prefix(entity, prefix), key.to_vec())
+            .retrieve_keyed_decodable(TypedDB::full_prefix(entity, prefix), key)
     }
 }
