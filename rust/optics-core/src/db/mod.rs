@@ -11,8 +11,8 @@ mod typed_db;
 pub use typed_db::*;
 
 /// DB operations tied to specific home
-mod home_db;
-pub use home_db::*;
+// mod home_db;
+// pub use home_db::*;
 
 use crate::{Decode, Encode, OpticsError};
 
