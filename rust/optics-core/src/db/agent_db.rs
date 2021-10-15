@@ -104,12 +104,7 @@ impl AgentDB {
             leaf_index = message.leaf_index,
             "storing raw committed message in db"
         );
-        self.store_leaf(
-            &home_name,
-            message.leaf_index,
-            destination_and_nonce,
-            leaf,
-        )?;
+        self.store_leaf(&home_name, message.leaf_index, destination_and_nonce, leaf)?;
         self.store_keyed_encodable(&home_name, MESSAGE, &leaf, message)?;
         Ok(())
     }
@@ -131,7 +126,10 @@ impl AgentDB {
     }
 
     /// Retrieve the highest known leaf_index
-    pub fn retrieve_latest_leaf_index(&self, home_name: impl AsRef<[u8]>) -> Result<Option<u32>, DbError> {
+    pub fn retrieve_latest_leaf_index(
+        &self,
+        home_name: impl AsRef<[u8]>,
+    ) -> Result<Option<u32>, DbError> {
         self.retrieve_decodable(home_name, "", LATEST_LEAF_INDEX)
     }
 
@@ -301,12 +299,7 @@ impl AgentDB {
             None => self.store_latest_root(&entity, update.update.new_root)?,
         }
 
-        self.store_keyed_encodable(
-            &entity,
-            UPDATE,
-            &update.update.previous_root,
-            update,
-        )?;
+        self.store_keyed_encodable(&entity, UPDATE, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
             &entity,
             PREV_ROOT,
