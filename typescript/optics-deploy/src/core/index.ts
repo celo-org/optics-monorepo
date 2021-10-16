@@ -1,4 +1,3 @@
-import * as ethers from 'ethers';
 import { assert } from 'console';
 import fs from 'fs';
 
@@ -694,9 +693,8 @@ export async function deployNewChain(newDeploy: CoreDeploy, oldDeploys: CoreDepl
   await relinquish(newDeploy);
 
   // checks new chain deploy is correct
-  const govDomain = (oldDeploys.find(deploy => deploy.config.governor))!.chain.domain;
   const remoteDomains = oldDeploys.map(deploy => deploy.chain.domain);
-  await checkCoreDeploy(newDeploy, remoteDomains, govDomain);
+  await checkCoreDeploy(newDeploy, remoteDomains, newDeploy.chain.domain);
 
   // write config outputs
   if (!isTestDeploy) {

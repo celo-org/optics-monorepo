@@ -101,7 +101,7 @@ export async function checkCoreDeploy(
   const homeAddress = deploy.contracts.home?.proxy.address;
   expect(xAppManagerHome).to.equal(homeAddress);
 
-  // governor has ownership over following contracts
+  // governance has ownership over following contracts
   const updaterManagerOwner = await deploy.contracts.updaterManager?.owner();
   const xAppManagerOwner =
     await deploy.contracts.xAppConnectionManager?.owner();
