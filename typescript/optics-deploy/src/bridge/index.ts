@@ -7,7 +7,7 @@ import { BridgeDeploy } from './BridgeDeploy';
 import TestBridgeDeploy from './TestBridgeDeploy';
 import assert from 'assert';
 
-type Deploy = BridgeDeploy | TestBridgeDeploy;
+type AnyBridgeDeploy = BridgeDeploy | TestBridgeDeploy;
 
 export type BridgeDeployOutput = {
   bridgeRouter?: string;
@@ -20,7 +20,7 @@ export type BridgeDeployOutput = {
  *
  * @param deploys - The list of deploy instances for each chain
  */
-export async function deployBridges(deploys: Deploy[]) {
+export async function deployBridges(deploys: AnyBridgeDeploy[]) {
   const isTestDeploy: boolean = deploys.filter((c) => c.test).length > 0;
 
   // deploy BridgeTokens & BridgeRouters
@@ -67,13 +67,48 @@ export async function deployBridges(deploys: Deploy[]) {
 }
 
 /**
+ * Deploy and configure a cross-chain token bridge system
+ * with one BridgeRouter on each of the provided chains
+ * with ownership delegated to Optics governance
+ *
+ * @param deploys - The list of deploy instances for each chain
+ */
+export async function deployNewChainBridge(newDeploy: BridgeDeploy, oldDeploys: BridgeDeploy[]) {
+  const isTestDeploy: boolean = newDeploy.test;
+
+  // deploy BridgeTokens & BridgeRouters
+  await deployTokenUpgradeBeacon(newDeploy);
+  await deployBridgeRouter(newDeploy);
+  await deployEthHelper(newDeploy);
+
+  // after all BridgeRouters have been deployed,
+  // enroll peer BridgeRouters with each other
+  await enrollAllBridgeRouters(newDeploy, oldDeploys);
+
+
+  // after all peer BridgeRouters have been co-enrolled,
+  // transfer ownership of BridgeRouter to Governance
+  await transferOwnershipToGovernance(newDeploy);
+
+  const remoteDomains = oldDeploys.map(deploy => deploy.chain.domain);
+  await checkBridgeDeploy(newDeploy, remoteDomains);
+
+  if (!isTestDeploy) {
+    // output the Bridge deploy information to a subdirectory
+    // of the core system deploy config folder
+    writeBridgeDeployOutput([newDeploy, ...oldDeploys]);
+  }
+}
+
+
+/**
  * Deploys the BridgeToken implementation + upgrade beacon
  * on the chain of the given deploy
  * and updates the deploy instance with the new contracts.
  *
  * @param deploy - The deploy instance
  */
-export async function deployTokenUpgradeBeacon(deploy: Deploy) {
+export async function deployTokenUpgradeBeacon(deploy: AnyBridgeDeploy) {
   console.log(`deploying ${deploy.chain.name} Token Upgrade Beacon`);
 
   // no initialize function called
@@ -96,7 +131,7 @@ export async function deployTokenUpgradeBeacon(deploy: Deploy) {
  *
  * @param deploy - The deploy instance
  */
-export async function deployBridgeRouter(deploy: Deploy) {
+export async function deployBridgeRouter(deploy: AnyBridgeDeploy) {
   console.log(`deploying ${deploy.chain.name} BridgeRouter`);
 
   const initData =
@@ -135,7 +170,7 @@ export async function deployBridgeRouter(deploy: Deploy) {
  *
  * @param deploy - The deploy instance for the chain on which to deploy the contract
  */
-export async function deployEthHelper(deploy: Deploy) {
+export async function deployEthHelper(deploy: AnyBridgeDeploy) {
   if (!deploy.config.weth) {
     console.log(`skipping ${deploy.chain.name} EthHelper deploy`);
     return;
@@ -173,8 +208,8 @@ export async function deployEthHelper(deploy: Deploy) {
  * @param allDeploys - Array of all deploy instances for the Bridge deploy
  */
 export async function enrollAllBridgeRouters(
-  deploy: Deploy,
-  allDeploys: Deploy[],
+  deploy: AnyBridgeDeploy,
+  allDeploys: AnyBridgeDeploy[],
 ) {
   for (let remoteDeploy of allDeploys) {
     if (deploy.chain.domain != remoteDeploy.chain.domain) {
@@ -190,7 +225,7 @@ export async function enrollAllBridgeRouters(
  * @param local - The deploy instance for the chain on which to enroll the router
  * @param remote - The deploy instance for the chain to enroll on the local router
  */
-export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
+export async function enrollBridgeRouter(local: AnyBridgeDeploy, remote: AnyBridgeDeploy) {
   console.log(
     `enrolling ${remote.chain.name} BridgeRouter on ${local.chain.name}`,
   );
@@ -214,7 +249,7 @@ export async function enrollBridgeRouter(local: Deploy, remote: Deploy) {
  *
  * @param deploy - The deploy instance for the chain
  */
-export async function transferOwnershipToGovernance(deploy: Deploy) {
+export async function transferOwnershipToGovernance(deploy: AnyBridgeDeploy) {
   console.log(`transfer ownership of ${deploy.chain.name} BridgeRouter`);
 
   let tx = await deploy.contracts.bridgeRouter!.proxy.transferOwnership(
@@ -232,7 +267,7 @@ export async function transferOwnershipToGovernance(deploy: Deploy) {
  *
  * @param deploys - The array of bridge deploys
  */
-export function writeBridgeDeployOutput(deploys: Deploy[]) {
+export function writeBridgeDeployOutput(deploys: AnyBridgeDeploy[]) {
   console.log(`Have ${deploys.length} bridge deploys`);
   if (deploys.length == 0) {
     return;
