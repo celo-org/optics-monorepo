@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use ethers::core::types::H256;
+use optics_core::db::OpticsDB;
 use optics_core::{
     accumulator::merkle::Proof, ChainCommunicationError, Common, DoubleUpdate, MessageStatus,
     OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
@@ -8,6 +9,22 @@ use optics_core::{
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
 use tracing::{instrument, instrument::Instrumented};
+
+use crate::{ContractSync, Indexers};
+
+/// Caching replica type
+#[derive(Debug)]
+pub struct CachingReplica {
+    replica: Replicas,
+    db: OpticsDB,
+    sync: ContractSync<Indexers>,
+}
+
+impl CachingReplica {
+    pub fn index(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        self.sync.index()
+    }
+}
 
 /// Replica type
 #[derive(Debug)]
@@ -198,19 +215,6 @@ impl Common for Replicas {
             Replicas::Ethereum(replica) => replica.double_update(double).await,
             Replicas::Mock(mock_replica) => mock_replica.double_update(double).await,
             Replicas::Other(replica) => replica.double_update(double).await,
-        }
-    }
-
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        metric: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        match self {
-            Replicas::Ethereum(replica) => replica.index(from_height, chunk_size, metric),
-            Replicas::Mock(mock_replica) => mock_replica.index(from_height, chunk_size, metric),
-            Replicas::Other(replica) => replica.index(from_height, chunk_size, metric),
         }
     }
 }

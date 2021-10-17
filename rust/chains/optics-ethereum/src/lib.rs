@@ -50,7 +50,7 @@ impl Default for Connection {
 }
 
 #[cfg(not(doctest))]
-pub use crate::{home::EthereumHome, replica::EthereumReplica, xapp::EthereumConnectionManager};
+pub use crate::{home::*, replica::*, xapp::*};
 
 #[allow(dead_code)]
 /// A live connection to an ethereum-compatible chain.
