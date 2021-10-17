@@ -59,8 +59,13 @@ pub struct Chain {
     ethers: ethers::providers::Provider<ethers::providers::Http>,
 }
 
-contract!(make_replica, EthereumReplica, Replica,);
-contract!(make_home, EthereumHome, Home, db: optics_core::db::DB);
+contract!(
+    make_replica,
+    EthereumReplica,
+    Replica,
+    db: optics_core::db::OpticsDB
+);
+contract!(make_home, EthereumHome, Home, db: optics_core::db::OpticsDB);
 contract!(
     make_conn_manager,
     EthereumConnectionManager,

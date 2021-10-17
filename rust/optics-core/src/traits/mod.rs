@@ -4,12 +4,15 @@ mod replica;
 mod xapp;
 
 use async_trait::async_trait;
+use color_eyre::Result;
 use ethers::{
     contract::ContractError,
     core::types::{TransactionReceipt, H256},
     providers::{Middleware, ProviderError},
 };
 use std::error::Error as StdError;
+use tokio::task::JoinHandle;
+use tracing::instrument::Instrumented;
 
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
@@ -132,4 +135,12 @@ pub trait Common: Sync + Send + std::fmt::Debug {
         &self,
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError>;
+
+    /// Run a task indexing the chain (if necessary)
+    fn index(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<JoinHandle<Result<()>>>;
 }

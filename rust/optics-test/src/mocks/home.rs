@@ -136,15 +136,6 @@ impl Home for MockHomeContract {
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         self._produce_update()
     }
-
-    fn index(
-        &self,
-        _from_height: u32,
-        _chunk_size: u32,
-        _indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        tokio::spawn(async move { Ok(()) }).in_current_span()
-    }
 }
 
 #[async_trait]
@@ -192,5 +183,14 @@ impl Common for MockHomeContract {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self._double_update(double)
+    }
+
+    fn index(
+        &self,
+        _from_height: u32,
+        _chunk_size: u32,
+        _indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        tokio::spawn(async move { Ok(()) }).in_current_span()
     }
 }

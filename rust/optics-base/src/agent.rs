@@ -8,7 +8,7 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
 use futures_util::future::select_all;
-use optics_core::{db::DB, Common, Home};
+use optics_core::{db::DB, Common};
 use tracing::instrument::Instrumented;
 use tracing::{info_span, Instrument};
 

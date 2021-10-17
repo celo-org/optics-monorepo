@@ -7,7 +7,7 @@ use optics_core::{
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
-use tracing::instrument;
+use tracing::{instrument, instrument::Instrumented};
 
 /// Replica type
 #[derive(Debug)]
@@ -198,6 +198,19 @@ impl Common for Replicas {
             Replicas::Ethereum(replica) => replica.double_update(double).await,
             Replicas::Mock(mock_replica) => mock_replica.double_update(double).await,
             Replicas::Other(replica) => replica.double_update(double).await,
+        }
+    }
+
+    fn index(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        metric: prometheus::IntGauge,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        match self {
+            Replicas::Ethereum(replica) => replica.index(from_height, chunk_size, metric),
+            Replicas::Mock(mock_replica) => mock_replica.index(from_height, chunk_size, metric),
+            Replicas::Other(replica) => replica.index(from_height, chunk_size, metric),
         }
     }
 }

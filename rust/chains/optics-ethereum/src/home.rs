@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::db::{OpticsDB, DB};
+use optics_core::db::OpticsDB;
 /*
 use optics_core::traits::CommittedMessage;
 use optics_core::SignedUpdateWithMeta;
@@ -31,7 +31,7 @@ use std::{convert::TryFrom, convert::TryInto, error::Error as StdError, sync::Ar
 
 use crate::report_tx;
 
-static LAST_INSPECTED: &str = "homeIndexerLastInspected";
+static LAST_INSPECTED: &str = "home_indexer_last_inspected";
 
 #[allow(missing_docs)]
 abigen!(
@@ -219,13 +219,13 @@ where
             domain,
             address,
         }: &ContractLocator,
-        db: DB,
+        db: OpticsDB,
     ) -> Self {
         Self {
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db: OpticsDB::new(db),
+            db,
             provider,
         }
     }
@@ -327,16 +327,6 @@ where
 
         Ok(response.into())
     }
-}
-
-#[async_trait]
-impl<M> Home for EthereumHome<M>
-where
-    M: ethers::providers::Middleware + 'static,
-{
-    fn local_domain(&self) -> u32 {
-        self.domain
-    }
 
     /// Start an indexing task that syncs chain state
     fn index(
@@ -355,6 +345,16 @@ where
             indexed_height,
         };
         indexer.spawn()
+    }
+}
+
+#[async_trait]
+impl<M> Home for EthereumHome<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    fn local_domain(&self) -> u32 {
+        self.domain
     }
 
     #[tracing::instrument(err, skip(self))]
