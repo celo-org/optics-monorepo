@@ -29,10 +29,10 @@ static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
 ///
 /// Key structure: ```<home_name>_<additional_prefix(es)>_<key>```
 #[derive(Debug, Clone)]
-pub struct AgentDB(TypedDB);
+pub struct OpticsDB(TypedDB);
 
-impl AgentDB {
-    /// Instantiated new `AgentDB`
+impl OpticsDB {
+    /// Instantiated new `OpticsDB`
     pub fn new(db: DB) -> Self {
         Self(TypedDB::new(db))
     }
