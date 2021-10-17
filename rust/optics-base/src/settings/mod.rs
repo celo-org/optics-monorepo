@@ -208,7 +208,7 @@ impl Settings {
     }
 
     /// Try to get all replicas from this settings object
-    pub async fn try_replicas(&self) -> Result<HashMap<String, Arc<Replicas>>, Report> {
+    pub async fn try_replicas(&self, db: DB) -> Result<HashMap<String, Arc<Replicas>>, Report> {
         let mut result = HashMap::default();
         for (k, v) in self.replicas.iter().filter(|(_, v)| v.disabled.is_none()) {
             if k != &v.name {
@@ -219,7 +219,10 @@ impl Settings {
                 );
             }
             let signer = self.get_signer(&v.name).await;
-            result.insert(v.name.clone(), Arc::new(v.try_into_replica(signer).await?));
+            result.insert(
+                v.name.clone(),
+                Arc::new(v.try_into_replica(signer, db.clone()).await?),
+            );
         }
         Ok(result)
     }
@@ -242,7 +245,7 @@ impl Settings {
 
         let db = DB::from_path(&self.db)?;
         let home = Arc::new(self.try_home(db.clone()).await?);
-        let replicas = self.try_replicas().await?;
+        let replicas = self.try_replicas(db.clone()).await?;
 
         Ok(AgentCore {
             home,

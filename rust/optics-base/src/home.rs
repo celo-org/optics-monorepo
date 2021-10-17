@@ -64,19 +64,6 @@ impl Home for Homes {
         }
     }
 
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        metric: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        match self {
-            Homes::Ethereum(home) => home.index(from_height, chunk_size, metric),
-            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size, metric),
-            Homes::Other(home) => home.index(from_height, chunk_size, metric),
-        }
-    }
-
     fn home_domain_hash(&self) -> H256 {
         match self {
             Homes::Ethereum(home) => home.home_domain_hash(),
@@ -249,6 +236,19 @@ impl Common for Homes {
             Homes::Ethereum(home) => home.double_update(double).await,
             Homes::Mock(mock_home) => mock_home.double_update(double).await,
             Homes::Other(home) => home.double_update(double).await,
+        }
+    }
+
+    fn index(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        metric: prometheus::IntGauge,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        match self {
+            Homes::Ethereum(home) => home.index(from_height, chunk_size, metric),
+            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size, metric),
+            Homes::Other(home) => home.index(from_height, chunk_size, metric),
         }
     }
 }

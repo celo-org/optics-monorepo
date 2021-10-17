@@ -7,6 +7,8 @@ use ethers::core::types::H256;
 
 use optics_core::{accumulator::merkle::Proof, *};
 
+use tracing::{instrument::Instrumented, Instrument};
+
 mock! {
     pub ReplicaContract {
         // Replica
@@ -144,5 +146,14 @@ impl Common for MockReplicaContract {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self._double_update(double)
+    }
+
+    fn index(
+        &self,
+        _from_height: u32,
+        _chunk_size: u32,
+        _indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        tokio::spawn(async move { Ok(()) }).in_current_span()
     }
 }
