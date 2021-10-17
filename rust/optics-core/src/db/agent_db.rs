@@ -32,7 +32,7 @@ static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
 pub struct AgentDB(TypedDB);
 
 impl AgentDB {
-    /// Instantiated new `HomeDB`
+    /// Instantiated new `AgentDB`
     pub fn new(db: DB) -> Self {
         Self(TypedDB::new(db))
     }
