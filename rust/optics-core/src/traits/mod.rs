@@ -1,5 +1,6 @@
 mod encode;
 mod home;
+mod indexer;
 mod replica;
 mod xapp;
 
@@ -11,13 +12,12 @@ use ethers::{
     providers::{Middleware, ProviderError},
 };
 use std::error::Error as StdError;
-use tokio::task::JoinHandle;
-use tracing::instrument::Instrumented;
 
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
 pub use encode::*;
 pub use home::*;
+pub use indexer::*;
 pub use replica::*;
 pub use xapp::*;
 
@@ -135,12 +135,4 @@ pub trait Common: Sync + Send + std::fmt::Debug {
         &self,
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError>;
-
-    /// Run a task indexing the chain (if necessary)
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<JoinHandle<Result<()>>>;
 }

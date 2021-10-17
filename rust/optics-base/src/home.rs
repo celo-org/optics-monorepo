@@ -1,13 +1,34 @@
 use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::core::types::H256;
+use optics_core::db::OpticsDB;
 use optics_core::{
-    ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
+    ChainCommunicationError, Common, DoubleUpdate, Home, Indexer, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
 use tracing::{instrument, instrument::Instrumented};
+
+use crate::{ContractSync, Indexers};
+
+/// Caching replica type
+#[derive(Debug)]
+pub struct CachingHome {
+    home: Homes,
+    db: OpticsDB,
+    sync: ContractSync<Indexers>,
+}
+
+impl CachingHome {
+    pub fn new(home: Homes, db: OpticsDB, sync: ContractSync<Indexers>) -> Self {
+        Self { home, db, sync }
+    }
+
+    pub fn index(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        self.sync.index()
+    }
+}
 
 /// Home type
 #[derive(Debug)]
@@ -236,19 +257,6 @@ impl Common for Homes {
             Homes::Ethereum(home) => home.double_update(double).await,
             Homes::Mock(mock_home) => mock_home.double_update(double).await,
             Homes::Other(home) => home.double_update(double).await,
-        }
-    }
-
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        metric: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        match self {
-            Homes::Ethereum(home) => home.index(from_height, chunk_size, metric),
-            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size, metric),
-            Homes::Other(home) => home.index(from_height, chunk_size, metric),
         }
     }
 }

@@ -35,3 +35,9 @@ pub use xapp::*;
 
 mod metrics;
 pub use metrics::*;
+
+mod contract_sync;
+pub use contract_sync::*;
+
+mod indexer;
+pub use indexer::*;
