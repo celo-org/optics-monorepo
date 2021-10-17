@@ -67,8 +67,11 @@ pub struct ProveCommand {
 
 impl ProveCommand {
     pub async fn run(&self) -> Result<()> {
-        let (message, proof) = self.fetch_proof()?;
-        let replica = self.replica(message.origin, message.destination).await?;
+        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
+        let (message, proof) = self.fetch_proof(db.clone())?;
+        let replica = self
+            .replica(db.clone(), message.origin, message.destination)
+            .await?;
 
         let status = replica.message_status(message.to_leaf()).await?;
         let outcome = match status {
@@ -128,7 +131,12 @@ impl ProveCommand {
         Ok((message, proof))
     }
 
-    async fn replica(&self, origin: u32, destination: u32) -> Result<ConcreteReplica> {
+    async fn replica(
+        &self,
+        db: OpticsDB,
+        origin: u32,
+        destination: u32,
+    ) -> Result<ConcreteReplica> {
         // bit ugly. Tries passed-in rpc first, then defaults to lookup by
         // domain
         let provider = self
@@ -158,6 +166,7 @@ impl ProveCommand {
                 domain: 0,
                 address: address.into(),
             },
+            db,
         ))
     }
 }

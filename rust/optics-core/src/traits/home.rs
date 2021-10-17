@@ -8,8 +8,6 @@ use crate::{
 use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::{core::types::H256, utils::keccak256};
-use tokio::task::JoinHandle;
-use tracing::instrument::Instrumented;
 
 /// A Stamped message that has been committed at some leaf index
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -110,14 +108,6 @@ impl TryFrom<RawCommittedMessage> for CommittedMessage {
 pub trait Home: Common + Send + Sync + std::fmt::Debug {
     /// Return the domain ID
     fn local_domain(&self) -> u32;
-
-    /// Run a task indexing the chain (if necessary)
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<JoinHandle<Result<()>>>;
 
     /// Return the domain hash
     fn home_domain_hash(&self) -> H256 {
