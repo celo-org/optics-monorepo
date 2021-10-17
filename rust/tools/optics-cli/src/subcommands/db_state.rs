@@ -4,7 +4,7 @@ use std::{collections::HashMap, convert::TryInto, fs::OpenOptions, io::Write};
 use structopt::StructOpt;
 
 use optics_core::{
-    db::{HomeDB, DB},
+    db::{AgentDB, DB},
     CommittedMessage,
 };
 
@@ -29,11 +29,11 @@ type OutputVec = Vec<((H256, u64), Vec<CommittedMessage>)>;
 
 impl DbStateCommand {
     pub async fn run(&self) -> Result<()> {
-        let db = HomeDB::new(DB::from_path(&self.db_path)?, self.home_name.clone());
+        let db = AgentDB::new(DB::from_path(&self.db_path)?);
 
-        let messages_by_committed_roots = DbStateCommand::create_comitted_root_to_message_map(&db)?;
+        let messages_by_committed_roots = self.create_comitted_root_to_message_map(&db)?;
 
-        let output_vec = DbStateCommand::create_output_vec(&db, messages_by_committed_roots)?;
+        let output_vec = self.create_output_vec(&db, messages_by_committed_roots)?;
 
         if self.json {
             DbStateCommand::save_to_json(output_vec)?;
@@ -45,13 +45,14 @@ impl DbStateCommand {
     }
 
     fn create_comitted_root_to_message_map(
-        db: &HomeDB,
+        &self,
+        db: &AgentDB,
     ) -> Result<HashMap<H256, Vec<CommittedMessage>>> {
         let mut messages_by_committed_roots: HashMap<H256, Vec<CommittedMessage>> = HashMap::new();
         for index in 0.. {
-            match db.message_by_leaf_index(index)? {
+            match db.message_by_leaf_index(&self.home_name, index)? {
                 Some(message) => {
-                    if db.proof_by_leaf_index(index)?.is_none() {
+                    if db.proof_by_leaf_index(&self.home_name, index)?.is_none() {
                         println!("Failed to find proof for leaf index {}!", index);
                     }
 
@@ -81,19 +82,22 @@ impl DbStateCommand {
     }
 
     fn create_output_vec(
-        db: &HomeDB,
+        &self,
+        db: &AgentDB,
         messages_by_committed_roots: HashMap<H256, Vec<CommittedMessage>>,
     ) -> Result<OutputVec> {
         // Create mapping of (update root, block_number) to [messages]
         let mut output_map: HashMap<(H256, u64), Vec<CommittedMessage>> = HashMap::new();
         for (committed_root, bucket) in messages_by_committed_roots {
-            let containing_update_opt = db.update_by_previous_root(committed_root)?;
+            let containing_update_opt =
+                db.update_by_previous_root(&self.home_name, committed_root)?;
 
             match containing_update_opt {
                 Some(containing_update) => {
                     let new_root = containing_update.update.new_root;
-                    let update_metadata =
-                        db.retrieve_update_metadata(new_root)?.unwrap_or_else(|| {
+                    let update_metadata = db
+                        .retrieve_update_metadata(&self.home_name, new_root)?
+                        .unwrap_or_else(|| {
                             panic!("Couldn't find metadata for update {:?}", containing_update)
                         });
 

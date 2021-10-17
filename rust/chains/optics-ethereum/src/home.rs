@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::db::{HomeDB, DB};
+use optics_core::db::{AgentDB, DB};
 /*
 use optics_core::traits::CommittedMessage;
 use optics_core::SignedUpdateWithMeta;
@@ -43,9 +43,10 @@ struct HomeIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
+    home_name: String,
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
-    home_db: HomeDB,
+    db: AgentDB,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -93,9 +94,10 @@ where
         });
 
         for update_with_meta in updates_with_meta {
-            self.home_db
-                .store_latest_update(&update_with_meta.signed_update)?;
-            self.home_db.store_update_metadata(
+            self.db
+                .store_latest_update(&self.home_name, &update_with_meta.signed_update)?;
+            self.db.store_update_metadata(
+                &self.home_name,
                 update_with_meta.signed_update.update.new_root,
                 update_with_meta.metadata,
             )?;
@@ -128,7 +130,8 @@ where
         });
 
         for message in messages {
-            self.home_db.store_raw_committed_message(&message)?;
+            self.db
+                .store_raw_committed_message(&self.home_name, &message)?;
 
             let committed_message: CommittedMessage = message.try_into()?;
             info!(
@@ -148,8 +151,8 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = self
-                .home_db
-                .retrieve_decodable("", LAST_INSPECTED)
+                .db
+                .retrieve_decodable(&self.home_name, "", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -177,8 +180,8 @@ where
                     self.sync_leaves(next_height, to)
                 )?;
 
-                self.home_db
-                    .store_encodable("", LAST_INSPECTED, &next_height)?;
+                self.db
+                    .store_encodable(&self.home_name, "", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -197,7 +200,7 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    home_db: HomeDB,
+    db: AgentDB,
     domain: u32,
     name: String,
     provider: Arc<M>,
@@ -222,7 +225,7 @@ where
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            home_db: HomeDB::new(db, name.to_owned()),
+            db: AgentDB::new(db),
             provider,
         }
     }
@@ -275,7 +278,7 @@ where
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.update_by_previous_root(old_root)? {
+            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -288,7 +291,7 @@ where
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.update_by_new_root(new_root)? {
+            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -343,8 +346,9 @@ where
         indexed_height: prometheus::IntGauge,
     ) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = HomeIndexer {
+            home_name: self.name.to_owned(),
             contract: self.contract.clone(),
-            home_db: self.home_db.clone(),
+            db: self.db.clone(),
             from_height,
             provider: self.provider.clone(),
             chunk_size,
@@ -360,7 +364,7 @@ where
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.message_by_nonce(destination, nonce)? {
+            if let Some(update) = self.db.message_by_nonce(&self.name, destination, nonce)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -373,7 +377,7 @@ where
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.message_by_leaf(leaf)? {
+            if let Some(update) = self.db.message_by_leaf(&self.name, leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -385,7 +389,7 @@ where
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.home_db.leaf_by_leaf_index(tree_index as u32)? {
+            if let Some(update) = self.db.leaf_by_leaf_index(&self.name, tree_index as u32)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

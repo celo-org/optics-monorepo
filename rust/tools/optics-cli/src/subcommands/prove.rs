@@ -5,7 +5,7 @@ use crate::{replicas, rpc};
 
 use optics_core::{
     accumulator::merkle::Proof,
-    db::{HomeDB, DB},
+    db::{AgentDB, DB},
     ContractLocator, Decode, MessageStatus, OpticsMessage, Replica, Signers,
 };
 use optics_ethereum::EthereumReplica;
@@ -110,19 +110,23 @@ impl ProveCommand {
     }
 
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = HomeDB::new(DB::from_path(&self.db_path)?, self.home_name.clone());
+        let db = AgentDB::new(DB::from_path(&self.db_path)?);
 
         let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
-            (None, Some(digest)) => match db.message_by_leaf(digest)? {
+            (None, Some(digest)) => match db.message_by_leaf(&self.home_name, digest)? {
                 Some(leaf) => leaf.leaf_index,
                 None => bail!("No leaf index or "),
             },
             (None, None) => bail!("Must provide leaf index or leaf hash"),
         };
 
-        let proof = db.proof_by_leaf_index(idx)?.expect("no proof");
-        let message = db.message_by_leaf_index(idx)?.expect("no message");
+        let proof = db
+            .proof_by_leaf_index(&self.home_name, idx)?
+            .expect("no proof");
+        let message = db
+            .message_by_leaf_index(&self.home_name, idx)?
+            .expect("no message");
         let message = OpticsMessage::read_from(&mut message.message.as_slice())?;
 
         Ok((message, proof))

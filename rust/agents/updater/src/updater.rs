@@ -20,7 +20,7 @@ use tracing::{error, info, instrument::Instrumented, Instrument};
 
 use crate::settings::UpdaterSettings as Settings;
 use optics_base::{AgentCore, Homes, OpticsAgent};
-use optics_core::{db::HomeDB, Common, Home, SignedUpdate, Signers, Update};
+use optics_core::{db::AgentDB, Common, Home, SignedUpdate, Signers, Update};
 
 #[derive(Debug)]
 struct UpdateHandler {
@@ -29,7 +29,7 @@ struct UpdateHandler {
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
-    home_db: HomeDB,
+    db: AgentDB,
     mutex: Arc<Mutex<()>>,
     signed_attestation_count: IntCounterVec,
 }
@@ -50,7 +50,7 @@ impl UpdateHandler {
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
-        home_db: HomeDB,
+        db: AgentDB,
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
@@ -59,15 +59,15 @@ impl UpdateHandler {
             rx,
             update_pause,
             signer,
-            home_db,
+            db,
             mutex,
             signed_attestation_count,
         }
     }
 
     fn check_conflict(&self, update: &Update) -> Option<SignedUpdate> {
-        self.home_db
-            .update_by_previous_root(update.previous_root)
+        self.db
+            .update_by_previous_root(self.home.name(), update.previous_root)
             .expect("db failure")
     }
 
@@ -150,7 +150,7 @@ impl UpdateHandler {
         self.home.update(&signed).await?;
 
         info!("Storing signed update in db");
-        self.home_db.store_latest_update(&signed)?;
+        self.db.store_latest_update(self.home.name(), &signed)?;
         Ok(())
         // guard dropped here
     }
@@ -266,7 +266,7 @@ impl OpticsAgent for Updater {
             rx,
             self.update_pause,
             self.signer.clone(),
-            HomeDB::new(self.db(), self.home().name().to_owned()),
+            AgentDB::new(self.db()),
             Default::default(),
             self.signed_attestation_count.clone(),
         );

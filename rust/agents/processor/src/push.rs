@@ -5,7 +5,7 @@ use rusoto_s3::{GetObjectError, GetObjectRequest, PutObjectRequest, S3Client, S3
 
 use color_eyre::eyre::{bail, eyre, Result};
 
-use optics_core::{accumulator::merkle::Proof, db::HomeDB, Encode};
+use optics_core::{accumulator::merkle::Proof, db::AgentDB, Encode};
 use tokio::{task::JoinHandle, time::sleep};
 use tracing::{debug, info, info_span, instrument::Instrumented, Instrument};
 
@@ -20,7 +20,7 @@ pub struct Pusher {
     name: String,
     bucket: String,
     region: Region,
-    db: HomeDB,
+    db: AgentDB,
     client: S3Client,
 }
 
@@ -36,7 +36,7 @@ impl std::fmt::Debug for Pusher {
 
 impl Pusher {
     /// Instantiate a new pusher with a region
-    pub fn new(name: &str, bucket: &str, region: Region, db: HomeDB) -> Self {
+    pub fn new(name: &str, bucket: &str, region: Region, db: AgentDB) -> Self {
         let client = S3Client::new_with(
             HttpClient::new().unwrap(),
             EnvironmentProvider::default(),
@@ -112,12 +112,12 @@ impl Pusher {
         tokio::spawn(async move {
             let mut index = 0;
             loop {
-                let proof = self.db.proof_by_leaf_index(index)?;
+                let proof = self.db.proof_by_leaf_index(&self.name, index)?;
                 match proof {
                     Some(proof) => {
                         let message = self
                             .db
-                            .message_by_leaf_index(index)?
+                            .message_by_leaf_index(&self.name, index)?
                             .ok_or_else(|| eyre!("Missing message for known proof"))?;
                         let proven = ProvenMessage {
                             proof,

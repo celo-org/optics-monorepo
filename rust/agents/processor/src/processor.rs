@@ -15,7 +15,7 @@ use tracing::{debug, error, info, info_span, instrument, instrument::Instrumente
 
 use optics_base::{cancel_task, decl_agent, AgentCore, Homes, OpticsAgent, Replicas};
 use optics_core::{
-    accumulator::merkle::Proof, db::HomeDB, CommittedMessage, Common, Home, MessageStatus,
+    accumulator::merkle::Proof, db::AgentDB, CommittedMessage, Common, Home, MessageStatus,
 };
 
 use crate::{
@@ -38,7 +38,7 @@ pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    home_db: HomeDB,
+    db: AgentDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
     next_message_nonce: Arc<prometheus::IntGaugeVec>,
@@ -72,8 +72,8 @@ impl Replica {
                 // 4. Check if the proof is valid under the replica
                 // 5. Submit the proof to the replica
                 let mut next_message_nonce: u32 = self
-                    .home_db
-                    .retrieve_latest_nonce(domain)?
+                    .db
+                    .retrieve_latest_nonce(self.home.name(), domain)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
 
@@ -107,8 +107,8 @@ impl Replica {
                         .await
                     {
                         Ok(Flow::Advance) => {
-                            self.home_db
-                                .store_latest_nonce(domain, next_message_nonce)?;
+                            self.db
+                                .store_latest_nonce(self.home.name(), domain, next_message_nonce)?;
                             next_message_nonce += 1;
 
                             self.next_message_nonce
@@ -199,7 +199,10 @@ impl Replica {
             return Ok(Flow::Advance);
         }
 
-        let proof = match self.home_db.proof_by_leaf_index(message.leaf_index) {
+        let proof = match self
+            .db
+            .proof_by_leaf_index(self.home.name(), message.leaf_index)
+        {
             Ok(Some(p)) => p,
             Ok(None) => {
                 info!(
@@ -356,7 +359,7 @@ impl OpticsAgent for Processor {
         let home = self.home();
         let next_message_nonce = self.next_message_nonce.clone();
         let interval = self.interval;
-        let home_db = self.home_db();
+        let db = AgentDB::new(self.db());
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
@@ -371,7 +374,7 @@ impl OpticsAgent for Processor {
                 interval,
                 replica,
                 home,
-                home_db,
+                db,
                 allowed,
                 denied,
                 next_message_nonce,
@@ -391,7 +394,8 @@ impl OpticsAgent for Processor {
 
             // tree sync
             info!("Starting ProverSync");
-            let sync = ProverSync::from_disk(self.home_db());
+            let sync =
+                ProverSync::from_disk(self.home().name().to_owned(), AgentDB::new(self.db()));
             let sync_task = sync.spawn();
 
             info!("Starting indexer");
@@ -430,7 +434,7 @@ impl OpticsAgent for Processor {
                         self.core.home.name(),
                         &config.bucket,
                         config.region.parse().expect("invalid s3 region"),
-                        self.home_db(),
+                        AgentDB::new(self.db()),
                     )
                     .spawn(),
                 )
