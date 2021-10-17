@@ -15,7 +15,7 @@ use tracing::{debug, error, info, info_span, instrument, instrument::Instrumente
 
 use optics_base::{cancel_task, decl_agent, AgentCore, Homes, OpticsAgent, Replicas};
 use optics_core::{
-    accumulator::merkle::Proof, db::AgentDB, CommittedMessage, Common, Home, MessageStatus,
+    accumulator::merkle::Proof, db::OpticsDB, CommittedMessage, Common, Home, MessageStatus,
 };
 
 use crate::{
@@ -38,7 +38,7 @@ pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
     home: Arc<Homes>,
-    db: AgentDB,
+    db: OpticsDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
     next_message_nonce: Arc<prometheus::IntGaugeVec>,
@@ -359,7 +359,7 @@ impl OpticsAgent for Processor {
         let home = self.home();
         let next_message_nonce = self.next_message_nonce.clone();
         let interval = self.interval;
-        let db = AgentDB::new(self.db());
+        let db = OpticsDB::new(self.db());
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
@@ -395,7 +395,7 @@ impl OpticsAgent for Processor {
             // tree sync
             info!("Starting ProverSync");
             let sync =
-                ProverSync::from_disk(self.home().name().to_owned(), AgentDB::new(self.db()));
+                ProverSync::from_disk(self.home().name().to_owned(), OpticsDB::new(self.db()));
             let sync_task = sync.spawn();
 
             info!("Starting indexer");
@@ -434,7 +434,7 @@ impl OpticsAgent for Processor {
                         self.core.home.name(),
                         &config.bucket,
                         config.region.parse().expect("invalid s3 region"),
-                        AgentDB::new(self.db()),
+                        OpticsDB::new(self.db()),
                     )
                     .spawn(),
                 )

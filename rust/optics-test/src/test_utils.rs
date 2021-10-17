@@ -42,14 +42,14 @@ mod test {
     use super::*;
     use ethers::types::H256;
     use optics_core::{
-        accumulator::merkle::Proof, db::AgentDB, Encode, OpticsMessage, RawCommittedMessage,
+        accumulator::merkle::Proof, db::OpticsDB, Encode, OpticsMessage, RawCommittedMessage,
     };
 
     #[tokio::test]
     async fn db_stores_and_retrieves_messages() {
         run_test_db(|db| async move {
             let home_name = "home_1".to_owned();
-            let db = AgentDB::new(db);
+            let db = OpticsDB::new(db);
 
             let m = OpticsMessage {
                 origin: 10,
@@ -95,7 +95,7 @@ mod test {
     async fn db_stores_and_retrieves_proofs() {
         run_test_db(|db| async move {
             let home_name = "home_1".to_owned();
-            let db = AgentDB::new(db);
+            let db = OpticsDB::new(db);
 
             let proof = Proof {
                 leaf: H256::from_low_u64_be(15),

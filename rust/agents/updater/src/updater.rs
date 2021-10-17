@@ -20,7 +20,7 @@ use tracing::{error, info, instrument::Instrumented, Instrument};
 
 use crate::settings::UpdaterSettings as Settings;
 use optics_base::{AgentCore, Homes, OpticsAgent};
-use optics_core::{db::AgentDB, Common, Home, SignedUpdate, Signers, Update};
+use optics_core::{db::OpticsDB, Common, Home, SignedUpdate, Signers, Update};
 
 #[derive(Debug)]
 struct UpdateHandler {
@@ -29,7 +29,7 @@ struct UpdateHandler {
     rx: Receiver<Update>,
     update_pause: u64,
     signer: Arc<Signers>,
-    db: AgentDB,
+    db: OpticsDB,
     mutex: Arc<Mutex<()>>,
     signed_attestation_count: IntCounterVec,
 }
@@ -50,7 +50,7 @@ impl UpdateHandler {
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
-        db: AgentDB,
+        db: OpticsDB,
         mutex: Arc<Mutex<()>>,
         signed_attestation_count: IntCounterVec,
     ) -> Self {
@@ -266,7 +266,7 @@ impl OpticsAgent for Updater {
             rx,
             self.update_pause,
             self.signer.clone(),
-            AgentDB::new(self.db()),
+            OpticsDB::new(self.db()),
             Default::default(),
             self.signed_attestation_count.clone(),
         );

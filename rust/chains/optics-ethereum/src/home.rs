@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::db::{AgentDB, DB};
+use optics_core::db::{OpticsDB, DB};
 /*
 use optics_core::traits::CommittedMessage;
 use optics_core::SignedUpdateWithMeta;
@@ -46,7 +46,7 @@ where
     home_name: String,
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
-    db: AgentDB,
+    db: OpticsDB,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -200,7 +200,7 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    db: AgentDB,
+    db: OpticsDB,
     domain: u32,
     name: String,
     provider: Arc<M>,
@@ -225,7 +225,7 @@ where
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db: AgentDB::new(db),
+            db: OpticsDB::new(db),
             provider,
         }
     }

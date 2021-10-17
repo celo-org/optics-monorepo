@@ -3,7 +3,7 @@ use color_eyre::eyre::{bail, Result};
 use ethers::core::types::H256;
 use optics_core::{
     accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
-    db::{AgentDB, DbError},
+    db::{DbError, OpticsDB},
     ChainCommunicationError,
 };
 use std::{fmt::Display, ops::Range, time::Duration};
@@ -14,7 +14,7 @@ use tracing::{debug, error, info, info_span, instrument, instrument::Instrumente
 #[derive(Debug)]
 pub struct ProverSync {
     home_name: String,
-    db: AgentDB,
+    db: OpticsDB,
     prover: Prover,
     incremental: IncrementalMerkle,
 }
@@ -91,7 +91,7 @@ impl ProverSync {
     /// Given rocksdb handle `db` containing merkle tree leaves,
     /// instantiates new `ProverSync` and fills prover's merkle tree
     #[instrument(level = "debug", skip(db))]
-    pub fn from_disk(home_name: String, db: AgentDB) -> Self {
+    pub fn from_disk(home_name: String, db: OpticsDB) -> Self {
         // Ingest all leaves in db into prover tree
         let mut prover = Prover::default();
         let mut incremental = IncrementalMerkle::default();

@@ -4,7 +4,7 @@ use std::{collections::HashMap, convert::TryInto, fs::OpenOptions, io::Write};
 use structopt::StructOpt;
 
 use optics_core::{
-    db::{AgentDB, DB},
+    db::{OpticsDB, DB},
     CommittedMessage,
 };
 
@@ -29,7 +29,7 @@ type OutputVec = Vec<((H256, u64), Vec<CommittedMessage>)>;
 
 impl DbStateCommand {
     pub async fn run(&self) -> Result<()> {
-        let db = AgentDB::new(DB::from_path(&self.db_path)?);
+        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
 
         let messages_by_committed_roots = self.create_comitted_root_to_message_map(&db)?;
 
@@ -46,7 +46,7 @@ impl DbStateCommand {
 
     fn create_comitted_root_to_message_map(
         &self,
-        db: &AgentDB,
+        db: &OpticsDB,
     ) -> Result<HashMap<H256, Vec<CommittedMessage>>> {
         let mut messages_by_committed_roots: HashMap<H256, Vec<CommittedMessage>> = HashMap::new();
         for index in 0.. {
@@ -83,7 +83,7 @@ impl DbStateCommand {
 
     fn create_output_vec(
         &self,
-        db: &AgentDB,
+        db: &OpticsDB,
         messages_by_committed_roots: HashMap<H256, Vec<CommittedMessage>>,
     ) -> Result<OutputVec> {
         // Create mapping of (update root, block_number) to [messages]

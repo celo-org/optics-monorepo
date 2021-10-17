@@ -5,7 +5,7 @@ use crate::{replicas, rpc};
 
 use optics_core::{
     accumulator::merkle::Proof,
-    db::{AgentDB, DB},
+    db::{OpticsDB, DB},
     ContractLocator, Decode, MessageStatus, OpticsMessage, Replica, Signers,
 };
 use optics_ethereum::EthereumReplica;
@@ -110,7 +110,7 @@ impl ProveCommand {
     }
 
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = AgentDB::new(DB::from_path(&self.db_path)?);
+        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
 
         let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
