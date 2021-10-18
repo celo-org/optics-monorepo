@@ -4,6 +4,7 @@ use crate::{
     metrics::CoreMetrics,
     replica::Replicas,
     settings::{IndexSettings, Settings},
+    CachingHome,
 };
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
@@ -18,7 +19,7 @@ use tokio::task::JoinHandle;
 #[derive(Debug)]
 pub struct AgentCore {
     /// A boxed Home
-    pub home: Arc<Homes>,
+    pub home: Arc<CachingHome>,
     /// A map of boxed Replicas
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
@@ -59,7 +60,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Return a reference to a home contract
-    fn home(&self) -> Arc<Homes> {
+    fn home(&self) -> Arc<CachingHome> {
         self.as_ref().home.clone()
     }
 
@@ -138,9 +139,7 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
                     .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
 
                 let indexer = &self.as_ref().indexer;
-                let index_task =
-                    self.home()
-                        .index(indexer.from(), indexer.chunk_size(), block_height);
+                let index_task = self.home().index();
 
                 tasks.push(index_task);
             }

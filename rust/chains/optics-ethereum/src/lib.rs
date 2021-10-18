@@ -60,14 +60,24 @@ pub struct Chain {
     ethers: ethers::providers::Provider<ethers::providers::Http>,
 }
 
-contract!(
+chain_entity!(
+    make_home_indexer,
+    EthereumHomeIndexer,
+    Indexer,
+    db: optics_core::db::OpticsDB,
+    from_height: u32,
+    chunk_size: u32,
+    indexed_height: prometheus::IntGauge
+);
+
+chain_entity!(
     make_replica,
     EthereumReplica,
     Replica,
     db: optics_core::db::OpticsDB
 );
-contract!(make_home, EthereumHome, Home, db: optics_core::db::OpticsDB);
-contract!(
+chain_entity!(make_home, EthereumHome, Home, db: optics_core::db::OpticsDB);
+chain_entity!(
     make_conn_manager,
     EthereumConnectionManager,
     ConnectionManager,

@@ -23,6 +23,22 @@ impl<I> ContractSync<I>
 where
     I: Indexer + 'static,
 {
+    pub fn new(
+        db: OpticsDB,
+        indexer: I,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Self {
+        Self {
+            db,
+            indexer,
+            from_height,
+            chunk_size,
+            indexed_height,
+        }
+    }
+
     pub fn index(self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         let span = info_span!("ContractSync");
 

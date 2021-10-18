@@ -34,7 +34,9 @@ where
     }
 }
 
-struct HomeIndexer<M>
+#[derive(Debug)]
+/// Struct that retrieves indexes event data for Ethereum home
+pub struct EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
@@ -46,8 +48,37 @@ where
     indexed_height: prometheus::IntGauge,
 }
 
+impl<M> EthereumHomeIndexer<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    /// Create new EthereumHomeIndexer
+    pub fn new(
+        provider: Arc<M>,
+        ContractLocator {
+            name,
+            domain: _,
+            address,
+        }: &ContractLocator,
+        db: OpticsDB,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Self {
+        Self {
+            home_name: name.to_owned(),
+            contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
+            provider,
+            db,
+            from_height,
+            chunk_size,
+            indexed_height,
+        }
+    }
+}
+
 #[async_trait]
-impl<M> Indexer for HomeIndexer<M>
+impl<M> Indexer for EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {

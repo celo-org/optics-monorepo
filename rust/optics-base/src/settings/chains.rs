@@ -46,7 +46,11 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(&self, signer: Option<Signers>, db: DB) -> Result<Homes, Report> {
+    pub async fn try_into_home(
+        &self,
+        signer: Option<Signers>,
+        db: OpticsDB,
+    ) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 make_home(
@@ -57,7 +61,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    OpticsDB::new(db),
+                    db,
                 )
                 .await?,
             )),
@@ -68,7 +72,7 @@ impl ChainSetup {
     pub async fn try_into_replica(
         &self,
         signer: Option<Signers>,
-        db: DB,
+        db: OpticsDB,
     ) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
@@ -80,7 +84,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    OpticsDB::new(db),
+                    db,
                 )
                 .await?,
             )),
