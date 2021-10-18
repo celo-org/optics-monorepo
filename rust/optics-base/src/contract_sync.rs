@@ -1,11 +1,12 @@
 use optics_core::db::OpticsDB;
-use optics_core::Indexer;
+use optics_core::{CommittedMessage, Indexer};
 
 use tokio::time::sleep;
 use tracing::{info, info_span};
 use tracing::{instrument::Instrumented, Instrument};
 
 use std::cmp::min;
+use std::convert::TryInto;
 use std::time::Duration;
 
 static LAST_INSPECTED: &str = "last_inspected";
@@ -68,6 +69,7 @@ where
                 );
 
                 let sorted_updates = self.indexer.fetch_updates(next_height, to).await?;
+                let messages = self.indexer.fetch_messages(next_height, to).await?;
 
                 for update_with_meta in sorted_updates {
                     self.db
@@ -83,6 +85,19 @@ where
                         &update_with_meta.metadata.block_number,
                         &update_with_meta.signed_update.update.previous_root,
                         &update_with_meta.signed_update.update.new_root,
+                    );
+                }
+
+                for message in messages {
+                    self.db.store_raw_committed_message(self.indexer.contract_name(), &message)?;
+
+                    let committed_message: CommittedMessage = message.try_into()?;
+                    info!(
+                        "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
+                        &committed_message.leaf_index,
+                        &committed_message.message.origin,
+                        &committed_message.message.destination,
+                        &committed_message.message.nonce
                     );
                 }
 
