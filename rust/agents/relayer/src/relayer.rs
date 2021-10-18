@@ -15,6 +15,7 @@ struct UpdatePoller {
     home: Arc<Homes>,
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
+    updates_relayed: prometheus::IntCounter,
 }
 
 impl std::fmt::Display for UpdatePoller {
@@ -28,12 +29,18 @@ impl std::fmt::Display for UpdatePoller {
 }
 
 impl UpdatePoller {
-    fn new(home: Arc<Homes>, replica: Arc<Replicas>, duration: u64) -> Self {
+    fn new(
+        updates_relayed: prometheus::IntCounter,
+        home: Arc<Homes>,
+        replica: Arc<Replicas>,
+        duration: u64,
+    ) -> Self {
         Self {
             home,
             replica,
             duration: Duration::from_secs(duration),
             semaphore: Mutex::new(()),
+            updates_relayed,
         }
     }
 
@@ -59,6 +66,7 @@ impl UpdatePoller {
                 &signed_update.update.previous_root,
                 &signed_update.update.new_root,
             );
+            self.updates_relayed.inc();
 
             let lock = self.semaphore.try_lock();
             if lock.is_err() {
@@ -93,6 +101,7 @@ impl UpdatePoller {
 pub struct Relayer {
     duration: u64,
     core: AgentCore,
+    updates_relayed_root: prometheus::IntCounterVec,
 }
 
 impl AsRef<AgentCore> for Relayer {
@@ -105,7 +114,20 @@ impl AsRef<AgentCore> for Relayer {
 impl Relayer {
     /// Instantiate a new relayer
     pub fn new(duration: u64, core: AgentCore) -> Self {
-        Self { duration, core }
+        let updates_relayed_root: prometheus::IntCounterVec = core
+            .metrics
+            .new_int_counter(
+                "updates_relayed",
+                "number of updates relayed",
+                &["network", "agent"],
+            )
+            .expect("failed to register updates_relayed metric");
+
+        Self {
+            duration,
+            core,
+            updates_relayed_root,
+        }
     }
 }
 
@@ -133,6 +155,9 @@ impl OpticsAgent for Relayer {
         let name = name.to_owned();
 
         let duration = self.duration;
+        let metric = self
+            .updates_relayed_root
+            .with_label_values(&[&name, Self::AGENT_NAME]);
 
         tokio::spawn(async move {
             if replica_opt.is_none() {
@@ -140,7 +165,7 @@ impl OpticsAgent for Relayer {
             }
             let replica = replica_opt.unwrap();
 
-            let update_poller = UpdatePoller::new(home, replica.clone(), duration);
+            let update_poller = UpdatePoller::new(metric, home, replica.clone(), duration);
             update_poller.spawn().await?
         })
         .in_current_span()
