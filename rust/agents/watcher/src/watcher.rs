@@ -357,8 +357,10 @@ impl Watcher {
             cancel_task!(home_sync);
 
             // If double update found, send through oneshot
-            if let Err(e) = double_update_tx.send(double_update_res?) {
-                bail!("Failed to send double update through oneshot: {:?}", e);
+            if let Ok(double) = double_update_res {
+                if let Err(e) = double_update_tx.send(double) {
+                    bail!("Failed to send double update through oneshot: {:?}", e);
+                }
             }
 
             Ok(())

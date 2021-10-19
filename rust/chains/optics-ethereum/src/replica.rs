@@ -239,27 +239,12 @@ where
         &self,
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic2(old_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
+        loop {
+            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
     }
 
     #[tracing::instrument(err)]
@@ -267,27 +252,12 @@ where
         &self,
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.contract
-            .update_filter()
-            .from_block(0)
-            .topic3(new_root)
-            .query()
-            .await?
-            .first()
-            .map(|event| {
-                let signature = Signature::try_from(event.signature.as_slice())
-                    .expect("chain accepted invalid signature");
-
-                let update = Update {
-                    home_domain: event.home_domain,
-                    previous_root: event.old_root.into(),
-                    new_root: event.new_root.into(),
-                };
-
-                SignedUpdate { update, signature }
-            })
-            .map(Ok)
-            .transpose()
+        loop {
+            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
     }
 
     #[tracing::instrument(err)]
