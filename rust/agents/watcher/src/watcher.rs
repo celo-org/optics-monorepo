@@ -428,32 +428,20 @@ impl OpticsAgent for Watcher {
         tokio::spawn(async move {
             info!("Starting Watcher tasks");
 
-            // Indexer setup
-            // let block_height = self
-            //     .as_ref()
-            //     .metrics
-            //     .new_int_gauge(
-            //         "block_height",
-            //         "Height of a recently observed block",
-            //         &["network", "agent"],
-            //     )
-            //     .expect("failed to register block_height metric")
-            //     .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
-
             let block_height = Arc::new(
                 self.core.metrics
                     .new_int_gauge(
                         "block_height",
                         "Height of a recently observed block",
-                        &["entity", "agent"],
+                        &["network", "agent"],
                     )
                     .expect("processor metric already registered -- should have be a singleton"),
             );
+
             let indexer = &self.as_ref().indexer;
             let home_index_task = self
                 .home()
                 .index(Self::AGENT_NAME.to_owned(), indexer.from(), indexer.chunk_size(), block_height.clone());
-
             let replica_index_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(_, replica)| {
                 replica
                 .index(Self::AGENT_NAME.to_owned(), indexer.from(), indexer.chunk_size(), block_height.clone())

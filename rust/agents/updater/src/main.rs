@@ -48,7 +48,7 @@ async fn _main() -> Result<()> {
             .new_int_gauge(
                 "block_height",
                 "Height of a recently observed block",
-                &["entity", "agent"],
+                &["network", "agent"],
             )
             .expect("processor metric already registered -- should have be a singleton"),
     );
