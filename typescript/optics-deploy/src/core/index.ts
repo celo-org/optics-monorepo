@@ -2,7 +2,7 @@ import { assert } from 'console';
 import fs from 'fs';
 
 import * as proxyUtils from '../proxyUtils';
-import { CoreDeploy } from './CoreDeploy';
+import {CoreDeploy, ExistingCoreDeploy} from './CoreDeploy';
 import * as contracts from '@optics-xyz/ts-interface/dist/optics-core';
 import { checkCoreDeploy } from './checks';
 import { toBytes32 } from '../utils';
@@ -642,7 +642,7 @@ export async function deployNChains(deploys: CoreDeploy[]) {
  * @param newDeploy - A single chain deploy for the new chain being added
  * @param oldDeploys - An array of already-deployed chains, including chain, config, and deploy.contracts.governance.proxy
  */
-export async function deployNewChain(newDeploy: CoreDeploy, oldDeploys: CoreDeploy[]) {
+export async function deployNewChain(newDeploy: CoreDeploy, oldDeploys: ExistingCoreDeploy[]) {
   if (!newDeploy || oldDeploys.length == 0) {
     throw new Error('Bad deploy input for deployNewChain');
   }

@@ -51,9 +51,9 @@ export class CoreContracts extends Contracts {
     core.home = new BeaconProxy<contracts.Home>(homeImplementation, homeProxy, homeUpgradeBeacon);
 
     for (let domain of Object.keys(addresses.replicas!)) {
-      const replicaImplementation = contracts.Replica__factory.connect(addresses.home.implementation, provider);
-      const replicaProxy = contracts.Replica__factory.connect(addresses.home.proxy, provider);
-      const replicaUpgradeBeacon = contracts.UpgradeBeacon__factory.connect(addresses.home.beacon, provider);
+      const replicaImplementation = contracts.Replica__factory.connect(addresses.replicas![domain].implementation, provider);
+      const replicaProxy = contracts.Replica__factory.connect(addresses.replicas![domain].proxy, provider);
+      const replicaUpgradeBeacon = contracts.UpgradeBeacon__factory.connect(addresses.replicas![domain].beacon, provider);
       core.replicas[parseInt(domain)] = new BeaconProxy<contracts.Replica>(replicaImplementation, replicaProxy, replicaUpgradeBeacon);
     }
     return core;
