@@ -41,13 +41,14 @@ struct ReplicaIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
+    agent_name: String,
     replica_name: String,
     contract: Arc<EthereumReplicaInternal<M>>,
     provider: Arc<M>,
     db: OpticsDB,
     from_height: u32,
     chunk_size: u32,
-    indexed_height: prometheus::IntGauge,
+    indexed_height: Arc<prometheus::IntGaugeVec>,
 }
 
 impl<M> ReplicaIndexer<M>
@@ -126,7 +127,10 @@ where
             );
 
             loop {
-                self.indexed_height.set(next_height as i64);
+                self.indexed_height
+                    .with_label_values(&[&self.replica_name, &self.agent_name])
+                    .set(next_height as i64);
+
                 let tip = self.provider.get_block_number().await?.as_u32();
                 let candidate = next_height + self.chunk_size;
                 let to = min(tip, candidate);
@@ -293,11 +297,13 @@ where
     /// Start an indexing task that syncs chain state
     fn index(
         &self,
+        agent_name: String,
         from_height: u32,
         chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
+        indexed_height: Arc<prometheus::IntGaugeVec>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = ReplicaIndexer {
+            agent_name,
             replica_name: self.name.to_owned(),
             contract: self.contract.clone(),
             db: self.db.clone(),

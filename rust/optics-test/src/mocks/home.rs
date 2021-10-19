@@ -7,6 +7,7 @@ use ethers::core::types::H256;
 
 use optics_core::*;
 
+use std::sync::Arc;
 use tracing::{instrument::Instrumented, Instrument};
 
 mock! {
@@ -187,9 +188,10 @@ impl Common for MockHomeContract {
 
     fn index(
         &self,
+        _agent_name: String,
         _from_height: u32,
         _chunk_size: u32,
-        _indexed_height: prometheus::IntGauge,
+        _indexed_height: Arc<prometheus::IntGaugeVec>,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         tokio::spawn(async move { Ok(()) }).in_current_span()
     }

@@ -15,6 +15,7 @@ mod updater;
 use color_eyre::Result;
 
 use futures_util::future::select_all;
+use std::sync::Arc;
 
 use optics_base::{cancel_task, OpticsAgent};
 use optics_core::Common;
@@ -41,20 +42,23 @@ async fn _main() -> Result<()> {
     // broken out here
     let indexer = &agent.as_ref().indexer;
 
-    let block_height = agent
-        .as_ref()
-        .metrics
-        .new_int_gauge(
-            "block_height",
-            "Height of a recently observed block",
-            &["network", "agent"],
-        )
-        .expect("failed to register block_height metric")
-        .with_label_values(&[agent.home().name(), Updater::AGENT_NAME]);
+    let block_height = Arc::new(
+        agent
+            .metrics()
+            .new_int_gauge(
+                "block_height",
+                "Height of a recently observed block",
+                &["entity", "agent"],
+            )
+            .expect("processor metric already registered -- should have be a singleton"),
+    );
 
-    let index_task = agent
-        .home()
-        .index(indexer.from(), indexer.chunk_size(), block_height);
+    let index_task = agent.home().index(
+        Updater::AGENT_NAME.to_owned(),
+        indexer.from(),
+        indexer.chunk_size(),
+        block_height,
+    );
     let run_task = agent.run("");
 
     let futs = vec![index_task, run_task];

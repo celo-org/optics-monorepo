@@ -7,6 +7,7 @@ use optics_core::{
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
+use std::sync::Arc;
 use tracing::{instrument, instrument::Instrumented};
 
 /// Home type
@@ -241,14 +242,15 @@ impl Common for Homes {
 
     fn index(
         &self,
+        agent_name: String,
         from_height: u32,
         chunk_size: u32,
-        metric: prometheus::IntGauge,
+        metric: Arc<prometheus::IntGaugeVec>,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         match self {
-            Homes::Ethereum(home) => home.index(from_height, chunk_size, metric),
-            Homes::Mock(mock_home) => mock_home.index(from_height, chunk_size, metric),
-            Homes::Other(home) => home.index(from_height, chunk_size, metric),
+            Homes::Ethereum(home) => home.index(agent_name, from_height, chunk_size, metric),
+            Homes::Mock(mock_home) => mock_home.index(agent_name, from_height, chunk_size, metric),
+            Homes::Other(home) => home.index(agent_name, from_height, chunk_size, metric),
         }
     }
 }

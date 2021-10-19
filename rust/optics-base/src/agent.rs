@@ -126,21 +126,25 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
 
             // kludge
             if Self::AGENT_NAME != "kathy" {
-                let block_height = self
-                    .as_ref()
-                    .metrics
-                    .new_int_gauge(
-                        "block_height",
-                        "Height of a recently observed block",
-                        &["network", "agent"],
-                    )
-                    .expect("failed to register block_height metric")
-                    .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+                let block_height = Arc::new(
+                    self.metrics()
+                        .new_int_gauge(
+                            "block_height",
+                            "Height of a recently observed block",
+                            &["entity", "agent"],
+                        )
+                        .expect(
+                            "processor metric already registered -- should have be a singleton",
+                        ),
+                );
 
                 let indexer = &self.as_ref().indexer;
-                let index_task =
-                    self.home()
-                        .index(indexer.from(), indexer.chunk_size(), block_height);
+                let index_task = self.home().index(
+                    Self::AGENT_NAME.to_owned(),
+                    indexer.from(),
+                    indexer.chunk_size(),
+                    block_height,
+                );
 
                 tasks.push(index_task);
             }

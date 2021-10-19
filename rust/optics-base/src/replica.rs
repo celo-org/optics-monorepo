@@ -7,6 +7,7 @@ use optics_core::{
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
+use std::sync::Arc;
 use tracing::{instrument, instrument::Instrumented};
 
 /// Replica type
@@ -203,14 +204,19 @@ impl Common for Replicas {
 
     fn index(
         &self,
+        agent_name: String,
         from_height: u32,
         chunk_size: u32,
-        metric: prometheus::IntGauge,
+        metric: Arc<prometheus::IntGaugeVec>,
     ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         match self {
-            Replicas::Ethereum(replica) => replica.index(from_height, chunk_size, metric),
-            Replicas::Mock(mock_replica) => mock_replica.index(from_height, chunk_size, metric),
-            Replicas::Other(replica) => replica.index(from_height, chunk_size, metric),
+            Replicas::Ethereum(replica) => {
+                replica.index(agent_name, from_height, chunk_size, metric)
+            }
+            Replicas::Mock(mock_replica) => {
+                mock_replica.index(agent_name, from_height, chunk_size, metric)
+            }
+            Replicas::Other(replica) => replica.index(agent_name, from_height, chunk_size, metric),
         }
     }
 }

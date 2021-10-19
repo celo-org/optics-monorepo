@@ -429,20 +429,35 @@ impl OpticsAgent for Watcher {
             info!("Starting Watcher tasks");
 
             // Indexer setup
-            let block_height = self
-                .as_ref()
-                .metrics
-                .new_int_gauge(
-                    "block_height",
-                    "Height of a recently observed block",
-                    &["network", "agent"],
-                )
-                .expect("failed to register block_height metric")
-                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+            // let block_height = self
+            //     .as_ref()
+            //     .metrics
+            //     .new_int_gauge(
+            //         "block_height",
+            //         "Height of a recently observed block",
+            //         &["network", "agent"],
+            //     )
+            //     .expect("failed to register block_height metric")
+            //     .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+
+            let block_height = Arc::new(
+                self.core.metrics
+                    .new_int_gauge(
+                        "block_height",
+                        "Height of a recently observed block",
+                        &["entity", "agent"],
+                    )
+                    .expect("processor metric already registered -- should have be a singleton"),
+            );
             let indexer = &self.as_ref().indexer;
-            let index_task = self
+            let home_index_task = self
                 .home()
-                .index(indexer.from(), indexer.chunk_size(), block_height);
+                .index(Self::AGENT_NAME.to_owned(), indexer.from(), indexer.chunk_size(), block_height.clone());
+
+            let replica_index_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(_, replica)| {
+                replica
+                .index(Self::AGENT_NAME.to_owned(), indexer.from(), indexer.chunk_size(), block_height.clone())
+            }).collect();
 
             // Watcher watch tasks setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
@@ -450,7 +465,8 @@ impl OpticsAgent for Watcher {
 
             // Race index and run tasks
             info!("selecting");
-            let tasks = vec![index_task, watch_tasks];
+            let mut tasks = vec![home_index_task, watch_tasks];
+            tasks.extend(replica_index_tasks);
             let (_, _, remaining) = select_all(tasks).await;
 
             // Cancel lagging task and watcher polling/syncing tasks
