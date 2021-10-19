@@ -2,7 +2,7 @@ import {deployNewChain} from '../../src/core';
 import * as alfajores from '../../config/testnets/alfajores';
 import * as kovan from '../../config/testnets/kovan';
 import * as rinkeby from '../../config/testnets/rinkeby';
-import * as rinkarby from '../../config/testnets/rinkarby';
+import * as secondAlfajores from '../../config/testnets/secondAlfajores';
 import {CoreDeploy, ExistingCoreDeploy} from '../../src/core/CoreDeploy';
 import { deployEnvironment } from '../../src/chain';
 
@@ -25,8 +25,8 @@ const rinkebyConfig =
 const rinkebyDeploy = new ExistingCoreDeploy(path, rinkeby.chain, rinkebyConfig);
 
 // Instantiate New Deploy
-let rinkarbyConfig =
-    environment === 'staging' ? rinkarby.stagingConfig : rinkarby.devConfig;
-const rinkarbyDeploy = new CoreDeploy(rinkarby.chain, rinkarbyConfig);
+let secondAlfajoresConfig =
+    environment === 'staging' ? secondAlfajores.stagingConfig : secondAlfajores.devConfig;
+const secondAlfajoresDeploy = new CoreDeploy(secondAlfajores.chain, secondAlfajoresConfig);
 
-deployNewChain(rinkarbyDeploy,[kovanDeploy, alfajoresDeploy, rinkebyDeploy]);
+deployNewChain(secondAlfajoresDeploy,[kovanDeploy, alfajoresDeploy, rinkebyDeploy]);
