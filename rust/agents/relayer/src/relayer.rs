@@ -5,7 +5,7 @@ use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::{info, instrument::Instrumented, Instrument};
 
 use optics_base::{AgentCore, CachingHome, CachingReplica, OpticsAgent};
-use optics_core::Common;
+use optics_core::{Common, CommonEvents};
 
 use crate::settings::RelayerSettings as Settings;
 

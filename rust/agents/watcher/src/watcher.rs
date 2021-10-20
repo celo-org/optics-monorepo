@@ -14,7 +14,7 @@ use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
 use optics_base::{cancel_task, AgentCore, CachingHome, ConnectionManagers, OpticsAgent};
 use optics_core::{
-    db::OpticsDB, ChainCommunicationError, Common, ConnectionManager, DoubleUpdate,
+    db::OpticsDB, ChainCommunicationError, Common, CommonEvents, ConnectionManager, DoubleUpdate,
     FailureNotification, Home, SignedUpdate, Signers, TxOutcome,
 };
 
@@ -29,7 +29,7 @@ enum WatcherError {
 #[derive(Debug)]
 pub struct ContractWatcher<C>
 where
-    C: Common + ?Sized + 'static,
+    C: Common + CommonEvents + ?Sized + 'static,
 {
     interval: u64,
     committed_root: H256,
@@ -39,7 +39,7 @@ where
 
 impl<C> ContractWatcher<C>
 where
-    C: Common + ?Sized + 'static,
+    C: Common + CommonEvents + ?Sized + 'static,
 {
     pub fn new(
         interval: u64,
@@ -86,7 +86,7 @@ where
 #[derive(Debug)]
 pub struct HistorySync<C>
 where
-    C: Common + ?Sized + 'static,
+    C: Common + CommonEvents + ?Sized + 'static,
 {
     interval: u64,
     committed_root: H256,
@@ -96,7 +96,7 @@ where
 
 impl<C> HistorySync<C>
 where
-    C: Common + ?Sized + 'static,
+    C: Common + CommonEvents + ?Sized + 'static,
 {
     pub fn new(
         interval: u64,

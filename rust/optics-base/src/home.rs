@@ -3,13 +3,14 @@ use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::db::OpticsDB;
 use optics_core::{
-    ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
+    ChainCommunicationError, Common, CommonEvents, DoubleUpdate, Home, HomeEvents, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
 use std::str::FromStr;
 use std::sync::Arc;
+use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
 use tracing::{instrument, instrument::Instrumented};
 
@@ -59,28 +60,6 @@ impl Home for CachingHome {
         self.home.home_domain_hash()
     }
 
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self.home.raw_message_by_nonce(destination, nonce).await
-    }
-
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self.home.raw_message_by_leaf(leaf).await
-    }
-
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        self.home.leaf_by_tree_index(tree_index).await
-    }
-
     async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         self.home.nonces(destination).await
     }
@@ -106,6 +85,48 @@ impl Home for CachingHome {
 }
 
 #[async_trait]
+impl HomeEvents for CachingHome {
+    #[tracing::instrument(err, skip(self))]
+    async fn raw_message_by_nonce(
+        &self,
+        destination: u32,
+        nonce: u32,
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.message_by_nonce(self.home.name(), destination, nonce)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    #[tracing::instrument(err, skip(self))]
+    async fn raw_message_by_leaf(
+        &self,
+        leaf: H256,
+    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.message_by_leaf(self.home.name(), leaf)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    async fn leaf_by_tree_index(
+        &self,
+        tree_index: usize,
+    ) -> Result<Option<H256>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.leaf_by_leaf_index(self.home.name(), tree_index as u32)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
+    }
+}
+
+#[async_trait]
 impl Common for CachingHome {
     fn name(&self) -> &str {
         self.home.name()
@@ -127,20 +148,6 @@ impl Common for CachingHome {
         self.home.committed_root().await
     }
 
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.home.signed_update_by_old_root(old_root).await
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.home.signed_update_by_new_root(new_root).await
-    }
-
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         self.home.update(update).await
     }
@@ -150,6 +157,35 @@ impl Common for CachingHome {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self.home.double_update(double).await
+    }
+}
+
+#[async_trait]
+impl CommonEvents for CachingHome {
+    #[tracing::instrument(err, skip(self))]
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.update_by_previous_root(self.home.name(), old_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    #[tracing::instrument(err, skip(self))]
+    async fn signed_update_by_new_root(
+        &self,
+        new_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.update_by_new_root(self.home.name(), new_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
     }
 }
 
@@ -213,43 +249,6 @@ impl Home for Homes {
             Homes::Ethereum(home) => home.home_domain_hash(),
             Homes::Mock(mock_home) => mock_home.home_domain_hash(),
             Homes::Other(home) => home.home_domain_hash(),
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.raw_message_by_nonce(destination, nonce).await,
-            Homes::Mock(mock_home) => mock_home.raw_message_by_nonce(destination, nonce).await,
-            Homes::Other(home) => home.raw_message_by_nonce(destination, nonce).await,
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.raw_message_by_leaf(leaf).await,
-            Homes::Mock(mock_home) => mock_home.raw_message_by_leaf(leaf).await,
-            Homes::Other(home) => home.raw_message_by_leaf(leaf).await,
-        }
-    }
-
-    #[instrument(level = "trace", err)]
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.leaf_by_tree_index(tree_index).await,
-            Homes::Mock(mock_home) => mock_home.leaf_by_tree_index(tree_index).await,
-            Homes::Other(home) => home.leaf_by_tree_index(tree_index).await,
         }
     }
 
@@ -339,28 +338,6 @@ impl Common for Homes {
             Homes::Ethereum(home) => home.committed_root().await,
             Homes::Mock(mock_home) => mock_home.committed_root().await,
             Homes::Other(home) => home.committed_root().await,
-        }
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.signed_update_by_old_root(old_root).await,
-            Homes::Mock(mock_home) => mock_home.signed_update_by_old_root(old_root).await,
-            Homes::Other(home) => home.signed_update_by_old_root(old_root).await,
-        }
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Homes::Ethereum(home) => home.signed_update_by_new_root(new_root).await,
-            Homes::Mock(mock_home) => mock_home.signed_update_by_new_root(new_root).await,
-            Homes::Other(home) => home.signed_update_by_new_root(new_root).await,
         }
     }
 

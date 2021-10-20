@@ -90,28 +90,6 @@ impl Home for MockHomeContract {
         self._home_domain_hash()
     }
 
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_nonce(destination, nonce)
-    }
-
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        self._raw_message_by_leaf(leaf)
-    }
-
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        self._leaf_by_tree_index(tree_index)
-    }
-
     async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         self._nonces(destination)
     }
@@ -156,20 +134,6 @@ impl Common for MockHomeContract {
 
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         self._committed_root()
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_old_root(old_root)
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_new_root(new_root)
     }
 
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {

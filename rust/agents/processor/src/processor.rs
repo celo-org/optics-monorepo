@@ -15,7 +15,7 @@ use tracing::{debug, error, info, info_span, instrument, instrument::Instrumente
 
 use optics_base::{cancel_task, decl_agent, AgentCore, CachingHome, CachingReplica, OpticsAgent};
 use optics_core::{
-    accumulator::merkle::Proof, db::OpticsDB, CommittedMessage, Common, Home, MessageStatus,
+    accumulator::merkle::Proof, db::OpticsDB, CommittedMessage, Common, Home, HomeEvents, MessageStatus,
 };
 
 use crate::{

@@ -114,6 +114,31 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         home_domain_hash(self.local_domain())
     }
 
+    /// Fetch the nonce
+    async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
+
+    /// Dispatch a message.
+    async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
+
+    /// Check if queue contains root.
+    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError>;
+
+    /// Submit an improper update for slashing
+    async fn improper_update(
+        &self,
+        update: &SignedUpdate,
+    ) -> Result<TxOutcome, ChainCommunicationError>;
+
+    /// Create a valid update based on the chain's current state.
+    /// This merely suggests an update. It does NOT ensure that no other valid
+    /// update has been produced. The updater MUST take measures to prevent
+    /// double-updating. If no messages are queued, this must produce Ok(None).
+    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError>;
+}
+
+/// Interface for retrieving event data emitted specifically by the home
+#[async_trait]
+pub trait HomeEvents: Home + Send + Sync + std::fmt::Debug {
     /// Fetch the message to destination at the nonce (or error).
     /// This should fetch events from the chain API.
     ///
@@ -168,25 +193,4 @@ pub trait Home: Common + Send + Sync + std::fmt::Debug {
         &self,
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError>;
-
-    /// Fetch the nonce
-    async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError>;
-
-    /// Dispatch a message.
-    async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError>;
-
-    /// Check if queue contains root.
-    async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError>;
-
-    /// Submit an improper update for slashing
-    async fn improper_update(
-        &self,
-        update: &SignedUpdate,
-    ) -> Result<TxOutcome, ChainCommunicationError>;
-
-    /// Create a valid update based on the chain's current state.
-    /// This merely suggests an update. It does NOT ensure that no other valid
-    /// update has been produced. The updater MUST take measures to prevent
-    /// double-updating. If no messages are queued, this must produce Ok(None).
-    async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError>;
 }
