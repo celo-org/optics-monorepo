@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-    accumulator::merkle::Proof, db::OpticsDB, ChainCommunicationError, Common, DoubleUpdate,
+    accumulator::merkle::Proof, db::OpticsDB, ChainCommunicationError, Common, CommonEvents, DoubleUpdate,
     MessageStatus, OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
 };
 
@@ -10,6 +10,7 @@ use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
 use std::str::FromStr;
 use std::sync::Arc;
+use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
 use tracing::{instrument, instrument::Instrumented};
 
@@ -102,20 +103,6 @@ impl Common for CachingReplica {
         self.replica.committed_root().await
     }
 
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.replica.signed_update_by_old_root(old_root).await
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self.replica.signed_update_by_new_root(new_root).await
-    }
-
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         self.replica.update(update).await
     }
@@ -125,6 +112,35 @@ impl Common for CachingReplica {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self.replica.double_update(double).await
+    }
+}
+
+#[async_trait]
+impl CommonEvents for CachingReplica {
+    #[tracing::instrument(err)]
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.update_by_previous_root(self.replica.name(), old_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    #[tracing::instrument(err)]
+    async fn signed_update_by_new_root(
+        &self,
+        new_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        loop {
+            if let Some(update) = self.db.update_by_new_root(self.replica.name(), new_root)? {
+                return Ok(Some(update));
+            }
+            sleep(Duration::from_millis(500)).await;
+        }
     }
 }
 
@@ -275,28 +291,6 @@ impl Common for Replicas {
             Replicas::Ethereum(replica) => replica.committed_root().await,
             Replicas::Mock(mock_replica) => mock_replica.committed_root().await,
             Replicas::Other(replica) => replica.committed_root().await,
-        }
-    }
-
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.signed_update_by_old_root(old_root).await,
-            Replicas::Mock(mock_replica) => mock_replica.signed_update_by_old_root(old_root).await,
-            Replicas::Other(replica) => replica.signed_update_by_old_root(old_root).await,
-        }
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        match self {
-            Replicas::Ethereum(replica) => replica.signed_update_by_new_root(new_root).await,
-            Replicas::Mock(mock_replica) => mock_replica.signed_update_by_new_root(new_root).await,
-            Replicas::Other(replica) => replica.signed_update_by_new_root(new_root).await,
         }
     }
 

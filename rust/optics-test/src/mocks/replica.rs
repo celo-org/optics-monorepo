@@ -121,20 +121,6 @@ impl Common for MockReplicaContract {
         self._committed_root()
     }
 
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_old_root(old_root)
-    }
-
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        self._signed_update_by_new_root(new_root)
-    }
-
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         self._update(update)
     }

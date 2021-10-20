@@ -10,10 +10,7 @@ use optics_core::{
     ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
-use tokio::time::sleep;
 use tracing::instrument;
-
-use std::time::Duration;
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
@@ -213,32 +210,6 @@ where
         Ok(self.contract.committed_root().call().await?.into())
     }
 
-    #[tracing::instrument(err, skip(self))]
-    async fn signed_update_by_old_root(
-        &self,
-        old_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        loop {
-            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
-                return Ok(Some(update));
-            }
-            sleep(Duration::from_millis(500)).await;
-        }
-    }
-
-    #[tracing::instrument(err, skip(self))]
-    async fn signed_update_by_new_root(
-        &self,
-        new_root: H256,
-    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
-        loop {
-            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
-                return Ok(Some(update));
-            }
-            sleep(Duration::from_millis(500)).await;
-        }
-    }
-
     #[tracing::instrument(err, skip(self), fields(hexSignature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         let tx = self.contract.update(
@@ -277,45 +248,6 @@ where
 {
     fn local_domain(&self) -> u32 {
         self.domain
-    }
-
-    #[tracing::instrument(err, skip(self))]
-    async fn raw_message_by_nonce(
-        &self,
-        destination: u32,
-        nonce: u32,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        loop {
-            if let Some(update) = self.db.message_by_nonce(&self.name, destination, nonce)? {
-                return Ok(Some(update));
-            }
-            sleep(Duration::from_millis(500)).await;
-        }
-    }
-
-    #[tracing::instrument(err, skip(self))]
-    async fn raw_message_by_leaf(
-        &self,
-        leaf: H256,
-    ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
-        loop {
-            if let Some(update) = self.db.message_by_leaf(&self.name, leaf)? {
-                return Ok(Some(update));
-            }
-            sleep(Duration::from_millis(500)).await;
-        }
-    }
-
-    async fn leaf_by_tree_index(
-        &self,
-        tree_index: usize,
-    ) -> Result<Option<H256>, ChainCommunicationError> {
-        loop {
-            if let Some(update) = self.db.leaf_by_leaf_index(&self.name, tree_index as u32)? {
-                return Ok(Some(update));
-            }
-            sleep(Duration::from_millis(500)).await;
-        }
     }
 
     #[tracing::instrument(err, skip(self))]
