@@ -1,9 +1,8 @@
 use crate::{
     cancel_task,
     metrics::CoreMetrics,
-    replica::Replicas,
     settings::{IndexSettings, Settings},
-    CachingHome,
+    CachingHome, CachingReplica,
 };
 use async_trait::async_trait;
 use color_eyre::{eyre::WrapErr, Result};
@@ -20,7 +19,7 @@ pub struct AgentCore {
     /// A boxed Home
     pub home: Arc<CachingHome>,
     /// A map of boxed Replicas
-    pub replicas: HashMap<String, Arc<Replicas>>,
+    pub replicas: HashMap<String, Arc<CachingReplica>>,
     /// A persistent KV Store (currently implemented as rocksdb)
     pub db: DB,
     /// Prometheus metrics
@@ -64,12 +63,12 @@ pub trait OpticsAgent: Send + Sync + std::fmt::Debug + AsRef<AgentCore> {
     }
 
     /// Get a reference to the replicas map
-    fn replicas(&self) -> &HashMap<String, Arc<Replicas>> {
+    fn replicas(&self) -> &HashMap<String, Arc<CachingReplica>> {
         &self.as_ref().replicas
     }
 
     /// Get a reference to a replica by its name
-    fn replica_by_name(&self, name: &str) -> Option<Arc<Replicas>> {
+    fn replica_by_name(&self, name: &str) -> Option<Arc<CachingReplica>> {
         self.replicas().get(name).map(Clone::clone)
     }
 

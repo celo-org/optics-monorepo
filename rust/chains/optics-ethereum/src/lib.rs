@@ -63,11 +63,16 @@ chain_entity!(
     make_home_indexer,
     EthereumHomeIndexer,
     Indexer,
-    db: optics_core::db::OpticsDB,
     from_height: u32,
     chunk_size: u32
 );
-
+chain_entity!(
+    make_replica_indexer,
+    EthereumReplicaIndexer,
+    Indexer,
+    from_height: u32,
+    chunk_size: u32
+);
 chain_entity!(
     make_replica,
     EthereumReplica,

@@ -13,7 +13,7 @@ use std::{
 use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
 use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
-use optics_base::{cancel_task, decl_agent, AgentCore, CachingHome, OpticsAgent, Replicas};
+use optics_base::{cancel_task, decl_agent, AgentCore, CachingHome, CachingReplica, OpticsAgent};
 use optics_core::{
     accumulator::merkle::Proof, db::OpticsDB, CommittedMessage, Common, Home, MessageStatus,
 };
@@ -36,7 +36,7 @@ enum Flow {
 #[derive(Debug)]
 pub(crate) struct Replica {
     interval: u64,
-    replica: Arc<Replicas>,
+    replica: Arc<CachingReplica>,
     home: Arc<CachingHome>,
     db: OpticsDB,
     allowed: Option<Arc<HashSet<H256>>>,

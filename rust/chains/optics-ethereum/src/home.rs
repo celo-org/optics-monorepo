@@ -33,7 +33,6 @@ where
     home_name: String,
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
-    db: OpticsDB,
     from_height: u32,
     chunk_size: u32,
 }
@@ -50,7 +49,6 @@ where
             domain: _,
             address,
         }: &ContractLocator,
-        db: OpticsDB,
         from_height: u32,
         chunk_size: u32,
     ) -> Self {
@@ -58,7 +56,6 @@ where
             home_name: name.to_owned(),
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             provider,
-            db,
             from_height,
             chunk_size,
         }

@@ -474,7 +474,7 @@ impl OpticsAgent for Watcher {
                         r#"
                         Double update detected!
                         All contracts notified!
-                        Replicas unenrolled!
+                        CachingReplica unenrolled!
                         Watcher has been shut down!
                     "#
                     )
@@ -495,7 +495,7 @@ mod test {
     use ethers::core::types::H256;
     use ethers::signers::{LocalWallet, Signer};
 
-    use optics_base::Replicas;
+    use optics_base::CachingReplica;
     use optics_core::{DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
@@ -852,7 +852,7 @@ mod test {
             let replica_1 = Arc::new(mock_replica_1.into());
             let replica_2 = Arc::new(mock_replica_2.into());
 
-            let mut replica_map: HashMap<String, Arc<Replicas>> = HashMap::new();
+            let mut replica_map: HashMap<String, Arc<CachingReplica>> = HashMap::new();
             replica_map.insert("replica_1".into(), replica_1);
             replica_map.insert("replica_2".into(), replica_2);
 

@@ -35,6 +35,31 @@ where
     chunk_size: u32,
 }
 
+impl<M> EthereumReplicaIndexer<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
+    /// Create new EthereumHomeIndexer
+    pub fn new(
+        provider: Arc<M>,
+        ContractLocator {
+            name,
+            domain: _,
+            address,
+        }: &ContractLocator,
+        from_height: u32,
+        chunk_size: u32,
+    ) -> Self {
+        Self {
+            replica_name: name.to_owned(),
+            contract: Arc::new(EthereumReplicaInternal::new(address, provider.clone())),
+            provider,
+            from_height,
+            chunk_size,
+        }
+    }
+}
+
 #[async_trait]
 impl<M> Indexer for EthereumReplicaIndexer<M>
 where
