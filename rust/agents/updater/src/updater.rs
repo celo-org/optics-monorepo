@@ -19,12 +19,12 @@ use tokio::{
 use tracing::{error, info, instrument::Instrumented, Instrument};
 
 use crate::settings::UpdaterSettings as Settings;
-use optics_base::{AgentCore, Homes, OpticsAgent};
+use optics_base::{AgentCore, CachingHome, OpticsAgent};
 use optics_core::{db::OpticsDB, Common, Home, SignedUpdate, Signers, Update};
 
 #[derive(Debug)]
 struct UpdateHandler {
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
 
     rx: Receiver<Update>,
     update_pause: u64,
@@ -46,7 +46,7 @@ impl std::fmt::Display for UpdateHandler {
 
 impl UpdateHandler {
     fn new(
-        home: Arc<Homes>,
+        home: Arc<CachingHome>,
         rx: Receiver<Update>,
         update_pause: u64,
         signer: Arc<Signers>,
@@ -167,13 +167,13 @@ impl UpdateHandler {
 }
 
 struct UpdatePoller {
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
     tx: Sender<Update>,
     interval_seconds: u64,
 }
 
 impl UpdatePoller {
-    fn new(home: Arc<Homes>, tx: Sender<Update>, interval_seconds: u64) -> Self {
+    fn new(home: Arc<CachingHome>, tx: Sender<Update>, interval_seconds: u64) -> Self {
         Self {
             home,
             tx,

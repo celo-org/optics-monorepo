@@ -7,8 +7,6 @@ use ethers::core::types::H256;
 
 use optics_core::{accumulator::merkle::Proof, *};
 
-use tracing::{instrument::Instrumented, Instrument};
-
 mock! {
     pub ReplicaContract {
         // Replica

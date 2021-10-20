@@ -33,7 +33,6 @@ where
     provider: Arc<M>,
     from_height: u32,
     chunk_size: u32,
-    indexed_height: prometheus::IntGauge,
 }
 
 #[async_trait]

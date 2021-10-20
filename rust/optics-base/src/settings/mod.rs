@@ -242,11 +242,7 @@ impl Settings {
     }
 
     /// Try to get an indexer object
-    pub async fn try_home_indexer(
-        &self,
-        db: OpticsDB,
-        indexed_height: prometheus::IntGauge,
-    ) -> Result<Indexers, Report> {
+    pub async fn try_home_indexer(&self, db: OpticsDB) -> Result<Indexers, Report> {
         let signer = self.get_signer(&self.home.name).await;
 
         match &self.home.chain {
@@ -262,7 +258,6 @@ impl Settings {
                     db,
                     self.index.from(),
                     self.index.chunk_size(),
-                    indexed_height,
                 )
                 .await?,
             )),
@@ -283,9 +278,10 @@ impl Settings {
         let optics_db = OpticsDB::new(db.clone());
         let home = self.try_home(optics_db.clone()).await?;
         let replicas = self.try_replicas(optics_db.clone()).await?;
+        let home_indexer = Arc::new(self.try_home_indexer(optics_db.clone()).await?);
 
         Ok(AgentCore {
-            home: Arc::new(CachingHome::new(home, optics_db.clone(), None)),
+            home: Arc::new(CachingHome::new(home, optics_db.clone(), home_indexer)),
             replicas,
             db,
             settings: self.clone(),

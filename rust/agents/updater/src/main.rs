@@ -52,7 +52,7 @@ async fn _main() -> Result<()> {
 
     let index_task = agent
         .home()
-        .index(indexer.from(), indexer.chunk_size(), block_height);
+        .spawn_sync(indexer.from(), indexer.chunk_size(), block_height);
     let run_task = agent.run("");
 
     let futs = vec![index_task, run_task];

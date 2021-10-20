@@ -1,13 +1,15 @@
 use async_trait::async_trait;
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::db::OpticsDB;
 use optics_core::{
     ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
-use optics_ethereum::{EthereumHome, EthereumHomeIndexer};
+use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
+use std::sync::Arc;
+use tokio::task::JoinHandle;
 use tracing::{instrument, instrument::Instrumented};
 
 use crate::{ContractSync, Indexers};
@@ -17,11 +19,31 @@ use crate::{ContractSync, Indexers};
 pub struct CachingHome {
     home: Homes,
     db: OpticsDB,
+    indexer: Arc<Indexers>,
 }
 
 impl CachingHome {
-    pub fn new(home: Homes, db: OpticsDB) -> Self {
-        Self { home, db }
+    /// Instantiate new CachingHome
+    pub fn new(home: Homes, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+        Self { home, db, indexer }
+    }
+
+    /// Spawn a task that syncs the CachingHome's db with the on-chain event
+    /// data
+    pub fn spawn_sync(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<JoinHandle<Result<()>>> {
+        ContractSync::new(
+            self.db.clone(),
+            self.indexer.clone(),
+            from_height,
+            chunk_size,
+            indexed_height,
+        )
+        .spawn()
     }
 }
 
