@@ -13,13 +13,6 @@ pub enum Indexers {
 
 #[async_trait]
 impl Indexer for Indexers {
-    fn contract_name(&self) -> &str {
-        match self {
-            Indexers::Ethereum(indexer) => indexer.contract_name(),
-            Indexers::Other(indexer) => indexer.contract_name(),
-        }
-    }
-
     async fn get_block_number(&self) -> Result<u32> {
         match self {
             Indexers::Ethereum(indexer) => indexer.get_block_number().await,

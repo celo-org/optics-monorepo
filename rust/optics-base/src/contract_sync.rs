@@ -17,6 +17,7 @@ static LAST_INSPECTED: &str = "last_inspected";
 #[derive(Debug)]
 pub struct ContractSync<I> {
     db: OpticsDB,
+    contract_name: String,
     indexer: Arc<I>,
     from_height: u32,
     chunk_size: u32,
@@ -30,6 +31,7 @@ where
     /// Instantiate new ContractSync
     pub fn new(
         db: OpticsDB,
+        contract_name: String,
         indexer: Arc<I>,
         from_height: u32,
         chunk_size: u32,
@@ -37,6 +39,7 @@ where
     ) -> Self {
         Self {
             db,
+            contract_name,
             indexer,
             from_height,
             chunk_size,
@@ -52,7 +55,7 @@ where
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
-                .retrieve_decodable(self.indexer.contract_name(), "", LAST_INSPECTED)
+                .retrieve_decodable(&self.contract_name, "", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -79,9 +82,9 @@ where
 
                 for update_with_meta in sorted_updates {
                     self.db
-                        .store_latest_update(self.indexer.contract_name(), &update_with_meta.signed_update)?;
+                        .store_latest_update(&self.contract_name, &update_with_meta.signed_update)?;
                     self.db.store_update_metadata(
-                        self.indexer.contract_name(),
+                        &self.contract_name,
                         update_with_meta.signed_update.update.new_root,
                         update_with_meta.metadata,
                     )?;
@@ -95,7 +98,7 @@ where
                 }
 
                 for message in messages {
-                    self.db.store_raw_committed_message(self.indexer.contract_name(), &message)?;
+                    self.db.store_raw_committed_message(&self.contract_name, &message)?;
 
                     let committed_message: CommittedMessage = message.try_into()?;
                     info!(
@@ -108,7 +111,7 @@ where
                 }
 
                 self.db
-                    .store_encodable(self.indexer.contract_name(), "", LAST_INSPECTED, &next_height)?;
+                    .store_encodable(&self.contract_name, "", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {

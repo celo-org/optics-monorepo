@@ -8,9 +8,6 @@ use crate::{RawCommittedMessage, SignedUpdateWithMeta};
 /// should implement this trait so that the generalized Home/Replica structs
 /// can extract and store event data.
 pub trait Indexer: Send + Sync + std::fmt::Debug {
-    /// Get contract name (home or replica name)
-    fn contract_name(&self) -> &str;
-
     /// Get chain's latest block number
     async fn get_block_number(&self) -> Result<u32>;
 
