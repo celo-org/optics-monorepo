@@ -8,6 +8,7 @@ use optics_core::{
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tracing::{instrument, instrument::Instrumented};
@@ -38,6 +39,7 @@ impl CachingHome {
     ) -> Instrumented<JoinHandle<Result<()>>> {
         ContractSync::new(
             self.db.clone(),
+            String::from_str(self.home.name()).expect("!string"),
             self.indexer.clone(),
             from_height,
             chunk_size,

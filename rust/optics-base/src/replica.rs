@@ -8,6 +8,7 @@ use optics_core::{
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tracing::{instrument, instrument::Instrumented};
@@ -42,6 +43,7 @@ impl CachingReplica {
     ) -> Instrumented<JoinHandle<Result<()>>> {
         ContractSync::new(
             self.db.clone(),
+            String::from_str(self.replica.name()).expect("!string"),
             self.indexer.clone(),
             from_height,
             chunk_size,

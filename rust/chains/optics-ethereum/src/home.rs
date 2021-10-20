@@ -79,10 +79,6 @@ impl<M> Indexer for EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
-    fn contract_name(&self) -> &str {
-        &self.home_name
-    }
-
     #[instrument(err, skip(self))]
     async fn get_block_number(&self) -> Result<u32> {
         Ok(self.provider.get_block_number().await?.as_u32())
