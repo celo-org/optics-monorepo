@@ -13,7 +13,7 @@ use std::{
 use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
 use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
-use optics_base::{cancel_task, decl_agent, AgentCore, Homes, OpticsAgent, Replicas};
+use optics_base::{cancel_task, decl_agent, AgentCore, CachingHome, OpticsAgent, Replicas};
 use optics_core::{
     accumulator::merkle::Proof, db::OpticsDB, CommittedMessage, Common, Home, MessageStatus,
 };
@@ -38,7 +38,7 @@ enum Flow {
 pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
     db: OpticsDB,
     allowed: Option<Arc<HashSet<H256>>>,
     denied: Option<Arc<HashSet<H256>>>,
@@ -408,9 +408,9 @@ impl OpticsAgent for Processor {
                 .expect("failed to register block_height metric")
                 .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
             let indexer = &self.as_ref().indexer;
-            let index_task = self
-                .home()
-                .index(indexer.from(), indexer.chunk_size(), block_height);
+            let index_task =
+                self.home()
+                    .spawn_sync(indexer.from(), indexer.chunk_size(), block_height);
 
             info!("started indexer and sync");
 

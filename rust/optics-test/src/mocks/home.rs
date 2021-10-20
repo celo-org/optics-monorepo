@@ -7,8 +7,6 @@ use ethers::core::types::H256;
 
 use optics_core::*;
 
-use tracing::{instrument::Instrumented, Instrument};
-
 mock! {
     pub HomeContract {
         // Home

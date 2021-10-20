@@ -12,7 +12,7 @@ use tokio::{
 };
 use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
-use optics_base::{cancel_task, AgentCore, ConnectionManagers, Homes, OpticsAgent};
+use optics_base::{cancel_task, AgentCore, CachingHome, ConnectionManagers, OpticsAgent};
 use optics_core::{
     db::OpticsDB, ChainCommunicationError, Common, ConnectionManager, DoubleUpdate,
     FailureNotification, Home, SignedUpdate, Signers, TxOutcome,
@@ -159,11 +159,11 @@ where
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
     db: OpticsDB,
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
 }
 
 impl UpdateHandler {
-    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: OpticsDB, home: Arc<Homes>) -> Self {
+    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: OpticsDB, home: Arc<CachingHome>) -> Self {
         Self { rx, db, home }
     }
 
@@ -440,7 +440,7 @@ impl OpticsAgent for Watcher {
             let indexer = &self.as_ref().indexer;
             let index_task = self
                 .home()
-                .index(indexer.from(), indexer.chunk_size(), block_height);
+                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height);
 
             // Watcher watch tasks setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
@@ -535,7 +535,7 @@ mod test {
                 .return_once(move |_| Ok(Some(signed_update)));
         }
 
-        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut home: Arc<CachingHome> = Arc::new(mock_home.into());
         let (tx, mut rx) = mpsc::channel(200);
         {
             let mut contract_watcher =
@@ -605,7 +605,7 @@ mod test {
                 .return_once(move |_| Ok(Some(first_signed_update)));
         }
 
-        let mut home: Arc<Homes> = Arc::new(mock_home.into());
+        let mut home: Arc<CachingHome> = Arc::new(mock_home.into());
         let (tx, mut rx) = mpsc::channel(200);
         {
             let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());

@@ -45,7 +45,6 @@ where
     db: OpticsDB,
     from_height: u32,
     chunk_size: u32,
-    indexed_height: prometheus::IntGauge,
 }
 
 impl<M> EthereumHomeIndexer<M>
@@ -63,7 +62,6 @@ where
         db: OpticsDB,
         from_height: u32,
         chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
     ) -> Self {
         Self {
             home_name: name.to_owned(),
@@ -72,7 +70,6 @@ where
             db,
             from_height,
             chunk_size,
-            indexed_height,
         }
     }
 }

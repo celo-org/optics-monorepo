@@ -102,7 +102,7 @@ impl From<Infallible> for SignersError {
 }
 
 /// Ethereum-supported signer types
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Signers {
     /// A wallet instantiated with a locally stored private key
     Local(LocalWallet),

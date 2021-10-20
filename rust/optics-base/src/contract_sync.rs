@@ -7,14 +7,17 @@ use tracing::{instrument::Instrumented, Instrument};
 
 use std::cmp::min;
 use std::convert::TryInto;
+use std::sync::Arc;
 use std::time::Duration;
 
 static LAST_INSPECTED: &str = "last_inspected";
 
+/// Struct responsible for continuously indexing the chain for a contract's
+/// event data and storing it in the agent's db
 #[derive(Debug)]
 pub struct ContractSync<I> {
     db: OpticsDB,
-    indexer: I,
+    indexer: Arc<I>,
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
@@ -24,9 +27,10 @@ impl<I> ContractSync<I>
 where
     I: Indexer + 'static,
 {
+    /// Instantiate new ContractSync
     pub fn new(
         db: OpticsDB,
-        indexer: I,
+        indexer: Arc<I>,
         from_height: u32,
         chunk_size: u32,
         indexed_height: prometheus::IntGauge,
@@ -40,7 +44,9 @@ where
         }
     }
 
-    pub fn index(self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+    /// Spawn task that continuously indexes the contract's chain and stores
+    /// messages and updates in the agent's db
+    pub fn spawn(self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         let span = info_span!("ContractSync");
 
         tokio::spawn(async move {

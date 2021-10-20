@@ -4,7 +4,7 @@ use std::{sync::Arc, time::Duration};
 use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::{info, instrument::Instrumented, Instrument};
 
-use optics_base::{AgentCore, Homes, OpticsAgent, Replicas};
+use optics_base::{AgentCore, CachingHome, OpticsAgent, Replicas};
 use optics_core::Common;
 
 use crate::settings::RelayerSettings as Settings;
@@ -14,7 +14,7 @@ const AGENT_NAME: &str = "relayer";
 #[derive(Debug)]
 struct UpdatePoller {
     duration: Duration,
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
     updates_relayed_count: Arc<prometheus::IntCounterVec>,
@@ -31,12 +31,7 @@ impl std::fmt::Display for UpdatePoller {
 }
 
 impl UpdatePoller {
-    fn new(
-        home: Arc<Homes>,
-        replica: Arc<Replicas>,
-        duration: u64,
-        updates_relayed_count: Arc<prometheus::IntCounterVec>,
-    ) -> Self {
+    fn new(home: Arc<CachingHome>, replica: Arc<Replicas>, duration: u64, updates_relayed_count: Arc<prometheus::IntCounterVec>) -> Self {
         Self {
             home,
             replica,

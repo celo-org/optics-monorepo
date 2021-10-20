@@ -4,6 +4,9 @@ use color_eyre::Result;
 use crate::{RawCommittedMessage, SignedUpdateWithMeta};
 
 #[async_trait]
+/// Interface for the a contract indexer. Chain-specific homes and replicas
+/// should implement this trait so that the generalized Home/Replica structs
+/// can extract and store event data.
 pub trait Indexer: Send + Sync + std::fmt::Debug {
     /// Get contract name (home or replica name)
     fn contract_name(&self) -> &str;

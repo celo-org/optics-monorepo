@@ -1,10 +1,7 @@
 use color_eyre::Report;
 use serde::Deserialize;
 
-use optics_core::{
-    db::{OpticsDB, DB},
-    ContractLocator, Signers,
-};
+use optics_core::{db::OpticsDB, ContractLocator, Signers};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};

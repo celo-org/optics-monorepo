@@ -66,8 +66,7 @@ chain_entity!(
     Indexer,
     db: optics_core::db::OpticsDB,
     from_height: u32,
-    chunk_size: u32,
-    indexed_height: prometheus::IntGauge
+    chunk_size: u32
 );
 
 chain_entity!(
