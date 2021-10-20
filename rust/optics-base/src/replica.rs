@@ -1,13 +1,130 @@
 use async_trait::async_trait;
+use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-    accumulator::merkle::Proof, ChainCommunicationError, Common, DoubleUpdate, MessageStatus,
-    OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
+    accumulator::merkle::Proof, db::OpticsDB, ChainCommunicationError, Common, DoubleUpdate,
+    MessageStatus, OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
 };
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
-use tracing::instrument;
+use std::sync::Arc;
+use tokio::task::JoinHandle;
+use tracing::{instrument, instrument::Instrumented};
+
+use crate::{ContractSync, Indexers};
+
+/// Caching replica type
+#[derive(Debug)]
+pub struct CachingReplica {
+    replica: Replicas,
+    db: OpticsDB,
+    indexer: Arc<Indexers>,
+}
+
+impl CachingReplica {
+    /// Instantiate new CachingReplica
+    pub fn new(replica: Replicas, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+        Self {
+            replica,
+            db,
+            indexer,
+        }
+    }
+
+    /// Spawn a task that syncs the CachingReplica's db with the on-chain event
+    /// data
+    pub fn spawn_sync(
+        &self,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: prometheus::IntGauge,
+    ) -> Instrumented<JoinHandle<Result<()>>> {
+        ContractSync::new(
+            self.db.clone(),
+            self.indexer.clone(),
+            from_height,
+            chunk_size,
+            indexed_height,
+        )
+        .spawn()
+    }
+}
+
+#[async_trait]
+impl Replica for CachingReplica {
+    fn local_domain(&self) -> u32 {
+        self.replica.local_domain()
+    }
+
+    async fn remote_domain(&self) -> Result<u32, ChainCommunicationError> {
+        self.replica.remote_domain().await
+    }
+
+    async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
+        self.replica.prove(proof).await
+    }
+
+    async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
+        self.replica.process(message).await
+    }
+
+    async fn message_status(&self, leaf: H256) -> Result<MessageStatus, ChainCommunicationError> {
+        self.replica.message_status(leaf).await
+    }
+
+    async fn acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {
+        self.replica.acceptable_root(root).await
+    }
+}
+
+#[async_trait]
+impl Common for CachingReplica {
+    fn name(&self) -> &str {
+        self.replica.name()
+    }
+
+    async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
+        self.replica.status(txid).await
+    }
+
+    async fn updater(&self) -> Result<H256, ChainCommunicationError> {
+        self.replica.updater().await
+    }
+
+    async fn state(&self) -> Result<State, ChainCommunicationError> {
+        self.replica.state().await
+    }
+
+    async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
+        self.replica.committed_root().await
+    }
+
+    async fn signed_update_by_old_root(
+        &self,
+        old_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        self.replica.signed_update_by_old_root(old_root).await
+    }
+
+    async fn signed_update_by_new_root(
+        &self,
+        new_root: H256,
+    ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
+        self.replica.signed_update_by_new_root(new_root).await
+    }
+
+    async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
+        self.replica.update(update).await
+    }
+
+    async fn double_update(
+        &self,
+        double: &DoubleUpdate,
+    ) -> Result<TxOutcome, ChainCommunicationError> {
+        self.replica.double_update(double).await
+    }
+}
 
 /// Replica type
 #[derive(Debug)]
