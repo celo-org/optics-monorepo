@@ -21,5 +21,3 @@ async function check(deploys: Deploy[]) {
     const governorAddress = ethereumDeploy.config.governor!.address;
     return checkGovernanceSystem(deploys, governorDomain, governorAddress!);
 }
-
-
