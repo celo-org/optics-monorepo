@@ -2,16 +2,16 @@ use async_trait::async_trait;
 use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::{
-    accumulator::merkle::Proof, db::OpticsDB, ChainCommunicationError, Common, CommonEvents, DoubleUpdate,
-    MessageStatus, OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
+    accumulator::merkle::Proof, db::OpticsDB, ChainCommunicationError, Common, CommonEvents,
+    DoubleUpdate, MessageStatus, OpticsMessage, Replica, SignedUpdate, State, TxOutcome,
 };
 
 use optics_ethereum::EthereumReplica;
 use optics_test::mocks::MockReplicaContract;
 use std::str::FromStr;
 use std::sync::Arc;
-use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
+use tokio::time::{sleep, Duration};
 use tracing::{instrument, instrument::Instrumented};
 
 use crate::{ContractSync, Indexers};
@@ -19,19 +19,29 @@ use crate::{ContractSync, Indexers};
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingReplica {
-    replica: Replicas,
+    replica: Arc<Replicas>,
     db: OpticsDB,
     indexer: Arc<Indexers>,
 }
 
 impl CachingReplica {
     /// Instantiate new CachingReplica
-    pub fn new(replica: Replicas, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+    pub fn new(replica: Arc<Replicas>, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
         Self {
             replica,
             db,
             indexer,
         }
+    }
+
+    /// Return handle on home object
+    pub fn replica(&self) -> Arc<Replicas> {
+        self.replica.clone()
+    }
+
+    /// Return handle on OpticsDB
+    pub fn db(&self) -> OpticsDB {
+        self.db.clone()
     }
 
     /// Spawn a task that syncs the CachingReplica's db with the on-chain event
@@ -123,7 +133,10 @@ impl CommonEvents for CachingReplica {
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(self.replica.name(), old_root)? {
+            if let Some(update) = self
+                .db
+                .update_by_previous_root(self.replica.name(), old_root)?
+            {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

@@ -31,6 +31,12 @@ static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
 #[derive(Debug, Clone)]
 pub struct OpticsDB(TypedDB);
 
+impl From<DB> for OpticsDB {
+    fn from(db: DB) -> Self {
+        Self::new(db)
+    }
+}
+
 impl OpticsDB {
     /// Instantiated new `OpticsDB`
     pub fn new(db: DB) -> Self {

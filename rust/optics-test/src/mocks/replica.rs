@@ -34,17 +34,6 @@ mock! {
         pub fn _state(&self) -> Result<State, ChainCommunicationError> {}
 
         pub fn _committed_root(&self) -> Result<H256, ChainCommunicationError> {}
-
-        pub fn _signed_update_by_old_root(
-            &self,
-            old_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
-
-        pub fn _signed_update_by_new_root(
-            &self,
-            new_root: H256,
-        ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {}
-
         pub fn _update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {}
 
         pub fn _double_update(

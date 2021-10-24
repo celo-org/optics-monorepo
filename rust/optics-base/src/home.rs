@@ -3,15 +3,15 @@ use color_eyre::eyre::Result;
 use ethers::core::types::H256;
 use optics_core::db::OpticsDB;
 use optics_core::{
-    ChainCommunicationError, Common, CommonEvents, DoubleUpdate, Home, HomeEvents, Message, RawCommittedMessage,
-    SignedUpdate, State, TxOutcome, Update,
+    ChainCommunicationError, Common, CommonEvents, DoubleUpdate, Home, HomeEvents, Message,
+    RawCommittedMessage, SignedUpdate, State, TxOutcome, Update,
 };
 use optics_ethereum::EthereumHome;
 use optics_test::mocks::MockHomeContract;
 use std::str::FromStr;
 use std::sync::Arc;
-use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
+use tokio::time::{sleep, Duration};
 use tracing::{instrument, instrument::Instrumented};
 
 use crate::{ContractSync, Indexers};
@@ -19,15 +19,25 @@ use crate::{ContractSync, Indexers};
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingHome {
-    home: Homes,
+    home: Arc<Homes>,
     db: OpticsDB,
     indexer: Arc<Indexers>,
 }
 
 impl CachingHome {
     /// Instantiate new CachingHome
-    pub fn new(home: Homes, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+    pub fn new(home: Arc<Homes>, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
         Self { home, db, indexer }
+    }
+
+    /// Return handle on home object
+    pub fn home(&self) -> Arc<Homes> {
+        self.home.clone()
+    }
+
+    /// Return handle on OpticsDB
+    pub fn db(&self) -> OpticsDB {
+        self.db.clone()
     }
 
     /// Spawn a task that syncs the CachingHome's db with the on-chain event
@@ -93,7 +103,10 @@ impl HomeEvents for CachingHome {
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_nonce(self.home.name(), destination, nonce)? {
+            if let Some(update) = self
+                .db
+                .message_by_nonce(self.home.name(), destination, nonce)?
+            {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -118,7 +131,10 @@ impl HomeEvents for CachingHome {
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.leaf_by_leaf_index(self.home.name(), tree_index as u32)? {
+            if let Some(update) = self
+                .db
+                .leaf_by_leaf_index(self.home.name(), tree_index as u32)?
+            {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -168,7 +184,10 @@ impl CommonEvents for CachingHome {
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(self.home.name(), old_root)? {
+            if let Some(update) = self
+                .db
+                .update_by_previous_root(self.home.name(), old_root)?
+            {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

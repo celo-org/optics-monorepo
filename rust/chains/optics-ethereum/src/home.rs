@@ -10,8 +10,8 @@ use optics_core::{
     ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
     SignedUpdate, State, TxOutcome, Update,
 };
-use tracing::instrument;
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
+use tracing::instrument;
 
 use crate::report_tx;
 
