@@ -395,7 +395,7 @@ export async function enrollGovernanceRouter(
     isTestDeploy,
     `${local.chain.name}: starting enroll ${remote.chain.name} governance router`,
   );
-  let tx = await local.contracts.governance!.proxy.setRouter(
+  let tx = await local.contracts.governance!.proxy.setRouterLocal(
     remote.chain.domain,
     toBytes32(remote.contracts.governance!.proxy.address),
     local.overrides,
