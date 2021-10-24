@@ -408,6 +408,33 @@ export async function enrollGovernanceRouter(
 }
 
 /**
+ * Enrolls a remote GovernanceRouter on the local chain.
+ *
+ * @param local - The local deploy instance
+ * @param remote - The remote deploy instance
+ */
+export async function removeSelfAsGovernanceRouter(
+    deploy: ExistingCoreDeploy,
+) {
+  const isTestDeploy = deploy.test;
+  log(
+      isTestDeploy,
+      `${deploy.chain.name}: removing self-governance router`,
+  );
+  const nullBytes32 = '0x' + '00'.repeat(32);
+  let tx = await deploy.contracts.governance!.proxy.setRouterLocal(
+      deploy.chain.domain,
+      nullBytes32,
+      deploy.overrides,
+  );
+  await tx.wait(deploy.chain.confirmations);
+  log(
+      isTestDeploy,
+      `${deploy.chain.name}: removed self governance router`,
+  );
+}
+
+/**
  * Enrolls a remote Replica, GovernanceRouter and Watchers on the local chain.
  *
  * @param local - The local deploy instance
@@ -434,7 +461,7 @@ export async function transferGovernorship(deploy: CoreDeploy, governorDomain: n
     deploy.overrides,
   );
   await tx.wait(deploy.chain.confirmations);
-  log(deploy.test, `${deploy.chain.name}: governorship transferred`);
+  log(deploy.test, `${deploy.chain.name}: governorship transferred; hash: ${tx.hash}`);
 }
 
 /**
