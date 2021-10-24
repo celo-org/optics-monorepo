@@ -77,7 +77,7 @@ async function checkRemoteIsEnrolled(deploy: Deploy, remoteDomain: number) {
   console.log(`   ✅`);
 }
 
-async function checkSelfNotEnrolled(deploy: CoreDeploy) {
+async function checkSelfNotEnrolled(deploy: Deploy) {
   console.log(`   check that ${deploy.chain.name} GovernanceRouter IS NOT enrolled on itself`);
   // check that there is no enrolled contract for the local chain
   // governanceRouter for remote domain NOT registered
