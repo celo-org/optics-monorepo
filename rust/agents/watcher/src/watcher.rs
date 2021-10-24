@@ -681,7 +681,7 @@ mod test {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: OpticsDB::new(db),
+                    db: OpticsDB::new("home", db),
                     home: Arc::new(mock_home.into()),
                 };
 

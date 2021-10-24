@@ -8,15 +8,16 @@ use color_eyre::Result;
 #[derive(Debug, Clone)]
 pub struct TypedDB(DB);
 
+impl AsRef<DB> for TypedDB {
+    fn as_ref(&self) -> &DB {
+        &self.0
+    }
+}
+
 impl TypedDB {
     /// Instantiate new `TypedDB`
     pub fn new(db: DB) -> Self {
         Self(db)
-    }
-
-    /// Return reference to raw db
-    pub fn db(&self) -> &DB {
-        &self.0
     }
 
     fn full_prefix(entity: impl AsRef<[u8]>, prefix: impl AsRef<[u8]>) -> Vec<u8> {

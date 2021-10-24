@@ -43,6 +43,18 @@ impl std::ops::Deref for OpticsDB {
     }
 }
 
+impl AsRef<TypedDB> for OpticsDB {
+    fn as_ref(&self) -> &TypedDB {
+        &self.db
+    }
+}
+
+impl AsRef<DB> for OpticsDB {
+    fn as_ref(&self) -> &DB {
+        self.db.as_ref()
+    }
+}
+
 impl OpticsDB {
     /// Instantiated new `OpticsDB`
     pub fn new(entity: impl AsRef<str>, db: DB) -> Self {
@@ -271,7 +283,10 @@ impl OpticsDB {
 
     /// Iterate over all leaves
     pub fn leaf_iterator(&self) -> PrefixIterator<H256> {
-        PrefixIterator::new(self.db().prefix_iterator(LEAF_IDX), LEAF_IDX.as_ref())
+        PrefixIterator::new(
+            self.db.as_ref().prefix_iterator(LEAF_IDX),
+            LEAF_IDX.as_ref(),
+        )
     }
 
     /// Store a proof by its leaf index
