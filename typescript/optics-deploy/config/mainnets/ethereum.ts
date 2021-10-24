@@ -7,7 +7,7 @@ dotenv.config();
 
 const rpc = process.env.ETHEREUM_RPC;
 if (!rpc) {
-  throw new Error('Missing RPC URI');
+  throw new Error('Missing RPC URI for Ethereum');
 }
 
 export const chainJson: ChainJson = {

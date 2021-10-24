@@ -7,7 +7,7 @@ dotenv.config();
 
 const rpc = process.env.CELO_RPC;
 if (!rpc) {
-  throw new Error('Missing RPC URI');
+  throw new Error('Missing RPC URI for Celo');
 }
 
 export const chainJson: ChainJson = {

@@ -5,11 +5,11 @@ import * as polygon from '../../config/mainnets/polygon';
 import { CoreDeploy } from '../../src/core/CoreDeploy';
 
 let celoConfig = celo.config;
-let kovanConfig = ethereum.config;
+let ethereumConfig = ethereum.config;
 let polygonConfig = polygon.config;
 
 const celoDeploy = new CoreDeploy(celo.chain, celoConfig);
-const kovanDeploy = new CoreDeploy(ethereum.chain, kovanConfig);
+const ethereumDeploy = new CoreDeploy(ethereum.chain, ethereumConfig);
 const polygonDeploy = new CoreDeploy(polygon.chain, polygonConfig);
 
-deployNChains([kovanDeploy, celoDeploy, polygonDeploy]);
+deployNChains([ethereumDeploy, celoDeploy, polygonDeploy]);
