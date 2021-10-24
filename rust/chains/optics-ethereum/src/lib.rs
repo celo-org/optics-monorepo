@@ -4,6 +4,7 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
+use color_eyre::eyre::Result;
 use ethers::prelude::*;
 use num::Num;
 use optics_core::*;
@@ -69,10 +70,7 @@ contract!(
 
 #[async_trait::async_trait]
 impl optics_core::Chain for Chain {
-    async fn query_balance(
-        &self,
-        addr: optics_core::Address,
-    ) -> anyhow::Result<optics_core::Balance> {
+    async fn query_balance(&self, addr: optics_core::Address) -> Result<optics_core::Balance> {
         let balance = format!(
             "{:x}",
             self.ethers

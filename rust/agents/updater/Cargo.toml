@@ -27,6 +27,7 @@ paste = "1.0.5"
 
 prometheus = "0.12"
 warp = "0.3"
+hex = "0.4.3"
 
 [dev-dependencies]
 mockall = "0.9.1"

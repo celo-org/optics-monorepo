@@ -7,7 +7,9 @@
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
+mod produce;
 mod settings;
+mod submit;
 mod updater;
 
 use color_eyre::Result;

@@ -6,7 +6,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "3.0.0-beta.4"
+clap = "3.0.0-beta.5"
 color-eyre = "0.5.11"
 ethers = { git = "https://github.com/gakonst/ethers-rs", branch = "master" }
 ethers-signers = { git = "https://github.com/gakonst/ethers-rs", branch = "master", features = ["aws"] }

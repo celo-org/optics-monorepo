@@ -11,12 +11,11 @@ use once_cell::sync::OnceCell;
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
 use rusoto_kms::KmsClient;
 
-use clap::Clap;
+use clap::Parser;
 
 static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
 fn init_kms(region: String) {
-    // setup KMS
     let client =
         rusoto_core::Client::new_with(EnvironmentProvider::default(), HttpClient::new().unwrap());
     if KMS_CLIENT
@@ -30,7 +29,7 @@ fn init_kms(region: String) {
     }
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct Tx {
     // TX
     /// The TX value (in wei)
@@ -61,10 +60,10 @@ pub struct Tx {
     rpc: String,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct Info {}
 
-#[derive(Clap)]
+#[derive(Parser)]
 /// Subcommands
 pub enum SubCommands {
     /// Send a tx signed by the KMS key
@@ -73,7 +72,7 @@ pub enum SubCommands {
     Info(Info),
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap(version = "0.1", author = "James Prestwich")]
 pub struct Opts {
     #[clap(subcommand)]

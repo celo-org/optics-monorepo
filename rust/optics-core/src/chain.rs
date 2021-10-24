@@ -1,11 +1,12 @@
 #![allow(missing_docs)]
 
+use color_eyre::eyre::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Address(pub bytes::Bytes);
-#[derive(Debug, Clone, Deserialize, Serialize)]
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Balance(pub num::BigInt);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,7 +27,8 @@ impl std::fmt::Display for ContractLocator {
 
 #[async_trait::async_trait]
 pub trait Chain {
-    async fn query_balance(&self, addr: Address) -> anyhow::Result<Balance>;
+    /// Query the balance on a chain
+    async fn query_balance(&self, addr: Address) -> Result<Balance>;
 }
 
 impl From<Address> for ethers::types::H160 {

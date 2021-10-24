@@ -25,7 +25,6 @@ rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 prometheus = "0.12.0"
 bytes = { version = "1", features = ["serde"]}
 num = {version="0", features=["serde"]}
-anyhow = "1"
 
 [dev-dependencies]
 tokio = {version = "1.0.1", features = ["rt", "time"]}

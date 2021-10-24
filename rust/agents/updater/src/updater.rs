@@ -1,200 +1,18 @@
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use color_eyre::{
-    eyre::{bail, ensure, Context},
-    Result,
-};
+use color_eyre::{eyre::ensure, Result};
 use ethers::{signers::Signer, types::Address};
 use futures_util::future::select_all;
 use prometheus::IntCounterVec;
-use tokio::{
-    sync::{
-        mpsc::{self, error::TrySendError, Receiver, Sender},
-        Mutex,
-    },
-    task::JoinHandle,
-    time::sleep,
+use tokio::task::JoinHandle;
+use tracing::{instrument::Instrumented, Instrument};
+
+use crate::{
+    produce::UpdateProducer, settings::UpdaterSettings as Settings, submit::UpdateSubmitter,
 };
-use tracing::{error, info, instrument::Instrumented, Instrument};
-
-use crate::settings::UpdaterSettings as Settings;
-use optics_base::{AgentCore, Homes, OpticsAgent};
-use optics_core::{db::OpticsDB, Common, Home, SignedUpdate, Signers, Update};
-
-#[derive(Debug)]
-struct UpdateHandler {
-    home: Arc<Homes>,
-
-    rx: Receiver<Update>,
-    update_pause: u64,
-    signer: Arc<Signers>,
-    db: OpticsDB,
-    mutex: Arc<Mutex<()>>,
-    signed_attestation_count: IntCounterVec,
-}
-
-impl std::fmt::Display for UpdateHandler {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "UpdateHandler: {{ home: {:?}, signer: {:?}, update_pause: {} }}",
-            self.home, self.signer, self.update_pause
-        )
-    }
-}
-
-impl UpdateHandler {
-    fn new(
-        home: Arc<Homes>,
-        rx: Receiver<Update>,
-        update_pause: u64,
-        signer: Arc<Signers>,
-        db: OpticsDB,
-        mutex: Arc<Mutex<()>>,
-        signed_attestation_count: IntCounterVec,
-    ) -> Self {
-        Self {
-            home,
-            rx,
-            update_pause,
-            signer,
-            db,
-            mutex,
-            signed_attestation_count,
-        }
-    }
-
-    fn check_conflict(&self, update: &Update) -> Option<SignedUpdate> {
-        self.db
-            .update_by_previous_root(self.home.name(), update.previous_root)
-            .expect("db failure")
-    }
-
-    #[tracing::instrument(err, skip(self), fields(self = %self))]
-    async fn acceptable(&self, update: &Update) -> Result<bool> {
-        // Poll chain API to see if queue still contains new root
-        // and old root still equals home's current root
-        let (in_queue, committed_root) = tokio::join!(
-            self.home.queue_contains(update.new_root),
-            self.home.committed_root()
-        );
-
-        if in_queue.is_err() {
-            info!("Update no longer in queue");
-        }
-        if committed_root.is_err() {
-            error!("Connection gone");
-        }
-
-        let in_queue = in_queue?;
-        let committed_root = committed_root?;
-
-        let old_root = update.previous_root;
-        Ok(in_queue && committed_root == old_root)
-    }
-
-    #[tracing::instrument(err, skip(self), fields(self = %self))]
-    async fn handle_update(&self, update: Update) -> Result<()> {
-        info!("Have an update, awaiting the tick");
-
-        // We poll acceptable immediately, to prevent waiting on
-        // any unacceptable updates that got into the channel
-        // We poll it AGAIN after sleeping to ensure that the update
-        // is still acceptable.
-
-        // TODO(james): later refactor this to only allow acceptable
-        // updates into the channel?
-        if !self.acceptable(&update).await? {
-            info!("Declined to submit update. No longer current");
-            return Ok(());
-        }
-
-        // Wait `update_pause` seconds
-        sleep(Duration::from_secs(self.update_pause)).await;
-
-        if !self.acceptable(&update).await? {
-            info!("Declined to submit update. No longer current");
-            return Ok(());
-        }
-
-        // acquire guard. If the guard can't be acquired, that
-        // means a tx is in flight and we should try again later.
-        let _guard = self
-            .mutex
-            .try_lock()
-            .wrap_err("Declined to submit update.")?;
-
-        // If update still valid and doesn't conflict with local
-        // history of signed updates, sign and submit update. Note
-        // that because we acquire a guard, only one task
-        // can check and enter the below `if` block at a time,
-        // protecting from races between threads.
-
-        if self.check_conflict(&update).is_some() {
-            bail!("Found conflicting update in DB");
-        }
-
-        // If we have a conflict, we grab that one instead
-        let signed = update.sign_with(self.signer.as_ref()).await.unwrap();
-
-        // If successfully submitted update, record in db
-        info!(
-            "Dispatching signed update to contract. Current root is {:?}, new root is {:?}",
-            &signed.update.previous_root, &signed.update.new_root
-        );
-
-        self.signed_attestation_count
-            .with_label_values(&[self.home.name(), Updater::AGENT_NAME])
-            .inc();
-        self.home.update(&signed).await?;
-
-        info!("Storing signed update in db");
-        self.db.store_latest_update(self.home.name(), &signed)?;
-        Ok(())
-        // guard dropped here
-    }
-
-    fn spawn(mut self) -> Instrumented<JoinHandle<Result<()>>> {
-        tokio::spawn(async move {
-            while let Some(update) = self.rx.recv().await {
-                self.handle_update(update).await?;
-            }
-            Ok(())
-        })
-        .in_current_span()
-    }
-}
-
-struct UpdatePoller {
-    home: Arc<Homes>,
-    tx: Sender<Update>,
-    interval_seconds: u64,
-}
-
-impl UpdatePoller {
-    fn new(home: Arc<Homes>, tx: Sender<Update>, interval_seconds: u64) -> Self {
-        Self {
-            home,
-            tx,
-            interval_seconds,
-        }
-    }
-
-    fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
-        tokio::spawn(async move {
-            loop {
-                if let Some(update) = self.home.produce_update().await? {
-                    if let Err(TrySendError::Closed(_)) = self.tx.try_send(update) {
-                        bail!("UpdatePoller died");
-                    }
-                }
-                sleep(Duration::from_secs(self.interval_seconds)).await;
-            }
-        })
-        .in_current_span()
-    }
-}
+use optics_base::agent::{AgentCore, OpticsAgent};
+use optics_core::{traits::Common, Signers};
 
 /// An updater agent
 #[derive(Debug)]
@@ -259,17 +77,16 @@ impl OpticsAgent for Updater {
         let home = self.home();
         let address = self.signer.address();
 
-        let (tx, rx) = mpsc::channel(1);
-        let poller = UpdatePoller::new(self.home(), tx, self.interval_seconds);
-        let handler = UpdateHandler::new(
+        let produce = UpdateProducer::new(
             self.home(),
-            rx,
-            self.update_pause,
+            self.home_db(),
             self.signer.clone(),
-            OpticsDB::new(self.db()),
-            Default::default(),
+            self.interval_seconds,
+            self.update_pause,
             self.signed_attestation_count.clone(),
         );
+
+        let submit = UpdateSubmitter::new(self.home(), self.home_db(), self.interval_seconds);
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
@@ -279,10 +96,10 @@ impl OpticsAgent for Updater {
                 expected,
                 address
             );
-            let poller_task = poller.spawn();
-            let handler_task = handler.spawn();
+            let produce_task = produce.spawn();
+            let submit_task = submit.spawn();
 
-            let (res, _, rem) = select_all(vec![poller_task, handler_task]).await;
+            let (res, _, rem) = select_all(vec![produce_task, submit_task]).await;
 
             for task in rem.into_iter() {
                 task.into_inner().abort();

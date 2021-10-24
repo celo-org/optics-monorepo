@@ -24,6 +24,7 @@ pub mod models {
 
 /// Async Traits for Homes & Replicas for use in applications
 mod traits;
+use ethers_signers::WalletError;
 pub use traits::*;
 
 /// Utilities to match contract values
@@ -53,7 +54,10 @@ pub use identifiers::OpticsIdentifier;
 use async_trait::async_trait;
 use ethers::{
     core::types::{Address as EthAddress, Signature, SignatureError, H256},
-    prelude::{transaction::eip2718::TypedTransaction, AwsSigner},
+    prelude::{
+        transaction::{eip2718::TypedTransaction, eip712::Eip712},
+        AwsSigner,
+    },
     signers::{AwsSignerError, LocalWallet, Signer},
 };
 
@@ -86,6 +90,9 @@ pub enum SignersError {
     /// AWS Signer Error
     #[error("{0}")]
     AwsSignerError(#[from] AwsSignerError),
+    /// Wallet Signer Error
+    #[error("{0}")]
+    WalletError(#[from] WalletError),
 }
 
 impl From<Infallible> for SignersError {
@@ -155,6 +162,16 @@ impl Signer for Signers {
         match self {
             Signers::Local(signer) => signer.chain_id(),
             Signers::Aws(signer) => signer.chain_id(),
+        }
+    }
+
+    async fn sign_typed_data<T: Eip712 + Send + Sync>(
+        &self,
+        payload: &T,
+    ) -> Result<Signature, Self::Error> {
+        match self {
+            Signers::Local(signer) => Ok(signer.sign_typed_data(payload).await?),
+            Signers::Aws(signer) => Ok(signer.sign_typed_data(payload).await?),
         }
     }
 }

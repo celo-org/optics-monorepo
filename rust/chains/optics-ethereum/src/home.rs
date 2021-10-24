@@ -130,8 +130,7 @@ where
         });
 
         for message in messages {
-            self.db
-                .store_raw_committed_message(&self.home_name, &message)?;
+            self.db.store_raw_committed_message(&message)?;
 
             let committed_message: CommittedMessage = message.try_into()?;
             info!(
@@ -225,7 +224,7 @@ where
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db: OpticsDB::new(db),
+            db: OpticsDB::new("home", db),
             provider,
         }
     }
@@ -298,7 +297,7 @@ where
         }
     }
 
-    #[tracing::instrument(err, skip(self), fields(hexSignature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
+    #[tracing::instrument(err, skip(self), fields(hex_signature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         let tx = self.contract.update(
             update.update.previous_root.to_fixed_bytes(),
@@ -364,7 +363,7 @@ where
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_nonce(&self.name, destination, nonce)? {
+            if let Some(update) = self.db.message_by_nonce(destination, nonce)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -377,7 +376,7 @@ where
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_leaf(&self.name, leaf)? {
+            if let Some(update) = self.db.message_by_leaf(leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -389,7 +388,7 @@ where
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.leaf_by_leaf_index(&self.name, tree_index as u32)? {
+            if let Some(update) = self.db.leaf_by_leaf_index(tree_index as u32)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -416,7 +415,7 @@ where
         Ok(self.contract.queue_contains(root.into()).call().await?)
     }
 
-    #[tracing::instrument(err, skip(self), fields(hexSignature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
+    #[tracing::instrument(err, skip(self), fields(hex_signature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
     async fn improper_update(
         &self,
         update: &SignedUpdate,
