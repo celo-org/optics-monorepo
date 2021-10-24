@@ -19,4 +19,10 @@ let rinkarbyConfig =
     environment === 'staging' ? rinkarby.stagingConfig : rinkarby.devConfig;
 const rinkarbyDeploy = new ExistingCoreDeploy(path, rinkarby.chain, rinkarbyConfig);
 
-transferGovernorship(kovanDeploy, rinkarbyDeploy);
+transfer();
+
+async function transfer() {
+    const governorDomain = kovanDeploy.chain.domain;
+    const governorAddress = await kovanDeploy.chain.deployer.getAddress();
+    return transferGovernorship(rinkarbyDeploy, governorDomain, governorAddress);
+}
