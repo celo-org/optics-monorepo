@@ -16,6 +16,18 @@ import { hexlify } from '@ethersproject/bytes';
 
 type Address = string;
 
+/**
+ * The OpticsContext managers connections to Optics core and Bridge contracts.
+ * It inherits from the {@link MultiProvider}, and ensures that its contracts
+ * always use the latest registered providers and signers.
+ *
+ * For convenience, we've pre-constructed contexts for mainnet and testnet
+ * deployments. These can be imported directly.
+ *
+ * @example
+ * // Set up mainnet and then access contracts as below:
+ * let router = mainnet.mustGetBridge('celo').bridgeRouter;
+ */
 export class OpticsContext extends MultiProvider {
   private cores: Map<number, CoreContracts>;
   private bridges: Map<number, BridgeContracts>;
@@ -38,12 +50,24 @@ export class OpticsContext extends MultiProvider {
     });
   }
 
+  /**
+   * Instantiate an OpticsContext from contract info.
+   *
+   * @param domains An array of Domains with attached contract info
+   * @returns A context object
+   */
   static fromDomains(domains: OpticsDomain[]): OpticsContext {
     const cores = domains.map((domain) => CoreContracts.fromObject(domain));
     const bridges = domains.map((domain) => BridgeContracts.fromObject(domain));
     return new OpticsContext(domains, cores, bridges);
   }
 
+  /**
+   * Ensure that the contracts on a given domain are connected to the
+   * currently-registered signer or provider.
+   *
+   * @param domain the domain to reconnect
+   */
   private reconnect(domain: number) {
     const connection = this.getConnection(domain);
     if (!connection) {
@@ -60,6 +84,12 @@ export class OpticsContext extends MultiProvider {
     }
   }
 
+  /**
+   * Register an ethers Provider for a specified domain.
+   *
+   * @param nameOrDomain A domain name or number.
+   * @param provider An ethers Provider to be used by requests to that domain.
+   */
   registerProvider(
     nameOrDomain: string | number,
     provider: ethers.providers.Provider,
@@ -69,28 +99,57 @@ export class OpticsContext extends MultiProvider {
     this.reconnect(domain);
   }
 
+  /**
+   * Register an ethers Signer for a specified domain.
+   *
+   * @param nameOrDomain A domain name or number.
+   * @param signer An ethers Signer to be used by requests to that domain.
+   */
   registerSigner(nameOrDomain: string | number, signer: ethers.Signer): void {
     const domain = this.resolveDomain(nameOrDomain);
     super.registerSigner(domain, signer);
     this.reconnect(domain);
   }
 
+  /**
+   * Remove the registered ethers Signer from a domain. This function will
+   * attempt to preserve any Provider that was previously connected to this
+   * domain.
+   *
+   * @param nameOrDomain A domain name or number.
+   */
   unregisterSigner(nameOrDomain: string | number): void {
     const domain = this.resolveDomain(nameOrDomain);
     super.unregisterSigner(domain);
     this.reconnect(domain);
   }
 
+  /**
+   * Clear all signers from all registered domains.
+   */
   clearSigners(): void {
     super.clearSigners();
     this.domainNumbers.forEach((domain) => this.reconnect(domain));
   }
 
+  /**
+   * Get the {@link CoreContracts} for a given domain (or undefined)
+   *
+   * @param nameOrDomain A domain name or number.
+   * @returns a {@link CoreContracts} object (or undefined)
+   */
   getCore(nameOrDomain: string | number): CoreContracts | undefined {
     const domain = this.resolveDomain(nameOrDomain);
     return this.cores.get(domain);
   }
 
+  /**
+   * Get the {@link CoreContracts} for a given domain (or throw an error)
+   *
+   * @param nameOrDomain A domain name or number.
+   * @returns a {@link CoreContracts} object
+   * @throws if no {@link CoreContracts} object exists on that domain.
+   */
   mustGetCore(nameOrDomain: string | number): CoreContracts {
     const core = this.getCore(nameOrDomain);
     if (!core) {
@@ -99,11 +158,23 @@ export class OpticsContext extends MultiProvider {
     return core;
   }
 
+  /**
+   * Get the {@link BridgeContracts} for a given domain (or undefined)
+   *
+   * @param nameOrDomain A domain name or number.
+   * @returns a {@link BridgeContracts} object (or undefined)
+   */
   getBridge(nameOrDomain: string | number): BridgeContracts | undefined {
     const domain = this.resolveDomain(nameOrDomain);
     return this.bridges.get(domain);
   }
-
+  /**
+   * Get the {@link BridgeContracts} for a given domain (or throw an error)
+   *
+   * @param nameOrDomain A domain name or number.
+   * @returns a {@link BridgeContracts} object
+   * @throws if no {@link BridgeContracts} object exists on that domain.
+   */
   mustGetBridge(nameOrDomain: string | number): BridgeContracts {
     const bridge = this.getBridge(nameOrDomain);
     if (!bridge) {
@@ -112,7 +183,16 @@ export class OpticsContext extends MultiProvider {
     return bridge;
   }
 
-  // gets the replica of Home on Remote
+  /**
+   * Resolve the replica for the Home domain on the Remote domain (if any).
+   *
+   * WARNING: do not hold references to this contract, as it will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @param home the sending domain
+   * @param remote the receiving domain
+   * @returns An interface for the Replica (if any)
+   */
   getReplicaFor(
     home: string | number,
     remote: string | number,
@@ -121,7 +201,17 @@ export class OpticsContext extends MultiProvider {
       ?.contract;
   }
 
-  // gets the replica of Home on Remote, or errors
+  /**
+   * Resolve the replica for the Home domain on the Remote domain (or throws).
+   *
+   * WARNING: do not hold references to this contract, as it will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @param home the sending domain
+   * @param remote the receiving domain
+   * @returns An interface for the Replica
+   * @throws If no replica is found.
+   */
   mustGetReplicaFor(
     home: string | number,
     remote: string | number,
@@ -133,7 +223,18 @@ export class OpticsContext extends MultiProvider {
     return replica;
   }
 
-  // resolve the local repr of a token on its domain
+  /**
+   * Resolve the local representation of a token on some domain. E.g. find the
+   * deployed Celo address of Ethereum's Sushi Token.
+   *
+   * WARNING: do not hold references to this contract, as it will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @param nameOrDomain the target domain, which hosts the representation
+   * @param token The token to locate on that domain
+   * @returns An interface for that token (if it has been deployed on that
+   * domain)
+   */
   async resolveRepresentation(
     nameOrDomain: string | number,
     token: TokenIdentifier,
@@ -161,7 +262,17 @@ export class OpticsContext extends MultiProvider {
     return contract;
   }
 
-  // resolve all token representations
+  /**
+   * Resolve the local representation of a token on ALL known domain. E.g.
+   * find ALL deployed addresses of Ethereum's Sushi Token, on all registered
+   * domains.
+   *
+   * WARNING: do not hold references to these contracts, as they will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @param token The token to locate on ALL domains
+   * @returns A {@link ResolvedTokenInfo} object with representation addresses
+   */
   async resolveRepresentations(
     token: TokenIdentifier,
   ): Promise<ResolvedTokenInfo> {
@@ -183,11 +294,19 @@ export class OpticsContext extends MultiProvider {
     };
   }
 
-  // resolve the ID of the canonical token for a representation on some domain
+  /**
+   * Resolve the canonical domain and identifier for a representation on some
+   * domain.
+   *
+   * @param nameOrDomain The domain hosting the representation
+   * @param representation The address of the representation on that domain
+   * @returns The domain and ID for the canonical token
+   * @throws If the token is unknown to the bridge router on its domain.
+   */
   async resolveCanonicalIdentifier(
     nameOrDomain: string | number,
     representation: Address,
-  ): Promise<TokenIdentifier | undefined> {
+  ): Promise<TokenIdentifier> {
     const domain = this.resolveDomain(nameOrDomain);
     const bridge = this.mustGetBridge(nameOrDomain);
     const repr = hexlify(canonizeId(representation));
@@ -215,12 +334,19 @@ export class OpticsContext extends MultiProvider {
       };
     }
 
-    // otherwise undefined
-    return;
+    // throw
+    throw new Error('Token not known to the bridge');
   }
 
-  // resolve an `ethers.Contract` for the canonical token for a representation
-  // on some domain
+  /**
+   * Resolve an interface for the canonical token corresponding to a
+   * representation on some domain.
+   *
+   * @param nameOrDomain The domain hosting the representation
+   * @param representation The address of the representation on that domain
+   * @returns An interface for that token
+   * @throws If the token is unknown to the bridge router on its domain.
+   */
   async resolveCanonicalToken(
     nameOrDomain: string | number,
     representation: Address,
@@ -244,7 +370,19 @@ export class OpticsContext extends MultiProvider {
     return token;
   }
 
-  // send tokens from domain to domain
+  /**
+   * Send tokens from one domain to another. Approves the bridge if necessary.
+   *
+   * @param from The domain to send from
+   * @param to The domain to send to
+   * @param token The token to send
+   * @param amount The amount (in smallest unit) to send
+   * @param recipient The identifier to send to on the `to` domain
+   * @param overrides Any tx overrides (e.g. gas price)
+   * @returns a {@link TransferMessage} object representing the in-flight
+   *          transfer
+   * @throws On missing signers, missing tokens, tx issues, etc.
+   */
   async send(
     from: string | number,
     to: string | number,
@@ -290,7 +428,19 @@ export class OpticsContext extends MultiProvider {
     return message as TransferMessage;
   }
 
-  // send the native asset from domain to domain (using EthHelper.sol)
+  /**
+   * Send a chain's native asset from one chain to another using the
+   * `EthHelper` contract.
+   *
+   * @param from The domain to send from
+   * @param to The domain to send to
+   * @param amount The amount (in smallest unit) to send
+   * @param recipient The identifier to send to on the `to` domain
+   * @param overrides Any tx overrides (e.g. gas price)
+   * @returns a {@link TransferMessage} object representing the in-flight
+   *          transfer
+   * @throws On missing signers, tx issues, etc.
+   */
   async sendNative(
     from: string | number,
     to: string | number,

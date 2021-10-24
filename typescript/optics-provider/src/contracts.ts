@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
 
+/**
+ * Abstract class for managing collections of contracts
+ */
 export abstract class Contracts {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly args: any[];
