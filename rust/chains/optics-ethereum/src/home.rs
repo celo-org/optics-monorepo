@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::db::OpticsDB;
 use optics_core::*;
 use optics_core::{
     ChainCommunicationError, Common, DoubleUpdate, Home, Message, RawCommittedMessage,
@@ -32,7 +31,7 @@ where
 }
 
 #[derive(Debug)]
-/// Struct that retrieves indexes event data for Ethereum home
+/// Struct that retrieves event data for an Ethereum home
 pub struct EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware,
@@ -147,7 +146,6 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumHomeInternal<M>>,
-    db: OpticsDB,
     domain: u32,
     name: String,
     provider: Arc<M>,
@@ -166,13 +164,11 @@ where
             domain,
             address,
         }: &ContractLocator,
-        db: OpticsDB,
     ) -> Self {
         Self {
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db,
             provider,
         }
     }

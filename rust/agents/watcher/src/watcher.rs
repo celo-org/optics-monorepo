@@ -474,7 +474,7 @@ impl OpticsAgent for Watcher {
                         r#"
                         Double update detected!
                         All contracts notified!
-                        CachingReplica unenrolled!
+                        Replicas unenrolled!
                         Watcher has been shut down!
                     "#
                     )
@@ -528,7 +528,6 @@ mod test {
             let mut mock_home = MockHomeContract::new();
             let optics_db = OpticsDB::new(db.clone());
 
-            // Set mock values
             {
                 mock_home.expect__name().return_const("home_1".to_owned());
 
@@ -542,19 +541,17 @@ mod test {
             let home: Arc<CachingHome> =
                 CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
 
-            {
-                let (tx, mut rx) = mpsc::channel(200);
-                let mut contract_watcher =
-                    ContractWatcher::new(3, first_root, tx.clone(), home.clone());
+            let (tx, mut rx) = mpsc::channel(200);
+            let mut contract_watcher =
+                ContractWatcher::new(3, first_root, tx.clone(), home.clone());
 
-                contract_watcher
-                    .poll_and_send_update()
-                    .await
-                    .expect("Should have received Ok(())");
+            contract_watcher
+                .poll_and_send_update()
+                .await
+                .expect("Should have received Ok(())");
 
-                assert_eq!(contract_watcher.committed_root, second_root);
-                assert_eq!(rx.recv().await.unwrap(), signed_update);
-            }
+            assert_eq!(contract_watcher.committed_root, second_root);
+            assert_eq!(rx.recv().await.unwrap(), signed_update);
         })
         .await
     }
@@ -593,6 +590,7 @@ mod test {
 
             let mut mock_home = MockHomeContract::new();
             let optics_db = OpticsDB::new(db.clone());
+
             {
                 mock_home.expect__name().return_const("home_1".to_owned());
 
@@ -608,29 +606,28 @@ mod test {
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
             let home: Arc<CachingHome> =
                 CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
-            {
-                let (tx, mut rx) = mpsc::channel(200);
-                let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
 
-                // First update_history call returns first -> second update
-                history_sync
-                    .update_history()
-                    .await
-                    .expect("Should have received Ok(())");
+            let (tx, mut rx) = mpsc::channel(200);
+            let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
 
-                assert_eq!(history_sync.committed_root, first_root);
-                assert_eq!(rx.recv().await.unwrap(), second_signed_update);
+            // First update_history call returns first -> second update
+            history_sync
+                .update_history()
+                .await
+                .expect("Should have received Ok(())");
 
-                // Second update_history call returns zero -> first update
-                // and should return WatcherError::SyncingFinished
-                history_sync
-                    .update_history()
-                    .await
-                    .expect_err("Should have received WatcherError::SyncingFinished");
+            assert_eq!(history_sync.committed_root, first_root);
+            assert_eq!(rx.recv().await.unwrap(), second_signed_update);
 
-                assert_eq!(history_sync.committed_root, zero_root);
-                assert_eq!(rx.recv().await.unwrap(), first_signed_update)
-            }
+            // Second update_history call returns zero -> first update
+            // and should return WatcherError::SyncingFinished
+            history_sync
+                .update_history()
+                .await
+                .expect_err("Should have received WatcherError::SyncingFinished");
+
+            assert_eq!(history_sync.committed_root, zero_root);
+            assert_eq!(rx.recv().await.unwrap(), first_signed_update)
         })
         .await
     }
@@ -686,30 +683,29 @@ mod test {
                 mock_home_indexer,
             )
             .into();
-            {
-                let (_tx, rx) = mpsc::channel(200);
-                let mut handler = UpdateHandler {
-                    rx,
-                    db: optics_db.clone(),
-                    home,
-                };
 
-                let _first_update_ret = handler
-                    .check_double_update(&first_update)
-                    .expect("Update should have been valid");
+            let (_tx, rx) = mpsc::channel(200);
+            let mut handler = UpdateHandler {
+                rx,
+                db: optics_db.clone(),
+                home,
+            };
 
-                let _second_update_ret = handler
-                    .check_double_update(&second_update)
-                    .expect("Update should have been valid");
+            let _first_update_ret = handler
+                .check_double_update(&first_update)
+                .expect("Update should have been valid");
 
-                let bad_second_update_ret = handler
-                    .check_double_update(&bad_second_update)
-                    .expect_err("Update should have been invalid");
-                assert_eq!(
-                    bad_second_update_ret,
-                    DoubleUpdate(second_update, bad_second_update)
-                );
-            }
+            let _second_update_ret = handler
+                .check_double_update(&second_update)
+                .expect("Update should have been valid");
+
+            let bad_second_update_ret = handler
+                .check_double_update(&bad_second_update)
+                .expect_err("Update should have been invalid");
+            assert_eq!(
+                bad_second_update_ret,
+                DoubleUpdate(second_update, bad_second_update)
+            );
         })
         .await
     }
