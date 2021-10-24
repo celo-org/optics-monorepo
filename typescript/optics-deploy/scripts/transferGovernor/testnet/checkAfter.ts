@@ -26,8 +26,8 @@ const rinkebyDeploy = new ExistingCoreDeploy(path, rinkeby.chain, rinkebyConfig)
 check();
 
 async function check() {
-    const deploys = [rinkebyDeploy, kovanDeploy, alfajoresDeploy];
-    const newGovernorDomain = rinkebyDeploy.chain.domain;
-    const newGovernorAddress = await rinkebyDeploy.chain.deployer.getAddress();
+    const deploys = [alfajoresDeploy, kovanDeploy, rinkebyDeploy];
+    const newGovernorDomain = alfajoresDeploy.chain.domain;
+    const newGovernorAddress = await alfajoresDeploy.chain.deployer.getAddress();
     return checkGovernanceSystem(deploys, newGovernorDomain, newGovernorAddress);
 }
