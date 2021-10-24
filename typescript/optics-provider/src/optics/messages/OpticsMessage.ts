@@ -54,6 +54,12 @@ export type EventCache = {
   process?: AnnotatedProcess;
 };
 
+/**
+ * Parse a serialized Optics message from raw bytes.
+ *
+ * @param message
+ * @returns
+ */
 export function parseMessage(message: string): ParsedMessage {
   const buf = Buffer.from(arrayify(message));
   const from = buf.readUInt32BE(0);
@@ -65,6 +71,9 @@ export function parseMessage(message: string): ParsedMessage {
   return { from, sender, nonce, destination, recipient, body };
 }
 
+/**
+ * A deserialized Optics message.
+ */
 export class OpticsMessage {
   readonly dispatch: AnnotatedDispatch;
   readonly message: ParsedMessage;
@@ -86,10 +95,21 @@ export class OpticsMessage {
     this.cache = {};
   }
 
+  /**
+   * The receipt of the TX that dispatched this message
+   */
   get receipt(): TransactionReceipt {
     return this.dispatch.receipt;
   }
 
+  /**
+   * Instantiate one or more messages from a receipt.
+   *
+   * @param context the {@link OpticsContext} object to use
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt the receipt
+   * @returns an array of {@link OpticsMessage} objects
+   */
   static fromReceipt(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -136,6 +156,15 @@ export class OpticsMessage {
     return messages;
   }
 
+  /**
+   * Instantiate EXACTLY one message from a receipt.
+   *
+   * @param context the {@link OpticsContext} object to use
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt the receipt
+   * @returns an array of {@link OpticsMessage} objects
+   * @throws if there is not EXACTLY 1 dispatch in the receipt
+   */
   static singleFromReceipt(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -152,6 +181,15 @@ export class OpticsMessage {
     return messages[0];
   }
 
+  /**
+   * Instantiate one or more messages from a tx hash.
+   *
+   * @param context the {@link OpticsContext} object to use
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt the receipt
+   * @returns an array of {@link OpticsMessage} objects
+   * @throws if there is no receipt for the TX
+   */
   static async fromTransactionHash(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -165,6 +203,16 @@ export class OpticsMessage {
     return OpticsMessage.fromReceipt(context, nameOrDomain, receipt);
   }
 
+  /**
+   * Instantiate EXACTLY one message from a transaction has.
+   *
+   * @param context the {@link OpticsContext} object to use
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt the receipt
+   * @returns an array of {@link OpticsMessage} objects
+   * @throws if there is no receipt for the TX, or if not EXACTLY 1 dispatch in
+   *         the receipt
+   */
   static async singleFromTransactionHash(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -178,6 +226,11 @@ export class OpticsMessage {
     return OpticsMessage.singleFromReceipt(context, nameOrDomain, receipt);
   }
 
+  /**
+   * Get the Home `Update` event associated with this message (if any)
+   *
+   * @returns An {@link AnnotatedUpdate} (if any)
+   */
   async getHomeUpdate(): Promise<AnnotatedUpdate | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
@@ -206,6 +259,11 @@ export class OpticsMessage {
     return this.cache.homeUpdate;
   }
 
+  /**
+   * Get the Replica `Update` event associated with this message (if any)
+   *
+   * @returns An {@link AnnotatedUpdate} (if any)
+   */
   async getReplicaUpdate(): Promise<AnnotatedUpdate | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
@@ -231,6 +289,11 @@ export class OpticsMessage {
     return this.cache.replicaUpdate;
   }
 
+  /**
+   * Get the Replica `Process` event associated with this message (if any)
+   *
+   * @returns An {@link AnnotatedProcess} (if any)
+   */
   async getProcess(): Promise<AnnotatedProcess | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
@@ -255,6 +318,11 @@ export class OpticsMessage {
     return this.cache.process;
   }
 
+  /**
+   * Get all lifecycle events associated with this message
+   *
+   * @returns An array of {@link AnnotatedLifecycleEvent} objects
+   */
   async events(): Promise<OpticsStatus> {
     const events: AnnotatedLifecycleEvent[] = [this.dispatch];
     // attempt to get Home update
@@ -293,14 +361,26 @@ export class OpticsMessage {
     };
   }
 
-  // Note: return the timestamp after which it is possible to process messages within an Update
-  // the timestamp is most relevant during the time AFTER the Update has been Relayed to the Replica
-  // and BEFORE the message in question has been Processed.
-  // ****
-  // - the timestamp will be 0 if the Update has not been relayed to the Replica
-  // - after the Update has been relayed to the Replica, the timestamp will be non-zero forever (even after all messages in the Update have been processed)
-  // - if the timestamp is in the future, the challenge period has not elapsed yet; messages in the Update cannot be processed yet
-  // - if the timestamp is in the past, this does not necessarily mean that all messages in the Update have been processed
+  /**
+   * Returns the timestamp after which it is possible to process this message.
+   *
+   * Note: return the timestamp after which it is possible to process messages
+   * within an Update. The timestamp is most relevant during the time AFTER the
+   * Update has been Relayed to the Replica and BEFORE the message in question
+   * has been Processed.
+   *
+   * Considerations:
+   * - the timestamp will be 0 if the Update has not been relayed to the Replica
+   * - after the Update has been relayed to the Replica, the timestamp will be
+   *   non-zero forever (even after all messages in the Update have been
+   *   processed)
+   * - if the timestamp is in the future, the challenge period has not elapsed
+   *   yet; messages in the Update cannot be processed yet
+   * - if the timestamp is in the past, this does not necessarily mean that all
+   *   messages in the Update have been processed
+   *
+   * @returns The timestamp at which a message can confirm
+   */
   async confirmAt(): Promise<BigNumber> {
     const update = await this.getHomeUpdate();
     if (!update) {
@@ -310,18 +390,33 @@ export class OpticsMessage {
     return this.replica.confirmAt(newRoot);
   }
 
+  /**
+   * Retrieve the replica status of this message.
+   *
+   * @returns The {@link ReplicaMessageStatus} corresponding to the solidity
+   * status of the message.
+   */
   async replicaStatus(): Promise<ReplicaMessageStatus> {
     return this.replica.messages(this.leaf);
   }
 
-  /// Returns true when the message is delivered
+  /**
+   * Checks whether the message has been delivered.
+   *
+   * @returns true if processed, else false.
+   */
   async delivered(): Promise<boolean> {
     const status = await this.replicaStatus();
     return status === ReplicaMessageStatus.Processed;
   }
 
-  /// Resolves when the message has been delivered.
-  /// May never resolve. May take hours to resolve.
+  /**
+   * Returns a promise that resolves when the message has been delivered.
+   *
+   * WARNING: May never resolve. Oftern takes hours to resolve.
+   *
+   * @param opts Polling options.
+   */
   async wait(opts?: { pollTime?: number }): Promise<void> {
     const interval = opts?.pollTime ?? 5000;
 
@@ -334,52 +429,93 @@ export class OpticsMessage {
     }
   }
 
+  /**
+   * The domain from which the message was sent
+   */
   get from(): number {
     return this.message.from;
   }
 
+  /**
+   * The domain from which the message was sent. Alias for `from`
+   */
   get origin(): number {
     return this.from;
   }
 
+  /**
+   * The identifier for the sender of this message
+   */
   get sender(): string {
     return this.message.sender;
   }
 
+  /**
+   * The domain nonce for this message
+   */
   get nonce(): number {
     return this.message.nonce;
   }
 
+  /**
+   * The destination domain for this message
+   */
   get destination(): number {
     return this.message.destination;
   }
 
+  /**
+   * The identifer for the recipient for this message
+   */
   get recipient(): string {
     return this.message.recipient;
   }
 
+  /**
+   * The message body
+   */
   get body(): string {
     return this.message.body;
   }
+
+  /**
+   * The keccak256 hash of the message body
+   */
   get bodyHash(): string {
     return keccak256(this.body);
   }
+
+  /**
+   * The hash of the transaction that dispatched this message
+   */
   get transactionHash(): string {
     return this.dispatch.event.transactionHash;
   }
 
+  /**
+   * The messageHash committed to the tree in the Home contract.
+   */
   get leaf(): string {
     return this.dispatch.event.args.messageHash;
   }
 
+  /**
+   * The index of the leaf in the contract.
+   */
   get leafIndex(): BigNumber {
     return this.dispatch.event.args.leafIndex;
   }
 
+  /**
+   * The destination and nonceof this message.
+   */
   get destinationAndNonce(): BigNumber {
     return this.dispatch.event.args.destinationAndNonce;
   }
 
+  /**
+   * The committed root when this message was dispatched.
+   */
   get committedRoot(): string {
     return this.dispatch.event.args.committedRoot;
   }

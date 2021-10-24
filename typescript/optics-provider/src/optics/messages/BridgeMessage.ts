@@ -105,11 +105,18 @@ function parseBody(
   }
 }
 
+/**
+ * The BridgeMessage extends {@link OpticsMessage} with Bridge-specific
+ * functionality.
+ */
 class BridgeMessage extends OpticsMessage {
   readonly token: TokenIdentifier;
   readonly fromBridge: BridgeContracts;
   readonly toBridge: BridgeContracts;
 
+  /**
+   * @hideconstructor
+   */
   constructor(
     context: OpticsContext,
     event: AnnotatedDispatch,
@@ -129,6 +136,15 @@ class BridgeMessage extends OpticsMessage {
     this.token = token;
   }
 
+  /**
+   * Attempt to instantiate a BridgeMessage from an existing
+   * {@link OpticsMessage}
+   *
+   * @param context The {@link OpticsContext} to use.
+   * @param opticsMessage The existing OpticsMessage
+   * @returns A Bridge message
+   * @throws if the message cannot be parsed as a bridge message
+   */
   static fromOpticsMessage(
     context: OpticsContext,
     opticsMessage: OpticsMessage,
@@ -157,6 +173,15 @@ class BridgeMessage extends OpticsMessage {
     }
   }
 
+  /**
+   * Attempt to instantiate some BridgeMessages from a transaction receipt
+   *
+   * @param context The {@link OpticsContext} to use.
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt The receipt
+   * @returns an array of {@link BridgeMessage} objects
+   * @throws if any message cannot be parsed as a bridge message
+   */
   static fromReceipt(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -182,6 +207,16 @@ class BridgeMessage extends OpticsMessage {
     return bridgeMessages;
   }
 
+  /**
+   * Attempt to instantiate EXACTLY one BridgeMessage from a transaction receipt
+   *
+   * @param context The {@link OpticsContext} to use.
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param receipt The receipt
+   * @returns an array of {@link BridgeMessage} objects
+   * @throws if any message cannot be parsed as a bridge message, or if there
+   *         is not EXACTLY 1 BridgeMessage in the receipt
+   */
   static singleFromReceipt(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -198,6 +233,16 @@ class BridgeMessage extends OpticsMessage {
     return messages[0];
   }
 
+  /**
+   * Attempt to instantiate some BridgeMessages from a transaction hash by
+   * retrieving and parsing the receipt.
+   *
+   * @param context The {@link OpticsContext} to use.
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param transactionHash The transaction hash
+   * @returns an array of {@link BridgeMessage} objects
+   * @throws if any message cannot be parsed as a bridge message
+   */
   static async fromTransactionHash(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -211,6 +256,17 @@ class BridgeMessage extends OpticsMessage {
     return BridgeMessage.fromReceipt(context, nameOrDomain, receipt);
   }
 
+  /**
+   * Attempt to instantiate EXACTLY one BridgeMessages from a transaction hash
+   * by retrieving and parsing the receipt.
+   *
+   * @param context The {@link OpticsContext} to use.
+   * @param nameOrDomain the domain on which the receipt was logged
+   * @param transactionHash The transaction hash
+   * @returns an array of {@link BridgeMessage} objects
+   * @throws if any message cannot be parsed as a bridge message, or if there is
+   *         not EXACTLY one such message
+   */
   static async singleFromTransactionHash(
     context: OpticsContext,
     nameOrDomain: string | number,
@@ -224,21 +280,49 @@ class BridgeMessage extends OpticsMessage {
     return BridgeMessage.singleFromReceipt(context, nameOrDomain, receipt);
   }
 
+  /**
+   * Resolves the asset that is being transfered
+   *
+   * WARNING: do not hold references to these contract, as they will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @returns The resolved token information.
+   */
   async asset(): Promise<ResolvedTokenInfo> {
     return await this.context.resolveRepresentations(this.token);
   }
 
-  // Get the asset at the orgin
+  /**
+   * Resolves an interface for the asset that is being transfered on the chain
+   * FROM WHICH it is being transferred
+   *
+   * WARNING: do not hold references to this contract, as it will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @returns The resolved token interface.
+   */
   async assetAtOrigin(): Promise<xapps.ERC20 | undefined> {
     return (await this.asset()).tokens.get(this.origin);
   }
 
-  // Get the asset at the destination
+  /**
+   * Resolves an interface for the asset that is being transfered on the chain
+   * TO WHICH it is being transferred
+   *
+   * WARNING: do not hold references to this contract, as it will not be
+   * reconnected in the event the chain connection changes.
+   *
+   * @returns The resolved token interface.
+   */
   async assetAtDestination(): Promise<xapps.ERC20 | undefined> {
     return (await this.asset()).tokens.get(this.destination);
   }
 }
 
+/**
+ * A TransferMessage extends the {@link BridgeMessage} with transfer-specific
+ * functionality.
+ */
 export class TransferMessage extends BridgeMessage {
   action: Transfer;
 
@@ -251,6 +335,11 @@ export class TransferMessage extends BridgeMessage {
     this.action = parsed.action;
   }
 
+  /**
+   * Check if the transfer has been prefilled using the fast liquidity system.
+   *
+   * @returns true if the transfer has been prefilled. Else false.
+   */
   async currentlyPrefilled(): Promise<boolean> {
     const bridge = this.context.mustGetBridge(this.destination);
     const lpAddress = await bridge.bridgeRouter.liquidityProvider(
@@ -262,19 +351,32 @@ export class TransferMessage extends BridgeMessage {
     return false;
   }
 
+  /**
+   * The amount of tokens being transferred (in the smallest unit)
+   */
   get amount(): BigNumber {
     return this.action.amount;
   }
 
+  /**
+   * The identifier for the recipient of the tokens
+   */
   get to(): string {
     return this.action.to;
   }
 
+  /**
+   * The ID used for prefilling this transfer message.
+   */
   get prefillId(): string {
     return this.bodyHash;
   }
 }
 
+/**
+ * A DetailsMessage extends the {@link BridgeMessage} with details-specific
+ * functionality.
+ */
 export class DetailsMessage extends BridgeMessage {
   action: Details;
 
@@ -287,19 +389,32 @@ export class DetailsMessage extends BridgeMessage {
     this.action = parsed.action;
   }
 
+  /**
+   * Get the token name being sent
+   */
   get name(): string {
     return this.action.name;
   }
 
+  /**
+   * Get the token symbol being sent
+   */
   get symbol(): string {
     return this.action.symbol;
   }
 
+  /**
+   * Get the token decimals being sent
+   */
   get decimals(): number {
     return this.action.decimals;
   }
 }
 
+/**
+ * A RequestDetailsMessage extends the {@link BridgeMessage} with
+ * details-specific functionality.
+ */
 export class RequestDetailsMessage extends BridgeMessage {
   action: RequestDetails;
 
