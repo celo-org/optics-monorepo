@@ -489,13 +489,14 @@ impl OpticsAgent for Watcher {
 #[cfg(test)]
 mod test {
     use optics_base::IndexSettings;
+    use optics_test::mocks::MockIndexer;
     use std::sync::Arc;
     use tokio::sync::mpsc;
 
     use ethers::core::types::H256;
     use ethers::signers::{LocalWallet, Signer};
 
-    use optics_base::CachingReplica;
+    use optics_base::{CachingReplica, Homes, Indexers, Replicas};
     use optics_core::{DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
@@ -506,132 +507,132 @@ mod test {
 
     #[tokio::test]
     async fn contract_watcher_polls_and_sends_update() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
 
-        let first_root = H256::from([1; 32]);
-        let second_root = H256::from([2; 32]);
+            let first_root = H256::from([0; 32]);
+            let second_root = H256::from([1; 32]);
 
-        let signed_update = Update {
-            home_domain: 1,
-            previous_root: first_root,
-            new_root: second_root,
-        }
-        .sign_with(&signer)
+            let signed_update = Update {
+                home_domain: 1,
+                previous_root: first_root,
+                new_root: second_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            let mut mock_home = MockHomeContract::new();
+            let optics_db = OpticsDB::new(db.clone());
+
+            // Set mock values
+            {
+                mock_home.expect__name().return_const("home_1".to_owned());
+
+                // When home polls for new update it gets `signed_update`
+                optics_db
+                    .store_latest_update("home_1", &signed_update)
+                    .unwrap();
+            }
+
+            let mock_home_indexer = Arc::new(MockIndexer::new().into());
+            let home: Arc<CachingHome> =
+                CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
+
+            {
+                let (tx, mut rx) = mpsc::channel(200);
+                let mut contract_watcher =
+                    ContractWatcher::new(3, first_root, tx.clone(), home.clone());
+
+                contract_watcher
+                    .poll_and_send_update()
+                    .await
+                    .expect("Should have received Ok(())");
+
+                assert_eq!(contract_watcher.committed_root, second_root);
+                assert_eq!(rx.recv().await.unwrap(), signed_update);
+            }
+        })
         .await
-        .expect("!sign");
-
-        let mut mock_home = MockHomeContract::new();
-        {
-            let signed_update = signed_update.clone();
-            // home.signed_update_by_old_root called once and
-            // returns mock value signed_update when called with first_root
-            mock_home
-                .expect__signed_update_by_old_root()
-                .withf(move |r: &H256| *r == first_root)
-                .times(1)
-                .return_once(move |_| Ok(Some(signed_update)));
-        }
-
-        let mut home: Arc<CachingHome> = Arc::new(mock_home.into());
-        let (tx, mut rx) = mpsc::channel(200);
-        {
-            let mut contract_watcher =
-                ContractWatcher::new(3, first_root, tx.clone(), home.clone());
-
-            contract_watcher
-                .poll_and_send_update()
-                .await
-                .expect("Should have received Ok(())");
-
-            assert_eq!(contract_watcher.committed_root, second_root);
-            assert_eq!(rx.recv().await.unwrap(), signed_update);
-        }
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
     }
 
     #[tokio::test]
     async fn history_sync_updates_history() {
-        let signer: LocalWallet =
-            "1111111111111111111111111111111111111111111111111111111111111111"
-                .parse()
-                .unwrap();
+        test_utils::run_test_db(|db| async move {
+            let signer: LocalWallet =
+                "1111111111111111111111111111111111111111111111111111111111111111"
+                    .parse()
+                    .unwrap();
 
-        let zero_root = H256::zero(); // Original zero root
-        let first_root = H256::from([1; 32]);
-        let second_root = H256::from([2; 32]);
+            let zero_root = H256::zero(); // Original zero root
+            let first_root = H256::from([1; 32]);
+            let second_root = H256::from([2; 32]);
 
-        // Zero root to first root
-        let first_signed_update = Update {
-            home_domain: 1,
-            previous_root: zero_root,
-            new_root: first_root,
-        }
-        .sign_with(&signer)
+            // Zero root to first root
+            let first_signed_update = Update {
+                home_domain: 1,
+                previous_root: zero_root,
+                new_root: first_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            // First root to second root
+            let second_signed_update = Update {
+                home_domain: 1,
+                previous_root: first_root,
+                new_root: second_root,
+            }
+            .sign_with(&signer)
+            .await
+            .expect("!sign");
+
+            let mut mock_home = MockHomeContract::new();
+            let optics_db = OpticsDB::new(db.clone());
+            {
+                mock_home.expect__name().return_const("home_1".to_owned());
+
+                // When HistorySync works through history it finds second and first signed updates
+                optics_db
+                    .store_latest_update("home_1", &first_signed_update)
+                    .unwrap();
+                optics_db
+                    .store_latest_update("home_1", &second_signed_update)
+                    .unwrap();
+            }
+
+            let mock_home_indexer = Arc::new(MockIndexer::new().into());
+            let home: Arc<CachingHome> =
+                CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
+            {
+                let (tx, mut rx) = mpsc::channel(200);
+                let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
+
+                // First update_history call returns first -> second update
+                history_sync
+                    .update_history()
+                    .await
+                    .expect("Should have received Ok(())");
+
+                assert_eq!(history_sync.committed_root, first_root);
+                assert_eq!(rx.recv().await.unwrap(), second_signed_update);
+
+                // Second update_history call returns zero -> first update
+                // and should return WatcherError::SyncingFinished
+                history_sync
+                    .update_history()
+                    .await
+                    .expect_err("Should have received WatcherError::SyncingFinished");
+
+                assert_eq!(history_sync.committed_root, zero_root);
+                assert_eq!(rx.recv().await.unwrap(), first_signed_update)
+            }
+        })
         .await
-        .expect("!sign");
-
-        // First root to second root
-        let second_signed_update = Update {
-            home_domain: 1,
-            previous_root: first_root,
-            new_root: second_root,
-        }
-        .sign_with(&signer)
-        .await
-        .expect("!sign");
-
-        let mut mock_home = MockHomeContract::new();
-        {
-            let first_signed_update = first_signed_update.clone();
-            let second_signed_update = second_signed_update.clone();
-            // home.signed_update_by_new_root called once with second_root
-            // and returns mock value second_signed_update
-            mock_home
-                .expect__signed_update_by_new_root()
-                .withf(move |r: &H256| *r == second_root)
-                .times(1)
-                .return_once(move |_| Ok(Some(second_signed_update)));
-            // home.signed_update_by_new_root called once with first_root
-            // and returns mock value first_signed_update
-            mock_home
-                .expect__signed_update_by_new_root()
-                .withf(move |r: &H256| *r == first_root)
-                .times(1)
-                .return_once(move |_| Ok(Some(first_signed_update)));
-        }
-
-        let mut home: Arc<CachingHome> = Arc::new(mock_home.into());
-        let (tx, mut rx) = mpsc::channel(200);
-        {
-            let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
-
-            // First update_history call returns first -> second update
-            history_sync
-                .update_history()
-                .await
-                .expect("Should have received Ok(())");
-
-            assert_eq!(history_sync.committed_root, first_root);
-            assert_eq!(rx.recv().await.unwrap(), second_signed_update);
-
-            // Second update_history call returns zero -> first update
-            // and should return WatcherError::SyncingFinished
-            history_sync
-                .update_history()
-                .await
-                .expect_err("Should have received WatcherError::SyncingFinished");
-
-            assert_eq!(history_sync.committed_root, zero_root);
-            assert_eq!(rx.recv().await.unwrap(), first_signed_update)
-        }
-
-        let mock_home = Arc::get_mut(&mut home).unwrap();
-        mock_home.checkpoint();
     }
 
     #[tokio::test]
@@ -677,12 +678,20 @@ mod test {
             let mut mock_home = MockHomeContract::new();
             mock_home.expect__name().return_const("home_1".to_owned());
 
+            let optics_db = OpticsDB::new(db);
+            let mock_home_indexer = Arc::new(MockIndexer::new().into());
+            let home: Arc<CachingHome> = CachingHome::new(
+                Arc::new(mock_home.into()),
+                optics_db.clone(),
+                mock_home_indexer,
+            )
+            .into();
             {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: OpticsDB::new("home", db),
-                    home: Arc::new(mock_home.into()),
+                    db: optics_db.clone(),
+                    home,
                 };
 
                 let _first_update_ret = handler
@@ -757,13 +766,13 @@ mod test {
 
             // Home and replica expectations
             {
-                // home.local_domain returns `home_domain`
+                mock_home.expect__name().return_const("home_1".to_owned());
+
                 mock_home
                     .expect__local_domain()
                     .times(1)
                     .return_once(move || home_domain);
 
-                // home.updater returns `updater` address
                 let updater = updater.clone();
                 mock_home
                     .expect__updater()
@@ -784,6 +793,10 @@ mod test {
                     });
             }
             {
+                mock_replica_1
+                    .expect__name()
+                    .return_const("replica_1".to_owned());
+
                 // replica_1.double_update called once
                 let double = double.clone();
                 mock_replica_1
@@ -798,6 +811,10 @@ mod test {
                     });
             }
             {
+                mock_replica_2
+                    .expect__name()
+                    .return_const("replica_2".to_owned());
+
                 // replica_2.double_update called once
                 let double = double.clone();
                 mock_replica_2
@@ -848,46 +865,62 @@ mod test {
                 mock_connection_manager_2.into(),
             ];
 
-            let home = Arc::new(mock_home.into());
-            let replica_1 = Arc::new(mock_replica_1.into());
-            let replica_2 = Arc::new(mock_replica_2.into());
+            let optics_db = OpticsDB::new(db.clone());
+            let mock_indexer: Arc<Indexers> = Arc::new(MockIndexer::new().into());
+            let mut mock_home: Arc<Homes> = Arc::new(mock_home.into());
+            let mut mock_replica_1: Arc<Replicas> = Arc::new(mock_replica_1.into());
+            let mut mock_replica_2: Arc<Replicas> = Arc::new(mock_replica_2.into());
 
-            let mut replica_map: HashMap<String, Arc<CachingReplica>> = HashMap::new();
-            replica_map.insert("replica_1".into(), replica_1);
-            replica_map.insert("replica_2".into(), replica_2);
+            {
+                let home: Arc<CachingHome> =
+                    CachingHome::new(mock_home.clone(), optics_db.clone(), mock_indexer.clone())
+                        .into();
+                let replica_1: Arc<CachingReplica> = CachingReplica::new(
+                    mock_replica_1.clone(),
+                    optics_db.clone(),
+                    mock_indexer.clone(),
+                )
+                .into();
+                let replica_2: Arc<CachingReplica> = CachingReplica::new(
+                    mock_replica_2.clone(),
+                    optics_db.clone(),
+                    mock_indexer.clone(),
+                )
+                .into();
 
-            let core = AgentCore {
-                home,
-                replicas: replica_map,
-                db: db,
-                indexer: IndexSettings::default(),
-                settings: optics_base::Settings::default(),
-                metrics: Arc::new(
-                    optics_base::CoreMetrics::new(
-                        "watcher_test",
-                        None,
-                        Arc::new(prometheus::Registry::new()),
-                    )
-                    .expect("could not make metrics"),
-                ),
-            };
+                let mut replica_map: HashMap<String, Arc<CachingReplica>> = HashMap::new();
+                replica_map.insert("replica_1".into(), replica_1);
+                replica_map.insert("replica_2".into(), replica_2);
 
-            let mut watcher = Watcher::new(updater.into(), 1, connection_managers, core);
-            watcher.handle_failure(&double).await;
+                let core = AgentCore {
+                    home: home.clone(),
+                    replicas: replica_map,
+                    db,
+                    indexer: IndexSettings::default(),
+                    settings: optics_base::Settings::default(),
+                    metrics: Arc::new(
+                        optics_base::CoreMetrics::new(
+                            "watcher_test",
+                            None,
+                            Arc::new(prometheus::Registry::new()),
+                        )
+                        .expect("could not make metrics"),
+                    ),
+                };
 
-            // Checkpoint connection managers
-            for connection_manager in watcher.connection_managers.iter_mut() {
-                connection_manager.checkpoint();
+                let mut watcher = Watcher::new(updater.into(), 1, connection_managers, core);
+                watcher.handle_failure(&double).await;
+
+                // Checkpoint connection managers
+                for connection_manager in watcher.connection_managers.iter_mut() {
+                    connection_manager.checkpoint();
+                }
             }
 
-            // Checkpoint home
-            let mock_home = Arc::get_mut(&mut watcher.core.home).unwrap();
-            mock_home.checkpoint();
-
-            // Checkpoint replicas
-            for replica in watcher.core.replicas.values_mut() {
-                Arc::get_mut(replica).unwrap().checkpoint();
-            }
+            // Checkpoint home and replicas
+            Arc::get_mut(&mut mock_home).unwrap().checkpoint();
+            Arc::get_mut(&mut mock_replica_1).unwrap().checkpoint();
+            Arc::get_mut(&mut mock_replica_2).unwrap().checkpoint();
         })
         .await
     }
