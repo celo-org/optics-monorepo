@@ -1,10 +1,15 @@
 import { expect } from 'chai';
-import { Contract } from 'ethers';
-
-import { CoreDeploy as Deploy } from './CoreDeploy';
+import { Contract, utils } from 'ethers';
+import {Address, CoreDeploy as Deploy} from './CoreDeploy';
 import { BridgeDeploy } from '../bridge/BridgeDeploy';
 import { BeaconProxy } from '../proxyUtils';
 import TestBridgeDeploy from '../bridge/TestBridgeDeploy';
+
+function addressToBytes32(address: string) {
+  return utils
+      .hexZeroPad(utils.hexStripZeros(address), 32)
+      .toLowerCase();
+}
 
 const emptyAddr = '0x' + '00'.repeat(20);
 
@@ -25,6 +30,99 @@ export function checkVerificationInput(
   expect(inputAddr).to.equal(addr);
 }
 
+async function checkGovernor(deploy: Deploy, governorDomain: number, governorAddress: string) {
+  if (deploy.chain.domain == governorDomain) {
+    console.log(`   check that ${deploy.chain.name} IS configured as the governor chain`);
+    // on the governor domain, the governor is local
+    const govDomain = await deploy.contracts.governance?.proxy.governorDomain();
+    const localDomain = await deploy.contracts.home?.proxy.localDomain();
+    expect(localDomain).to.equal(deploy.chain.domain);
+    expect(govDomain).to.equal(localDomain);
+    expect(govDomain).to.equal(deploy.chain.domain);
+    // the governor domain equals the expected domain
+    expect(govDomain).to.equal(governorDomain);
+    // the governor address equals the expected address
+    const govAddress = await deploy.contracts.governance?.proxy.governor();
+    expect(govAddress).to.equal(governorAddress);
+    console.log(`   ✅`);
+  } else {
+    console.log(`   check that ${deploy.chain.name} IS NOT configured as governor chain / that governor IS properly configured`);
+    // on the non-governor domains, the governor domain is remote
+    const govDomain = await deploy.contracts.governance?.proxy.governorDomain();
+    const localDomain = await deploy.contracts.home?.proxy.localDomain();
+    expect(localDomain).to.equal(deploy.chain.domain);
+    expect(govDomain).to.not.equal(localDomain);
+    expect(govDomain).to.not.equal(deploy.chain.domain);
+    // the governor domain equals the expected domain
+    expect(govDomain).to.equal(governorDomain);
+    // on the non-governor domains, the governor address is null address
+    const govAddress = await deploy.contracts.governance?.proxy.governor();
+    expect(govAddress).to.equal(emptyAddr);
+    console.log(`   ✅`);
+  }
+}
+
+async function checkRemoteIsEnrolled(deploy: Deploy, remoteDomain: number) {
+  console.log(`   check that ${remoteDomain} GovernanceRouter IS enrolled on ${deploy.chain.name}`);
+  // for each remote deploy, check that Replica and Governance are enrolled
+  // governanceRouter for remote domain is registered
+  const registeredRouter = await deploy.contracts.governance?.proxy.routers(remoteDomain);
+  expect(registeredRouter).to.not.equal(addressToBytes32(emptyAddr));
+  console.log(`   ✅`);
+  console.log(`   check that ${remoteDomain} Replica IS enrolled on ${deploy.chain.name}`);
+  // replica is enrolled in xAppConnectionManager
+  const enrolledReplica =
+      await deploy.contracts.xAppConnectionManager?.domainToReplica(remoteDomain);
+  expect(enrolledReplica).to.not.equal(emptyAddr);
+  console.log(`   ✅`);
+}
+
+async function checkSelfNotEnrolled(deploy: CoreDeploy) {
+  console.log(`   check that ${deploy.chain.name} GovernanceRouter IS NOT enrolled on itself`);
+  // check that there is no enrolled contract for the local chain
+  // governanceRouter for remote domain NOT registered
+  const registeredRouter = await deploy.contracts.governance?.proxy.routers(
+      deploy.chain.domain,
+  );
+  try {
+    expect(registeredRouter).to.equal(addressToBytes32(emptyAddr));
+    console.log(`   ✅`);
+  } catch (e) {
+    console.log(`   ❌`);
+  }
+  console.log(`   check that ${deploy.chain.name} Replica IS NOT enrolled on itself`);
+  // replica is enrolled in NOT xAppConnectionManager
+  const enrolledReplica =
+      await deploy.contracts.xAppConnectionManager?.domainToReplica(deploy.chain.domain);
+  expect(enrolledReplica).to.equal(emptyAddr);
+  console.log(`   ✅`);
+}
+
+export async function checkGovernanceSystem(
+    deploys: Deploy[],
+    governorDomain: number,
+    governorAddress: Address,
+) {
+  for (const deploy of deploys) {
+    console.log(`Check ${deploy.chain.name}`);
+
+    // ensure that the chain is not enrolled in itself
+    await checkSelfNotEnrolled(deploy);
+
+    for (const remoteDeploy of deploys) {
+      if (deploy.chain.domain != remoteDeploy.chain.domain) {
+        // for each remote chain,
+        // check that remote GovernanceRouter is enrolled in local GovernanceRouter
+        // and Replica is enrolled in xAppConnectionManager
+        await checkRemoteIsEnrolled(deploy, remoteDeploy.chain.domain);
+      }
+    }
+
+    // check that the chain has the governor configured properly
+    await checkGovernor(deploy, governorDomain, governorAddress);
+  }
+}
+
 export async function checkCoreDeploy(
   deploy: Deploy,
   remoteDomains: number[],
@@ -33,6 +131,9 @@ export async function checkCoreDeploy(
   // Home upgrade setup contracts are defined
   assertBeaconProxy(deploy.contracts.home!);
 
+  // ensure that the chain is not enrolled in itself
+  await checkSelfNotEnrolled(deploy);
+
   // updaterManager is set on Home
   const updaterManager = await deploy.contracts.home?.proxy.updaterManager();
   expect(updaterManager).to.equal(deploy.contracts.updaterManager?.address);
@@ -40,24 +141,18 @@ export async function checkCoreDeploy(
   // GovernanceRouter upgrade setup contracts are defined
   assertBeaconProxy(deploy.contracts.governance!);
 
-  for (const domain of remoteDomains) {
+  for (const remoteDomain of remoteDomains) {
     // Replica upgrade setup contracts are defined
-    assertBeaconProxy(deploy.contracts.replicas[domain]!);
-    // governanceRouter for remote domain is registered
-    const registeredRouter = await deploy.contracts.governance?.proxy.routers(
-      domain,
-    );
-    expect(registeredRouter).to.not.equal(emptyAddr);
-    // replica is enrolled in xAppConnectionManager
-    const enrolledReplica =
-      await deploy.contracts.xAppConnectionManager?.domainToReplica(domain);
-    expect(enrolledReplica).to.not.equal(emptyAddr);
+    assertBeaconProxy(deploy.contracts.replicas[remoteDomain]!);
+    // check that remote GovernanceRouter is enrolled in local GovernanceRouter
+    // and Replica is enrolled in xAppConnectionManager
+    await checkRemoteIsEnrolled(deploy, remoteDomain);
     //watchers have permission in xAppConnectionManager
     deploy.config.watchers.forEach(async (watcher) => {
       const watcherPermissions =
         await deploy.contracts.xAppConnectionManager?.watcherPermission(
           watcher,
-          domain,
+          remoteDomain,
         );
       expect(watcherPermissions).to.be.true;
     });
@@ -84,17 +179,14 @@ export async function checkCoreDeploy(
   expect(deploy.contracts.xAppConnectionManager).to.not.be.undefined;
 
   // governor is set on governor chain, empty on others
-  const gov = await deploy.contracts.governance?.proxy.governor();
-  const localDomain = await deploy.contracts.home?.proxy.localDomain();
-  if (governorDomain == localDomain) {
-    expect(gov).to.not.equal(emptyAddr);
+  let governorAddress;
+  if (deploy.chain.domain == governorDomain) {
+    governorAddress = deploy.config.governor!.address;
   } else {
-    expect(gov).to.equal(emptyAddr);
+    // won't be used if this is not the governor domain
+    governorAddress = "0x123";
   }
-  // governor domain is correct
-  expect(await deploy.contracts.governance?.proxy.governorDomain()).to.equal(
-    governorDomain,
-  );
+  await checkGovernor(deploy, governorDomain, governorAddress);
 
   // Home is set on xAppConnectionManager
   const xAppManagerHome = await deploy.contracts.xAppConnectionManager?.home();

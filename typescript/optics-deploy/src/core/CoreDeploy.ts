@@ -11,7 +11,7 @@ import { Deploy } from '../deploy';
 import { BigNumberish } from '@ethersproject/bignumber';
 import fs from "fs";
 
-type Address = string;
+export type Address = string;
 
 type Governor = {
   domain: number;
