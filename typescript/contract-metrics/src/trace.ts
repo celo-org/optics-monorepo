@@ -7,7 +7,7 @@ const input: TraceInput[] = [
     chain: 'kovan',
     context: contexts.dev,
     transactionHash:
-      '0x39322e91cbfe18391f252f063231065adceda35fe8c1ebd2292c98d0a7d10a1f',
+      '',
   },
 ];
 
@@ -37,12 +37,16 @@ async function traceTransfer(
 ) {
   console.log(`Trace ${transactionHash} on ${origin}`);
 
-  const message = await OpticsMessage.singleFromTransactionHash(
+  const messages = await OpticsMessage.fromTransactionHash(
     context,
     origin,
     transactionHash,
   );
 
-  const status = await message.events();
-  printStatus(context, status);
+  for (let message of messages) {
+    const status = await message.events();
+    const destination = context.resolveDomainName(message.destination);
+    console.log("Message to ", destination);
+    printStatus(context, status);
+  }
 }
