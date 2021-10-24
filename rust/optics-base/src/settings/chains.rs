@@ -1,7 +1,7 @@
 use color_eyre::Report;
 use serde::Deserialize;
 
-use optics_core::{db::OpticsDB, ContractLocator, Signers};
+use optics_core::{ContractLocator, Signers};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
@@ -43,11 +43,7 @@ pub struct ChainSetup {
 
 impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
-    pub async fn try_into_home(
-        &self,
-        signer: Option<Signers>,
-        db: OpticsDB,
-    ) -> Result<Homes, Report> {
+    pub async fn try_into_home(&self, signer: Option<Signers>) -> Result<Homes, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
                 make_home(
@@ -58,7 +54,6 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    db,
                 )
                 .await?,
             )),
@@ -66,11 +61,7 @@ impl ChainSetup {
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(
-        &self,
-        signer: Option<Signers>,
-        db: OpticsDB,
-    ) -> Result<Replicas, Report> {
+    pub async fn try_into_replica(&self, signer: Option<Signers>) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
                 make_replica(
@@ -81,7 +72,6 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    db,
                 )
                 .await?,
             )),

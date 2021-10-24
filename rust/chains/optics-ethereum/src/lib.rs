@@ -59,28 +59,23 @@ pub struct Chain {
     ethers: ethers::providers::Provider<ethers::providers::Http>,
 }
 
-chain_entity!(
+boxed_trait!(
     make_home_indexer,
     EthereumHomeIndexer,
     Indexer,
     from_height: u32,
     chunk_size: u32
 );
-chain_entity!(
+boxed_trait!(
     make_replica_indexer,
     EthereumReplicaIndexer,
     Indexer,
     from_height: u32,
     chunk_size: u32
 );
-chain_entity!(
-    make_replica,
-    EthereumReplica,
-    Replica,
-    db: optics_core::db::OpticsDB
-);
-chain_entity!(make_home, EthereumHome, Home, db: optics_core::db::OpticsDB);
-chain_entity!(
+boxed_trait!(make_replica, EthereumReplica, Replica,);
+boxed_trait!(make_home, EthereumHome, Home,);
+boxed_trait!(
     make_conn_manager,
     EthereumConnectionManager,
     ConnectionManager,

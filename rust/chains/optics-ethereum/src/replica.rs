@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::{accumulator::merkle::Proof, db::OpticsDB, *};
+use optics_core::{accumulator::merkle::Proof, *};
 use optics_core::{ContractLocator, Indexer};
 use tracing::instrument;
 
@@ -125,7 +125,6 @@ where
     M: ethers::providers::Middleware,
 {
     contract: Arc<EthereumReplicaInternal<M>>,
-    db: OpticsDB,
     domain: u32,
     name: String,
     provider: Arc<M>,
@@ -144,13 +143,11 @@ where
             domain,
             address,
         }: &ContractLocator,
-        db: OpticsDB,
     ) -> Self {
         Self {
             contract: Arc::new(EthereumReplicaInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db,
             provider,
         }
     }
