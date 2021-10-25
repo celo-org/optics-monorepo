@@ -175,10 +175,20 @@ where
                 );
 
                 // TODO(james): these shouldn't have to go in lockstep
-                try_join!(
+                let sync_res = try_join!(
                     self.sync_updates(next_height, to),
                     self.sync_leaves(next_height, to)
-                )?;
+                );
+
+                // If there was an error syncing either updates or leaves, try
+                // again
+                if let Err(e) = sync_res {
+                    info!(
+                        "Error syncing leaves/updates: {:?}. Trying again from blocks {} to {}",
+                        e, next_height, to
+                    );
+                    continue;
+                }
 
                 self.db
                     .store_encodable(&self.home_name, "", LAST_INSPECTED, &next_height)?;

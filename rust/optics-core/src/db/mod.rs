@@ -1,4 +1,5 @@
 use color_eyre::eyre::WrapErr;
+use ethers::core::types::H256;
 use rocksdb::{DBIterator, Options, DB as Rocks};
 use std::{path::Path, sync::Arc};
 use tracing::info;
@@ -35,6 +36,16 @@ pub enum DbError {
     /// Optics Error
     #[error("{0}")]
     OpticsError(#[from] OpticsError),
+    /// Tried to store leaf not building off latest root
+    #[error("store_latest_update attempted to store leaf not building off latest root. Latest root: {latest_root:?}. Update previous root: {previous_root:?}. Update new root: {new_root:?}.")]
+    NotLatestRoot {
+        /// Actual latest root
+        latest_root: H256,
+        /// Invalid update previous root (should be latest_root)
+        previous_root: H256,
+        /// Invalid update new root
+        new_root: H256,
+    },
 }
 
 type Result<T> = std::result::Result<T, DbError>;
