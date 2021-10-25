@@ -73,7 +73,7 @@ impl Replica {
                 // 5. Submit the proof to the replica
                 let mut next_message_nonce: u32 = self
                     .db
-                    .retrieve_latest_nonce(self.home.name(), domain)?
+                    .retrieve_latest_nonce(domain)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
 
@@ -108,7 +108,7 @@ impl Replica {
                     {
                         Ok(Flow::Advance) => {
                             self.db
-                                .store_latest_nonce(self.home.name(), domain, next_message_nonce)?;
+                                .store_latest_nonce(domain, next_message_nonce)?;
                             next_message_nonce += 1;
 
                             self.next_message_nonce
@@ -199,10 +199,7 @@ impl Replica {
             return Ok(Flow::Advance);
         }
 
-        let proof = match self
-            .db
-            .proof_by_leaf_index(self.home.name(), message.leaf_index)
-        {
+        let proof = match self.db.proof_by_leaf_index(message.leaf_index) {
             Ok(Some(p)) => p,
             Ok(None) => {
                 info!(
@@ -359,7 +356,7 @@ impl OpticsAgent for Processor {
         let home = self.home();
         let next_message_nonce = self.next_message_nonce.clone();
         let interval = self.interval;
-        let db = OpticsDB::new(self.db());
+        let db = OpticsDB::new(home.name(), self.db());
 
         let replica_opt = self.replica_by_name(name);
         let name = name.to_owned();
@@ -394,8 +391,8 @@ impl OpticsAgent for Processor {
 
             // tree sync
             info!("Starting ProverSync");
-            let sync =
-                ProverSync::from_disk(self.home().name().to_owned(), OpticsDB::new(self.db()));
+            let db = OpticsDB::new(self.home().name().to_owned(), self.db());
+            let sync = ProverSync::from_disk(db.clone());
             let sync_task = sync.spawn();
 
             info!("Starting indexer");
@@ -434,7 +431,7 @@ impl OpticsAgent for Processor {
                         self.core.home.name(),
                         &config.bucket,
                         config.region.parse().expect("invalid s3 region"),
-                        OpticsDB::new(self.db()),
+                        db.clone(),
                     )
                     .spawn(),
                 )

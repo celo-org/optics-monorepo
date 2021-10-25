@@ -58,6 +58,7 @@ impl<const N: usize> HexString<N> {
         }
 
         // Lazy. Should do the check as a cheaper action
+        #[allow(clippy::question_mark)]
         if hex::decode(s).is_err() {
             bail!("String is not hex");
         }

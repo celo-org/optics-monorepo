@@ -1,7 +1,7 @@
 [package]
 name = "balance-exporter"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 description = "Polls chains for optics contract wallet balances and reports them in OpenMetrics format"
 authors = ["ember arlynx <ember.arlynx@clabs.co>"]
 license = "Apache-2.0"

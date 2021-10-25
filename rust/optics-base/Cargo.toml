@@ -2,7 +2,7 @@
 name = "optics-base"
 version = "0.1.0"
 authors = ["James Prestwich <prestwich@clabs.co>"]
-edition = "2018"
+edition = "2021"
 
 
 [dependencies]

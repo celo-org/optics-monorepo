@@ -2,7 +2,7 @@
 name = "processor"
 version = "0.1.0"
 authors = ["anna-caroll <anna.s.carroll@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 tokio = { version = "1.0.1", features = ["rt", "macros"] }

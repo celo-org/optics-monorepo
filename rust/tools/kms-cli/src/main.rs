@@ -65,9 +65,10 @@ pub struct Info {}
 
 #[derive(Parser)]
 /// Subcommands
+#[allow(clippy::large_enum_variant)]
 pub enum SubCommands {
     /// Send a tx signed by the KMS key
-    Tx(Tx),
+    Transaction(Tx),
     /// Print the key info (region, id, address)
     Info(Info),
 }
@@ -140,7 +141,7 @@ fn prep_tx_request(opts: &Tx) -> TransactionRequest {
 
 async fn _send_tx(signer: &AwsSigner<'_>, opts: &Opts) -> Result<()> {
     let tx: &Tx = match opts.sub {
-        SubCommands::Tx(ref tx) => tx,
+        SubCommands::Transaction(ref tx) => tx,
         SubCommands::Info(_) => unreachable!(),
     };
 
@@ -191,7 +192,7 @@ async fn _main() -> Result<()> {
     let opts: Opts = Opts::parse();
     init_kms(opts.region.to_owned());
     let chain_id = match opts.sub {
-        SubCommands::Tx(ref tx) => tx.chain_id.unwrap_or(1),
+        SubCommands::Transaction(ref tx) => tx.chain_id.unwrap_or(1),
         SubCommands::Info(_) => 1,
     };
 
@@ -200,7 +201,7 @@ async fn _main() -> Result<()> {
         .with_chain_id(chain_id);
 
     match opts.sub {
-        SubCommands::Tx(_) => _send_tx(&signer, &opts).await,
+        SubCommands::Transaction(_) => _send_tx(&signer, &opts).await,
         SubCommands::Info(_) => _print_info(&signer, &opts).await,
     }
 }

@@ -13,7 +13,6 @@ use tracing::{debug, error, info, info_span, instrument, instrument::Instrumente
 /// Struct to sync prover.
 #[derive(Debug)]
 pub struct ProverSync {
-    home_name: String,
     db: OpticsDB,
     prover: Prover,
     incremental: IncrementalMerkle,
@@ -71,7 +70,7 @@ impl ProverSync {
     fn store_proof(&self, leaf_index: u32) -> Result<(), ProverSyncError> {
         match self.prover.prove(leaf_index as usize) {
             Ok(proof) => {
-                self.db.store_proof(&self.home_name, leaf_index, &proof)?;
+                self.db.store_proof(leaf_index, &proof)?;
                 info!(
                     leaf_index,
                     root = ?self.prover.root(),
@@ -91,14 +90,14 @@ impl ProverSync {
     /// Given rocksdb handle `db` containing merkle tree leaves,
     /// instantiates new `ProverSync` and fills prover's merkle tree
     #[instrument(level = "debug", skip(db))]
-    pub fn from_disk(home_name: String, db: OpticsDB) -> Self {
+    pub fn from_disk(db: OpticsDB) -> Self {
         // Ingest all leaves in db into prover tree
         let mut prover = Prover::default();
         let mut incremental = IncrementalMerkle::default();
 
-        if let Some(root) = db.retrieve_latest_root(&home_name).expect("db error") {
+        if let Some(root) = db.retrieve_latest_root().expect("db error") {
             for i in 0.. {
-                match db.leaf_by_leaf_index(&home_name, i) {
+                match db.leaf_by_leaf_index(i) {
                     Ok(Some(leaf)) => {
                         debug!(leaf_index = i, "Ingesting leaf from_disk");
                         prover.ingest(leaf).expect("!tree full");
@@ -119,7 +118,6 @@ impl ProverSync {
         }
 
         let sync = Self {
-            home_name: home_name.to_owned(),
             prover,
             incremental,
             db,
@@ -128,10 +126,8 @@ impl ProverSync {
         // Ensure proofs exist for all leaves
         for i in 0..sync.prover.count() as u32 {
             match (
-                sync.db.leaf_by_leaf_index(&home_name, i).expect("db error"),
-                sync.db
-                    .proof_by_leaf_index(&home_name, i)
-                    .expect("db error"),
+                sync.db.leaf_by_leaf_index(i).expect("db error"),
+                sync.db.proof_by_leaf_index(i).expect("db error"),
             ) {
                 (Some(_), None) => sync.store_proof(i).expect("db error"),
                 (None, _) => break,
@@ -158,7 +154,7 @@ impl ProverSync {
         let mut leaves = vec![];
 
         for i in range {
-            let leaf = self.db.wait_for_leaf(&self.home_name, i as u32).await?;
+            let leaf = self.db.wait_for_leaf(i as u32).await?;
             if leaf.is_none() {
                 break;
             }
@@ -219,11 +215,7 @@ impl ProverSync {
         // store all calculated proofs in the db
         // TODO(luke): refactor prover_sync so we dont have to iterate over every leaf (match from_disk implementation)
         for idx in 0..self.prover.count() {
-            if self
-                .db
-                .proof_by_leaf_index(&self.home_name, idx as u32)?
-                .is_none()
-            {
+            if self.db.proof_by_leaf_index(idx as u32)?.is_none() {
                 self.store_proof(idx as u32)?;
             }
         }
@@ -270,11 +262,7 @@ impl ProverSync {
             // As we fill the incremental merkle, its tree_size will always be
             // equal to the index of the next leaf we want (e.g. if tree_size
             // is 3, we want the 4th leaf, which is at index 3)
-            if let Some(leaf) = self
-                .db
-                .wait_for_leaf(&self.home_name, tree_size as u32)
-                .await?
-            {
+            if let Some(leaf) = self.db.wait_for_leaf(tree_size as u32).await? {
                 info!(
                     index = tree_size,
                     leaf = ?leaf,
@@ -317,9 +305,7 @@ impl ProverSync {
         tokio::spawn(async move {
             loop {
                 let local_root = self.local_root();
-                let signed_update_opt = self
-                    .db
-                    .update_by_previous_root(&self.home_name, local_root)?;
+                let signed_update_opt = self.db.update_by_previous_root(local_root)?;
 
                 // This if block is somewhat ugly.
                 // First we check if there is a signed update with the local root.
@@ -335,11 +321,7 @@ impl ProverSync {
                     );
                     self.update_full(local_root, signed_update.update.new_root)
                         .await?;
-                } else if !local_root.is_zero()
-                    && self
-                        .db
-                        .update_by_new_root(&self.home_name, local_root)?
-                        .is_none()
+                } else if !local_root.is_zero() && self.db.update_by_new_root(local_root)?.is_none()
                 {
                     bail!(ProverSyncError::InvalidLocalRoot { local_root });
                 }

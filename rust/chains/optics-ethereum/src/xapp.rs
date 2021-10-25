@@ -7,7 +7,6 @@ use std::sync::Arc;
 
 use crate::report_tx;
 
-#[allow(missing_docs)]
 abigen!(
     EthereumConnectionManagerInternal,
     "./chains/optics-ethereum/abis/XAppConnectionManager.abi.json"

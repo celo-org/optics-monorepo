@@ -33,11 +33,19 @@ use crate::report_tx;
 
 static LAST_INSPECTED: &str = "homeIndexerLastInspected";
 
-#[allow(missing_docs)]
 abigen!(
     EthereumHomeInternal,
     "./chains/optics-ethereum/abis/Home.abi.json"
 );
+
+impl<M> std::fmt::Display for EthereumHomeInternal<M>
+where
+    M: ethers::providers::Middleware,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 struct HomeIndexer<M>
 where
@@ -95,9 +103,8 @@ where
 
         for update_with_meta in updates_with_meta {
             self.db
-                .store_latest_update(&self.home_name, &update_with_meta.signed_update)?;
+                .store_latest_update(&update_with_meta.signed_update)?;
             self.db.store_update_metadata(
-                &self.home_name,
                 update_with_meta.signed_update.update.new_root,
                 update_with_meta.metadata,
             )?;
@@ -151,7 +158,7 @@ where
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
-                .retrieve_decodable(&self.home_name, "", LAST_INSPECTED)
+                .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -179,8 +186,7 @@ where
                     self.sync_leaves(next_height, to)
                 )?;
 
-                self.db
-                    .store_encodable(&self.home_name, "", LAST_INSPECTED, &next_height)?;
+                self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -224,7 +230,7 @@ where
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db: OpticsDB::new("home", db),
+            db: OpticsDB::new(name.to_owned(), db),
             provider,
         }
     }
@@ -277,7 +283,7 @@ where
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
+            if let Some(update) = self.db.update_by_previous_root(old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -290,7 +296,7 @@ where
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
+            if let Some(update) = self.db.update_by_new_root(new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

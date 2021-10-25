@@ -8,6 +8,7 @@ pub struct Waiting {
 }
 
 /// Pending update state
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct Pending {
     root: H256,
@@ -103,6 +104,7 @@ impl Replica<Waiting> {
         update: &SignedUpdate,
         now: impl FnOnce() -> U256,
     ) -> Result<Replica<Pending>, Self> {
+        #[allow(clippy::question_mark)]
         if self.check_sig(update).is_err() {
             return Err(self);
         }

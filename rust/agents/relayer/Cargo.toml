@@ -2,7 +2,7 @@
 name = "relayer"
 version = "0.1.0"
 authors = ["ltchang <ltchang@stanford.edu>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 tokio = { version = "1.0.1", features = ["rt", "macros"] }

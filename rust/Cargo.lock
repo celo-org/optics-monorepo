@@ -1053,7 +1053,7 @@ dependencies = [
 [[package]]
 name = "ethers"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "ethers-contract",
  "ethers-core",
@@ -1065,7 +1065,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-contract-derive",
@@ -1083,7 +1083,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -1105,7 +1105,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "ethers-contract-abigen",
  "ethers-core",
@@ -1119,7 +1119,7 @@ dependencies = [
 [[package]]
 name = "ethers-core"
 version = "0.5.4"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "arrayvec 0.7.1",
  "bytes",
@@ -1150,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "ethers-middleware"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "async-trait",
  "ethers-contract",
@@ -1173,7 +1173,7 @@ dependencies = [
 [[package]]
 name = "ethers-providers"
 version = "0.5.4"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1206,7 +1206,7 @@ dependencies = [
 [[package]]
 name = "ethers-signers"
 version = "0.5.3"
-source = "git+https://github.com/gakonst/ethers-rs?branch=master#dbd3929b74da888f57a89054a582d08e0711f97b"
+source = "git+https://github.com/gakonst/ethers-rs?branch=master#d815dab9adc9dd3ea956e1959cd71635f4b7b3da"
 dependencies = [
  "async-trait",
  "coins-bip32",
@@ -2770,15 +2770,15 @@ dependencies = [
 
 [[package]]
 name = "pkg-config"
-version = "0.3.21"
+version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10e2fcbb64ecbe64c8e040a386c3104d384583af58b956d870aaaf229df6e66d"
+checksum = "12295df4f294471248581bc09bef3c38a5e46f1e36d6a37353621a0c6c357e1f"
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.14"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3ca011bd0129ff4ae15cd04c4eef202cadf6c51c21e47aba319b4e0501db741"
+checksum = "ed0cfbc8191465bed66e1718596ee0b0b35d5ee1f41c5df2189d0fe8bde535ba"
 
 [[package]]
 name = "predicates"
@@ -2921,9 +2921,9 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.25.1"
+version = "2.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23129d50f2c9355ced935fce8a08bd706ee2e7ce2b3b33bf61dace0e379ac63a"
+checksum = "47c327e191621a2158159df97cdbc2e7074bb4e940275e35abf38eb3d2595754"
 
 [[package]]
 name = "quanta"
@@ -4515,33 +4515,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
-]
-
-[[package]]
-name = "watcher"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "color-eyre",
- "config 0.10.1",
- "ethers",
- "futures-util",
- "log",
- "optics-base",
- "optics-core",
- "optics-ethereum",
- "optics-test",
- "paste",
- "prometheus",
- "rocksdb",
- "serde 1.0.130",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-test",
- "tracing",
- "tracing-futures",
- "tracing-subscriber",
 ]
 
 [[package]]

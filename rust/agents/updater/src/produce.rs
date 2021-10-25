@@ -4,12 +4,8 @@ use std::{sync::Arc, time::Duration};
 
 use color_eyre::Result;
 use hex;
-use optics_base::{agent::OpticsAgent, home::Homes};
-use optics_core::{
-    db::HomeDB,
-    traits::{Common, Home},
-    Signers,
-};
+use optics_base::{Homes, OpticsAgent};
+use optics_core::{db::OpticsDB, Common, Home, Signers};
 use tokio::{task::JoinHandle, time::sleep};
 use tracing::{debug, info, info_span, instrument::Instrumented, Instrument};
 
@@ -18,7 +14,7 @@ use crate::updater::Updater;
 #[derive(Debug)]
 pub(crate) struct UpdateProducer {
     home: Arc<Homes>,
-    home_db: HomeDB,
+    db: OpticsDB,
     signer: Arc<Signers>,
     interval_seconds: u64,
     update_pause: u64,
@@ -28,7 +24,7 @@ pub(crate) struct UpdateProducer {
 impl UpdateProducer {
     pub(crate) fn new(
         home: Arc<Homes>,
-        home_db: HomeDB,
+        db: OpticsDB,
         signer: Arc<Signers>,
         interval_seconds: u64,
         update_pause: u64,
@@ -36,7 +32,7 @@ impl UpdateProducer {
     ) -> Self {
         Self {
             home,
-            home_db,
+            db,
             signer,
             interval_seconds,
             update_pause,
@@ -47,14 +43,14 @@ impl UpdateProducer {
     fn find_latest_root(&self) -> Result<H256> {
         // if db latest root is empty, this will produce `H256::default()`
         // which is equal to `H256::zero()`
-        let latest_root = self.home_db.retrieve_latest_root()?.unwrap_or_default();
+        let latest_root = self.db.retrieve_latest_root()?.unwrap_or_default();
 
         if latest_root == H256::zero() {
             return Ok(latest_root);
         }
 
         let update = self
-            .home_db
+            .db
             .update_by_new_root(latest_root)?
             .expect("!db in inconsistent state");
 
@@ -106,7 +102,7 @@ impl UpdateProducer {
                         "Storing new update in DB for broadcast"
                     );
 
-                    self.home_db.store_produced_update(&signed)?;
+                    self.db.store_produced_update(&signed)?;
                 }
             }
         })

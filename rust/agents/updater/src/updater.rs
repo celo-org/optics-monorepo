@@ -11,8 +11,8 @@ use tracing::{instrument::Instrumented, Instrument};
 use crate::{
     produce::UpdateProducer, settings::UpdaterSettings as Settings, submit::UpdateSubmitter,
 };
-use optics_base::agent::{AgentCore, OpticsAgent};
-use optics_core::{traits::Common, Signers};
+use optics_base::{AgentCore, OpticsAgent};
+use optics_core::{db::OpticsDB, Common, Signers};
 
 /// An updater agent
 #[derive(Debug)]
@@ -76,17 +76,18 @@ impl OpticsAgent for Updater {
         // First we check that we have the correct key to sign with.
         let home = self.home();
         let address = self.signer.address();
+        let db = OpticsDB::new(self.home().name(), self.db());
 
         let produce = UpdateProducer::new(
             self.home(),
-            self.home_db(),
+            db.clone(),
             self.signer.clone(),
             self.interval_seconds,
             self.update_pause,
             self.signed_attestation_count.clone(),
         );
 
-        let submit = UpdateSubmitter::new(self.home(), self.home_db(), self.interval_seconds);
+        let submit = UpdateSubmitter::new(self.home(), db, self.interval_seconds);
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();

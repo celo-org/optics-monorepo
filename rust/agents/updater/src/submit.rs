@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use optics_base::home::Homes;
-use optics_core::{db::HomeDB, traits::Common};
+use optics_base::Homes;
+use optics_core::{db::OpticsDB, Common};
 use std::time::Duration;
 
 use color_eyre::Result;
@@ -10,15 +10,15 @@ use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
 pub(crate) struct UpdateSubmitter {
     home: Arc<Homes>,
-    home_db: HomeDB,
+    db: OpticsDB,
     interval_seconds: u64,
 }
 
 impl UpdateSubmitter {
-    pub(crate) fn new(home: Arc<Homes>, home_db: HomeDB, interval_seconds: u64) -> Self {
+    pub(crate) fn new(home: Arc<Homes>, db: OpticsDB, interval_seconds: u64) -> Self {
         Self {
             home,
-            home_db,
+            db,
             interval_seconds,
         }
     }
@@ -35,7 +35,7 @@ impl UpdateSubmitter {
 
                 // if we have produced an update building off the committed root
                 // submit it
-                if let Some(signed) = self.home_db.retrieve_produced_update(committed_root)? {
+                if let Some(signed) = self.db.retrieve_produced_update(committed_root)? {
                     let hex_signature = format!("0x{}", hex::encode(signed.signature.to_vec()));
                     info!(
                         previous_root = ?signed.update.previous_root,

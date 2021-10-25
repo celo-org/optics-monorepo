@@ -112,12 +112,12 @@ impl Pusher {
         tokio::spawn(async move {
             let mut index = 0;
             loop {
-                let proof = self.db.proof_by_leaf_index(&self.name, index)?;
+                let proof = self.db.proof_by_leaf_index(index)?;
                 match proof {
                     Some(proof) => {
                         let message = self
                             .db
-                            .message_by_leaf_index(&self.name, index)?
+                            .message_by_leaf_index(index)?
                             .ok_or_else(|| eyre!("Missing message for known proof"))?;
                         let proven = ProvenMessage {
                             proof,

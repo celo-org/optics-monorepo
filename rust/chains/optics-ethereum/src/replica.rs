@@ -10,7 +10,6 @@ use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
 
-#[allow(missing_docs)]
 abigen!(
     EthereumReplicaInternal,
     "./chains/optics-ethereum/abis/Replica.abi.json",
@@ -19,6 +18,15 @@ abigen!(
         initialize(uint32, address, bytes32, uint256, uint32) as initialize;
      },
 );
+
+impl<M> std::fmt::Display for EthereumReplicaInternal<M>
+where
+    M: ethers::providers::Middleware,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 /// A struct that provides access to an Ethereum replica contract
 #[derive(Debug)]

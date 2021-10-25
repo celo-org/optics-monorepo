@@ -110,23 +110,19 @@ impl ProveCommand {
     }
 
     fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
+        let db = OpticsDB::new(self.home_name.to_owned(), DB::from_path(&self.db_path)?);
 
         let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
-            (None, Some(digest)) => match db.message_by_leaf(&self.home_name, digest)? {
+            (None, Some(digest)) => match db.message_by_leaf(digest)? {
                 Some(leaf) => leaf.leaf_index,
                 None => bail!("No leaf index or "),
             },
             (None, None) => bail!("Must provide leaf index or leaf hash"),
         };
 
-        let proof = db
-            .proof_by_leaf_index(&self.home_name, idx)?
-            .expect("no proof");
-        let message = db
-            .message_by_leaf_index(&self.home_name, idx)?
-            .expect("no message");
+        let proof = db.proof_by_leaf_index(idx)?.expect("no proof");
+        let message = db.message_by_leaf_index(idx)?.expect("no message");
         let message = OpticsMessage::read_from(&mut message.message.as_slice())?;
 
         Ok((message, proof))
