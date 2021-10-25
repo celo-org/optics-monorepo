@@ -3,7 +3,6 @@ use prometheus::IntCounterVec;
 use std::{sync::Arc, time::Duration};
 
 use color_eyre::Result;
-use hex;
 use optics_base::{Homes, OpticsAgent};
 use optics_core::{db::OpticsDB, Common, Home, Signers};
 use tokio::{task::JoinHandle, time::sleep};

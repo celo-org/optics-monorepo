@@ -7,8 +7,7 @@ WORKDIR /usr/src
 RUN apt-get update && \
     apt-get dist-upgrade -y && \
     apt-get install -y musl-tools clang && \
-    rustup default nightly && \
-    rustup target add x86_64-unknown-linux-musl --toolchain nightly 
+    rustup target add x86_64-unknown-linux-musl
 
 # Add workspace to workdir 
 COPY agents ./agents

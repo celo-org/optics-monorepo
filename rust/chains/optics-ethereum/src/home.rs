@@ -51,7 +51,6 @@ struct HomeIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
-    home_name: String,
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
     db: OpticsDB,
@@ -351,7 +350,6 @@ where
         indexed_height: prometheus::IntGauge,
     ) -> Instrumented<JoinHandle<Result<()>>> {
         let indexer = HomeIndexer {
-            home_name: self.name.to_owned(),
             contract: self.contract.clone(),
             db: self.db.clone(),
             from_height,
