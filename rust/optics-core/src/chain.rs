@@ -2,13 +2,13 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Deserialize)]
 pub struct Address(pub bytes::Bytes);
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Deserialize)]
 
 pub struct Balance(pub num::BigInt);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Deserialize)]
 pub struct ContractLocator {
     pub name: String,
     pub domain: u32,

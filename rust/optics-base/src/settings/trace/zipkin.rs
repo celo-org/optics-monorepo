@@ -1,17 +1,18 @@
 use opentelemetry::{sdk::trace::Tracer, trace::TraceError};
 use opentelemetry_zipkin::ZipkinPipelineBuilder;
+use serde::Serialize;
 use tracing::Subscriber;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::registry::LookupSpan;
 
 /// Config parameters for Zipkin collector
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, serde::Deserialize)]
 pub struct ZipkinCollector {
     uri: String,
 }
 
 /// Config parameters for collection via Zipkin
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, serde::Deserialize)]
 pub struct ZipkinConfig {
     collector: ZipkinCollector,
     name: String,

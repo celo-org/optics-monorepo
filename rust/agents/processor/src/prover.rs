@@ -11,14 +11,14 @@ use optics_core::accumulator::{
 
 /// A depth-32 sparse Merkle tree capable of producing proofs for arbitrary
 /// elements.
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct Prover {
     count: usize,
     tree: MerkleTree,
 }
 
 /// Prover Errors
-#[derive(Debug, thiserror::Error)]
+#[derive(optics_derive::JsonDebug, Serialize, thiserror::Error)]
 pub enum ProverError {
     /// Index is above tree max size
     #[error("Requested proof for index above u32::MAX: {0}")]

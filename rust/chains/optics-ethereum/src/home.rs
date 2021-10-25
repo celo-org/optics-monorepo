@@ -194,16 +194,24 @@ where
 }
 
 /// A reference to a Home contract on some Ethereum chain
-#[derive(Debug)]
+#[derive(serde::Serialize)]
 pub struct EthereumHome<M>
 where
     M: ethers::providers::Middleware,
 {
+    #[serde(skip)]
     contract: Arc<EthereumHomeInternal<M>>,
+    #[serde(skip)]
     db: OpticsDB,
     domain: u32,
     name: String,
+    #[serde(skip)]
     provider: Arc<M>,
+}
+impl<M: ethers::providers::Middleware> std::fmt::Debug for EthereumHome<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
 }
 
 impl<M> EthereumHome<M>

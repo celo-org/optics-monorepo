@@ -37,8 +37,13 @@ pub fn destination_and_nonce(destination: u32, nonce: u32) -> u64 {
 }
 
 /// A Hex String of length `N` representing bytes of length `N / 2`
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Clone)]
 pub struct HexString<const N: usize>(String);
+impl<const N: usize> std::fmt::Debug for HexString<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
+}
 
 impl<const N: usize> AsRef<String> for HexString<N> {
     fn as_ref(&self) -> &String {

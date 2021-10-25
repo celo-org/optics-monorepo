@@ -1,12 +1,13 @@
 use ethers::prelude::{H160, H256};
 
 use crate::{Decode, Encode};
+use serde::Serialize;
 
 /// Identifier type.
 ///
 /// Normally these will map to address types for different networks. For Optics,
 /// we choose to _always_ serialize as 32 bytes
-#[derive(Debug, Default, Copy, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Default, Copy, Clone, PartialEq, serde::Deserialize)]
 pub struct OpticsIdentifier(H256);
 
 impl OpticsIdentifier {

@@ -1,6 +1,7 @@
 use ethers::core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
+use serde::Serialize;
 
 use crate::{
     accumulator::{hash_concat, EMPTY_SLICE, TREE_DEPTH, ZERO_HASHES},
@@ -27,7 +28,7 @@ lazy_static! {
 ///
 /// Efficiently represents a Merkle tree of fixed depth where only the first N
 /// indices are populated by non-zero leaves (perfect for the deposit contract tree).
-#[derive(Debug, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, PartialEq)]
 pub enum MerkleTree {
     /// Leaf node with the hash of its content.
     Leaf(H256),
@@ -41,7 +42,7 @@ pub enum MerkleTree {
 
 /// A merkle proof object. The leaf, its path to the root, and its index in the
 /// tree.
-#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Copy, serde::Deserialize, PartialEq)]
 pub struct Proof {
     /// The leaf
     pub leaf: H256,
@@ -95,7 +96,7 @@ impl Decode for Proof {
 }
 
 /// Error type for merkle tree ops.
-#[derive(Debug, PartialEq, Clone, Error)]
+#[derive(optics_derive::JsonDebug, Serialize, PartialEq, Clone, Error)]
 pub enum MerkleTreeError {
     /// Trying to push in a leaf
     #[error("Trying to push in a leaf")]

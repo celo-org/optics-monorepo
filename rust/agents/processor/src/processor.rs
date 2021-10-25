@@ -33,7 +33,6 @@ enum Flow {
 
 /// The replica processor is responsible for polling messages and waiting until they validate
 /// before proving/processing them.
-#[derive(Debug)]
 pub(crate) struct Replica {
     interval: u64,
     replica: Arc<Replicas>,

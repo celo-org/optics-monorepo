@@ -6,16 +6,17 @@ use opentelemetry_jaeger::PipelineBuilder;
 use tracing::Subscriber;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::registry::LookupSpan;
+use serde::Serialize;
 
 /// Jaeger collector auth configuration
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, serde::Deserialize)]
 pub struct CollectorAuth {
     username: String,
     password: String,
 }
 
 /// Config parameters for Jaeger collector
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, serde::Deserialize)]
 pub struct JaegerCollector {
     uri: String,
     #[serde(flatten)]
@@ -23,7 +24,7 @@ pub struct JaegerCollector {
 }
 
 /// Config parameters for collection via Jaeger
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, serde::Deserialize)]
 pub struct JaegerConfig {
     collector: JaegerCollector,
     name: String,

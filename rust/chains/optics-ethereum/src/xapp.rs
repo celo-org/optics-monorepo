@@ -14,14 +14,20 @@ abigen!(
 );
 
 /// A reference to a XAppConnectionManager contract on some Ethereum chain
-#[derive(Debug)]
+#[derive(serde::Serialize)]
 pub struct EthereumConnectionManager<M>
 where
     M: ethers::providers::Middleware,
 {
+    #[serde(skip)]
     contract: EthereumConnectionManagerInternal<M>,
     domain: u32,
     name: String,
+}
+impl<M: ethers::providers::Middleware> std::fmt::Debug for EthereumConnectionManager<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
 }
 
 impl<M> EthereumConnectionManager<M>

@@ -10,9 +10,10 @@ use color_eyre::Result;
 use ethers::{core::types::H256, utils::keccak256};
 use tokio::task::JoinHandle;
 use tracing::instrument::Instrumented;
+use serde::Serialize;
 
 /// A Stamped message that has been committed at some leaf index
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, Default, Clone, PartialEq)]
 pub struct RawCommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,
@@ -69,7 +70,7 @@ impl Decode for RawCommittedMessage {
 
 // ember: tracingify these across usage points
 /// A Stamped message that has been committed at some leaf index
-#[derive(Debug, Default, Clone)]
+#[derive(optics_derive::JsonDebug, Serialize, Default, Clone)]
 pub struct CommittedMessage {
     /// The index at which the message is committed
     pub leaf_index: u32,

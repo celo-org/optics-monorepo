@@ -28,7 +28,7 @@ static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
 /// DB handle for storing data tied to a specific home.
 ///
 /// Key structure: ```<home_name>_<additional_prefix(es)>_<key>```
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct OpticsDB(TypedDB);
 
 impl OpticsDB {

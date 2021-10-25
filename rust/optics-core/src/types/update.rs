@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
 /// An Optics update message
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, optics_derive::JsonDebug, Serialize, Eq, PartialEq, Deserialize)]
 pub struct Update {
     /// The home chain
     pub home_domain: u32,
@@ -95,7 +95,7 @@ impl Update {
 }
 
 /// Metadata stored about an update
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, optics_derive::JsonDebug, Serialize, Eq, PartialEq, Deserialize)]
 pub struct UpdateMeta {
     /// Block number
     pub block_number: u64,
@@ -128,7 +128,7 @@ impl Decode for UpdateMeta {
 }
 
 /// A Signed Optics Update with Metadata
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, optics_derive::JsonDebug, Serialize, Eq, PartialEq, Deserialize)]
 pub struct SignedUpdateWithMeta {
     /// Signed update
     pub signed_update: SignedUpdate,
@@ -137,7 +137,7 @@ pub struct SignedUpdateWithMeta {
 }
 
 /// A Signed Optics Update
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, optics_derive::JsonDebug, Serialize, Eq, PartialEq, Deserialize)]
 pub struct SignedUpdate {
     /// The update
     pub update: Update,

@@ -62,7 +62,7 @@ use once_cell::sync::OnceCell;
 static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
 /// Ethereum signer types
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Clone, serde::Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum SignerConf {
     /// A local hex key
@@ -115,7 +115,7 @@ impl SignerConf {
 }
 
 /// Home indexing settings
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexSettings {
     /// The height at which to start indexing the Home contract
@@ -151,7 +151,7 @@ impl IndexSettings {
 ///
 /// pub struct OtherSettings { /* anything */ };
 ///
-/// #[derive(Debug, Deserialize)]
+/// #[derive(optics_derive::JsonDebug, Serialize, Deserialize)]
 /// pub struct MySettings {
 ///     #[serde(flatten)]
 ///     base_settings: Settings,
@@ -166,7 +166,7 @@ impl IndexSettings {
 ///     }
 /// }
 /// ```
-#[derive(Debug, Deserialize, Default)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// The path to use for the DB file

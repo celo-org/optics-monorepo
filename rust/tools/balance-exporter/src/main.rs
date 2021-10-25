@@ -7,7 +7,7 @@ use human_panic::setup_panic;
 use optics_base::ChainSetup;
 use tokio::time::Instant;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, optics_derive::JsonDebug, Serialize)]
 struct Input {
     contracts: Vec<ChainSetup>,
 }

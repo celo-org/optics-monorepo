@@ -33,7 +33,7 @@ macro_rules! decl_agent {
         }) => {
 
         $(#[$outer])*
-        #[derive(Debug)]
+        #[derive(optics_derive::JsonDebug, Serialize)]
         pub struct $name {
             $($prop: $type,)*
             core: optics_base::AgentCore,
@@ -70,7 +70,7 @@ macro_rules! decl_settings {
         }
     ) => {
         paste::paste! {
-            #[derive(Debug, serde::Deserialize)]
+            #[derive(optics_derive::JsonDebug, Serialize, serde::Deserialize)]
             #[serde(rename_all = "camelCase")]
             #[doc = "Settings for `" $name]
             pub struct [<$name Settings>] {

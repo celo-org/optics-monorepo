@@ -20,7 +20,7 @@ mod span_metrics;
 pub use span_metrics::TimeSpanLifetime;
 
 /// Logging level
-#[derive(Debug, Clone, Copy, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Clone, Copy, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Level {
     /// Off
@@ -64,7 +64,7 @@ impl From<Level> for LevelFilter {
 }
 
 /// Configuration for the tracing subscribers used by Optics agents
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Clone, serde::Deserialize)]
 pub struct TracingConfig {
     jaeger: Option<JaegerConfig>,
     zipkin: Option<ZipkinConfig>,

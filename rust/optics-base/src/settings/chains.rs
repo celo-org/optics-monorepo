@@ -1,5 +1,5 @@
 use color_eyre::Report;
-use serde::Deserialize;
+use serde::{Serialize,Deserialize};
 
 use optics_core::{db::DB, ContractLocator, Signers};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
@@ -10,7 +10,7 @@ use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
 ///
 /// Specify the chain name (enum variant) in toml under the `chain` key
 /// Specify the connection details as a toml object under the `connection` key.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "rpcStyle", content = "connection", rename_all = "camelCase")]
 pub enum ChainConf {
     /// Ethereum configuration
@@ -25,7 +25,7 @@ impl Default for ChainConf {
 
 /// A chain setup is a domain ID, an address on that chain (where the home or
 /// replica is deployed) and details for connecting to the chain API.
-#[derive(Clone, Debug, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ChainSetup {
     /// Chain name
     pub name: String,

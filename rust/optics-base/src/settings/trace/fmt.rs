@@ -11,7 +11,7 @@ use tracing_subscriber::{
 };
 
 /// Basic tracing configuration
-#[derive(Debug, Clone, Copy, serde::Deserialize, Eq, PartialEq)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Clone, Copy, serde::Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum Style {
     /// Pretty print

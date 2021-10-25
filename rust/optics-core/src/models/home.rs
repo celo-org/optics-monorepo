@@ -1,5 +1,7 @@
 use ethers::core::types::{Address, H256};
 use std::{collections::VecDeque, io::Write};
+use serde::Serialize;
+use optics_derive::JsonDebug;
 
 use crate::{
     accumulator::{hash, incremental::IncrementalMerkle},
@@ -14,7 +16,7 @@ pub struct Waiting {
 }
 
 /// Failed state
-#[derive(Debug, Clone)]
+#[derive(JsonDebug, Serialize, Clone)]
 pub struct Failed {
     queue: VecDeque<H256>,
     accumulator: IncrementalMerkle,
@@ -61,12 +63,18 @@ fn format_message(
 }
 
 /// The Home-chain Optics object
-#[derive(Debug, Clone)]
+#[derive(Serialize, Clone)]
 pub struct Home<S> {
     local: u32,
     updater: Address,
     committed_root: H256,
     state: S,
+}
+
+impl<S:Serialize> std::fmt::Debug for Home<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
 }
 
 impl<S> Home<S> {

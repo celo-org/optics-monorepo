@@ -8,12 +8,16 @@ use optics_base::{AgentCore, Homes, OpticsAgent, Replicas};
 use optics_core::Common;
 
 use crate::settings::RelayerSettings as Settings;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 struct UpdatePoller {
     duration: Duration,
+    #[serde(skip)]
     home: Arc<Homes>,
+    #[serde(skip)]
     replica: Arc<Replicas>,
+    #[serde(skip)]
     semaphore: Mutex<()>,
 }
 
@@ -89,7 +93,7 @@ impl UpdatePoller {
 }
 
 /// A relayer agent
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct Relayer {
     duration: u64,
     core: AgentCore,

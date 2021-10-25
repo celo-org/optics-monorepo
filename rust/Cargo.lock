@@ -1835,6 +1835,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "optics-derive",
  "paste",
  "rand 0.8.4",
  "serde 1.0.130",
@@ -2483,6 +2484,7 @@ dependencies = [
  "opentelemetry-jaeger",
  "opentelemetry-zipkin",
  "optics-core",
+ "optics-derive",
  "optics-ethereum",
  "optics-test",
  "paste",
@@ -2512,6 +2514,7 @@ dependencies = [
  "hex",
  "once_cell",
  "optics-core",
+ "optics-derive",
  "optics-ethereum",
  "rusoto_core",
  "rusoto_kms",
@@ -2534,6 +2537,7 @@ dependencies = [
  "hex",
  "lazy_static",
  "num",
+ "optics-derive",
  "prometheus",
  "rocksdb",
  "serde 1.0.130",
@@ -2543,6 +2547,14 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-futures",
+]
+
+[[package]]
+name = "optics-derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2558,6 +2570,7 @@ dependencies = [
  "hex",
  "num",
  "optics-core",
+ "optics-derive",
  "prometheus",
  "rocksdb",
  "serde 1.0.130",
@@ -2903,6 +2916,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "optics-derive",
  "optics-test",
  "paste",
  "prometheus",
@@ -3144,6 +3158,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "optics-derive",
  "optics-test",
  "paste",
  "serde 1.0.130",
@@ -4472,6 +4487,7 @@ dependencies = [
  "mockall",
  "optics-base",
  "optics-core",
+ "optics-derive",
  "optics-ethereum",
  "optics-test",
  "paste",
@@ -4679,6 +4695,7 @@ dependencies = [
  "log",
  "optics-base",
  "optics-core",
+ "optics-derive",
  "optics-ethereum",
  "optics-test",
  "paste",

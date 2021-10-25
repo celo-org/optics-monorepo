@@ -6,9 +6,10 @@ use ethers::{
 };
 use ethers_signers::Signer;
 use sha3::{Digest, Keccak256};
+use serde::Serialize;
 
 /// Failure notification produced by watcher
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Copy, PartialEq)]
 pub struct FailureNotification {
     /// Domain of failed home
     pub home_domain: u32,
@@ -48,7 +49,7 @@ impl FailureNotification {
 }
 
 /// Signed failure notification produced by watcher
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Copy, PartialEq)]
 pub struct SignedFailureNotification {
     /// Failure notification
     pub notification: FailureNotification,

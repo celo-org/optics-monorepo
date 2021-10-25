@@ -26,7 +26,7 @@ static KMS_CLIENT: OnceCell<KmsClient> = OnceCell::new();
 
 type ConcreteReplica = EthereumReplica<SignerMiddleware<Provider<Http>, Signers>>;
 
-#[derive(StructOpt, Debug)]
+#[derive(StructOpt, optics_derive::JsonDebug, Serialize)]
 pub struct ProveCommand {
     /// Leaf to prove
     #[structopt(long, required_unless = "leaf_index")]

@@ -26,7 +26,7 @@ mod replica;
 mod xapp;
 
 /// Ethereum connection configuration
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, serde::Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Connection {
     /// HTTP connection details

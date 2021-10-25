@@ -17,3 +17,4 @@ structopt = "0.3.23"
 
 optics-ethereum = { path = "../../chains/optics-ethereum" }
 optics-core = { path = "../../optics-core" }
+optics-derive = { path = "../../optics-derive" }

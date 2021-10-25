@@ -20,13 +20,13 @@ use optics_core::{
 
 use crate::settings::WatcherSettings as Settings;
 
-#[derive(Debug, Error)]
+#[derive(optics_derive::JsonDebug, Serialize, Error)]
 enum WatcherError {
     #[error("Syncing finished")]
     SyncingFinished,
 }
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct ContractWatcher<C>
 where
     C: Common + ?Sized + 'static,
@@ -83,7 +83,7 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct HistorySync<C>
 where
     C: Common + ?Sized + 'static,
@@ -155,16 +155,16 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    db: OpticsDB,
+    home_db: HomeDB,
     home: Arc<Homes>,
 }
 
 impl UpdateHandler {
-    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: OpticsDB, home: Arc<Homes>) -> Self {
-        Self { rx, db, home }
+    pub fn new(rx: mpsc::Receiver<SignedUpdate>, home_db: HomeDB, home: Arc<Homes>) -> Self {
+        Self { rx, home_db, home }
     }
 
     fn check_double_update(&mut self, update: &SignedUpdate) -> Result<(), DoubleUpdate> {
@@ -172,8 +172,8 @@ impl UpdateHandler {
         let new_root = update.update.new_root;
 
         match self
-            .db
-            .update_by_previous_root(self.home.name(), old_root)
+            .home_db
+            .update_by_previous_root(old_root)
             .expect("!db_get")
         {
             Some(existing) => {
@@ -182,9 +182,7 @@ impl UpdateHandler {
                 }
             }
             None => {
-                self.db
-                    .store_latest_update(self.home.name(), update)
-                    .expect("!db_put");
+                self.home_db.store_latest_update(update).expect("!db_put");
             }
         }
 
@@ -219,7 +217,7 @@ impl UpdateHandler {
 
 type TaskMap = Arc<RwLock<HashMap<String, Instrumented<JoinHandle<Result<()>>>>>>;
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct Watcher {
     signer: Arc<Signers>,
     interval_seconds: u64,
@@ -308,7 +306,7 @@ impl Watcher {
         &self,
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        let db = OpticsDB::new(self.db());
+        let home_db = HomeDB::new(self.db(), self.home().name().to_owned());
         let home = self.home();
         let replicas = self.replicas().clone();
         let interval_seconds = self.interval_seconds;
@@ -318,7 +316,7 @@ impl Watcher {
         tokio::spawn(async move {
             // Spawn update handler
             let (tx, rx) = mpsc::channel(200);
-            let handler = UpdateHandler::new(rx, db, home.clone()).spawn();
+            let handler = UpdateHandler::new(rx, home_db, home.clone()).spawn();
 
             // For each replica, spawn polling and history syncing tasks
             for (name, replica) in replicas {
@@ -433,7 +431,7 @@ impl OpticsAgent for Watcher {
                 .new_int_gauge(
                     "block_height",
                     "Height of a recently observed block",
-                    &["network", "agent"],
+                    &["net  work", "agent"],
                 )
                 .expect("failed to register block_height metric")
                 .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
@@ -674,15 +672,12 @@ mod test {
             .await
             .expect("!sign");
 
-            let mut mock_home = MockHomeContract::new();
-            mock_home.expect__name().return_const("home_1".to_owned());
-
             {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: OpticsDB::new(db),
-                    home: Arc::new(mock_home.into()),
+                    home_db: HomeDB::new(db, "home_1".to_owned()),
+                    home: Arc::new(MockHomeContract::new().into()),
                 };
 
                 let _first_update_ret = handler

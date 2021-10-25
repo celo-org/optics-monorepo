@@ -22,7 +22,7 @@ use crate::settings::UpdaterSettings as Settings;
 use optics_base::{AgentCore, Homes, OpticsAgent};
 use optics_core::{db::OpticsDB, Common, Home, SignedUpdate, Signers, Update};
 
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 struct UpdateHandler {
     home: Arc<Homes>,
 
@@ -197,7 +197,7 @@ impl UpdatePoller {
 }
 
 /// An updater agent
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub struct Updater {
     signer: Arc<Signers>,
     interval_seconds: u64,

@@ -1,11 +1,12 @@
 use ethers::{types::H256, utils::keccak256};
 
 use crate::{utils, Decode, Encode, OpticsError};
+use serde::Serialize;
 
 const OPTICS_MESSAGE_PREFIX_LEN: usize = 76;
 
 /// A full Optics message between chains
-#[derive(Debug, Default, Clone)]
+#[derive(optics_derive::JsonDebug, Serialize, Default, Clone)]
 pub struct OpticsMessage {
     /// 4   SLIP-44 ID
     pub origin: u32,
@@ -22,7 +23,7 @@ pub struct OpticsMessage {
 }
 
 /// A partial Optics message between chains
-#[derive(Debug, Default, Clone)]
+#[derive(optics_derive::JsonDebug, Serialize, Default, Clone)]
 pub struct Message {
     /// 4   SLIP-44 ID
     pub destination: u32,

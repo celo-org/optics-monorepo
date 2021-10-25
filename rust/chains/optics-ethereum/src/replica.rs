@@ -21,14 +21,21 @@ abigen!(
 );
 
 /// A struct that provides access to an Ethereum replica contract
-#[derive(Debug)]
+#[derive(serde::Serialize)]
 pub struct EthereumReplica<M>
 where
     M: ethers::providers::Middleware,
 {
+    #[serde(skip)]
     contract: EthereumReplicaInternal<M>,
     domain: u32,
     name: String,
+}
+
+impl<M: ethers::providers::Middleware> std::fmt::Debug for EthereumReplica<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
 }
 
 impl<M> EthereumReplica<M>

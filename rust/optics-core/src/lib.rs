@@ -8,6 +8,8 @@
 #![forbid(unsafe_code)]
 #![forbid(where_clauses_object_safety)]
 
+use serde::Serialize;
+
 /// Accumulator management
 pub mod accumulator;
 

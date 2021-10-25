@@ -12,5 +12,6 @@ members = [
     "agents/processor",
     "tools/kms-cli",
     "tools/optics-cli",
-    "tools/balance-exporter"
+    "tools/balance-exporter",
+    "optics-derive"
 ]

@@ -10,6 +10,7 @@ use ethers::{
     providers::{Middleware, ProviderError},
 };
 use std::error::Error as StdError;
+use serde::Serialize;
 
 use crate::{db::DbError, OpticsError, SignedUpdate};
 
@@ -19,7 +20,7 @@ pub use replica::*;
 pub use xapp::*;
 
 /// Contract states
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, Serialize)]
 pub enum State {
     /// Contract is active
     Waiting,
@@ -28,11 +29,11 @@ pub enum State {
 }
 
 /// Returned by `check_double_update` if double update exists
-#[derive(Debug, Clone, PartialEq)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, PartialEq)]
 pub struct DoubleUpdate(pub SignedUpdate, pub SignedUpdate);
 
 /// The result of a transaction
-#[derive(Debug, Clone, Copy)]
+#[derive(optics_derive::JsonDebug, Serialize, Clone, Copy)]
 pub struct TxOutcome {
     /// The txid
     pub txid: H256,

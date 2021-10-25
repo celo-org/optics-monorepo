@@ -32,6 +32,7 @@ impl Kathy {
     }
 }
 
+
 #[async_trait::async_trait]
 impl OpticsAgent for Kathy {
     const AGENT_NAME: &'static str = "kathy";
@@ -100,7 +101,7 @@ impl OpticsAgent for Kathy {
 }
 
 /// Generators for messages
-#[derive(Debug, Clone)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, Clone)]
 pub enum ChatGenerator {
     Static {
         recipient: H256,

@@ -20,6 +20,7 @@ anyhow = "1"
 num = "0.4"
 
 optics-core = { path = "../../optics-core" }
+optics-derive = { path = "../../optics-derive" }
 tokio = "1.7.1"
 hex = "0.4.3"
 prometheus = "0.12"

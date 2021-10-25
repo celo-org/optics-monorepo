@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use optics_base::decl_settings;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(optics_derive::JsonDebug, Serialize, Deserialize, Clone)]
 pub struct S3Config {
     pub bucket: String,
     pub region: String,

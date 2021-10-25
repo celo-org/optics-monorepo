@@ -11,7 +11,6 @@ use tokio::{task::JoinHandle, time::sleep};
 use tracing::{debug, error, info, info_span, instrument, instrument::Instrumented, Instrument};
 
 /// Struct to sync prover.
-#[derive(Debug)]
 pub struct ProverSync {
     home_name: String,
     db: OpticsDB,
@@ -40,7 +39,7 @@ impl Display for ProverSync {
 }
 
 /// ProverSync errors
-#[derive(Debug, thiserror::Error)]
+#[derive(optics_derive::JsonDebug, serde::Serialize, thiserror::Error)]
 pub enum ProverSyncError {
     /// Local tree up-to-date but root does not match signed update"
     #[error("Local tree up-to-date but root does not match update. Local root: {local_root}. Update root: {new_root}. WARNING: this could indicate malicious updater and/or long reorganization process!")]

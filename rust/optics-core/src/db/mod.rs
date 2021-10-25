@@ -16,7 +16,7 @@ pub use optics_db::*;
 
 use crate::{Decode, Encode, OpticsError};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 /// A KV Store
 pub struct DB(Arc<Rocks>);
 

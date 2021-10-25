@@ -5,7 +5,7 @@ use color_eyre::Result;
 /// DB handle for storing data tied to a specific type/entity.
 ///
 /// Key structure: ```<type_prefix>_<additional_prefix(es)>_<key>```
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TypedDB(DB);
 
 impl TypedDB {

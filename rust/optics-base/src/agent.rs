@@ -15,15 +15,19 @@ use tracing::{info_span, Instrument};
 use std::{collections::HashMap, sync::Arc};
 use tokio::task::JoinHandle;
 /// Properties shared across all agents
-#[derive(Debug)]
+#[derive(optics_derive::JsonDebug, serde::Serialize)]
 pub struct AgentCore {
     /// A boxed Home
+    #[serde(skip)]
     pub home: Arc<Homes>,
     /// A map of boxed Replicas
+    #[serde(skip)]
     pub replicas: HashMap<String, Arc<Replicas>>,
     /// A persistent KV Store (currently implemented as rocksdb)
+    #[serde(skip)]
     pub db: DB,
     /// Prometheus metrics
+    #[serde(skip)]
     pub metrics: Arc<CoreMetrics>,
     /// The height at which to start indexing the Home
     pub indexer: IndexSettings,

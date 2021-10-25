@@ -1,14 +1,16 @@
 use crate::{OpticsError, SignedUpdate};
 use ethers::core::types::{Address, H256, U256};
+use optics_derive::JsonDebug;
+use serde::Serialize;
 
 /// Waiting state
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(JsonDebug, Serialize, Clone, Copy, Default)]
 pub struct Waiting {
     root: H256,
 }
 
 /// Pending update state
-#[derive(Debug, Clone, Copy)]
+#[derive(JsonDebug, Serialize, Clone, Copy)]
 pub struct Pending {
     root: H256,
     new_root: H256,
@@ -16,17 +18,23 @@ pub struct Pending {
 }
 
 /// Failed state
-#[derive(Debug, Clone, Copy)]
+#[derive(JsonDebug, Serialize, Clone, Copy)]
 pub struct Failed {}
 
 /// The Replica-chain Optics object
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Serialize, Clone, Copy, Default)]
 pub struct Replica<S> {
     remote: u32,
     local: u32,
     updater: Address,
     optimistic_wait: U256,
     state: S,
+}
+
+impl<S:Serialize> std::fmt::Debug for Replica<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serde_json::to_string(self).expect("toJSON failed"))
+    }
 }
 
 impl<S> Replica<S> {
