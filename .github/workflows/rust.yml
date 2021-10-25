@@ -20,13 +20,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.54.0
+          toolchain: nightly
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
 
       - name: Build
-        run: cd rust && cargo +nightly build --verbose
+        run: cd rust && cargo build --verbose
 
   test:
     runs-on: ubuntu-latest
@@ -35,13 +35,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.54.0
+          toolchain: nightly
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
 
       - name: Run tests
-        run: cd rust && cargo +nightly test --verbose
+        run: cd rust && cargo test --verbose
 
   lint:
     runs-on: ubuntu-latest
@@ -50,11 +50,11 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.54.0
+          toolchain: nightly
       - uses: Swatinem/rust-cache@v1
         with:
           working-directory: ./rust
       - name: Rustfmt
-        run: cd rust && cargo +nightly fmt -- --check
+        run: cd rust && cargo fmt -- --check
       - name: Clippy
-        run: cd rust && cargo +nightly clippy -- -D warnings
+        run: cd rust && cargo clippy -- -D warnings

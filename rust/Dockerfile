@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:experimental
 
-FROM rust:1.54 as builder
+FROM rust:1.56 as builder
 WORKDIR /usr/src
 
 # 1a: Prepare for static linking
 RUN apt-get update && \
     apt-get dist-upgrade -y && \
-    apt-get install -y musl-tools clang-6.0 && \
-    rustup target add x86_64-unknown-linux-musl 
+    apt-get install -y musl-tools clang && \
+    rustup default nightly && \
+    rustup target add x86_64-unknown-linux-musl --toolchain nightly 
 
 # Add workspace to workdir 
 COPY agents ./agents
