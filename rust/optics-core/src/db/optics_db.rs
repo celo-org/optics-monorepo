@@ -291,9 +291,15 @@ impl OpticsDB {
                     self.store_latest_root(&entity, update.update.new_root)?;
                 } else {
                     warn!(
-                        "Attempted to store update not building off latest root: {:?}",
+                        "Attempted to store update not building off latest root: {:?}.",
                         update
-                    )
+                    );
+
+                    return Err(DbError::NotLatestRoot {
+                        latest_root: root,
+                        previous_root: update.update.previous_root,
+                        new_root: update.update.new_root,
+                    });
                 }
             }
             None => self.store_latest_root(&entity, update.update.new_root)?,
