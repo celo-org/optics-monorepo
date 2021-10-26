@@ -9,6 +9,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 use tokio::time::sleep;
 
+/// A naive exponential backoff provider
 #[derive(Debug, Clone)]
 pub struct RetryingProvider {
     inner: Http,
@@ -16,17 +17,21 @@ pub struct RetryingProvider {
 }
 
 impl RetryingProvider {
+    /// Instantiate a new retrying provider
     pub fn new(inner: Http, max_requests: usize) -> Self {
         Self {
             inner,
             max_requests,
         }
     }
+
+    /// Set the max_requests (and by extension the total time a request can take)
     pub fn max_requests(&mut self, max_requests: usize) {
         self.max_requests = max_requests;
     }
 }
 
+/// Error type for the RetryingProvider
 #[derive(Error, Debug)]
 pub enum RetryingProviderError {
     /// An internal error in the JSON RPC Client

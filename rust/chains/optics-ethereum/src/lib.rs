@@ -13,7 +13,7 @@ use std::sync::Arc;
 mod macros;
 
 /// Retrying Provider
-mod retrying;
+pub mod retrying;
 
 /// Home abi
 #[cfg(not(doctest))]
