@@ -67,8 +67,9 @@ macro_rules! contract {
         contract!(@finish provider, $($tail)*)
     }};
     (@http $url:expr, $($tail:tt)*) => {{
-        let provider =
-            Arc::new(ethers::providers::Provider::<ethers::providers::Http>::try_from($url.as_ref())?);
+        let provider: crate::retrying::RetryingProvider = $url.parse()?;
+        let provider = ethers::providers::Provider::new(provider);
+        let provider = Arc::new(provider);
         contract!(@finish provider, $($tail)*)
     }};
     ($name:ident, $abi:ident, $trait:ident, $($n:ident:$t:ty),*)  => {

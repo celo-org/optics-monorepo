@@ -7,11 +7,13 @@
 use ethers::prelude::*;
 use num::Num;
 use optics_core::*;
-use std::convert::TryFrom;
 use std::sync::Arc;
 
 #[macro_use]
 mod macros;
+
+/// Retrying Provider
+mod retrying;
 
 /// Home abi
 #[cfg(not(doctest))]

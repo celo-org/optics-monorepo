@@ -25,3 +25,5 @@ hex = "0.4.3"
 prometheus = "0.12"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 tracing-futures = "0.2.5"
+url = "2.2.2"
+thiserror = "1.0.30"
