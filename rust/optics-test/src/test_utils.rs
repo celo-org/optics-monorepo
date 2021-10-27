@@ -67,8 +67,7 @@ mod test {
             };
             assert_eq!(m.to_leaf(), message.leaf());
 
-            db.store_raw_committed_message(&message)
-                .unwrap();
+            db.store_raw_committed_message(&message).unwrap();
 
             let by_nonce = db
                 .message_by_nonce(m.destination, m.nonce)
@@ -76,10 +75,7 @@ mod test {
                 .unwrap();
             assert_eq!(by_nonce, message);
 
-            let by_leaf = db
-                .message_by_leaf(message.leaf())
-                .unwrap()
-                .unwrap();
+            let by_leaf = db.message_by_leaf(message.leaf()).unwrap().unwrap();
             assert_eq!(by_leaf, message);
 
             let by_index = db

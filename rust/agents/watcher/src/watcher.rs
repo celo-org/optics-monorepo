@@ -20,6 +20,8 @@ use optics_core::{
 
 use crate::settings::WatcherSettings as Settings;
 
+const AGENT_NAME: &str = "watcher";
+
 #[derive(Debug, Error)]
 enum WatcherError {
     #[error("Syncing finished")]
@@ -158,27 +160,37 @@ where
 #[derive(Debug)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    db: OpticsDB,
+    watcher_db: OpticsDB,
     home: Arc<Homes>,
 }
 
 impl UpdateHandler {
-    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: OpticsDB, home: Arc<Homes>) -> Self {
-        Self { rx, db, home }
+    pub fn new(rx: mpsc::Receiver<SignedUpdate>, watcher_db: OpticsDB, home: Arc<Homes>) -> Self {
+        Self {
+            rx,
+            watcher_db,
+            home,
+        }
     }
 
     fn check_double_update(&mut self, update: &SignedUpdate) -> Result<(), DoubleUpdate> {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        match self.db.update_by_previous_root(old_root).expect("!db_get") {
+        match self
+            .watcher_db
+            .update_by_previous_root(old_root)
+            .expect("!db_get")
+        {
             Some(existing) => {
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                self.db.store_latest_update(update).expect("!db_put");
+                self.watcher_db
+                    .store_latest_update(update)
+                    .expect("!db_put");
             }
         }
 
@@ -303,7 +315,8 @@ impl Watcher {
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
         let home = self.home();
-        let db = OpticsDB::new(home.name().to_owned(), self.db());
+        let db_name = format!("{}_{}", home.name(), AGENT_NAME);
+        let watcher_db = OpticsDB::new(db_name, self.db());
         let replicas = self.replicas().clone();
         let interval_seconds = self.interval_seconds;
         let sync_tasks = self.sync_tasks.clone();
@@ -312,7 +325,7 @@ impl Watcher {
         tokio::spawn(async move {
             // Spawn update handler
             let (tx, rx) = mpsc::channel(200);
-            let handler = UpdateHandler::new(rx, db, home.clone()).spawn();
+            let handler = UpdateHandler::new(rx, watcher_db, home.clone()).spawn();
 
             // For each replica, spawn polling and history syncing tasks
             for (name, replica) in replicas {
@@ -366,7 +379,7 @@ impl Watcher {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
-    const AGENT_NAME: &'static str = "watcher";
+    const AGENT_NAME: &'static str = AGENT_NAME;
 
     type Settings = Settings;
 
@@ -675,13 +688,15 @@ mod test {
             .expect("!sign");
 
             let mut mock_home = MockHomeContract::new();
-            mock_home.expect__name().return_const("home_1".to_owned());
+            mock_home
+                .expect__name()
+                .return_const("home_1_watcher".to_owned());
 
             {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: OpticsDB::new("home_1", db),
+                    watcher_db: OpticsDB::new("home_1_watcher", db),
                     home: Arc::new(mock_home.into()),
                 };
 
