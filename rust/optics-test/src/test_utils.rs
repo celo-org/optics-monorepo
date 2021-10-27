@@ -48,7 +48,7 @@ mod test {
     #[tokio::test]
     async fn db_stores_and_retrieves_messages() {
         run_test_db(|db| async move {
-            let home_name = "home_1".to_owned();
+            let home_name = "home_1";
             let db = OpticsDB::new(home_name, db);
 
             let m = OpticsMessage {
@@ -67,7 +67,8 @@ mod test {
             };
             assert_eq!(m.to_leaf(), message.leaf());
 
-            db.store_raw_committed_message(&message).unwrap();
+            db.store_raw_committed_message(&message)
+                .unwrap();
 
             let by_nonce = db
                 .message_by_nonce(m.destination, m.nonce)
@@ -75,7 +76,10 @@ mod test {
                 .unwrap();
             assert_eq!(by_nonce, message);
 
-            let by_leaf = db.message_by_leaf(message.leaf()).unwrap().unwrap();
+            let by_leaf = db
+                .message_by_leaf(message.leaf())
+                .unwrap()
+                .unwrap();
             assert_eq!(by_leaf, message);
 
             let by_index = db
@@ -90,7 +94,7 @@ mod test {
     #[tokio::test]
     async fn db_stores_and_retrieves_proofs() {
         run_test_db(|db| async move {
-            let home_name = "home_1".to_owned();
+            let home_name = "home_1";
             let db = OpticsDB::new(home_name, db);
 
             let proof = Proof {

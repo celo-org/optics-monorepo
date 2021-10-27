@@ -94,9 +94,8 @@ where
 
         for update_with_meta in updates_with_meta {
             self.db
-                .store_latest_update(&self.replica_name, &update_with_meta.signed_update)?;
+                .store_latest_update(&update_with_meta.signed_update)?;
             self.db.store_update_metadata(
-                &self.replica_name,
                 update_with_meta.signed_update.update.new_root,
                 update_with_meta.metadata,
             )?;
@@ -118,7 +117,7 @@ where
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
-                .retrieve_decodable(&self.replica_name, "", LAST_INSPECTED)
+                .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -128,7 +127,7 @@ where
 
             loop {
                 self.indexed_height
-                    .with_label_values(&[&self.replica_name, &self.agent_name])
+                    .with_label_values(&[&self.agent_name])
                     .set(next_height as i64);
 
                 let tip = self.provider.get_block_number().await?.as_u32();
@@ -146,8 +145,7 @@ where
                 // TODO(james): these shouldn't have to go in lockstep
                 self.sync_updates(next_height, to).await?;
 
-                self.db
-                    .store_encodable(&self.replica_name, "", LAST_INSPECTED, &next_height)?;
+                self.db.store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -244,7 +242,7 @@ where
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_previous_root(&self.name, old_root)? {
+            if let Some(update) = self.db.update_by_previous_root(old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -257,7 +255,7 @@ where
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(&self.name, new_root)? {
+            if let Some(update) = self.db.update_by_new_root(new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

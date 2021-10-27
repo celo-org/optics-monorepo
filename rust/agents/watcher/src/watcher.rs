@@ -171,20 +171,14 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        match self
-            .db
-            .update_by_previous_root(self.home.name(), old_root)
-            .expect("!db_get")
-        {
+        match self.db.update_by_previous_root(old_root).expect("!db_get") {
             Some(existing) => {
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                self.db
-                    .store_latest_update(self.home.name(), update)
-                    .expect("!db_put");
+                self.db.store_latest_update(update).expect("!db_put");
             }
         }
 
@@ -308,8 +302,8 @@ impl Watcher {
         &self,
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        let db = OpticsDB::new(self.db());
         let home = self.home();
+        let db = OpticsDB::new(home.name().to_owned(), self.db());
         let replicas = self.replicas().clone();
         let interval_seconds = self.interval_seconds;
         let sync_tasks = self.sync_tasks.clone();
@@ -687,7 +681,7 @@ mod test {
                 let (_tx, rx) = mpsc::channel(200);
                 let mut handler = UpdateHandler {
                     rx,
-                    db: OpticsDB::new("home", db),
+                    db: OpticsDB::new("home_1", db),
                     home: Arc::new(mock_home.into()),
                 };
 

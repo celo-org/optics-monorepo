@@ -224,7 +224,7 @@ impl OpticsDB {
                 if root == update.update.previous_root {
                     self.store_latest_root(update.update.new_root)?;
                 } else {
-                    warn!(
+                    error!(
                         "Attempted to store update not building off latest root: {:?}",
                         update
                     )

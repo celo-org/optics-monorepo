@@ -67,7 +67,7 @@ pub struct ProveCommand {
 
 impl ProveCommand {
     pub async fn run(&self) -> Result<()> {
-        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
+        let db = OpticsDB::new(&self.home_name, DB::from_path(&self.db_path)?);
         let (message, proof) = self.fetch_proof(db.clone())?;
         let replica = self
             .replica(db.clone(), message.origin, message.destination)

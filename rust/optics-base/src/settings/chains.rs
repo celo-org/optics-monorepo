@@ -57,7 +57,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    OpticsDB::new(db),
+                    OpticsDB::new(&self.name, db),
                 )
                 .await?,
             )),
@@ -80,7 +80,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    OpticsDB::new(db),
+                    OpticsDB::new(&self.name, db),
                 )
                 .await?,
             )),

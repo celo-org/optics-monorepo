@@ -78,7 +78,7 @@ impl Replica {
                     .unwrap_or_default();
 
                 self.next_message_nonce
-                    .with_label_values(&[self.home.name(), self.replica.name(), AGENT_NAME])
+                    .with_label_values(&[self.replica.name(), AGENT_NAME])
                     .set(next_message_nonce as i64);
 
                 info!(
