@@ -14,7 +14,7 @@ pub use typed_db::*;
 mod optics_db;
 pub use optics_db::*;
 
-use crate::{Decode, Encode, OpticsError};
+use crate::{Decode, Encode, OpticsError, Update};
 
 #[derive(Debug, Clone)]
 /// A KV Store
@@ -35,6 +35,16 @@ pub enum DbError {
     /// Optics Error
     #[error("{0}")]
     OpticsError(#[from] OpticsError),
+    /// UpdaterConflictError
+    ///
+    /// TODO(luke): move this agent-related stuff into optics-base
+    #[error("Updater attempted to store conflicting signed update. Existing: {existing:?}. New conflicting: {conflicting:?}.")]
+    UpdaterConflictError {
+        /// Existing signed update
+        existing: Update,
+        /// Conflicting signed update
+        conflicting: Update,
+    },
 }
 
 type Result<T> = std::result::Result<T, DbError>;

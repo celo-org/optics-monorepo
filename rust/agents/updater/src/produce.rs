@@ -40,52 +40,53 @@ impl UpdateProducer {
     }
 
     fn find_latest_root(&self) -> Result<H256> {
-        // if db latest root is empty, this will produce `H256::default()`
+        // If db latest root is empty, this will produce `H256::default()`
         // which is equal to `H256::zero()`
-        let latest_root = self.db.retrieve_latest_root()?.unwrap_or_default();
-
-        if latest_root == H256::zero() {
-            return Ok(latest_root);
-        }
-
-        let update = self
-            .db
-            .update_by_new_root(latest_root)?
-            .expect("!db in inconsistent state");
-
-        Ok(update.update.new_root)
+        Ok(self.db.retrieve_latest_root()?.unwrap_or_default())
     }
 
     pub(crate) fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
         let span = info_span!("UpdateProduction");
         tokio::spawn(async move {
             loop {
-                // we sleep at the top to make continues work fine
+                // We sleep at the top to make continues work fine
                 sleep(Duration::from_secs(self.interval_seconds)).await;
 
                 let current_root = self.find_latest_root()?;
 
                 if let Some(suggested) = self.home.produce_update().await? {
                     if suggested.previous_root != current_root {
-                        // this either indicates that the indexer is catching
-                        // up or that we're awaiting a new update. We should
-                        // ignore it
+                        // This either indicates that the indexer is catching
+                        // up or that the chain is awaiting a new update. We 
+                        // should ignore it.
                         debug!(
                             local = ?suggested.previous_root,
                             remote = ?current_root,
-                            "Local root not equal to chain root. Skipping update"
+                            "Local root not equal to chain root. Skipping update."
                         );
                         continue;
                     }
 
-                    sleep(Duration::from_secs(self.update_pause)).await;
+                    // Ensure we have not already signed a conflicting update.
+                    // Ignore suggested if we have.
+                    let existing_opt = self.db.retrieve_produced_update(suggested.previous_root)?;
+                    if let Some(existing) = existing_opt {
+                        if existing.update.new_root != suggested.new_root {
+                            info!("Updater ignoring conflicting suggested update. Indicates chain awaiting already submitted update. Existing update: {:?}. Suggested conflicting update: {:?}.", &existing, &suggested);
 
-                    // guard from any state changes happening during the pause
+                            continue;
+                        }
+                    }
+
+                    // Guard from any state changes happening during the pause. 
+                    // current_root (which we build update off of) considered
+                    // final after `update_pause` seconds.
+                    sleep(Duration::from_secs(self.update_pause)).await;
                     if self.find_latest_root()? != current_root {
                         continue;
                     }
 
-                    // if the suggested matches our local view, sign an update
+                    // If the suggested matches our local view, sign an update
                     // and store it as locally produced
                     let signed = suggested.sign_with(self.signer.as_ref()).await?;
 

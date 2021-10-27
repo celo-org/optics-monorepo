@@ -7,7 +7,7 @@ use crate::{
 use color_eyre::Result;
 use ethers::core::types::H256;
 use tokio::time::sleep;
-use tracing::{debug, warn};
+use tracing::{debug, error, warn};
 
 use std::future::Future;
 use std::time::Duration;
@@ -300,13 +300,23 @@ impl OpticsDB {
     /// This does not produce update meta or update the latest update db value.
     /// It is used by update production and submission.
     pub fn store_produced_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
+        let existing_opt = self.retrieve_produced_update(update.update.previous_root)?;
+        if let Some(existing) = existing_opt {
+            if existing.update.new_root != update.update.new_root {
+                error!("Updater attempted to store conflicting update. Existing update: {:?}. New conflicting update: {:?}.", &existing, &update);
+
+                return Err(DbError::UpdaterConflictError {
+                    existing: existing.update,
+                    conflicting: update.update,
+                });
+            }
+        }
+
         self.store_keyed_encodable(
             UPDATER_PRODUCED_UPDATE,
             &update.update.previous_root,
             update,
-        )?;
-
-        Ok(())
+        )
     }
 
     /// Retrieve a pending update from the DB (if one exists).
