@@ -46,7 +46,7 @@ impl UpdateProducer {
     }
 
     pub(crate) fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
-        let span = info_span!("UpdateProduction");
+        let span = info_span!("UpdateProducer");
         tokio::spawn(async move {
             loop {
                 // We sleep at the top to make continues work fine
@@ -69,20 +69,31 @@ impl UpdateProducer {
 
                     // Ensure we have not already signed a conflicting update.
                     // Ignore suggested if we have.
-                    let existing_opt = self.db.retrieve_produced_update(suggested.previous_root)?;
-                    if let Some(existing) = existing_opt {
+                    if let Some(existing) = self.db.retrieve_produced_update(suggested.previous_root)? {
                         if existing.update.new_root != suggested.new_root {
-                            info!("Updater ignoring conflicting suggested update. Indicates chain awaiting already submitted update. Existing update: {:?}. Suggested conflicting update: {:?}.", &existing, &suggested);
+                            info!("Updater ignoring conflicting suggested update. Indicates chain awaiting already produced update. Existing update: {:?}. Suggested conflicting update: {:?}.", &existing, &suggested);
 
                             continue;
                         }
                     }
 
-                    // Guard from any state changes happening during the pause. 
-                    // current_root (which we build update off of) considered
-                    // final after `update_pause` seconds.
+                    // Sleep for `update_pause` seconds so we can check for 
+                    // unwanted state changes afterwards
                     sleep(Duration::from_secs(self.update_pause)).await;
+
+                    // If HomeIndexer found new root from that doesn't 
+                    // match our most current root, continue
                     if self.find_latest_root()? != current_root {
+                        continue;
+                    }
+
+                    // If home produced update builds off a different root than 
+                    // our suggested update's previous root, continue
+                    if let Some(check_suggested) = self.home.produce_update().await? {
+                        if check_suggested.previous_root != suggested.previous_root {
+                            continue;
+                        }
+                    } else {
                         continue;
                     }
 
