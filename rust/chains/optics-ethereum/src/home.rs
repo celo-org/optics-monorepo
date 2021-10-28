@@ -169,7 +169,7 @@ where
 
             loop {
                 self.indexed_height
-                    .with_label_values(&[&self.agent_name])
+                    .with_label_values(&[&self.home_name, &self.agent_name])
                     .set(next_height as i64);
 
                 let tip = self.provider.get_block_number().await?.as_u32();

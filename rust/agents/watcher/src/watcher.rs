@@ -4,13 +4,13 @@ use thiserror::Error;
 
 use ethers::core::types::H256;
 use futures_util::future::{join, join_all, select_all};
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, fmt::Display, sync::Arc, time::Duration};
 use tokio::{
     sync::{mpsc, oneshot, RwLock},
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{info, info_span, instrument::Instrumented, Instrument};
+use tracing::{error, info, info_span, instrument::Instrumented, Instrument};
 
 use optics_base::{cancel_task, AgentCore, ConnectionManagers, Homes, OpticsAgent};
 use optics_core::{
@@ -39,6 +39,20 @@ where
     contract: Arc<C>,
 }
 
+impl<C> Display for ContractWatcher<C>
+where
+    C: Common + ?Sized + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ContractWatcher {{ ")?;
+        write!(f, "interval: {}", self.interval)?;
+        write!(f, "committed_root: {}", self.committed_root)?;
+        write!(f, "contract: {}", self.contract.name())?;
+        write!(f, "}}")?;
+        Ok(())
+    }
+}
+
 impl<C> ContractWatcher<C>
 where
     C: Common + ?Sized + 'static,
@@ -64,12 +78,22 @@ where
             .await?;
 
         if update_opt.is_none() {
+            info!(
+                "No new update found. Previous root: {}. From contract: {}.",
+                self.committed_root,
+                self.contract.name()
+            );
             return Ok(());
         }
 
         let new_update = update_opt.unwrap();
         self.committed_root = new_update.update.new_root;
 
+        info!(
+            "Sending new update to UpdateHandler. Update: {:?}. From contract: {}.",
+            &new_update,
+            self.contract.name()
+        );
         self.tx.send(new_update).await?;
         Ok(())
     }
@@ -120,21 +144,26 @@ where
             .signed_update_by_new_root(self.committed_root)
             .await?;
 
-        if previous_update.is_none() {
+        if self.committed_root.is_zero() || previous_update.is_none() {
             // Task finished
+            info!(
+                "HistorySync for contract {} has finished.",
+                self.contract.name()
+            );
             return Err(Report::new(WatcherError::SyncingFinished));
         }
 
         // Dispatch to the handler
         let previous_update = previous_update.unwrap();
+        info!(
+            "HistorySync sending update to UpdateHandler. Update: {:?}. From contract: {}.",
+            &previous_update,
+            self.contract.name()
+        );
+        self.tx.send(previous_update.clone()).await?;
 
         // set up for next loop iteration
         self.committed_root = previous_update.update.previous_root;
-        self.tx.send(previous_update).await?;
-        if self.committed_root.is_zero() {
-            // Task finished
-            return Err(Report::new(WatcherError::SyncingFinished));
-        }
 
         Ok(())
     }
@@ -184,10 +213,18 @@ impl UpdateHandler {
         {
             Some(existing) => {
                 if existing.update.new_root != new_root {
+                    error!(
+                        "UpdateHandler detected double update! Existing: {:?}. Double: {:?}.",
+                        &existing, &update
+                    );
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
+                info!(
+                    "UpdateHandler storing new update from root {} to {}. Update: {:?}.",
+                    &update.update.previous_root, &update.update.new_root, &update
+                );
                 self.watcher_db
                     .store_latest_update(update)
                     .expect("!db_put");
@@ -328,7 +365,9 @@ impl Watcher {
             let handler = UpdateHandler::new(rx, watcher_db, home.clone()).spawn();
 
             // For each replica, spawn polling and history syncing tasks
+            info!("Spawning replica watch and sync tasks...");
             for (name, replica) in replicas {
+                info!("Spawning watch and sync tasks for replica {}.", name);
                 let from = replica.committed_root().await?;
 
                 watch_tasks.write().await.insert(
@@ -346,6 +385,7 @@ impl Watcher {
             }
 
             // Spawn polling and history syncing tasks for home
+            info!("Starting watch and sync tasks for home {}.", home.name());
             let from = home.committed_root().await?;
             let home_watcher =
                 ContractWatcher::new(interval_seconds, from, tx.clone(), home.clone())
@@ -365,6 +405,7 @@ impl Watcher {
 
             // If double update found, send through oneshot
             if let Ok(double) = double_update_res {
+                error!("Double update found! Sending through through double update tx! Double update: {:?}.", &double);
                 if let Err(e) = double_update_tx.send(double) {
                     bail!("Failed to send double update through oneshot: {:?}", e);
                 }
@@ -389,7 +430,7 @@ impl OpticsAgent for Watcher {
         Self: Sized,
     {
         let mut connection_managers = vec![];
-        for chain_setup in settings.connection_managers.iter() {
+        for chain_setup in settings.managers.values() {
             let signer = settings.base.get_signer(&chain_setup.name).await;
             let manager = chain_setup.try_into_connection_manager(signer).await;
             connection_managers.push(manager);
