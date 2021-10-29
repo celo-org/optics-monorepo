@@ -55,6 +55,6 @@ export class ExistingBridgeDeploy extends BridgeDeploy {
     super(chain, config, coreDeployPath, test, coreContracts);
     const bridgeConfigPath = getPathToLatestConfig(`${coreDeployPath}/bridge`);
     const addresses: BridgeContractAddresses = JSON.parse(fs.readFileSync(`${bridgeConfigPath}/${chain.name}_contracts.json`) as any as string);
-    this.contracts = BridgeContracts.fromAddresses(addresses, chain.provider);
+    this.contracts = BridgeContracts.fromAddresses(addresses, chain.deployer);
   }
 }
