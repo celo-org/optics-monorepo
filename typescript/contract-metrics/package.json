@@ -8,8 +8,8 @@
     "relink": "cd ../optics-provider && npm run build && cd ../contract-metrics && npm link @optics-xyz/multi-provider"
   },
   "dependencies": {
-    "@optics-xyz/multi-provider": "^0.1.13",
-    "@optics-xyz/ts-interface": "^1.0.9",
+    "@optics-xyz/multi-provider": "^0.1.16",
+    "@optics-xyz/ts-interface": "^1.1.0",
     "@types/node": "^16.9.2",
     "axios": "^0.21.4",
     "dotenv": "^10.0.0",
