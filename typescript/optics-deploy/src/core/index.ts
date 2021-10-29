@@ -408,6 +408,33 @@ export async function enrollGovernanceRouter(
 }
 
 /**
+ * Enrolls a remote GovernanceRouter on the local chain.
+ *
+ * @param local - The local deploy instance
+ * @param remote - The remote deploy instance
+ */
+export async function removeSelfAsGovernanceRouter(
+    deploy: ExistingCoreDeploy,
+) {
+  const isTestDeploy = deploy.test;
+  log(
+      isTestDeploy,
+      `${deploy.chain.name}: removing self-governance router`,
+  );
+  const nullBytes32 = '0x' + '00'.repeat(32);
+  let tx = await deploy.contracts.governance!.proxy.setRouterLocal(
+      deploy.chain.domain,
+      nullBytes32,
+      deploy.overrides,
+  );
+  await tx.wait(deploy.chain.confirmations);
+  log(
+      isTestDeploy,
+      `${deploy.chain.name}: removed self governance router`,
+  );
+}
+
+/**
  * Enrolls a remote Replica, GovernanceRouter and Watchers on the local chain.
  *
  * @param local - The local deploy instance
@@ -424,18 +451,17 @@ export async function enrollRemote(local: CoreDeploy, remote: CoreDeploy) {
  * Transfers governorship to the governing chain's GovernanceRouter.
  *
  * @param gov - The governor chain deploy instance
- * @param non - The non-governor chain deploy instance
+ * @param deploy - The non-governor chain deploy instance
  */
-export async function transferGovernorship(gov: CoreDeploy, non: CoreDeploy) {
-  log(gov.test, `${non.chain.name}: transferring governorship`);
-  let governorAddress = await gov.contracts.governance!.proxy.governor();
-  let tx = await non.contracts.governance!.proxy.transferGovernor(
-    gov.chain.domain,
+export async function transferGovernorship(deploy: CoreDeploy, governorDomain: number, governorAddress: string) {
+  log(deploy.test, `${deploy.chain.name}: transferring governorship`);
+  let tx = await deploy.contracts.governance!.proxy.transferGovernor(
+    governorDomain,
     governorAddress,
-    non.overrides,
+    deploy.overrides,
   );
-  await tx.wait(gov.chain.confirmations);
-  log(gov.test, `${non.chain.name}: governorship transferred`);
+  await tx.wait(deploy.chain.confirmations);
+  log(deploy.test, `${deploy.chain.name}: governorship transferred; hash: ${tx.hash}`);
 }
 
 /**
@@ -515,7 +541,7 @@ export async function deployTwoChains(gov: CoreDeploy, non: CoreDeploy) {
     await appointGovernor(gov);
   }
 
-  await transferGovernorship(gov, non);
+  await transferGovernorship(non, gov.chain.domain, gov.config.governor!.address);
 
   await Promise.all([relinquish(gov), relinquish(non)]);
 
@@ -607,7 +633,7 @@ export async function deployNChains(deploys: CoreDeploy[]) {
 
   await Promise.all(
     nonGovChains.map(async (non) => {
-      await transferGovernorship(govChain, non);
+      await transferGovernorship(non, govChain.chain.domain, govChain.config.governor!.address);
     }),
   );
 
