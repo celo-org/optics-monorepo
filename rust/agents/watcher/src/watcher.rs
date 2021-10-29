@@ -144,8 +144,7 @@ where
             .signed_update_by_new_root(self.committed_root)
             .await?;
 
-        if self.committed_root.is_zero() || previous_update.is_none() {
-            // Task finished
+        if previous_update.is_none() {
             info!(
                 "HistorySync for contract {} has finished.",
                 self.contract.name()
@@ -155,15 +154,16 @@ where
 
         // Dispatch to the handler
         let previous_update = previous_update.unwrap();
-        info!(
-            "HistorySync sending update to UpdateHandler. Update: {:?}. From contract: {}.",
-            &previous_update,
-            self.contract.name()
-        );
         self.tx.send(previous_update.clone()).await?;
 
-        // set up for next loop iteration
         self.committed_root = previous_update.update.previous_root;
+        if self.committed_root.is_zero() {
+            info!(
+                "HistorySync for contract {} has finished.",
+                self.contract.name()
+            );
+            return Err(Report::new(WatcherError::SyncingFinished));
+        }
 
         Ok(())
     }
@@ -671,8 +671,7 @@ mod test {
             assert_eq!(history_sync.committed_root, first_root);
             assert_eq!(rx.recv().await.unwrap(), second_signed_update);
 
-            // Second update_history call returns zero -> first update
-            // and should return WatcherError::SyncingFinished
+            // Second update_history call returns zero -> first update and should return SyncingFinished error
             history_sync
                 .update_history()
                 .await

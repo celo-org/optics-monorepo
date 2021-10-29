@@ -7,7 +7,7 @@ use crate::{
 use color_eyre::Result;
 use ethers::core::types::H256;
 use tokio::time::sleep;
-use tracing::{debug, error, warn};
+use tracing::{debug, error};
 
 use std::future::Future;
 use std::time::Duration;

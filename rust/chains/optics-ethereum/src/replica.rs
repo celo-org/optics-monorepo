@@ -19,7 +19,6 @@ use crate::report_tx;
 
 static LAST_INSPECTED: &str = "replica_indexer_last_inspected";
 
-#[allow(missing_docs)]
 abigen!(
     EthereumReplicaInternal,
     "./chains/optics-ethereum/abis/Replica.abi.json",
@@ -35,6 +34,7 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
+    }
 }
 
 struct ReplicaIndexer<M>
