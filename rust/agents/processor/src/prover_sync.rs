@@ -2,7 +2,7 @@ use crate::prover::{Prover, ProverError};
 use color_eyre::eyre::{bail, Result};
 use ethers::core::types::H256;
 use optics_core::{
-    accumulator::{incremental::IncrementalMerkle, INITIAL_ROOT},
+    accumulator::INITIAL_ROOT,
     db::{DbError, OpticsDB},
     ChainCommunicationError,
 };
