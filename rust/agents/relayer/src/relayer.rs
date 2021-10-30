@@ -17,7 +17,7 @@ struct UpdatePoller {
     home: Arc<Homes>,
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
-    messages_relayed_count: Arc<prometheus::IntCounterVec>,
+    updates_relayed_count: Arc<prometheus::IntCounterVec>,
 }
 
 impl std::fmt::Display for UpdatePoller {
@@ -35,14 +35,14 @@ impl UpdatePoller {
         home: Arc<Homes>,
         replica: Arc<Replicas>,
         duration: u64,
-        messages_relayed_count: Arc<prometheus::IntCounterVec>,
+        updates_relayed_count: Arc<prometheus::IntCounterVec>,
     ) -> Self {
         Self {
             home,
             replica,
             duration: Duration::from_secs(duration),
             semaphore: Mutex::new(()),
-            messages_relayed_count,
+            updates_relayed_count,
         }
     }
 
@@ -77,7 +77,7 @@ impl UpdatePoller {
 
             // Relay update and increment counters if tx successful
             if self.replica.update(&signed_update).await.is_ok() {
-                self.messages_relayed_count
+                self.updates_relayed_count
                     .with_label_values(&[self.home.name(), self.replica.name(), AGENT_NAME])
                     .inc();
             }
@@ -109,7 +109,7 @@ impl UpdatePoller {
 pub struct Relayer {
     duration: u64,
     core: AgentCore,
-    messages_relayed_count: Arc<prometheus::IntCounterVec>,
+    updates_relayed_count: Arc<prometheus::IntCounterVec>,
 }
 
 impl AsRef<AgentCore> for Relayer {
@@ -122,11 +122,11 @@ impl AsRef<AgentCore> for Relayer {
 impl Relayer {
     /// Instantiate a new relayer
     pub fn new(duration: u64, core: AgentCore) -> Self {
-        let messages_relayed_count = Arc::new(
+        let updates_relayed_count = Arc::new(
             core.metrics
                 .new_int_counter(
-                    "num_messages_relayed",
-                    "Number of messages relayed from given home to replica",
+                    "updates_relayed_count",
+                    "Number of updates relayed from given home to replica",
                     &["home", "replica", "agent"],
                 )
                 .expect("processor metric already registered -- should have be a singleton"),
@@ -135,7 +135,7 @@ impl Relayer {
         Self {
             duration,
             core,
-            messages_relayed_count,
+            updates_relayed_count,
         }
     }
 }
@@ -161,7 +161,7 @@ impl OpticsAgent for Relayer {
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let replica_opt = self.replica_by_name(name);
         let home = self.home();
-        let messages_relayed_count = self.messages_relayed_count.clone();
+        let updates_relayed_count = self.updates_relayed_count.clone();
 
         let name = name.to_owned();
         let duration = self.duration;
@@ -173,7 +173,7 @@ impl OpticsAgent for Relayer {
             let replica = replica_opt.unwrap();
 
             let update_poller =
-                UpdatePoller::new(home, replica.clone(), duration, messages_relayed_count);
+                UpdatePoller::new(home, replica.clone(), duration, updates_relayed_count);
             update_poller.spawn().await?
         })
         .in_current_span()
