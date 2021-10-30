@@ -10,7 +10,7 @@ use optics_core::{db::OpticsDB, Common};
 use crate::settings::RelayerSettings as Settings;
 
 const AGENT_NAME: &str = "relayer";
-const NUM_MESSAGES_RELAYED: &str = "num_messages_relayed";
+const NUM_MESSAGES_RELAYED: &str = "num_messages_relayed_";
 
 #[derive(Debug)]
 struct UpdatePoller {

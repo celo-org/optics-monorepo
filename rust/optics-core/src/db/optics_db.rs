@@ -22,7 +22,6 @@ static MESSAGE: &str = "message_";
 static UPDATE: &str = "update_";
 static UPDATE_META: &str = "update_metadata_";
 static LATEST_ROOT: &str = "update_latest_root_";
-static LATEST_NONCE: &str = "latest_nonce_";
 static LATEST_LEAF_INDEX: &str = "latest_known_leaf_index_";
 static UPDATER_PRODUCED_UPDATE: &str = "updater_produced_update_";
 
@@ -157,21 +156,6 @@ impl OpticsDB {
             None => Ok(None),
             Some(leaf) => self.message_by_leaf(leaf),
         }
-    }
-
-    /// Stores the latest inspected nonce for a given replica domain
-    ///
-    /// Keys --> Values:
-    /// - `replica_domain` --> `nonce`
-    pub fn store_latest_nonce(&self, replica_domain: u32, nonce: u32) -> Result<(), DbError> {
-        self.store_keyed_encodable(LATEST_NONCE, &replica_domain, &nonce)?;
-
-        Ok(())
-    }
-
-    /// Retrieves the latest inspected nonce for a given replica domain
-    pub fn retrieve_latest_nonce(&self, replica_domain: u32) -> Result<Option<u32>, DbError> {
-        self.retrieve_keyed_decodable(LATEST_NONCE, &replica_domain)
     }
 
     /// Store the latest committed

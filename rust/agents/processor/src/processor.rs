@@ -25,6 +25,7 @@ use crate::{
 };
 
 const AGENT_NAME: &str = "processor";
+static CURRENT_NONCE: &str = "current_nonce_";
 
 enum Flow {
     Advance,
@@ -61,7 +62,7 @@ impl Replica {
             async move {
                 use optics_core::Replica;
 
-                let domain = self.replica.local_domain();
+                let replica_domain = self.replica.local_domain();
 
                 // The basic structure of this loop is as follows:
                 // 1. Get the last processed index
@@ -73,7 +74,7 @@ impl Replica {
                 // 5. Submit the proof to the replica
                 let mut next_message_nonce: u32 = self
                     .db
-                    .retrieve_latest_nonce(domain)?
+                    .retrieve_keyed_decodable(CURRENT_NONCE, &replica_domain)?
                     .map(|n: u32| n + 1)
                     .unwrap_or_default();
 
@@ -82,35 +83,34 @@ impl Replica {
                     .set(next_message_nonce as i64);
 
                 info!(
-                    domain,
+                    replica_domain,
                     nonce = next_message_nonce,
                     replica = self.replica.name(),
-                    "Starting processor for {} {} at nonce {}",
-                    domain,
+                    "Starting processor for {}:{} at nonce {}",
                     self.replica.name(),
+                    replica_domain,
                     next_message_nonce
                 );
 
                 loop {
-                    use optics_core::Replica;
                     let seq_span = tracing::trace_span!(
                         "ReplicaProcessor",
                         name = self.replica.name(),
                         nonce = next_message_nonce,
-                        replica_domain = self.replica.local_domain(),
+                        replica_domain = replica_domain,
                         home_domain = self.home.local_domain(),
                     );
 
                     match self
-                        .try_msg_by_domain_and_nonce(domain, next_message_nonce)
+                        .try_msg_by_domain_and_nonce(replica_domain, next_message_nonce)
                         .instrument(seq_span)
                         .await
                     {
                         Ok(Flow::Advance) => {
                             self.db
-                                .store_latest_nonce(domain, next_message_nonce)?;
-                            next_message_nonce += 1;
+                            .store_keyed_encodable(CURRENT_NONCE, &replica_domain, &next_message_nonce)?;
 
+                            next_message_nonce += 1;
                             self.next_message_nonce
                                 .with_label_values(&[
                                     self.home.name(),
@@ -122,13 +122,13 @@ impl Replica {
                         Ok(Flow::Repeat) => {
                             // there was some fault, let's wait and then try again later when state may have moved
                             debug!(
-                                domain,
+                                replica_domain,
                                 nonce = next_message_nonce,
                                 replica = self.replica.name(),
                                 "Failed to find message_by_nonce or proof_by_leaf_index. Processor retrying message. Replica: {}. Nonce: {}. Domain: {}.",
                                 self.replica.name(),
                                 next_message_nonce,
-                                domain,
+                                replica_domain,
                             );
                             sleep(Duration::from_secs(self.interval)).await
                         }
