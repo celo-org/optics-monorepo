@@ -23,6 +23,8 @@ optics-core = { path = "../../optics-core" }
 optics-base = { path = "../../optics-base" }
 paste = "1.0.5"
 
+prometheus = "0.12"
+
 [dev-dependencies]
 tokio-test = "0.4.0"
 optics-test = { path = "../../optics-test" }
