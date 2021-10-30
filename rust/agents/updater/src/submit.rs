@@ -1,25 +1,35 @@
 use std::sync::Arc;
 
-use optics_base::Homes;
+use optics_base::{Homes, OpticsAgent};
 use optics_core::{db::OpticsDB, Common};
+use prometheus::IntCounterVec;
 use std::time::Duration;
 
 use color_eyre::Result;
 use tokio::{task::JoinHandle, time::sleep};
 use tracing::{info, info_span, instrument::Instrumented, Instrument};
 
+use crate::updater::Updater;
+
 pub(crate) struct UpdateSubmitter {
     home: Arc<Homes>,
     db: OpticsDB,
     interval_seconds: u64,
+    submitted_update_count: IntCounterVec,
 }
 
 impl UpdateSubmitter {
-    pub(crate) fn new(home: Arc<Homes>, db: OpticsDB, interval_seconds: u64) -> Self {
+    pub(crate) fn new(
+        home: Arc<Homes>,
+        db: OpticsDB,
+        interval_seconds: u64,
+        submitted_update_count: IntCounterVec,
+    ) -> Self {
         Self {
             home,
             db,
             interval_seconds,
+            submitted_update_count,
         }
     }
 
@@ -43,7 +53,12 @@ impl UpdateSubmitter {
                         hex_signature = %hex_signature,
                         "Submitting update to chain"
                     );
+
                     self.home.update(&signed).await?;
+
+                    self.submitted_update_count
+                        .with_label_values(&[self.home.name(), Updater::AGENT_NAME])
+                        .inc();
 
                     // continue from local state
                     committed_root = signed.update.new_root;

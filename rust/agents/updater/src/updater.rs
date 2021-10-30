@@ -98,7 +98,12 @@ impl OpticsAgent for Updater {
             self.signed_attestation_count.clone(),
         );
 
-        let submit = UpdateSubmitter::new(self.home(), db, self.interval_seconds);
+        let submit = UpdateSubmitter::new(
+            self.home(),
+            db,
+            self.interval_seconds,
+            self.signed_attestation_count.clone(),
+        );
 
         tokio::spawn(async move {
             let expected: Address = home.updater().await?.into();
