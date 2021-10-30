@@ -102,7 +102,7 @@ impl OpticsAgent for Updater {
             self.home(),
             db,
             self.interval_seconds,
-            self.signed_attestation_count.clone(),
+            self.submitted_update_count.clone(),
         );
 
         tokio::spawn(async move {
