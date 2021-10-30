@@ -22,6 +22,7 @@ pub struct Updater {
     update_pause: u64,
     pub(crate) core: AgentCore,
     signed_attestation_count: IntCounterVec,
+    submitted_update_count: IntCounterVec,
 }
 
 impl AsRef<AgentCore> for Updater {
@@ -42,12 +43,22 @@ impl Updater {
             )
             .expect("must be able to register agent metrics");
 
+        let submitted_update_count = core
+            .metrics
+            .new_int_counter(
+                "submitted_update_count",
+                "Number of updates successfully submitted to home",
+                &["network", "agent"],
+            )
+            .expect("must be able to register agent metrics");
+
         Self {
             signer: Arc::new(signer),
             interval_seconds,
             update_pause,
             core,
             signed_attestation_count,
+            submitted_update_count,
         }
     }
 }

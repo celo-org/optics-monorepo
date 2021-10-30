@@ -10,7 +10,6 @@ use optics_core::{db::OpticsDB, Common};
 use crate::settings::RelayerSettings as Settings;
 
 const AGENT_NAME: &str = "relayer";
-const NUM_MESSAGES_RELAYED: &str = "num_messages_relayed_";
 
 #[derive(Debug)]
 struct UpdatePoller {
@@ -19,7 +18,7 @@ struct UpdatePoller {
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
     db: OpticsDB,
-    num_messages_relayed: Arc<prometheus::IntGaugeVec>,
+    messages_relayed_count: Arc<prometheus::IntCounterVec>,
 }
 
 impl std::fmt::Display for UpdatePoller {
@@ -38,7 +37,7 @@ impl UpdatePoller {
         replica: Arc<Replicas>,
         duration: u64,
         db: OpticsDB,
-        num_messages_relayed: Arc<prometheus::IntGaugeVec>,
+        messages_relayed_count: Arc<prometheus::IntCounterVec>,
     ) -> Self {
         Self {
             home,
@@ -46,70 +45,62 @@ impl UpdatePoller {
             duration: Duration::from_secs(duration),
             semaphore: Mutex::new(()),
             db,
-            num_messages_relayed,
+            messages_relayed_count,
         }
+    }
+
+    #[tracing::instrument(err, skip(self), fields(self = %self))]
+    async fn poll_and_relay_update(&self) -> Result<()> {
+        // Get replica's current root.
+        let old_root = self.replica.committed_root().await?;
+        info!(
+            "Replica {} latest root is: {}",
+            self.replica.name(),
+            old_root
+        );
+
+        // Check for first signed update building off of the replica's current root
+        let signed_update_opt = self.home.signed_update_by_old_root(old_root).await?;
+
+        // If signed update exists for replica's committed root, try to
+        // relay
+        if let Some(signed_update) = signed_update_opt {
+            info!(
+                "Update for replica {}. Root {} to {}",
+                self.replica.name(),
+                &signed_update.update.previous_root,
+                &signed_update.update.new_root,
+            );
+
+            // Attempt to acquire lock for submitting tx
+            let lock = self.semaphore.try_lock();
+            if lock.is_err() {
+                return Ok(()); // tx in flight. just do nothing
+            }
+
+            // Relay update and increment counters if tx successful
+            if self.replica.update(&signed_update).await.is_ok() {
+                self.messages_relayed_count
+                    .with_label_values(&[self.home.name(), self.replica.name(), AGENT_NAME])
+                    .inc();
+            }
+
+            // lock dropped here
+        } else {
+            info!(
+                "No update. Current root for replica {} is {}",
+                self.replica.name(),
+                old_root
+            );
+        }
+
+        Ok(())
     }
 
     fn spawn(self) -> JoinHandle<Result<()>> {
         tokio::spawn(async move {
-            let mut next_relayed_num: u32 = self
-                .db
-                .retrieve_decodable(NUM_MESSAGES_RELAYED, self.replica.name())?
-                .map(|n: u32| n + 1)
-                .unwrap_or_default();
-
             loop {
-                // Get replica's current root.
-                let old_root = self.replica.committed_root().await?;
-                info!(
-                    "Replica {} latest root is: {}",
-                    self.replica.name(),
-                    old_root
-                );
-
-                // Check for first signed update building off of the replica's current root
-                let signed_update_opt = self.home.signed_update_by_old_root(old_root).await?;
-
-                // If signed update exists for replica's committed root, try to
-                // relay
-                if let Some(signed_update) = signed_update_opt {
-                    info!(
-                        "Update for replica {}. Root {} to {}",
-                        self.replica.name(),
-                        &signed_update.update.previous_root,
-                        &signed_update.update.new_root,
-                    );
-
-                    // Attempt to acquire lock for submitting tx
-                    let lock = self.semaphore.try_lock();
-                    if lock.is_err() {
-                        return Ok(()); // tx in flight. just do nothing
-                    }
-
-                    // Relay update and increment counters if tx successful
-                    if self.replica.update(&signed_update).await.is_ok() {
-                        self.db.store_encodable(
-                            NUM_MESSAGES_RELAYED,
-                            self.replica.name(),
-                            &next_relayed_num,
-                        )?;
-
-                        self.num_messages_relayed
-                            .with_label_values(&[self.home.name(), self.replica.name(), AGENT_NAME])
-                            .set(next_relayed_num as i64);
-
-                        next_relayed_num += 1;
-                    }
-
-                    // lock dropped here
-                } else {
-                    info!(
-                        "No update. Current root for replica {} is {}",
-                        self.replica.name(),
-                        old_root
-                    );
-                }
-
+                self.poll_and_relay_update().await?;
                 sleep(self.duration).await;
             }
         })
@@ -121,7 +112,7 @@ impl UpdatePoller {
 pub struct Relayer {
     duration: u64,
     core: AgentCore,
-    num_messages_relayed: Arc<prometheus::IntGaugeVec>,
+    messages_relayed_count: Arc<prometheus::IntCounterVec>,
 }
 
 impl AsRef<AgentCore> for Relayer {
@@ -134,9 +125,9 @@ impl AsRef<AgentCore> for Relayer {
 impl Relayer {
     /// Instantiate a new relayer
     pub fn new(duration: u64, core: AgentCore) -> Self {
-        let num_messages_relayed = Arc::new(
+        let messages_relayed_count = Arc::new(
             core.metrics
-                .new_int_gauge(
+                .new_int_counter(
                     "num_messages_relayed",
                     "Number of messages relayed from given home to replica",
                     &["home", "replica", "agent"],
@@ -147,7 +138,7 @@ impl Relayer {
         Self {
             duration,
             core,
-            num_messages_relayed,
+            messages_relayed_count,
         }
     }
 }
@@ -174,7 +165,7 @@ impl OpticsAgent for Relayer {
         let replica_opt = self.replica_by_name(name);
         let home = self.home();
         let db = OpticsDB::new(home.name(), self.db());
-        let num_messages_relayed = self.num_messages_relayed.clone();
+        let messages_relayed_count = self.messages_relayed_count.clone();
 
         let name = name.to_owned();
         let duration = self.duration;
@@ -186,7 +177,7 @@ impl OpticsAgent for Relayer {
             let replica = replica_opt.unwrap();
 
             let update_poller =
-                UpdatePoller::new(home, replica.clone(), duration, db, num_messages_relayed);
+                UpdatePoller::new(home, replica.clone(), duration, db, messages_relayed_count);
             update_poller.spawn().await?
         })
         .in_current_span()
