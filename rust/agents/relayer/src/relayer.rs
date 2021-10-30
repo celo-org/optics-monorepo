@@ -5,7 +5,7 @@ use tokio::{sync::Mutex, task::JoinHandle, time::sleep};
 use tracing::{info, instrument::Instrumented, Instrument};
 
 use optics_base::{AgentCore, Homes, OpticsAgent, Replicas};
-use optics_core::{db::OpticsDB, Common};
+use optics_core::Common;
 
 use crate::settings::RelayerSettings as Settings;
 
@@ -17,7 +17,6 @@ struct UpdatePoller {
     home: Arc<Homes>,
     replica: Arc<Replicas>,
     semaphore: Mutex<()>,
-    db: OpticsDB,
     messages_relayed_count: Arc<prometheus::IntCounterVec>,
 }
 
@@ -36,7 +35,6 @@ impl UpdatePoller {
         home: Arc<Homes>,
         replica: Arc<Replicas>,
         duration: u64,
-        db: OpticsDB,
         messages_relayed_count: Arc<prometheus::IntCounterVec>,
     ) -> Self {
         Self {
@@ -44,7 +42,6 @@ impl UpdatePoller {
             replica,
             duration: Duration::from_secs(duration),
             semaphore: Mutex::new(()),
-            db,
             messages_relayed_count,
         }
     }
@@ -164,7 +161,6 @@ impl OpticsAgent for Relayer {
     fn run(&self, name: &str) -> Instrumented<JoinHandle<Result<()>>> {
         let replica_opt = self.replica_by_name(name);
         let home = self.home();
-        let db = OpticsDB::new(home.name(), self.db());
         let messages_relayed_count = self.messages_relayed_count.clone();
 
         let name = name.to_owned();
@@ -177,7 +173,7 @@ impl OpticsAgent for Relayer {
             let replica = replica_opt.unwrap();
 
             let update_poller =
-                UpdatePoller::new(home, replica.clone(), duration, db, messages_relayed_count);
+                UpdatePoller::new(home, replica.clone(), duration, messages_relayed_count);
             update_poller.spawn().await?
         })
         .in_current_span()
