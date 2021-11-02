@@ -4,13 +4,13 @@ use thiserror::Error;
 
 use ethers::core::types::H256;
 use futures_util::future::{join, join_all, select_all};
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, fmt::Display, sync::Arc, time::Duration};
 use tokio::{
     sync::{mpsc, oneshot, RwLock},
     task::JoinHandle,
     time::sleep,
 };
-use tracing::{info, info_span, instrument::Instrumented, Instrument};
+use tracing::{error, info, info_span, instrument::Instrumented, Instrument};
 
 use optics_base::{cancel_task, AgentCore, CachingHome, ConnectionManagers, OpticsAgent};
 use optics_core::{
@@ -19,6 +19,8 @@ use optics_core::{
 };
 
 use crate::settings::WatcherSettings as Settings;
+
+const AGENT_NAME: &str = "watcher";
 
 #[derive(Debug, Error)]
 enum WatcherError {
@@ -35,6 +37,20 @@ where
     committed_root: H256,
     tx: mpsc::Sender<SignedUpdate>,
     contract: Arc<C>,
+}
+
+impl<C> Display for ContractWatcher<C>
+where
+    C: Common + CommonEvents + ?Sized + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ContractWatcher {{ ")?;
+        write!(f, "interval: {}", self.interval)?;
+        write!(f, "committed_root: {}", self.committed_root)?;
+        write!(f, "contract: {}", self.contract.name())?;
+        write!(f, "}}")?;
+        Ok(())
+    }
 }
 
 impl<C> ContractWatcher<C>
@@ -62,12 +78,22 @@ where
             .await?;
 
         if update_opt.is_none() {
+            info!(
+                "No new update found. Previous root: {}. From contract: {}.",
+                self.committed_root,
+                self.contract.name()
+            );
             return Ok(());
         }
 
         let new_update = update_opt.unwrap();
         self.committed_root = new_update.update.new_root;
 
+        info!(
+            "Sending new update to UpdateHandler. Update: {:?}. From contract: {}.",
+            &new_update,
+            self.contract.name()
+        );
         self.tx.send(new_update).await?;
         Ok(())
     }
@@ -119,18 +145,24 @@ where
             .await?;
 
         if previous_update.is_none() {
-            // Task finished
+            info!(
+                "HistorySync for contract {} has finished.",
+                self.contract.name()
+            );
             return Err(Report::new(WatcherError::SyncingFinished));
         }
 
         // Dispatch to the handler
         let previous_update = previous_update.unwrap();
+        self.tx.send(previous_update.clone()).await?;
 
         // set up for next loop iteration
         self.committed_root = previous_update.update.previous_root;
-        self.tx.send(previous_update).await?;
         if self.committed_root.is_zero() {
-            // Task finished
+            info!(
+                "HistorySync for contract {} has finished.",
+                self.contract.name()
+            );
             return Err(Report::new(WatcherError::SyncingFinished));
         }
 
@@ -158,27 +190,49 @@ where
 #[derive(Debug)]
 pub struct UpdateHandler {
     rx: mpsc::Receiver<SignedUpdate>,
-    db: OpticsDB,
+    watcher_db: OpticsDB,
     home: Arc<CachingHome>,
 }
 
 impl UpdateHandler {
-    pub fn new(rx: mpsc::Receiver<SignedUpdate>, db: OpticsDB, home: Arc<CachingHome>) -> Self {
-        Self { rx, db, home }
+    pub fn new(
+        rx: mpsc::Receiver<SignedUpdate>,
+        watcher_db: OpticsDB,
+        home: Arc<CachingHome>,
+    ) -> Self {
+        Self {
+            rx,
+            watcher_db,
+            home,
+        }
     }
 
     fn check_double_update(&mut self, update: &SignedUpdate) -> Result<(), DoubleUpdate> {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        match self.db.update_by_previous_root(old_root).expect("!db_get") {
+        match self
+            .watcher_db
+            .update_by_previous_root(old_root)
+            .expect("!db_get")
+        {
             Some(existing) => {
                 if existing.update.new_root != new_root {
+                    error!(
+                        "UpdateHandler detected double update! Existing: {:?}. Double: {:?}.",
+                        &existing, &update
+                    );
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                self.db.store_latest_update(update).expect("!db_put");
+                info!(
+                    "UpdateHandler storing new update from root {} to {}. Update: {:?}.",
+                    &update.update.previous_root, &update.update.new_root, &update
+                );
+                self.watcher_db
+                    .store_latest_update(update)
+                    .expect("!db_put");
             }
         }
 
@@ -302,9 +356,10 @@ impl Watcher {
         &self,
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        let db = OpticsDB::new("watcher", self.db());
         let home = self.home();
         let replicas = self.replicas().clone();
+        let watcher_db_name = format!("{}_{}", home.name(), AGENT_NAME);
+        let watcher_db = OpticsDB::new(watcher_db_name, self.db());
         let interval_seconds = self.interval_seconds;
         let sync_tasks = self.sync_tasks.clone();
         let watch_tasks = self.watch_tasks.clone();
@@ -312,10 +367,12 @@ impl Watcher {
         tokio::spawn(async move {
             // Spawn update handler
             let (tx, rx) = mpsc::channel(200);
-            let handler = UpdateHandler::new(rx, db, home.clone()).spawn();
+            let handler = UpdateHandler::new(rx, watcher_db, home.clone()).spawn();
 
             // For each replica, spawn polling and history syncing tasks
+            info!("Spawning replica watch and sync tasks...");
             for (name, replica) in replicas {
+                info!("Spawning watch and sync tasks for replica {}.", name);
                 let from = replica.committed_root().await?;
 
                 watch_tasks.write().await.insert(
@@ -333,6 +390,7 @@ impl Watcher {
             }
 
             // Spawn polling and history syncing tasks for home
+            info!("Starting watch and sync tasks for home {}.", home.name());
             let from = home.committed_root().await?;
             let home_watcher =
                 ContractWatcher::new(interval_seconds, from, tx.clone(), home.clone())
@@ -351,8 +409,11 @@ impl Watcher {
             cancel_task!(home_sync);
 
             // If double update found, send through oneshot
-            if let Err(e) = double_update_tx.send(double_update_res?) {
-                bail!("Failed to send double update through oneshot: {:?}", e);
+            if let Ok(double) = double_update_res {
+                error!("Double update found! Sending through through double update tx! Double update: {:?}.", &double);
+                if let Err(e) = double_update_tx.send(double) {
+                    bail!("Failed to send double update through oneshot: {:?}", e);
+                }
             }
 
             Ok(())
@@ -364,7 +425,7 @@ impl Watcher {
 #[async_trait]
 #[allow(clippy::unit_arg)]
 impl OpticsAgent for Watcher {
-    const AGENT_NAME: &'static str = "watcher";
+    const AGENT_NAME: &'static str = AGENT_NAME;
 
     type Settings = Settings;
 
@@ -374,7 +435,7 @@ impl OpticsAgent for Watcher {
         Self: Sized,
     {
         let mut connection_managers = vec![];
-        for chain_setup in settings.connection_managers.iter() {
+        for chain_setup in settings.managers.values() {
             let signer = settings.base.get_signer(&chain_setup.name).await;
             let manager = chain_setup.try_into_connection_manager(signer).await;
             connection_managers.push(manager);
@@ -421,20 +482,24 @@ impl OpticsAgent for Watcher {
             info!("Starting Watcher tasks");
 
             // Indexer setup
-            let block_height = self
-                .as_ref()
-                .metrics
-                .new_int_gauge(
-                    "block_height",
-                    "Height of a recently observed block",
-                    &["network", "agent"],
-                )
-                .expect("failed to register block_height metric")
-                .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
+            let block_height = Arc::new(
+                self.core.metrics
+                    .new_int_gauge(
+                        "block_height",
+                        "Height of a recently observed block",
+                        &["network", "agent"],
+                    )
+                    .expect("processor metric already registered -- should have be a singleton"),
+            );
+
             let indexer = &self.as_ref().indexer;
-            let index_task = self
+            let home_index_task = self
                 .home()
-                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height);
+                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[self.home().name(), Self::AGENT_NAME]));
+            let replica_index_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(name, replica)| {
+                replica
+                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[name, Self::AGENT_NAME]))
+            }).collect();
 
             // Watcher watch tasks setup
             let (double_update_tx, mut double_update_rx) = oneshot::channel::<DoubleUpdate>();
@@ -442,7 +507,8 @@ impl OpticsAgent for Watcher {
 
             // Race index and run tasks
             info!("selecting");
-            let tasks = vec![index_task, watch_tasks];
+            let mut tasks = vec![home_index_task, watch_tasks];
+            tasks.extend(replica_index_tasks);
             let (_, _, remaining) = select_all(tasks).await;
 
             // Cancel lagging task and watcher polling/syncing tasks
@@ -673,7 +739,7 @@ mod test {
             let mut mock_home = MockHomeContract::new();
             mock_home.expect__name().return_const("home_1".to_owned());
 
-            let optics_db = OpticsDB::new("home_1", db);
+            let optics_db = OpticsDB::new("home_1_watcher", db);
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
             let home: Arc<CachingHome> = CachingHome::new(
                 Arc::new(mock_home.into()),
@@ -685,7 +751,7 @@ mod test {
             let (_tx, rx) = mpsc::channel(200);
             let mut handler = UpdateHandler {
                 rx,
-                db: optics_db.clone(),
+                watcher_db: optics_db.clone(),
                 home,
             };
 
