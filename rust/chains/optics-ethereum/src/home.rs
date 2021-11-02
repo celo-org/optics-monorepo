@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
-use optics_core::db::{OpticsDB, DB};
+use optics_core::db::OpticsDB;
 /*
 use optics_core::traits::CommittedMessage;
 use optics_core::SignedUpdateWithMeta;
@@ -31,7 +31,7 @@ use std::{convert::TryFrom, convert::TryInto, error::Error as StdError, sync::Ar
 
 use crate::report_tx;
 
-static LAST_INSPECTED: &str = "homeIndexerLastInspected";
+static LAST_INSPECTED: &str = "home_indexer_last_inspected";
 
 abigen!(
     EthereumHomeInternal,
@@ -51,12 +51,14 @@ struct HomeIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
+    agent_name: String,
+    home_name: String,
     contract: Arc<EthereumHomeInternal<M>>,
     provider: Arc<M>,
     db: OpticsDB,
     from_height: u32,
     chunk_size: u32,
-    indexed_height: prometheus::IntGauge,
+    indexed_height: Arc<prometheus::IntGaugeVec>,
 }
 
 impl<M> HomeIndexer<M>
@@ -166,7 +168,10 @@ where
             );
 
             loop {
-                self.indexed_height.set(next_height as i64);
+                self.indexed_height
+                    .with_label_values(&[&self.home_name, &self.agent_name])
+                    .set(next_height as i64);
+
                 let tip = self.provider.get_block_number().await?.as_u32();
                 let candidate = next_height + self.chunk_size;
                 let to = min(tip, candidate);
@@ -223,13 +228,13 @@ where
             domain,
             address,
         }: &ContractLocator,
-        db: DB,
+        db: OpticsDB,
     ) -> Self {
         Self {
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             domain: *domain,
             name: name.to_owned(),
-            db: OpticsDB::new(name.to_owned(), db),
+            db,
             provider,
         }
     }
@@ -331,6 +336,27 @@ where
 
         Ok(response.into())
     }
+
+    /// Start an indexing task that syncs chain state
+    fn index(
+        &self,
+        agent_name: String,
+        from_height: u32,
+        chunk_size: u32,
+        indexed_height: Arc<prometheus::IntGaugeVec>,
+    ) -> Instrumented<JoinHandle<Result<()>>> {
+        let indexer = HomeIndexer {
+            agent_name,
+            home_name: self.name.to_owned(),
+            contract: self.contract.clone(),
+            db: self.db.clone(),
+            from_height,
+            provider: self.provider.clone(),
+            chunk_size,
+            indexed_height,
+        };
+        indexer.spawn()
+    }
 }
 
 #[async_trait]
@@ -340,24 +366,6 @@ where
 {
     fn local_domain(&self) -> u32 {
         self.domain
-    }
-
-    /// Start an indexing task that syncs chain state
-    fn index(
-        &self,
-        from_height: u32,
-        chunk_size: u32,
-        indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<JoinHandle<Result<()>>> {
-        let indexer = HomeIndexer {
-            contract: self.contract.clone(),
-            db: self.db.clone(),
-            from_height,
-            provider: self.provider.clone(),
-            chunk_size,
-            indexed_height,
-        };
-        indexer.spawn()
     }
 
     #[tracing::instrument(err, skip(self))]

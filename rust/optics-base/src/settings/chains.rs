@@ -1,7 +1,10 @@
 use color_eyre::Report;
 use serde::Deserialize;
 
-use optics_core::{db::DB, ContractLocator, Signers};
+use optics_core::{
+    db::{OpticsDB, DB},
+    ContractLocator, Signers,
+};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
 use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
@@ -54,7 +57,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
-                    db,
+                    OpticsDB::new(&self.name, db),
                 )
                 .await?,
             )),
@@ -62,7 +65,11 @@ impl ChainSetup {
     }
 
     /// Try to convert the chain setting into a replica contract
-    pub async fn try_into_replica(&self, signer: Option<Signers>) -> Result<Replicas, Report> {
+    pub async fn try_into_replica(
+        &self,
+        signer: Option<Signers>,
+        db: DB,
+    ) -> Result<Replicas, Report> {
         match &self.chain {
             ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
                 make_replica(
@@ -73,6 +80,7 @@ impl ChainSetup {
                         address: self.address.parse::<ethers::types::Address>()?.into(),
                     },
                     signer,
+                    OpticsDB::new(&self.name, db),
                 )
                 .await?,
             )),

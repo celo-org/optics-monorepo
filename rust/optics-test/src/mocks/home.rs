@@ -7,6 +7,7 @@ use ethers::core::types::H256;
 
 use optics_core::*;
 
+use std::sync::Arc;
 use tracing::{instrument::Instrumented, Instrument};
 
 mock! {
@@ -136,15 +137,6 @@ impl Home for MockHomeContract {
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         self._produce_update()
     }
-
-    fn index(
-        &self,
-        _from_height: u32,
-        _chunk_size: u32,
-        _indexed_height: prometheus::IntGauge,
-    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        tokio::spawn(async move { Ok(()) }).in_current_span()
-    }
 }
 
 #[async_trait]
@@ -192,5 +184,15 @@ impl Common for MockHomeContract {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         self._double_update(double)
+    }
+
+    fn index(
+        &self,
+        _agent_name: String,
+        _from_height: u32,
+        _chunk_size: u32,
+        _indexed_height: Arc<prometheus::IntGaugeVec>,
+    ) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        tokio::spawn(async move { Ok(()) }).in_current_span()
     }
 }

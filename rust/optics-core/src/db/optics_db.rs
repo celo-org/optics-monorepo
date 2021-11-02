@@ -7,7 +7,7 @@ use crate::{
 use color_eyre::Result;
 use ethers::core::types::H256;
 use tokio::time::sleep;
-use tracing::{debug, error, warn};
+use tracing::{debug, error};
 
 use std::future::Future;
 use std::time::Duration;
@@ -208,7 +208,7 @@ impl OpticsDB {
                 if root == update.update.previous_root {
                     self.store_latest_root(update.update.new_root)?;
                 } else {
-                    warn!(
+                    error!(
                         "Attempted to store update not building off latest root: {:?}",
                         update
                     )
@@ -217,6 +217,15 @@ impl OpticsDB {
             None => self.store_latest_root(update.update.new_root)?,
         }
 
+        self.store_update(update)
+    }
+
+    /// Store an update keyed by its previous root.
+    ///
+    /// Keys --> Values:
+    /// - `new_root` --> `prev_root`
+    /// - `prev_root` --> `update`
+    pub fn store_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         self.store_keyed_encodable(UPDATE, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
             PREV_ROOT,

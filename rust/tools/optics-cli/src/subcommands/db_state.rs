@@ -29,7 +29,7 @@ type OutputVec = Vec<((H256, u64), Vec<CommittedMessage>)>;
 
 impl DbStateCommand {
     pub async fn run(&self) -> Result<()> {
-        let db = OpticsDB::new(self.home_name.to_owned(), DB::from_path(&self.db_path)?);
+        let db = OpticsDB::new(&self.home_name, DB::from_path(&self.db_path)?);
 
         let messages_by_committed_roots = self.create_comitted_root_to_message_map(&db)?;
 

@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use color_eyre::Result;
 use ethers::core::types::H256;
 
 use crate::{

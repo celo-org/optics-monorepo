@@ -48,7 +48,7 @@ mod test {
     #[tokio::test]
     async fn db_stores_and_retrieves_messages() {
         run_test_db(|db| async move {
-            let home_name = "home_1".to_owned();
+            let home_name = "home_1";
             let db = OpticsDB::new(home_name, db);
 
             let m = OpticsMessage {
@@ -90,7 +90,7 @@ mod test {
     #[tokio::test]
     async fn db_stores_and_retrieves_proofs() {
         run_test_db(|db| async move {
-            let home_name = "home_1".to_owned();
+            let home_name = "home_1";
             let db = OpticsDB::new(home_name, db);
 
             let proof = Proof {
