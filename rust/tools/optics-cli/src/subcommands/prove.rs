@@ -67,8 +67,8 @@ pub struct ProveCommand {
 
 impl ProveCommand {
     pub async fn run(&self) -> Result<()> {
-        let db = OpticsDB::new(DB::from_path(&self.db_path)?);
-        let (message, proof) = self.fetch_proof(db.clone())?;
+        let db = OpticsDB::new(&self.home_name, DB::from_path(&self.db_path)?);
+        let (message, proof) = self.fetch_proof(db)?;
         let replica = self.replica(message.origin, message.destination).await?;
 
         let status = replica.message_status(message.to_leaf()).await?;
@@ -110,9 +110,7 @@ impl ProveCommand {
         }
     }
 
-    fn fetch_proof(&self) -> Result<(OpticsMessage, Proof)> {
-        let db = OpticsDB::new(self.home_name.to_owned(), DB::from_path(&self.db_path)?);
-
+    fn fetch_proof(&self, db: OpticsDB) -> Result<(OpticsMessage, Proof)> {
         let idx = match (self.leaf_index, self.leaf) {
             (Some(idx), _) => idx,
             (None, Some(digest)) => match db.message_by_leaf(digest)? {

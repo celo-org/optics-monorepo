@@ -31,7 +31,12 @@ impl std::fmt::Display for UpdatePoller {
 }
 
 impl UpdatePoller {
-    fn new(home: Arc<CachingHome>, replica: Arc<CachingReplica>, duration: u64, updates_relayed_count: Arc<prometheus::IntCounterVec>) -> Self {
+    fn new(
+        home: Arc<CachingHome>,
+        replica: Arc<CachingReplica>,
+        duration: u64,
+        updates_relayed_count: Arc<prometheus::IntCounterVec>,
+    ) -> Self {
         Self {
             home,
             replica,

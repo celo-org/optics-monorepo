@@ -171,20 +171,14 @@ impl UpdateHandler {
         let old_root = update.update.previous_root;
         let new_root = update.update.new_root;
 
-        match self
-            .db
-            .update_by_previous_root(self.home.name(), old_root)
-            .expect("!db_get")
-        {
+        match self.db.update_by_previous_root(old_root).expect("!db_get") {
             Some(existing) => {
                 if existing.update.new_root != new_root {
                     return Err(DoubleUpdate(existing, update.to_owned()));
                 }
             }
             None => {
-                self.db
-                    .store_latest_update(self.home.name(), update)
-                    .expect("!db_put");
+                self.db.store_latest_update(update).expect("!db_put");
             }
         }
 
@@ -308,7 +302,7 @@ impl Watcher {
         &self,
         double_update_tx: oneshot::Sender<DoubleUpdate>,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        let db = OpticsDB::new(self.db());
+        let db = OpticsDB::new("watcher", self.db());
         let home = self.home();
         let replicas = self.replicas().clone();
         let interval_seconds = self.interval_seconds;
@@ -526,20 +520,22 @@ mod test {
             .expect("!sign");
 
             let mut mock_home = MockHomeContract::new();
-            let optics_db = OpticsDB::new(db.clone());
+            let optics_db = OpticsDB::new("home_1", db.clone());
 
             {
                 mock_home.expect__name().return_const("home_1".to_owned());
 
                 // When home polls for new update it gets `signed_update`
-                optics_db
-                    .store_latest_update("home_1", &signed_update)
-                    .unwrap();
+                optics_db.store_latest_update(&signed_update).unwrap();
             }
 
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
-            let home: Arc<CachingHome> =
-                CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
+            let home: Arc<CachingHome> = CachingHome::new(
+                Arc::new(mock_home.into()),
+                optics_db.clone(),
+                mock_home_indexer,
+            )
+            .into();
 
             let (tx, mut rx) = mpsc::channel(200);
             let mut contract_watcher =
@@ -589,23 +585,25 @@ mod test {
             .expect("!sign");
 
             let mut mock_home = MockHomeContract::new();
-            let optics_db = OpticsDB::new(db.clone());
+            let optics_db = OpticsDB::new("home_1", db.clone());
 
             {
                 mock_home.expect__name().return_const("home_1".to_owned());
 
                 // When HistorySync works through history it finds second and first signed updates
+                optics_db.store_latest_update(&first_signed_update).unwrap();
                 optics_db
-                    .store_latest_update("home_1", &first_signed_update)
-                    .unwrap();
-                optics_db
-                    .store_latest_update("home_1", &second_signed_update)
+                    .store_latest_update(&second_signed_update)
                     .unwrap();
             }
 
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
-            let home: Arc<CachingHome> =
-                CachingHome::new(Arc::new(mock_home.into()), db.into(), mock_home_indexer).into();
+            let home: Arc<CachingHome> = CachingHome::new(
+                Arc::new(mock_home.into()),
+                optics_db.clone(),
+                mock_home_indexer,
+            )
+            .into();
 
             let (tx, mut rx) = mpsc::channel(200);
             let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
@@ -675,7 +673,7 @@ mod test {
             let mut mock_home = MockHomeContract::new();
             mock_home.expect__name().return_const("home_1".to_owned());
 
-            let optics_db = OpticsDB::new(db);
+            let optics_db = OpticsDB::new("home_1", db);
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
             let home: Arc<CachingHome> = CachingHome::new(
                 Arc::new(mock_home.into()),
@@ -861,25 +859,28 @@ mod test {
                 mock_connection_manager_2.into(),
             ];
 
-            let optics_db = OpticsDB::new(db.clone());
             let mock_indexer: Arc<Indexers> = Arc::new(MockIndexer::new().into());
             let mut mock_home: Arc<Homes> = Arc::new(mock_home.into());
             let mut mock_replica_1: Arc<Replicas> = Arc::new(mock_replica_1.into());
             let mut mock_replica_2: Arc<Replicas> = Arc::new(mock_replica_2.into());
 
+            let home_db = OpticsDB::new("home_1", db.clone());
+            let replica_1_db = OpticsDB::new("replica_1", db.clone());
+            let replica_2_db = OpticsDB::new("replica_2", db.clone());
+
             {
                 let home: Arc<CachingHome> =
-                    CachingHome::new(mock_home.clone(), optics_db.clone(), mock_indexer.clone())
+                    CachingHome::new(mock_home.clone(), home_db.clone(), mock_indexer.clone())
                         .into();
                 let replica_1: Arc<CachingReplica> = CachingReplica::new(
                     mock_replica_1.clone(),
-                    optics_db.clone(),
+                    replica_1_db.clone(),
                     mock_indexer.clone(),
                 )
                 .into();
                 let replica_2: Arc<CachingReplica> = CachingReplica::new(
                     mock_replica_2.clone(),
-                    optics_db.clone(),
+                    replica_2_db.clone(),
                     mock_indexer.clone(),
                 )
                 .into();

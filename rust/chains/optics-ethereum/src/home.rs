@@ -14,8 +14,6 @@ use tracing::instrument;
 
 use crate::report_tx;
 
-static LAST_INSPECTED: &str = "home_indexer_last_inspected";
-
 abigen!(
     EthereumHomeInternal,
     "./chains/optics-ethereum/abis/Home.abi.json"
@@ -50,7 +48,7 @@ where
     pub fn new(
         provider: Arc<M>,
         ContractLocator {
-            name,
+            name: _,
             domain: _,
             address,
         }: &ContractLocator,
@@ -58,7 +56,6 @@ where
         chunk_size: u32,
     ) -> Self {
         Self {
-            home_name: name.to_owned(),
             contract: Arc::new(EthereumHomeInternal::new(address, provider.clone())),
             provider,
             from_height,

@@ -12,7 +12,6 @@ use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
 
 use crate::report_tx;
 
-#[allow(missing_docs)]
 abigen!(
     EthereumReplicaInternal,
     "./chains/optics-ethereum/abis/Replica.abi.json",
@@ -28,7 +27,7 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
-	}
+    }
 }
 
 #[derive(Debug)]

@@ -55,7 +55,7 @@ where
         tokio::spawn(async move {
             let mut next_height: u32 = self
                 .db
-                .retrieve_decodable(&self.contract_name, "", LAST_INSPECTED)
+                .retrieve_decodable("", LAST_INSPECTED)
                 .expect("db failure")
                 .unwrap_or(self.from_height);
             info!(
@@ -82,9 +82,8 @@ where
 
                 for update_with_meta in sorted_updates {
                     self.db
-                        .store_latest_update(&self.contract_name, &update_with_meta.signed_update)?;
+                        .store_latest_update(&update_with_meta.signed_update)?;
                     self.db.store_update_metadata(
-                        &self.contract_name,
                         update_with_meta.signed_update.update.new_root,
                         update_with_meta.metadata,
                     )?;
@@ -98,7 +97,7 @@ where
                 }
 
                 for message in messages {
-                    self.db.store_raw_committed_message(&self.contract_name, &message)?;
+                    self.db.store_raw_committed_message(&message)?;
 
                     let committed_message: CommittedMessage = message.try_into()?;
                     info!(
@@ -111,7 +110,7 @@ where
                 }
 
                 self.db
-                    .store_encodable(&self.contract_name, "", LAST_INSPECTED, &next_height)?;
+                    .store_encodable("", LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {

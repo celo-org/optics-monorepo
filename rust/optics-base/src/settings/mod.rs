@@ -43,7 +43,7 @@ use ethers::prelude::AwsSigner;
 use optics_core::{
     db::{OpticsDB, DB},
     utils::HexString,
-    ContractLocator, Signers,
+    Common, ContractLocator, Signers,
 };
 use optics_ethereum::{make_home_indexer, make_replica_indexer};
 use rusoto_core::{credential::EnvironmentProvider, HttpClient};
@@ -215,7 +215,7 @@ impl Settings {
     /// Try to get all replicas from this settings object
     pub async fn try_caching_replicas(
         &self,
-        db: OpticsDB,
+        db: DB,
     ) -> Result<HashMap<String, Arc<CachingReplica>>, Report> {
         let mut result = HashMap::default();
         for (k, v) in self.replicas.iter().filter(|(_, v)| v.disabled.is_none()) {
@@ -229,20 +229,22 @@ impl Settings {
             let signer = self.get_signer(&v.name).await;
             let replica = Arc::new(v.try_into_replica(signer).await?);
             let indexer = Arc::new(self.try_replica_indexer(v).await?);
+            let optics_db = OpticsDB::new(replica.name(), db.clone());
             result.insert(
                 v.name.clone(),
-                Arc::new(CachingReplica::new(replica, db.clone(), indexer)),
+                Arc::new(CachingReplica::new(replica, optics_db, indexer)),
             );
         }
         Ok(result)
     }
 
     /// Try to get a home object
-    pub async fn try_caching_home(&self, db: OpticsDB) -> Result<CachingHome, Report> {
+    pub async fn try_caching_home(&self, db: DB) -> Result<CachingHome, Report> {
         let signer = self.get_signer(&self.home.name).await;
         let home = Arc::new(self.home.try_into_home(signer).await?);
         let indexer = Arc::new(self.try_home_indexer().await?);
-        Ok(CachingHome::new(home, db.clone(), indexer))
+        let optics_db = OpticsDB::new(home.name(), db);
+        Ok(CachingHome::new(home, optics_db, indexer))
     }
 
     /// Try to get an indexer object for a home
@@ -300,9 +302,8 @@ impl Settings {
         )?);
 
         let db = DB::from_path(&self.db)?;
-        let optics_db = OpticsDB::new(db.clone());
-        let home = Arc::new(self.try_caching_home(optics_db.clone()).await?);
-        let replicas = self.try_caching_replicas(optics_db.clone()).await?;
+        let home = Arc::new(self.try_caching_home(db.clone()).await?);
+        let replicas = self.try_caching_replicas(db.clone()).await?;
 
         Ok(AgentCore {
             home,

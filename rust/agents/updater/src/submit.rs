@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use optics_base::{Homes, OpticsAgent};
+use optics_base::{CachingHome, OpticsAgent};
 use optics_core::{db::OpticsDB, Common};
 use prometheus::IntCounterVec;
 use std::time::Duration;
@@ -12,7 +12,7 @@ use tracing::{info, info_span, instrument::Instrumented, Instrument};
 use crate::updater::Updater;
 
 pub(crate) struct UpdateSubmitter {
-    home: Arc<Homes>,
+    home: Arc<CachingHome>,
     db: OpticsDB,
     interval_seconds: u64,
     submitted_update_count: IntCounterVec,
@@ -20,7 +20,7 @@ pub(crate) struct UpdateSubmitter {
 
 impl UpdateSubmitter {
     pub(crate) fn new(
-        home: Arc<Homes>,
+        home: Arc<CachingHome>,
         db: OpticsDB,
         interval_seconds: u64,
         submitted_update_count: IntCounterVec,

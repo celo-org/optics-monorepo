@@ -133,10 +133,7 @@ impl CommonEvents for CachingReplica {
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self
-                .db
-                .update_by_previous_root(self.replica.name(), old_root)?
-            {
+            if let Some(update) = self.db.update_by_previous_root(old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -149,7 +146,7 @@ impl CommonEvents for CachingReplica {
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(self.replica.name(), new_root)? {
+            if let Some(update) = self.db.update_by_new_root(new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;

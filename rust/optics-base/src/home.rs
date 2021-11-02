@@ -103,10 +103,7 @@ impl HomeEvents for CachingHome {
         nonce: u32,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self
-                .db
-                .message_by_nonce(self.home.name(), destination, nonce)?
-            {
+            if let Some(update) = self.db.message_by_nonce(destination, nonce)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -119,7 +116,7 @@ impl HomeEvents for CachingHome {
         leaf: H256,
     ) -> Result<Option<RawCommittedMessage>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.message_by_leaf(self.home.name(), leaf)? {
+            if let Some(update) = self.db.message_by_leaf(leaf)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -131,10 +128,7 @@ impl HomeEvents for CachingHome {
         tree_index: usize,
     ) -> Result<Option<H256>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self
-                .db
-                .leaf_by_leaf_index(self.home.name(), tree_index as u32)?
-            {
+            if let Some(update) = self.db.leaf_by_leaf_index(tree_index as u32)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -184,10 +178,7 @@ impl CommonEvents for CachingHome {
         old_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self
-                .db
-                .update_by_previous_root(self.home.name(), old_root)?
-            {
+            if let Some(update) = self.db.update_by_previous_root(old_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
@@ -200,7 +191,7 @@ impl CommonEvents for CachingHome {
         new_root: H256,
     ) -> Result<Option<SignedUpdate>, ChainCommunicationError> {
         loop {
-            if let Some(update) = self.db.update_by_new_root(self.home.name(), new_root)? {
+            if let Some(update) = self.db.update_by_new_root(new_root)? {
                 return Ok(Some(update));
             }
             sleep(Duration::from_millis(500)).await;
