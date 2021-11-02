@@ -34,15 +34,38 @@ logger = logging.getLogger("kms_provisioner")
 logger.setLevel(logging.DEBUG)
 
 # Agent Keys
-required_keys = [
-    "watcher-signer",
-    "watcher-attestation",
-    "updater-signer",
-    "updater-attestation",
-    "processor-signer",
-    "relayer-signer",
-    "kathy-signer"
-]
+agent_keys = {
+    "staging": [
+        "watcher-signer",
+        "watcher-attestation",
+        "updater-signer",
+        "updater-attestation",
+        "processor-signer",
+        "relayer-signer",
+        "kathy-signer"
+    ],
+    "production": [
+        "watcher-signer",
+        "watcher-attestation",
+        "updater-signer",
+        "updater-attestation",
+        "processor-signer",
+        "relayer-signer",
+    ]
+}
+
+networks = {
+    "production": [
+        "celo",
+        "ethereum",
+        "polygon"
+    ],
+    "staging": [
+        "alfajores",
+        "kovan",
+        "rinkeby"
+    ]
+}
 
 # nAgentKeys * nEnvironments
 environments = [
@@ -102,64 +125,65 @@ current_aliases = kms.list_aliases(Limit=100)
 logger.debug(f"Fetched {len(current_aliases['Aliases'])} aliases from KMS")
 logger.debug(json.dumps(current_aliases, indent=2, default=str))
 for environment in environments:
-    for key in required_keys:
+    for network in networks[environment]:
+        for key in agent_keys[environment]:
 
-        key_name = f"{environment}-{key}"
-        alias_name = f"alias/{key_name}"
+            key_name = f"{environment}-{network}-{key}"
+            alias_name = f"alias/{key_name}"
 
-        existing_alias = next((alias for alias in current_aliases["Aliases"] if alias["AliasName"] == alias_name), None)
+            existing_alias = next((alias for alias in current_aliases["Aliases"] if alias["AliasName"] == alias_name), None)
 
-        if existing_alias == None:
-            logger.info(f"No existing alias found for {key_name}, creating new key")
+            if existing_alias == None:
+                logger.info(f"No existing alias found for {key_name}, creating new key")
 
-            key_response = kms.create_key(
-                Description=f'{environment} {key}',
-                KeyUsage='SIGN_VERIFY',
-                Origin='AWS_KMS',
-                BypassPolicyLockoutSafetyCheck=False,
-                CustomerMasterKeySpec="ECC_SECG_P256K1",
-                Tags=[
-                    {
-                        'TagKey': 'environment',
-                        'TagValue': environment
-                    },
-                ]
-            )
+                key_response = kms.create_key(
+                    Description=f'{environment} {network} {key}',
+                    KeyUsage='SIGN_VERIFY',
+                    Origin='AWS_KMS',
+                    BypassPolicyLockoutSafetyCheck=False,
+                    CustomerMasterKeySpec="ECC_SECG_P256K1",
+                    Tags=[
+                        {
+                            'TagKey': 'environment',
+                            'TagValue': environment
+                        },
+                    ]
+                )
 
-            alias_response = kms.create_alias(
-                # The alias to create. Aliases must begin with 'alias/'.
-                AliasName=alias_name,
-                # The identifier of the CMK whose alias you are creating. You can use the key ID or the Amazon Resource Name (ARN) of the CMK.
-                TargetKeyId=key_response["KeyMetadata"]["KeyId"],
-            )
+                alias_response = kms.create_alias(
+                    # The alias to create. Aliases must begin with 'alias/'.
+                    AliasName=alias_name,
+                    # The identifier of the CMK whose alias you are creating. You can use the key ID or the Amazon Resource Name (ARN) of the CMK.
+                    TargetKeyId=key_response["KeyMetadata"]["KeyId"],
+                )
 
-            logger.debug(json.dumps(key_response, indent=2, default=str))
-            logger.debug(json.dumps(alias_response, indent=2, default=str))
+                logger.debug(json.dumps(key_response, indent=2, default=str))
+                logger.debug(json.dumps(alias_response, indent=2, default=str))
 
 
-            key_id = key_response["KeyMetadata"]["KeyId"]
-            key_arn = key_response["KeyMetadata"]["Arn"]
-            key_description = key_response["KeyMetadata"]["Description"]
-        else: 
-            logger.info(f"Existing alias for {key_name}, fetching key.")
+                key_id = key_response["KeyMetadata"]["KeyId"]
+                key_arn = key_response["KeyMetadata"]["Arn"]
+                key_description = key_response["KeyMetadata"]["Description"]
+            else: 
+                logger.info(f"Existing alias for {key_name}, fetching key.")
 
-            key_response = kms.describe_key(
-                KeyId=existing_alias["TargetKeyId"],
-            )
+                key_response = kms.describe_key(
+                    KeyId=existing_alias["TargetKeyId"],
+                )
 
-            key_id = key_response["KeyMetadata"]["KeyId"]
-            key_arn = key_response["KeyMetadata"]["Arn"]
-            key_description = key_response["KeyMetadata"]["Description"]
-            
-        logger.debug(f"Key Id: {key_id}")
-        logger.debug(f"Key Arn: {key_arn}")
-        logger.debug(f"Key Description: {key_description}")
+                key_id = key_response["KeyMetadata"]["KeyId"]
+                key_arn = key_response["KeyMetadata"]["Arn"]
+                key_description = key_response["KeyMetadata"]["Description"]
+                
+            logger.debug(f"Key Id: {key_id}")
+            logger.debug(f"Key Arn: {key_arn}")
+            logger.debug(f"Key Description: {key_description}")
 
-        # Get the Ethereum Address from the KMS CMK
-        public_key = get_kms_public_key(key_id)
-        ethereum_address = calc_eth_address(public_key)
+            # Get the Ethereum Address from the KMS CMK
+            public_key = get_kms_public_key(key_id)
+            ethereum_address = calc_eth_address(public_key)
 
-        data_rows.append([f'alias/{key_name}', region, key_id, key_arn, key_description, ethereum_address])
+            data_rows.append([f'alias/{key_name}', region, key_id, key_arn, key_description, ethereum_address])
     
 
 # Print out the results of the operation
