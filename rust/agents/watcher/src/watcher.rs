@@ -493,10 +493,10 @@ impl OpticsAgent for Watcher {
             );
 
             let indexer = &self.as_ref().indexer;
-            let home_index_task = self
+            let home_sync_task = self
                 .home()
                 .sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[self.home().name(), Self::AGENT_NAME]));
-            let replica_index_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(name, replica)| {
+            let replica_sync_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(name, replica)| {
                 replica
                 .sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[name, Self::AGENT_NAME]))
             }).collect();
@@ -507,8 +507,8 @@ impl OpticsAgent for Watcher {
 
             // Race index and run tasks
             info!("selecting");
-            let mut tasks = vec![home_index_task, watch_tasks];
-            tasks.extend(replica_index_tasks);
+            let mut tasks = vec![home_sync_task, watch_tasks];
+            tasks.extend(replica_sync_tasks);
             let (_, _, remaining) = select_all(tasks).await;
 
             // Cancel lagging task and watcher polling/syncing tasks
