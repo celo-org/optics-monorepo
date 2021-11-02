@@ -42,7 +42,7 @@ impl CachingHome {
 
     /// Spawn a task that syncs the CachingHome's db with the on-chain event
     /// data
-    pub fn spawn_sync(
+    pub fn sync(
         &self,
         from_height: u32,
         chunk_size: u32,

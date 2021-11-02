@@ -409,9 +409,9 @@ impl OpticsAgent for Processor {
                 .expect("failed to register block_height metric")
                 .with_label_values(&[self.home().name(), Self::AGENT_NAME]);
             let indexer = &self.as_ref().indexer;
-            let index_task =
-                self.home()
-                    .spawn_sync(indexer.from(), indexer.chunk_size(), block_height);
+            let index_task = self
+                .home()
+                .sync(indexer.from(), indexer.chunk_size(), block_height);
 
             info!("started indexer and sync");
 

@@ -495,10 +495,10 @@ impl OpticsAgent for Watcher {
             let indexer = &self.as_ref().indexer;
             let home_index_task = self
                 .home()
-                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[self.home().name(), Self::AGENT_NAME]));
+                .sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[self.home().name(), Self::AGENT_NAME]));
             let replica_index_tasks: Vec<Instrumented<JoinHandle<Result<()>>>> = self.replicas().iter().map(|(name, replica)| {
                 replica
-                .spawn_sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[name, Self::AGENT_NAME]))
+                .sync(indexer.from(), indexer.chunk_size(), block_height.with_label_values(&[name, Self::AGENT_NAME]))
             }).collect();
 
             // Watcher watch tasks setup
