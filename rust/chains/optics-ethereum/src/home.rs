@@ -213,7 +213,7 @@ where
         Ok(self.contract.committed_root().call().await?.into())
     }
 
-    #[tracing::instrument(err, skip(self), fields(hexSignature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
+    #[tracing::instrument(err, skip(self), fields(hex_signature = %format!("0x{}", hex::encode(update.signature.to_vec()))))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         let tx = self.contract.update(
             update.update.previous_root.to_fixed_bytes(),

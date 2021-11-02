@@ -37,7 +37,6 @@ pub struct EthereumReplicaIndexer<M>
 where
     M: ethers::providers::Middleware,
 {
-    replica_name: String,
     contract: Arc<EthereumReplicaInternal<M>>,
     provider: Arc<M>,
     from_height: u32,
@@ -52,7 +51,7 @@ where
     pub fn new(
         provider: Arc<M>,
         ContractLocator {
-            name,
+            name: _,
             domain: _,
             address,
         }: &ContractLocator,
@@ -60,7 +59,6 @@ where
         chunk_size: u32,
     ) -> Self {
         Self {
-            replica_name: name.to_owned(),
             contract: Arc::new(EthereumReplicaInternal::new(address, provider.clone())),
             provider,
             from_height,
@@ -118,12 +116,6 @@ where
                 }
             })
             .collect())
-    }
-
-    #[instrument(err, skip(self))]
-    async fn fetch_messages(&self, _from: u32, _to: u32) -> Result<Vec<RawCommittedMessage>> {
-        // Replica has no associated messages so return empty vec
-        Ok(Vec::new())
     }
 }
 

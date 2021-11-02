@@ -14,6 +14,10 @@ pub trait Indexer: Send + Sync + std::fmt::Debug {
     /// Fetch sequentially sorted list of updates between blocks `from` and `to`
     async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>>;
 
-    /// Fetch list of messages between blocks `from` and `to`
-    async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>>;
+    /// Fetch list of messages between blocks `from` and `to`. Return an empty
+    /// vec by default (behavior for replica). Must override this method for a
+    /// home indexer.
+    async fn fetch_messages(&self, _from: u32, _to: u32) -> Result<Vec<RawCommittedMessage>> {
+        Ok(Vec::new())
+    }
 }
