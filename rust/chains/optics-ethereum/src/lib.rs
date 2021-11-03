@@ -63,14 +63,14 @@ pub struct Chain {
 boxed_trait!(
     make_home_indexer,
     EthereumHomeIndexer,
-    Indexer,
+    HomeIndexer,
     from_height: u32,
     chunk_size: u32
 );
 boxed_trait!(
     make_replica_indexer,
     EthereumReplicaIndexer,
-    Indexer,
+    CommonIndexer,
     from_height: u32,
     chunk_size: u32
 );

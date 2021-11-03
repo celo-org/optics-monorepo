@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use color_eyre::eyre::Result;
 use ethers::core::types::H256;
+use futures_util::future::select_all;
 use optics_core::db::OpticsDB;
 use optics_core::{
     ChainCommunicationError, Common, CommonEvents, DoubleUpdate, Home, HomeEvents, Message,
@@ -12,21 +13,28 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
+use tracing::{info_span, Instrument};
 use tracing::{instrument, instrument::Instrumented};
 
-use crate::{ContractSync, Indexers};
+use crate::{ContractSync, HomeIndexers};
 
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingHome {
     home: Arc<Homes>,
     db: OpticsDB,
-    indexer: Arc<Indexers>,
+    indexer: Arc<HomeIndexers>,
+}
+
+impl std::fmt::Display for CachingHome {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl CachingHome {
     /// Instantiate new CachingHome
-    pub fn new(home: Arc<Homes>, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+    pub fn new(home: Arc<Homes>, db: OpticsDB, indexer: Arc<HomeIndexers>) -> Self {
         Self { home, db, indexer }
     }
 
@@ -48,15 +56,28 @@ impl CachingHome {
         chunk_size: u32,
         indexed_height: prometheus::IntGauge,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        ContractSync::new(
+        let span = info_span!("HomeContractSync", self = %self);
+
+        let sync = ContractSync::new(
             self.db.clone(),
             String::from_str(self.home.name()).expect("!string"),
             self.indexer.clone(),
             from_height,
             chunk_size,
             indexed_height,
-        )
-        .spawn()
+        );
+
+        tokio::spawn(async move {
+            let tasks = vec![sync.sync_updates(), sync.sync_messages()];
+
+            let (_, _, remaining) = select_all(tasks).await;
+            for task in remaining.into_iter() {
+                cancel_task!(task);
+            }
+
+            Ok(())
+        })
+        .instrument(span)
     }
 }
 

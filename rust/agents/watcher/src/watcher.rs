@@ -481,7 +481,7 @@ impl OpticsAgent for Watcher {
         tokio::spawn(async move {
             info!("Starting Watcher tasks");
 
-            // Indexer setup
+            // CommonIndexer setup
             let block_height = Arc::new(
                 self.core.metrics
                     .new_int_gauge(
@@ -556,7 +556,7 @@ mod test {
     use ethers::core::types::H256;
     use ethers::signers::{LocalWallet, Signer};
 
-    use optics_base::{CachingReplica, Homes, Indexers, Replicas};
+    use optics_base::{CachingReplica, CommonIndexers, HomeIndexers, Homes, Replicas};
     use optics_core::{DoubleUpdate, SignedFailureNotification, Update};
     use optics_test::{
         mocks::{MockConnectionManagerContract, MockHomeContract, MockReplicaContract},
@@ -925,7 +925,8 @@ mod test {
                 mock_connection_manager_2.into(),
             ];
 
-            let mock_indexer: Arc<Indexers> = Arc::new(MockIndexer::new().into());
+            let mock_indexer: Arc<CommonIndexers> = Arc::new(MockIndexer::new().into());
+            let mock_home_indexer: Arc<HomeIndexers> = Arc::new(MockIndexer::new().into());
             let mut mock_home: Arc<Homes> = Arc::new(mock_home.into());
             let mut mock_replica_1: Arc<Replicas> = Arc::new(mock_replica_1.into());
             let mut mock_replica_2: Arc<Replicas> = Arc::new(mock_replica_2.into());
@@ -935,9 +936,12 @@ mod test {
             let replica_2_db = OpticsDB::new("replica_2", db.clone());
 
             {
-                let home: Arc<CachingHome> =
-                    CachingHome::new(mock_home.clone(), home_db.clone(), mock_indexer.clone())
-                        .into();
+                let home: Arc<CachingHome> = CachingHome::new(
+                    mock_home.clone(),
+                    home_db.clone(),
+                    mock_home_indexer.clone(),
+                )
+                .into();
                 let replica_1: Arc<CachingReplica> = CachingReplica::new(
                     mock_replica_1.clone(),
                     replica_1_db.clone(),

@@ -6,7 +6,7 @@ use color_eyre::Result;
 use ethers::contract::abigen;
 use ethers::core::types::{Signature, H256};
 use optics_core::{accumulator::merkle::Proof, *};
-use optics_core::{ContractLocator, Indexer};
+use optics_core::{CommonIndexer, ContractLocator};
 use tracing::instrument;
 
 use std::{convert::TryFrom, error::Error as StdError, sync::Arc};
@@ -68,7 +68,7 @@ where
 }
 
 #[async_trait]
-impl<M> Indexer for EthereumReplicaIndexer<M>
+impl<M> CommonIndexer for EthereumReplicaIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {

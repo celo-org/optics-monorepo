@@ -66,7 +66,7 @@ where
 }
 
 #[async_trait]
-impl<M> Indexer for EthereumHomeIndexer<M>
+impl<M> CommonIndexer for EthereumHomeIndexer<M>
 where
     M: ethers::providers::Middleware + 'static,
 {
@@ -115,7 +115,13 @@ where
             })
             .collect())
     }
+}
 
+#[async_trait]
+impl<M> HomeIndexer for EthereumHomeIndexer<M>
+where
+    M: ethers::providers::Middleware + 'static,
+{
     #[instrument(err, skip(self))]
     async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
         let events = self

@@ -23,7 +23,7 @@ impl std::fmt::Debug for MockIndexer {
 }
 
 #[async_trait]
-impl Indexer for MockIndexer {
+impl CommonIndexer for MockIndexer {
     async fn get_block_number(&self) -> Result<u32> {
         self._get_block_number()
     }
@@ -31,7 +31,10 @@ impl Indexer for MockIndexer {
     async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         self._fetch_updates(from, to)
     }
+}
 
+#[async_trait]
+impl HomeIndexer for MockIndexer {
     async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
         self._fetch_messages(from, to)
     }

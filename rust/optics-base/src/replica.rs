@@ -12,21 +12,28 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
+use tracing::{info_span, Instrument};
 use tracing::{instrument, instrument::Instrumented};
 
-use crate::{ContractSync, Indexers};
+use crate::{CommonIndexers, ContractSync};
 
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingReplica {
     replica: Arc<Replicas>,
     db: OpticsDB,
-    indexer: Arc<Indexers>,
+    indexer: Arc<CommonIndexers>,
+}
+
+impl std::fmt::Display for CachingReplica {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl CachingReplica {
     /// Instantiate new CachingReplica
-    pub fn new(replica: Arc<Replicas>, db: OpticsDB, indexer: Arc<Indexers>) -> Self {
+    pub fn new(replica: Arc<Replicas>, db: OpticsDB, indexer: Arc<CommonIndexers>) -> Self {
         Self {
             replica,
             db,
@@ -52,15 +59,22 @@ impl CachingReplica {
         chunk_size: u32,
         indexed_height: prometheus::IntGauge,
     ) -> Instrumented<JoinHandle<Result<()>>> {
-        ContractSync::new(
+        let span = info_span!("ReplicaContractSync", self = %self);
+
+        let sync = ContractSync::new(
             self.db.clone(),
             String::from_str(self.replica.name()).expect("!string"),
             self.indexer.clone(),
             from_height,
             chunk_size,
             indexed_height,
-        )
-        .spawn()
+        );
+
+        tokio::spawn(async move {
+            let _ = sync.sync_updates().await?;
+            Ok(())
+        })
+        .instrument(span)
     }
 }
 

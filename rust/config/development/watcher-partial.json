@@ -5,7 +5,7 @@
     "type": "hexKey"
   },
   "managers": {
-    "kovanbridgerouter": {
+    "kovanBridgeRouter": {
       "address": "0xAF24a3DB95Ca55eEFADD7b1753F71c774810Df80",
       "domain": "3000",
       "name": "kovan",
@@ -15,7 +15,7 @@
         "url": ""
       }
     },
-    "alfajoresbridgerouter": {
+    "alfajoresBridgeRouter": {
       "address": "0x3e8391dEB0f2ad863d8b61dfbcadE009BD5243A1",
       "domain": "1000",
       "name": "alfajores",

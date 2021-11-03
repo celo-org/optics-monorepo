@@ -1,5 +1,5 @@
 use optics_core::db::OpticsDB;
-use optics_core::{CommittedMessage, Indexer};
+use optics_core::{CommittedMessage, CommonIndexer, HomeIndexer};
 
 use tokio::time::sleep;
 use tracing::{info, info_span};
@@ -10,7 +10,8 @@ use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
-static LAST_INSPECTED: &str = "last_inspected";
+static UPDATES_LAST_INSPECTED: &str = "updates_last_inspected";
+static MESSAGES_LAST_INSPECTED: &str = "messages_last_inspected";
 
 /// Struct responsible for continuously indexing the chain for a contract's
 /// event data and storing it in the agent's db
@@ -26,7 +27,7 @@ pub struct ContractSync<I> {
 
 impl<I> ContractSync<I>
 where
-    I: Indexer + 'static,
+    I: CommonIndexer + 'static,
 {
     /// Instantiate new ContractSync
     pub fn new(
@@ -49,24 +50,30 @@ where
 
     /// Spawn task that continuously indexes the contract's chain and stores
     /// messages and updates in the agent's db
-    pub fn spawn(self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
-        let span = info_span!("ContractSync");
+    pub fn sync_updates(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        let span = info_span!("UpdateContractSync");
+
+        let db = self.db.clone();
+        let indexer = self.indexer.clone();
+        let indexed_height = self.indexed_height.clone();
+
+        let from_height = self.from_height;
+        let chunk_size = self.chunk_size;
 
         tokio::spawn(async move {
-            let mut next_height: u32 = self
-                .db
-                .retrieve_decodable("", LAST_INSPECTED)
+            let mut next_height: u32 = db
+                .retrieve_decodable("", UPDATES_LAST_INSPECTED)
                 .expect("db failure")
-                .unwrap_or(self.from_height);
+                .unwrap_or(from_height);
             info!(
                 next_height = next_height,
                 "resuming indexer from {}", next_height
             );
 
             loop {
-                self.indexed_height.set(next_height as i64);
-                let tip = self.indexer.get_block_number().await?;
-                let candidate = next_height + self.chunk_size;
+                indexed_height.set(next_height as i64);
+                let tip = indexer.get_block_number().await?;
+                let candidate = next_height + chunk_size;
                 let to = min(tip, candidate);
 
                 info!(
@@ -77,13 +84,12 @@ where
                     to
                 );
 
-                let sorted_updates = self.indexer.fetch_updates(next_height, to).await?;
-                let messages = self.indexer.fetch_messages(next_height, to).await?;
+                let sorted_updates = indexer.fetch_updates(next_height, to).await?;
 
                 for update_with_meta in sorted_updates {
-                    self.db
+                    db
                         .store_latest_update(&update_with_meta.signed_update)?;
-                    self.db.store_update_metadata(
+                    db.store_update_metadata(
                         update_with_meta.signed_update.update.new_root,
                         update_with_meta.metadata,
                     )?;
@@ -96,8 +102,63 @@ where
                     );
                 }
 
+                db
+                    .store_encodable("", UPDATES_LAST_INSPECTED, &next_height)?;
+                next_height = to;
+                // sleep here if we've caught up
+                if to == tip {
+                    sleep(Duration::from_secs(100)).await;
+                }
+            }
+        })
+        .instrument(span)
+    }
+}
+
+impl<I> ContractSync<I>
+where
+    I: HomeIndexer + 'static,
+{
+    /// Spawn task that continuously indexes the contract's chain and stores
+    /// messages and updates in the agent's db
+    pub fn sync_messages(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
+        let span = info_span!("MessageContractSync");
+
+        let db = self.db.clone();
+        let indexer = self.indexer.clone();
+        let indexed_height = self.indexed_height.clone();
+
+        let from_height = self.from_height;
+        let chunk_size = self.chunk_size;
+
+        tokio::spawn(async move {
+            let mut next_height: u32 = db
+                .retrieve_decodable("", MESSAGES_LAST_INSPECTED)
+                .expect("db failure")
+                .unwrap_or(from_height);
+            info!(
+                next_height = next_height,
+                "resuming indexer from {}", next_height
+            );
+
+            loop {
+                indexed_height.set(next_height as i64);
+                let tip = indexer.get_block_number().await?;
+                let candidate = next_height + chunk_size;
+                let to = min(tip, candidate);
+
+                info!(
+                    next_height = next_height,
+                    to = to,
+                    "indexing block heights {}...{}",
+                    next_height,
+                    to
+                );
+
+                let messages = indexer.fetch_messages(next_height, to).await?;
+
                 for message in messages {
-                    self.db.store_raw_committed_message(&message)?;
+                    db.store_raw_committed_message(&message)?;
 
                     let committed_message: CommittedMessage = message.try_into()?;
                     info!(
@@ -109,8 +170,8 @@ where
                     );
                 }
 
-                self.db
-                    .store_encodable("", LAST_INSPECTED, &next_height)?;
+                db
+                    .store_encodable("", MESSAGES_LAST_INSPECTED, &next_height)?;
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {

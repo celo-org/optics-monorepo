@@ -36,7 +36,7 @@
 //!    intended to be used by a specific agent.
 //!    E.g. `export OPT_KATHY_CHAT_TYPE="static message"`
 
-use crate::{agent::AgentCore, CachingHome, CachingReplica, Indexers};
+use crate::{agent::AgentCore, CachingHome, CachingReplica, CommonIndexers, HomeIndexers};
 use color_eyre::{eyre::bail, Report};
 use config::{Config, ConfigError, Environment, File};
 use ethers::prelude::AwsSigner;
@@ -248,11 +248,11 @@ impl Settings {
     }
 
     /// Try to get an indexer object for a home
-    pub async fn try_home_indexer(&self) -> Result<Indexers, Report> {
+    pub async fn try_home_indexer(&self) -> Result<HomeIndexers, Report> {
         let signer = self.get_signer(&self.home.name).await;
 
         match &self.home.chain {
-            ChainConf::Ethereum(conn) => Ok(Indexers::Ethereum(
+            ChainConf::Ethereum(conn) => Ok(HomeIndexers::Ethereum(
                 make_home_indexer(
                     conn.clone(),
                     &ContractLocator {
@@ -270,11 +270,11 @@ impl Settings {
     }
 
     /// Try to get an indexer object for a replica
-    pub async fn try_replica_indexer(&self, setup: &ChainSetup) -> Result<Indexers, Report> {
+    pub async fn try_replica_indexer(&self, setup: &ChainSetup) -> Result<CommonIndexers, Report> {
         let signer = self.get_signer(&setup.name).await;
 
         match &setup.chain {
-            ChainConf::Ethereum(conn) => Ok(Indexers::Ethereum(
+            ChainConf::Ethereum(conn) => Ok(CommonIndexers::Ethereum(
                 make_replica_indexer(
                     conn.clone(),
                     &ContractLocator {
