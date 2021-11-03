@@ -39,7 +39,7 @@ impl CommonIndexer for CommonIndexers {
     }
 }
 
-/// Home/Replica CommonIndexer type
+/// HomeIndexer type
 #[derive(Debug)]
 pub enum HomeIndexers {
     /// Ethereum contract indexer

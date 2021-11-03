@@ -13,8 +13,11 @@ use std::time::Duration;
 static UPDATES_LAST_INSPECTED: &str = "updates_last_inspected";
 static MESSAGES_LAST_INSPECTED: &str = "messages_last_inspected";
 
-/// Struct responsible for continuously indexing the chain for a contract's
-/// event data and storing it in the agent's db
+/// Entity that drives the syncing of an agent's db with on-chain data.
+/// Extracts chain-specific data (emitted updates, messages, etc) from an
+/// `indexer` and fills the agent's db with this data. A CachingHome or
+/// CachingReplica will use a contract sync to spawn syncing tasks to keep the
+/// db up-to-date.
 #[derive(Debug)]
 pub struct ContractSync<I> {
     db: OpticsDB,
@@ -48,8 +51,8 @@ where
         }
     }
 
-    /// Spawn task that continuously indexes the contract's chain and stores
-    /// messages and updates in the agent's db
+    /// Spawn task that continuously looks for new on-chain updates and stores
+    /// them in db
     pub fn sync_updates(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         let span = info_span!("UpdateContractSync");
 
@@ -119,8 +122,8 @@ impl<I> ContractSync<I>
 where
     I: HomeIndexer + 'static,
 {
-    /// Spawn task that continuously indexes the contract's chain and stores
-    /// messages and updates in the agent's db
+    /// Spawn task that continuously looks for new on-chain messages and stores
+    /// them in db
     pub fn sync_messages(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
         let span = info_span!("MessageContractSync");
 
