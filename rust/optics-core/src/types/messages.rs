@@ -102,3 +102,39 @@ impl std::fmt::Display for OpticsMessage {
         )
     }
 }
+
+/// Latest update stored by an contract sync
+#[derive(Debug)]
+pub struct LatestMessage {
+    /// Leaf index of last seen message
+    pub leaf_index: u32,
+    /// Block range start of last seen message
+    pub block_range_start: u32,
+}
+
+impl Encode for LatestMessage {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        let mut written = 0;
+        written += self.leaf_index.write_to(writer)?;
+        written += self.block_range_start.write_to(writer)?;
+        Ok(written)
+    }
+}
+
+impl Decode for LatestMessage {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let leaf_index = u32::read_from(reader)?;
+        let block_range_start = u32::read_from(reader)?;
+        Ok(Self {
+            leaf_index,
+            block_range_start,
+        })
+    }
+}
