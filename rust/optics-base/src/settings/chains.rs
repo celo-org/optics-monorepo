@@ -4,7 +4,9 @@ use serde::Deserialize;
 use optics_core::{ContractLocator, Signers};
 use optics_ethereum::{make_conn_manager, make_home, make_replica, Connection};
 
-use crate::{home::Homes, replica::Replicas, xapp::ConnectionManagers};
+use crate::{
+    home::Homes, replica::Replicas, xapp::ConnectionManagers, HomeVariants, ReplicaVariants,
+};
 
 /// A connection to _some_ blockchain.
 ///
@@ -45,7 +47,7 @@ impl ChainSetup {
     /// Try to convert the chain setting into a Home contract
     pub async fn try_into_home(&self, signer: Option<Signers>) -> Result<Homes, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(Homes::Ethereum(
+            ChainConf::Ethereum(conf) => Ok(HomeVariants::Ethereum(
                 make_home(
                     conf.clone(),
                     &ContractLocator {
@@ -56,14 +58,15 @@ impl ChainSetup {
                     signer,
                 )
                 .await?,
-            )),
+            )
+            .into()),
         }
     }
 
     /// Try to convert the chain setting into a replica contract
     pub async fn try_into_replica(&self, signer: Option<Signers>) -> Result<Replicas, Report> {
         match &self.chain {
-            ChainConf::Ethereum(conf) => Ok(Replicas::Ethereum(
+            ChainConf::Ethereum(conf) => Ok(ReplicaVariants::Ethereum(
                 make_replica(
                     conf.clone(),
                     &ContractLocator {
@@ -74,7 +77,8 @@ impl ChainSetup {
                     signer,
                 )
                 .await?,
-            )),
+            )
+            .into()),
         }
     }
 

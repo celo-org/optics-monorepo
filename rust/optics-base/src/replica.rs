@@ -20,7 +20,7 @@ use crate::{CommonIndexers, ContractSync};
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingReplica {
-    replica: Arc<Replicas>,
+    replica: Replicas,
     db: OpticsDB,
     indexer: Arc<CommonIndexers>,
 }
@@ -33,7 +33,7 @@ impl std::fmt::Display for CachingReplica {
 
 impl CachingReplica {
     /// Instantiate new CachingReplica
-    pub fn new(replica: Arc<Replicas>, db: OpticsDB, indexer: Arc<CommonIndexers>) -> Self {
+    pub fn new(replica: Replicas, db: OpticsDB, indexer: Arc<CommonIndexers>) -> Self {
         Self {
             replica,
             db,
@@ -42,7 +42,7 @@ impl CachingReplica {
     }
 
     /// Return handle on home object
-    pub fn replica(&self) -> Arc<Replicas> {
+    pub fn replica(&self) -> Replicas {
         self.replica.clone()
     }
 
@@ -168,9 +168,33 @@ impl CommonEvents for CachingReplica {
     }
 }
 
+#[derive(Debug, Clone)]
+/// Arc wrapper for ReplicaVariants enum
+pub struct Replicas(Arc<ReplicaVariants>);
+
+impl From<ReplicaVariants> for Replicas {
+    fn from(homes: ReplicaVariants) -> Self {
+        Self(Arc::new(homes))
+    }
+}
+
+impl std::ops::Deref for Replicas {
+    type Target = Arc<ReplicaVariants>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Replicas {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 /// Replica type
 #[derive(Debug)]
-pub enum Replicas {
+pub enum ReplicaVariants {
     /// Ethereum replica contract
     Ethereum(Box<dyn Replica>),
     /// Mock replica contract
@@ -179,12 +203,12 @@ pub enum Replicas {
     Other(Box<dyn Replica>),
 }
 
-impl Replicas {
+impl ReplicaVariants {
     /// Calls checkpoint on mock variant. Should
     /// only be used during tests.
     #[doc(hidden)]
     pub fn checkpoint(&mut self) {
-        if let Replicas::Mock(replica) = self {
+        if let ReplicaVariants::Mock(replica) = self {
             replica.checkpoint();
         } else {
             panic!("Replica should be mock variant!");
@@ -197,61 +221,61 @@ where
     M: ethers::providers::Middleware + 'static,
 {
     fn from(replica: EthereumReplica<M>) -> Self {
-        Replicas::Ethereum(Box::new(replica))
+        ReplicaVariants::Ethereum(Box::new(replica)).into()
     }
 }
 
 impl From<MockReplicaContract> for Replicas {
     fn from(mock_replica: MockReplicaContract) -> Self {
-        Replicas::Mock(Box::new(mock_replica))
+        ReplicaVariants::Mock(Box::new(mock_replica)).into()
     }
 }
 
 impl From<Box<dyn Replica>> for Replicas {
     fn from(replica: Box<dyn Replica>) -> Self {
-        Replicas::Other(replica)
+        ReplicaVariants::Other(replica).into()
     }
 }
 
 #[async_trait]
-impl Replica for Replicas {
+impl Replica for ReplicaVariants {
     fn local_domain(&self) -> u32 {
         match self {
-            Replicas::Ethereum(replica) => replica.local_domain(),
-            Replicas::Mock(mock_replica) => mock_replica.local_domain(),
-            Replicas::Other(replica) => replica.local_domain(),
+            ReplicaVariants::Ethereum(replica) => replica.local_domain(),
+            ReplicaVariants::Mock(mock_replica) => mock_replica.local_domain(),
+            ReplicaVariants::Other(replica) => replica.local_domain(),
         }
     }
 
     async fn remote_domain(&self) -> Result<u32, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.remote_domain().await,
-            Replicas::Mock(mock_replica) => mock_replica.remote_domain().await,
-            Replicas::Other(replica) => replica.remote_domain().await,
+            ReplicaVariants::Ethereum(replica) => replica.remote_domain().await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.remote_domain().await,
+            ReplicaVariants::Other(replica) => replica.remote_domain().await,
         }
     }
 
     async fn prove(&self, proof: &Proof) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.prove(proof).await,
-            Replicas::Mock(mock_replica) => mock_replica.prove(proof).await,
-            Replicas::Other(replica) => replica.prove(proof).await,
+            ReplicaVariants::Ethereum(replica) => replica.prove(proof).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.prove(proof).await,
+            ReplicaVariants::Other(replica) => replica.prove(proof).await,
         }
     }
 
     async fn process(&self, message: &OpticsMessage) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.process(message).await,
-            Replicas::Mock(mock_replica) => mock_replica.process(message).await,
-            Replicas::Other(replica) => replica.process(message).await,
+            ReplicaVariants::Ethereum(replica) => replica.process(message).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.process(message).await,
+            ReplicaVariants::Other(replica) => replica.process(message).await,
         }
     }
 
     async fn message_status(&self, leaf: H256) -> Result<MessageStatus, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.message_status(leaf).await,
-            Replicas::Mock(mock_replica) => mock_replica.message_status(leaf).await,
-            Replicas::Other(replica) => replica.message_status(leaf).await,
+            ReplicaVariants::Ethereum(replica) => replica.message_status(leaf).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.message_status(leaf).await,
+            ReplicaVariants::Other(replica) => replica.message_status(leaf).await,
         }
     }
 
@@ -261,69 +285,71 @@ impl Replica for Replicas {
         proof: &Proof,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.prove_and_process(message, proof).await,
-            Replicas::Mock(mock_replica) => mock_replica.prove_and_process(message, proof).await,
-            Replicas::Other(replica) => replica.prove_and_process(message, proof).await,
+            ReplicaVariants::Ethereum(replica) => replica.prove_and_process(message, proof).await,
+            ReplicaVariants::Mock(mock_replica) => {
+                mock_replica.prove_and_process(message, proof).await
+            }
+            ReplicaVariants::Other(replica) => replica.prove_and_process(message, proof).await,
         }
     }
 
     async fn acceptable_root(&self, root: H256) -> Result<bool, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.acceptable_root(root).await,
-            Replicas::Mock(mock_replica) => mock_replica.acceptable_root(root).await,
-            Replicas::Other(replica) => replica.acceptable_root(root).await,
+            ReplicaVariants::Ethereum(replica) => replica.acceptable_root(root).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.acceptable_root(root).await,
+            ReplicaVariants::Other(replica) => replica.acceptable_root(root).await,
         }
     }
 }
 
 #[async_trait]
-impl Common for Replicas {
+impl Common for ReplicaVariants {
     fn name(&self) -> &str {
         match self {
-            Replicas::Ethereum(replica) => replica.name(),
-            Replicas::Mock(mock_replica) => mock_replica.name(),
-            Replicas::Other(replica) => replica.name(),
+            ReplicaVariants::Ethereum(replica) => replica.name(),
+            ReplicaVariants::Mock(mock_replica) => mock_replica.name(),
+            ReplicaVariants::Other(replica) => replica.name(),
         }
     }
 
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.status(txid).await,
-            Replicas::Mock(mock_replica) => mock_replica.status(txid).await,
-            Replicas::Other(replica) => replica.status(txid).await,
+            ReplicaVariants::Ethereum(replica) => replica.status(txid).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.status(txid).await,
+            ReplicaVariants::Other(replica) => replica.status(txid).await,
         }
     }
 
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.updater().await,
-            Replicas::Mock(mock_replica) => mock_replica.updater().await,
-            Replicas::Other(replica) => replica.updater().await,
+            ReplicaVariants::Ethereum(replica) => replica.updater().await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.updater().await,
+            ReplicaVariants::Other(replica) => replica.updater().await,
         }
     }
 
     async fn state(&self) -> Result<State, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.state().await,
-            Replicas::Mock(mock_replica) => mock_replica.state().await,
-            Replicas::Other(replica) => replica.state().await,
+            ReplicaVariants::Ethereum(replica) => replica.state().await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.state().await,
+            ReplicaVariants::Other(replica) => replica.state().await,
         }
     }
 
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.committed_root().await,
-            Replicas::Mock(mock_replica) => mock_replica.committed_root().await,
-            Replicas::Other(replica) => replica.committed_root().await,
+            ReplicaVariants::Ethereum(replica) => replica.committed_root().await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.committed_root().await,
+            ReplicaVariants::Other(replica) => replica.committed_root().await,
         }
     }
 
     #[instrument(fields(update = %update.update))]
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.update(update).await,
-            Replicas::Mock(mock_replica) => mock_replica.update(update).await,
-            Replicas::Other(replica) => replica.update(update).await,
+            ReplicaVariants::Ethereum(replica) => replica.update(update).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.update(update).await,
+            ReplicaVariants::Other(replica) => replica.update(update).await,
         }
     }
 
@@ -332,9 +358,9 @@ impl Common for Replicas {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Replicas::Ethereum(replica) => replica.double_update(double).await,
-            Replicas::Mock(mock_replica) => mock_replica.double_update(double).await,
-            Replicas::Other(replica) => replica.double_update(double).await,
+            ReplicaVariants::Ethereum(replica) => replica.double_update(double).await,
+            ReplicaVariants::Mock(mock_replica) => mock_replica.double_update(double).await,
+            ReplicaVariants::Other(replica) => replica.double_update(double).await,
         }
     }
 }

@@ -596,12 +596,8 @@ mod test {
             }
 
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
-            let home: Arc<CachingHome> = CachingHome::new(
-                Arc::new(mock_home.into()),
-                optics_db.clone(),
-                mock_home_indexer,
-            )
-            .into();
+            let home: Arc<CachingHome> =
+                CachingHome::new(mock_home.into(), optics_db.clone(), mock_home_indexer).into();
 
             let (tx, mut rx) = mpsc::channel(200);
             let mut contract_watcher =
@@ -664,12 +660,8 @@ mod test {
             }
 
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
-            let home: Arc<CachingHome> = CachingHome::new(
-                Arc::new(mock_home.into()),
-                optics_db.clone(),
-                mock_home_indexer,
-            )
-            .into();
+            let home: Arc<CachingHome> =
+                CachingHome::new(mock_home.into(), optics_db.clone(), mock_home_indexer).into();
 
             let (tx, mut rx) = mpsc::channel(200);
             let mut history_sync = HistorySync::new(3, second_root, tx.clone(), home.clone());
@@ -741,12 +733,8 @@ mod test {
 
             let optics_db = OpticsDB::new("home_1_watcher", db);
             let mock_home_indexer = Arc::new(MockIndexer::new().into());
-            let home: Arc<CachingHome> = CachingHome::new(
-                Arc::new(mock_home.into()),
-                optics_db.clone(),
-                mock_home_indexer,
-            )
-            .into();
+            let home: Arc<CachingHome> =
+                CachingHome::new(mock_home.into(), optics_db.clone(), mock_home_indexer).into();
 
             let (_tx, rx) = mpsc::channel(200);
             let mut handler = UpdateHandler {
@@ -927,9 +915,9 @@ mod test {
 
             let mock_indexer: Arc<CommonIndexers> = Arc::new(MockIndexer::new().into());
             let mock_home_indexer: Arc<HomeIndexers> = Arc::new(MockIndexer::new().into());
-            let mut mock_home: Arc<Homes> = Arc::new(mock_home.into());
-            let mut mock_replica_1: Arc<Replicas> = Arc::new(mock_replica_1.into());
-            let mut mock_replica_2: Arc<Replicas> = Arc::new(mock_replica_2.into());
+            let mut mock_home: Homes = mock_home.into();
+            let mut mock_replica_1: Replicas = mock_replica_1.into();
+            let mut mock_replica_2: Replicas = mock_replica_2.into();
 
             let home_db = OpticsDB::new("home_1", db.clone());
             let replica_1_db = OpticsDB::new("replica_1", db.clone());

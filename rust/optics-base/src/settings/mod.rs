@@ -227,7 +227,7 @@ impl Settings {
                 );
             }
             let signer = self.get_signer(&v.name).await;
-            let replica = Arc::new(v.try_into_replica(signer).await?);
+            let replica = v.try_into_replica(signer).await?;
             let indexer = Arc::new(self.try_replica_indexer(v).await?);
             let optics_db = OpticsDB::new(replica.name(), db.clone());
             result.insert(
@@ -241,7 +241,7 @@ impl Settings {
     /// Try to get a home object
     pub async fn try_caching_home(&self, db: DB) -> Result<CachingHome, Report> {
         let signer = self.get_signer(&self.home.name).await;
-        let home = Arc::new(self.home.try_into_home(signer).await?);
+        let home = self.home.try_into_home(signer).await?;
         let indexer = Arc::new(self.try_home_indexer().await?);
         let optics_db = OpticsDB::new(home.name(), db);
         Ok(CachingHome::new(home, optics_db, indexer))

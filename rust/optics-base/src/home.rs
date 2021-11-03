@@ -21,7 +21,7 @@ use crate::{ContractSync, HomeIndexers};
 /// Caching replica type
 #[derive(Debug)]
 pub struct CachingHome {
-    home: Arc<Homes>,
+    home: Homes,
     db: OpticsDB,
     indexer: Arc<HomeIndexers>,
 }
@@ -34,12 +34,12 @@ impl std::fmt::Display for CachingHome {
 
 impl CachingHome {
     /// Instantiate new CachingHome
-    pub fn new(home: Arc<Homes>, db: OpticsDB, indexer: Arc<HomeIndexers>) -> Self {
+    pub fn new(home: Homes, db: OpticsDB, indexer: Arc<HomeIndexers>) -> Self {
         Self { home, db, indexer }
     }
 
     /// Return handle on home object
-    pub fn home(&self) -> Arc<Homes> {
+    pub fn home(&self) -> Homes {
         self.home.clone()
     }
 
@@ -220,9 +220,33 @@ impl CommonEvents for CachingHome {
     }
 }
 
+#[derive(Debug, Clone)]
+/// Arc wrapper for HomeVariants enum
+pub struct Homes(Arc<HomeVariants>);
+
+impl From<HomeVariants> for Homes {
+    fn from(homes: HomeVariants) -> Self {
+        Self(Arc::new(homes))
+    }
+}
+
+impl std::ops::Deref for Homes {
+    type Target = Arc<HomeVariants>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Homes {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 /// Home type
 #[derive(Debug)]
-pub enum Homes {
+pub enum HomeVariants {
     /// Ethereum home contract
     Ethereum(Box<dyn Home>),
     /// Mock home contract
@@ -231,12 +255,12 @@ pub enum Homes {
     Other(Box<dyn Home>),
 }
 
-impl Homes {
+impl HomeVariants {
     /// Calls checkpoint on mock variant. Should
     /// only be used during tests.
     #[doc(hidden)]
     pub fn checkpoint(&mut self) {
-        if let Homes::Mock(home) = self {
+        if let HomeVariants::Mock(home) = self {
             home.checkpoint();
         } else {
             panic!("Home should be mock variant!");
@@ -249,63 +273,63 @@ where
     M: ethers::providers::Middleware + 'static,
 {
     fn from(home: EthereumHome<M>) -> Self {
-        Homes::Ethereum(Box::new(home))
+        HomeVariants::Ethereum(Box::new(home)).into()
     }
 }
 
 impl From<MockHomeContract> for Homes {
     fn from(mock_home: MockHomeContract) -> Self {
-        Homes::Mock(Box::new(mock_home))
+        HomeVariants::Mock(Box::new(mock_home)).into()
     }
 }
 
 impl From<Box<dyn Home>> for Homes {
     fn from(home: Box<dyn Home>) -> Self {
-        Homes::Other(home)
+        HomeVariants::Other(home).into()
     }
 }
 
 #[async_trait]
-impl Home for Homes {
+impl Home for HomeVariants {
     fn local_domain(&self) -> u32 {
         match self {
-            Homes::Ethereum(home) => home.local_domain(),
-            Homes::Mock(mock_home) => mock_home.local_domain(),
-            Homes::Other(home) => home.local_domain(),
+            HomeVariants::Ethereum(home) => home.local_domain(),
+            HomeVariants::Mock(mock_home) => mock_home.local_domain(),
+            HomeVariants::Other(home) => home.local_domain(),
         }
     }
 
     fn home_domain_hash(&self) -> H256 {
         match self {
-            Homes::Ethereum(home) => home.home_domain_hash(),
-            Homes::Mock(mock_home) => mock_home.home_domain_hash(),
-            Homes::Other(home) => home.home_domain_hash(),
+            HomeVariants::Ethereum(home) => home.home_domain_hash(),
+            HomeVariants::Mock(mock_home) => mock_home.home_domain_hash(),
+            HomeVariants::Other(home) => home.home_domain_hash(),
         }
     }
 
     #[instrument(level = "trace", err)]
     async fn nonces(&self, destination: u32) -> Result<u32, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.nonces(destination).await,
-            Homes::Mock(mock_home) => mock_home.nonces(destination).await,
-            Homes::Other(home) => home.nonces(destination).await,
+            HomeVariants::Ethereum(home) => home.nonces(destination).await,
+            HomeVariants::Mock(mock_home) => mock_home.nonces(destination).await,
+            HomeVariants::Other(home) => home.nonces(destination).await,
         }
     }
 
     #[instrument(level = "trace", err)]
     async fn dispatch(&self, message: &Message) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.dispatch(message).await,
-            Homes::Mock(mock_home) => mock_home.dispatch(message).await,
-            Homes::Other(home) => home.dispatch(message).await,
+            HomeVariants::Ethereum(home) => home.dispatch(message).await,
+            HomeVariants::Mock(mock_home) => mock_home.dispatch(message).await,
+            HomeVariants::Other(home) => home.dispatch(message).await,
         }
     }
 
     async fn queue_contains(&self, root: H256) -> Result<bool, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.queue_contains(root).await,
-            Homes::Mock(mock_home) => mock_home.queue_contains(root).await,
-            Homes::Other(home) => home.queue_contains(root).await,
+            HomeVariants::Ethereum(home) => home.queue_contains(root).await,
+            HomeVariants::Mock(mock_home) => mock_home.queue_contains(root).await,
+            HomeVariants::Other(home) => home.queue_contains(root).await,
         }
     }
 
@@ -314,69 +338,69 @@ impl Home for Homes {
         update: &SignedUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.improper_update(update).await,
-            Homes::Mock(mock_home) => mock_home.improper_update(update).await,
-            Homes::Other(home) => home.improper_update(update).await,
+            HomeVariants::Ethereum(home) => home.improper_update(update).await,
+            HomeVariants::Mock(mock_home) => mock_home.improper_update(update).await,
+            HomeVariants::Other(home) => home.improper_update(update).await,
         }
     }
 
     #[instrument(err)]
     async fn produce_update(&self) -> Result<Option<Update>, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.produce_update().await,
-            Homes::Mock(mock_home) => mock_home.produce_update().await,
-            Homes::Other(home) => home.produce_update().await,
+            HomeVariants::Ethereum(home) => home.produce_update().await,
+            HomeVariants::Mock(mock_home) => mock_home.produce_update().await,
+            HomeVariants::Other(home) => home.produce_update().await,
         }
     }
 }
 
 #[async_trait]
-impl Common for Homes {
+impl Common for HomeVariants {
     fn name(&self) -> &str {
         match self {
-            Homes::Ethereum(home) => home.name(),
-            Homes::Mock(mock_home) => mock_home.name(),
-            Homes::Other(home) => home.name(),
+            HomeVariants::Ethereum(home) => home.name(),
+            HomeVariants::Mock(mock_home) => mock_home.name(),
+            HomeVariants::Other(home) => home.name(),
         }
     }
 
     async fn status(&self, txid: H256) -> Result<Option<TxOutcome>, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.status(txid).await,
-            Homes::Mock(mock_home) => mock_home.status(txid).await,
-            Homes::Other(home) => home.status(txid).await,
+            HomeVariants::Ethereum(home) => home.status(txid).await,
+            HomeVariants::Mock(mock_home) => mock_home.status(txid).await,
+            HomeVariants::Other(home) => home.status(txid).await,
         }
     }
 
     async fn updater(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.updater().await,
-            Homes::Mock(mock_home) => mock_home.updater().await,
-            Homes::Other(home) => home.updater().await,
+            HomeVariants::Ethereum(home) => home.updater().await,
+            HomeVariants::Mock(mock_home) => mock_home.updater().await,
+            HomeVariants::Other(home) => home.updater().await,
         }
     }
 
     async fn state(&self) -> Result<State, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.state().await,
-            Homes::Mock(mock_home) => mock_home.state().await,
-            Homes::Other(home) => home.state().await,
+            HomeVariants::Ethereum(home) => home.state().await,
+            HomeVariants::Mock(mock_home) => mock_home.state().await,
+            HomeVariants::Other(home) => home.state().await,
         }
     }
 
     async fn committed_root(&self) -> Result<H256, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.committed_root().await,
-            Homes::Mock(mock_home) => mock_home.committed_root().await,
-            Homes::Other(home) => home.committed_root().await,
+            HomeVariants::Ethereum(home) => home.committed_root().await,
+            HomeVariants::Mock(mock_home) => mock_home.committed_root().await,
+            HomeVariants::Other(home) => home.committed_root().await,
         }
     }
 
     async fn update(&self, update: &SignedUpdate) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.update(update).await,
-            Homes::Mock(mock_home) => mock_home.update(update).await,
-            Homes::Other(home) => home.update(update).await,
+            HomeVariants::Ethereum(home) => home.update(update).await,
+            HomeVariants::Mock(mock_home) => mock_home.update(update).await,
+            HomeVariants::Other(home) => home.update(update).await,
         }
     }
 
@@ -385,9 +409,9 @@ impl Common for Homes {
         double: &DoubleUpdate,
     ) -> Result<TxOutcome, ChainCommunicationError> {
         match self {
-            Homes::Ethereum(home) => home.double_update(double).await,
-            Homes::Mock(mock_home) => mock_home.double_update(double).await,
-            Homes::Other(home) => home.double_update(double).await,
+            HomeVariants::Ethereum(home) => home.double_update(double).await,
+            HomeVariants::Mock(mock_home) => mock_home.double_update(double).await,
+            HomeVariants::Other(home) => home.double_update(double).await,
         }
     }
 }
