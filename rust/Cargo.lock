@@ -2545,9 +2545,11 @@ dependencies = [
  "rocksdb",
  "serde 1.0.130",
  "serde_json",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-futures",
+ "url",
 ]
 
 [[package]]

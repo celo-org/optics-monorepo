@@ -8,11 +8,13 @@ use color_eyre::eyre::Result;
 use ethers::prelude::*;
 use num::Num;
 use optics_core::*;
-use std::convert::TryFrom;
 use std::sync::Arc;
 
 #[macro_use]
 mod macros;
+
+/// Retrying Provider
+pub mod retrying;
 
 /// Home abi
 #[cfg(not(doctest))]
