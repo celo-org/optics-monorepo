@@ -217,6 +217,15 @@ impl OpticsDB {
             None => self.store_latest_root(update.update.new_root)?,
         }
 
+        self.store_update(update)
+    }
+
+    /// Store an update.
+    ///
+    /// Keys --> Values:
+    /// - `new_root` --> `prev_root`
+    /// - `prev_root` --> `update`
+    pub fn store_update(&self, update: &SignedUpdate) -> Result<(), DbError> {
         self.store_keyed_encodable(UPDATE, &update.update.previous_root, update)?;
         self.store_keyed_encodable(
             PREV_ROOT,

@@ -230,9 +230,7 @@ impl UpdateHandler {
                     "UpdateHandler storing new update from root {} to {}. Update: {:?}.",
                     &update.update.previous_root, &update.update.new_root, &update
                 );
-                self.watcher_db
-                    .store_latest_update(update)
-                    .expect("!db_put");
+                self.watcher_db.store_update(update).expect("!db_put");
             }
         }
 
