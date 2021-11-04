@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import Logger from 'bunyan';
 import { MetricCollector } from './metrics';
 
-dotenv.config();
+dotenv.config({path: process.env.CONFIG_PATH ?? '.env'});
 
 const environment = process.env.ENVIRONMENT ?? 'development'
 

@@ -1,0 +1,1 @@
+docker push gcr.io/clabs-optics/optics-monitor:$1

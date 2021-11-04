@@ -1,5 +1,5 @@
 apiVersion: v2
-name: keymaster
+name: optics-monitor
 description: A tool that queries metrics about Ethereum accounts
 
 # A chart can be either an 'application' or a 'library' chart.

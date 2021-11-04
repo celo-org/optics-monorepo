@@ -32,6 +32,9 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+        env: 
+          - name: CONFIG_PATH
+            value: /code/config/.env
         ports: 
         - name: metrics
           containerPort: 9090

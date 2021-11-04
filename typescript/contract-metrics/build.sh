@@ -1,0 +1,1 @@
+docker build --platform amd64 -t gcr.io/clabs-optics/optics-monitor:$1 . 
