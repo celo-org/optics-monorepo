@@ -237,6 +237,10 @@ impl UpdateHandler {
         Ok(())
     }
 
+    /// Receive updates and check them for fraud. If double update was
+    /// found, return Ok(double_update). This loop should never exit naturally
+    /// unless the channel for sending new updates was closed, in which case we
+    /// return an error.
     #[tracing::instrument]
     fn spawn(mut self) -> JoinHandle<Result<DoubleUpdate>> {
         tokio::spawn(async move {
@@ -398,7 +402,8 @@ impl Watcher {
                 .spawn()
                 .in_current_span();
 
-            // Wait for update handler to encounter error OR fraud
+            // Wait for update handler to finish (should only happen watcher is 
+            // manually shut down)
             let double_update_res = handler.await?;
 
             // Cancel running tasks
@@ -406,12 +411,13 @@ impl Watcher {
             cancel_task!(home_watcher);
             cancel_task!(home_sync);
 
-            // If double update found, send through oneshot
-            if let Ok(double) = double_update_res {
-                error!("Double update found! Sending through through double update tx! Double update: {:?}.", &double);
-                if let Err(e) = double_update_tx.send(double) {
-                    bail!("Failed to send double update through oneshot: {:?}", e);
-                }
+            // If update receiver channel was closed we will error out. The only
+            // reason we pass this point is that we successfully found double 
+            // update.
+            let double_update = double_update_res?;
+            error!("Double update found! Sending through through double update tx! Double update: {:?}.", &double_update);
+            if let Err(e) = double_update_tx.send(double_update) {
+                bail!("Failed to send double update through oneshot: {:?}", e);
             }
 
             Ok(())
