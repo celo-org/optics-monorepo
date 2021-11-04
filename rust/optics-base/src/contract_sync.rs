@@ -62,9 +62,7 @@ where
         last_update: &Option<LatestUpdate>,
         sorted_updates: &[SignedUpdateWithMeta],
     ) -> bool {
-        if sorted_updates.is_empty() {
-            return true;
-        }
+        assert!(!sorted_updates.is_empty());
 
         // If we have seen another update in a previous block range, ensure
         // first update in new batch builds off last seen update
@@ -146,25 +144,29 @@ where
 
                 let sorted_updates = indexer.fetch_sorted_updates(next_height, to).await?;
 
+                // If no updates, move on to next block range
                 if !sorted_updates.is_empty() {
-                    // If message chain missing updates(s), restart indexing at
-                    // height of last seen updates. If we have not seen any
-                    // previous updates, start at original from_height
-                    if !Self::updates_valid(&last_update, &sorted_updates) {
+                    if Self::updates_valid(&last_update, &sorted_updates) {
+                        // If valid updates, store in db and note last seen
+                        // update
+                        Self::store_updates(db.clone(), &sorted_updates)?;
+
+                        last_update = Some(LatestUpdate {
+                            new_root: sorted_updates.last().unwrap().signed_update.update.new_root,
+                            block_range_start: next_height,
+                        });
+                        db.store_encodable("", LAST_UPDATE, last_update.as_ref().unwrap())?;
+                    } else {
+                        // If message chain missing updates(s), restart
+                        // indexing at height of last seen updates. If we have
+                        // not seen any previous updates, start at original
+                        // from_height
                         next_height = match &last_update {
                             Some(last) => last.block_range_start,
                             None => from_height,
                         };
                         continue;
                     }
-
-                    Self::store_updates(db.clone(), &sorted_updates)?;
-
-                    last_update = Some(LatestUpdate {
-                        new_root: sorted_updates.last().unwrap().signed_update.update.new_root,
-                        block_range_start: next_height,
-                    });
-                    db.store_encodable("", LAST_UPDATE, last_update.as_ref().unwrap())?;
                 }
 
                 db.store_encodable("", UPDATES_LAST_BLOCK_START, &next_height)?;
@@ -188,9 +190,7 @@ where
         last_message: &Option<LatestMessage>,
         sorted_messages: &[RawCommittedMessage],
     ) -> bool {
-        if sorted_messages.is_empty() {
-            return true;
-        }
+        assert!(!sorted_messages.is_empty());
 
         // If we have seen another leaf in a previous block range, ensure
         // first leaf in new batch is the consecutive next leaf
@@ -270,25 +270,29 @@ where
 
                 let sorted_messages = indexer.fetch_sorted_messages(next_height, to).await?;
 
+                // If no messages, move on to next block range
                 if !sorted_messages.is_empty() {
-                    // If message chain missing message(s), restart indexing at
-                    // height of last seen message. If we have not seen any
-                    // previous messages, start at original from_height
-                    if !Self::messages_valid(&last_message, &sorted_messages) {
+                    if Self::messages_valid(&last_message, &sorted_messages) {
+                        // If valid messages, store in db and note last seen
+                        // messages
+                        Self::store_messages(db.clone(), &sorted_messages)?;
+
+                        last_message = Some(LatestMessage {
+                            leaf_index: sorted_messages.last().unwrap().leaf_index,
+                            block_range_start: next_height,
+                        });
+                        db.store_encodable("", LAST_MESSAGE, last_message.as_ref().unwrap())?;
+                    } else {
+                        // If message chain missing message(s), restart
+                        // indexing at height of last seen message. If we have
+                        // not seen any previous messages, start at original
+                        // from_height
                         next_height = match &last_message {
                             Some(last) => last.block_range_start,
                             None => from_height,
                         };
                         continue;
                     }
-
-                    Self::store_messages(db.clone(), &sorted_messages)?;
-
-                    last_message = Some(LatestMessage {
-                        leaf_index: sorted_messages.last().unwrap().leaf_index,
-                        block_range_start: next_height,
-                    });
-                    db.store_encodable("", LAST_MESSAGE, last_message.as_ref().unwrap())?;
                 }
 
                 db.store_encodable("", MESSAGES_LAST_BLOCK_START, &next_height)?;
