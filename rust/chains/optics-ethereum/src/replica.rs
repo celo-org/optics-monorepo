@@ -78,7 +78,7 @@ where
     }
 
     #[instrument(err, skip(self))]
-    async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
+    async fn fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         let mut events = self
             .contract
             .update_filter()

@@ -87,7 +87,7 @@ where
                     to
                 );
 
-                let sorted_updates = indexer.fetch_updates(next_height, to).await?;
+                let sorted_updates = indexer.fetch_sorted_updates(next_height, to).await?;
 
                 for update_with_meta in sorted_updates {
                     db
@@ -158,7 +158,7 @@ where
                     to
                 );
 
-                let messages = indexer.fetch_messages(next_height, to).await?;
+                let messages = indexer.fetch_sorted_messages(next_height, to).await?;
 
                 for message in messages {
                     db.store_raw_committed_message(&message)?;

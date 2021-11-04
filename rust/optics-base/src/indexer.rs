@@ -30,11 +30,11 @@ impl CommonIndexer for CommonIndexers {
         }
     }
 
-    async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
+    async fn fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         match self {
-            CommonIndexers::Ethereum(indexer) => indexer.fetch_updates(from, to).await,
-            CommonIndexers::Mock(indexer) => indexer.fetch_updates(from, to).await,
-            CommonIndexers::Other(indexer) => indexer.fetch_updates(from, to).await,
+            CommonIndexers::Ethereum(indexer) => indexer.fetch_sorted_updates(from, to).await,
+            CommonIndexers::Mock(indexer) => indexer.fetch_sorted_updates(from, to).await,
+            CommonIndexers::Other(indexer) => indexer.fetch_sorted_updates(from, to).await,
         }
     }
 }
@@ -66,22 +66,22 @@ impl CommonIndexer for HomeIndexers {
         }
     }
 
-    async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
+    async fn fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         match self {
-            HomeIndexers::Ethereum(indexer) => indexer.fetch_updates(from, to).await,
-            HomeIndexers::Mock(indexer) => indexer.fetch_updates(from, to).await,
-            HomeIndexers::Other(indexer) => indexer.fetch_updates(from, to).await,
+            HomeIndexers::Ethereum(indexer) => indexer.fetch_sorted_updates(from, to).await,
+            HomeIndexers::Mock(indexer) => indexer.fetch_sorted_updates(from, to).await,
+            HomeIndexers::Other(indexer) => indexer.fetch_sorted_updates(from, to).await,
         }
     }
 }
 
 #[async_trait]
 impl HomeIndexer for HomeIndexers {
-    async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
+    async fn fetch_sorted_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
         match self {
-            HomeIndexers::Ethereum(indexer) => indexer.fetch_messages(from, to).await,
-            HomeIndexers::Mock(indexer) => indexer.fetch_messages(from, to).await,
-            HomeIndexers::Other(indexer) => indexer.fetch_messages(from, to).await,
+            HomeIndexers::Ethereum(indexer) => indexer.fetch_sorted_messages(from, to).await,
+            HomeIndexers::Mock(indexer) => indexer.fetch_sorted_messages(from, to).await,
+            HomeIndexers::Other(indexer) => indexer.fetch_sorted_messages(from, to).await,
         }
     }
 }

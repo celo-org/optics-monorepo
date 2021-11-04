@@ -10,9 +10,9 @@ mock! {
     pub Indexer {
         pub fn _get_block_number(&self) -> Result<u32> {}
 
-        pub fn _fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {}
+        pub fn _fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {}
 
-        pub fn _fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {}
+        pub fn _fetch_sorted_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {}
     }
 }
 
@@ -28,14 +28,14 @@ impl CommonIndexer for MockIndexer {
         self._get_block_number()
     }
 
-    async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
-        self._fetch_updates(from, to)
+    async fn fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
+        self._fetch_sorted_updates(from, to)
     }
 }
 
 #[async_trait]
 impl HomeIndexer for MockIndexer {
-    async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
-        self._fetch_messages(from, to)
+    async fn fetch_sorted_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
+        self._fetch_sorted_messages(from, to)
     }
 }

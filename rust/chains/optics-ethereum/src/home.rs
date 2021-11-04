@@ -76,7 +76,7 @@ where
     }
 
     #[instrument(err, skip(self))]
-    async fn fetch_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
+    async fn fetch_sorted_updates(&self, from: u32, to: u32) -> Result<Vec<SignedUpdateWithMeta>> {
         let mut events = self
             .contract
             .update_filter()
@@ -123,14 +123,16 @@ where
     M: ethers::providers::Middleware + 'static,
 {
     #[instrument(err, skip(self))]
-    async fn fetch_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
-        let events = self
+    async fn fetch_sorted_messages(&self, from: u32, to: u32) -> Result<Vec<RawCommittedMessage>> {
+        let mut events = self
             .contract
             .dispatch_filter()
             .from_block(from)
             .to_block(to)
             .query()
             .await?;
+
+        events.sort_by(|a, b| a.leaf_index.cmp(&b.leaf_index));
 
         Ok(events
             .into_iter()
