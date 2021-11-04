@@ -94,6 +94,42 @@ impl Update {
     }
 }
 
+/// Latest update stored by an contract sync
+#[derive(Debug)]
+pub struct LatestUpdate {
+    /// Last seen update
+    pub new_root: H256,
+    /// Block range start of last seen message
+    pub block_range_start: u32,
+}
+
+impl Encode for LatestUpdate {
+    fn write_to<W>(&self, writer: &mut W) -> std::io::Result<usize>
+    where
+        W: std::io::Write,
+    {
+        let mut written = 0;
+        written += self.new_root.write_to(writer)?;
+        written += self.block_range_start.write_to(writer)?;
+        Ok(written)
+    }
+}
+
+impl Decode for LatestUpdate {
+    fn read_from<R>(reader: &mut R) -> Result<Self, OpticsError>
+    where
+        R: std::io::Read,
+        Self: Sized,
+    {
+        let new_root = H256::read_from(reader)?;
+        let block_range_start = u32::read_from(reader)?;
+        Ok(Self {
+            new_root,
+            block_range_start,
+        })
+    }
+}
+
 /// Metadata stored about an update
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UpdateMeta {

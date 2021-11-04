@@ -1,5 +1,9 @@
+use color_eyre::Result;
 use optics_core::db::OpticsDB;
-use optics_core::{CommittedMessage, CommonIndexer, HomeIndexer};
+use optics_core::{
+    CommittedMessage, CommonIndexer, HomeIndexer, LatestMessage, LatestUpdate, RawCommittedMessage,
+    SignedUpdateWithMeta,
+};
 
 use tokio::time::sleep;
 use tracing::{info, info_span};
@@ -10,8 +14,11 @@ use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
-static UPDATES_LAST_INSPECTED: &str = "updates_last_inspected";
-static MESSAGES_LAST_INSPECTED: &str = "messages_last_inspected";
+static UPDATES_LAST_BLOCK_START: &str = "updates_last_block";
+static MESSAGES_LAST_BLOCK_START: &str = "messages_last_block";
+
+static LAST_UPDATE: &str = "last_update";
+static LAST_MESSAGE: &str = "last_message";
 
 /// Entity that drives the syncing of an agent's db with on-chain data.
 /// Extracts chain-specific data (emitted updates, messages, etc) from an
@@ -51,6 +58,50 @@ where
         }
     }
 
+    fn updates_valid(
+        last_update: &Option<LatestUpdate>,
+        sorted_updates: &[SignedUpdateWithMeta],
+    ) -> bool {
+        assert!(!sorted_updates.is_empty());
+
+        // If we have seen another update in a previous block range, ensure
+        // first update in new batch builds off last seen update
+        if let Some(last_seen) = last_update {
+            let first_update = sorted_updates.first().unwrap();
+            if last_seen.new_root != first_update.signed_update.update.previous_root {
+                return false;
+            }
+        }
+
+        // Ensure no gaps in new batch of leaves
+        for pair in sorted_updates.windows(2) {
+            if pair[0].signed_update.update.new_root != pair[1].signed_update.update.previous_root {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn store_updates(db: OpticsDB, sorted_updates: &[SignedUpdateWithMeta]) -> Result<()> {
+        for update_with_meta in sorted_updates {
+            db.store_latest_update(&update_with_meta.signed_update)?;
+            db.store_update_metadata(
+                update_with_meta.signed_update.update.new_root,
+                update_with_meta.metadata,
+            )?;
+
+            info!(
+                "Stored new update in db. Block number: {}. Previous root: {}. New root: {}.",
+                &update_with_meta.metadata.block_number,
+                &update_with_meta.signed_update.update.previous_root,
+                &update_with_meta.signed_update.update.new_root,
+            );
+        }
+
+        Ok(())
+    }
+
     /// Spawn task that continuously looks for new on-chain updates and stores
     /// them in db
     pub fn sync_updates(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
@@ -65,12 +116,16 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = db
-                .retrieve_decodable("", UPDATES_LAST_INSPECTED)
+                .retrieve_decodable("", UPDATES_LAST_BLOCK_START)
                 .expect("db failure")
                 .unwrap_or(from_height);
+
+            let mut last_update: Option<LatestUpdate> =
+                db.retrieve_decodable("", LAST_UPDATE).expect("db failure");
+
             info!(
                 next_height = next_height,
-                "resuming indexer from {}", next_height
+                "resuming update indexer from {}", next_height
             );
 
             loop {
@@ -89,24 +144,33 @@ where
 
                 let sorted_updates = indexer.fetch_sorted_updates(next_height, to).await?;
 
-                for update_with_meta in sorted_updates {
-                    db
-                        .store_latest_update(&update_with_meta.signed_update)?;
-                    db.store_update_metadata(
-                        update_with_meta.signed_update.update.new_root,
-                        update_with_meta.metadata,
-                    )?;
+                // If no updates, move on to next block range
+                if !sorted_updates.is_empty() {
+                    if Self::updates_valid(&last_update, &sorted_updates) {
+                        // If valid updates, store in db and note last seen
+                        // update
+                        Self::store_updates(db.clone(), &sorted_updates)?;
 
-                    info!(
-                        "Stored new update in db. Block number: {}. Previous root: {}. New root: {}.",
-                        &update_with_meta.metadata.block_number,
-                        &update_with_meta.signed_update.update.previous_root,
-                        &update_with_meta.signed_update.update.new_root,
-                    );
+                        last_update = Some(LatestUpdate {
+                            new_root: sorted_updates.last().unwrap().signed_update.update.new_root,
+                            block_range_start: next_height,
+                        });
+                        db.store_encodable("", LAST_UPDATE, last_update.as_ref().unwrap())?;
+                    } else {
+                        // If message chain missing updates(s), restart
+                        // indexing at height of last seen updates. If we have
+                        // not seen any previous updates, start at original
+                        // from_height
+                        next_height = match &last_update {
+                            Some(last) => last.block_range_start,
+                            None => from_height,
+                        };
+                        continue;
+                    }
                 }
 
-                db
-                    .store_encodable("", UPDATES_LAST_INSPECTED, &next_height)?;
+                db.store_encodable("", UPDATES_LAST_BLOCK_START, &next_height)?;
+
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
@@ -122,6 +186,48 @@ impl<I> ContractSync<I>
 where
     I: HomeIndexer + 'static,
 {
+    fn messages_valid(
+        last_message: &Option<LatestMessage>,
+        sorted_messages: &[RawCommittedMessage],
+    ) -> bool {
+        assert!(!sorted_messages.is_empty());
+
+        // If we have seen another leaf in a previous block range, ensure
+        // first leaf in new batch is the consecutive next leaf
+        if let Some(last_seen) = last_message {
+            let first_message = sorted_messages.first().unwrap();
+            if last_seen.leaf_index != first_message.leaf_index - 1 {
+                return false;
+            }
+        }
+
+        // Ensure no gaps in new batch of leaves
+        for pair in sorted_messages.windows(2) {
+            if pair[0].leaf_index != pair[1].leaf_index - 1 {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn store_messages(db: OpticsDB, messages: &[RawCommittedMessage]) -> Result<()> {
+        for message in messages {
+            db.store_raw_committed_message(message)?;
+
+            let committed_message: CommittedMessage = message.clone().try_into()?;
+            info!(
+                "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
+                &committed_message.leaf_index,
+                &committed_message.message.origin,
+                &committed_message.message.destination,
+                &committed_message.message.nonce
+            );
+        }
+
+        Ok(())
+    }
+
     /// Spawn task that continuously looks for new on-chain messages and stores
     /// them in db
     pub fn sync_messages(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
@@ -136,12 +242,16 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = db
-                .retrieve_decodable("", MESSAGES_LAST_INSPECTED)
+                .retrieve_decodable("", MESSAGES_LAST_BLOCK_START)
                 .expect("db failure")
                 .unwrap_or(from_height);
+
+            let mut last_message: Option<LatestMessage> =
+                db.retrieve_decodable("", LAST_MESSAGE).expect("db failure");
+
             info!(
                 next_height = next_height,
-                "resuming indexer from {}", next_height
+                "resuming message indexer from {}", next_height
             );
 
             loop {
@@ -158,23 +268,35 @@ where
                     to
                 );
 
-                let messages = indexer.fetch_sorted_messages(next_height, to).await?;
+                let sorted_messages = indexer.fetch_sorted_messages(next_height, to).await?;
 
-                for message in messages {
-                    db.store_raw_committed_message(&message)?;
+                // If no messages, move on to next block range
+                if !sorted_messages.is_empty() {
+                    if Self::messages_valid(&last_message, &sorted_messages) {
+                        // If valid messages, store in db and note last seen
+                        // messages
+                        Self::store_messages(db.clone(), &sorted_messages)?;
 
-                    let committed_message: CommittedMessage = message.try_into()?;
-                    info!(
-                        "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
-                        &committed_message.leaf_index,
-                        &committed_message.message.origin,
-                        &committed_message.message.destination,
-                        &committed_message.message.nonce
-                    );
+                        last_message = Some(LatestMessage {
+                            leaf_index: sorted_messages.last().unwrap().leaf_index,
+                            block_range_start: next_height,
+                        });
+                        db.store_encodable("", LAST_MESSAGE, last_message.as_ref().unwrap())?;
+                    } else {
+                        // If message chain missing message(s), restart
+                        // indexing at height of last seen message. If we have
+                        // not seen any previous messages, start at original
+                        // from_height
+                        next_height = match &last_message {
+                            Some(last) => last.block_range_start,
+                            None => from_height,
+                        };
+                        continue;
+                    }
                 }
 
-                db
-                    .store_encodable("", MESSAGES_LAST_INSPECTED, &next_height)?;
+                db.store_encodable("", MESSAGES_LAST_BLOCK_START, &next_height)?;
+
                 next_height = to;
                 // sleep here if we've caught up
                 if to == tip {
