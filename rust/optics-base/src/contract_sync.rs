@@ -1,12 +1,11 @@
 use color_eyre::Result;
 use optics_core::db::OpticsDB;
 use optics_core::{
-    CommittedMessage, Indexer, LatestMessage, LatestUpdate, RawCommittedMessage,
+    CommittedMessage, CommonIndexer, HomeIndexer, LatestMessage, LatestUpdate, RawCommittedMessage,
     SignedUpdateWithMeta,
 };
 
-use futures_util::future::select_all;
-use tokio::{task::JoinHandle, time::sleep};
+use tokio::time::sleep;
 use tracing::{info, info_span};
 use tracing::{instrument::Instrumented, Instrument};
 
@@ -15,8 +14,8 @@ use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
-static UPDATES_LAST_INSPECTED: &str = "updates_last_inspected";
-static MESSAGES_LAST_INSPECTED: &str = "messages_last_inspected";
+static UPDATES_LAST_BLOCK_START: &str = "updates_last_block";
+static MESSAGES_LAST_BLOCK_START: &str = "messages_last_block";
 
 static LAST_UPDATE: &str = "last_update";
 static LAST_MESSAGE: &str = "last_message";
@@ -34,8 +33,6 @@ pub struct ContractSync<I> {
     from_height: u32,
     chunk_size: u32,
     indexed_height: prometheus::IntGauge,
-    last_update: Option<LatestUpdate>,
-    last_message: Option<LatestMessage>,
 }
 
 impl<I> ContractSync<I>
@@ -58,23 +55,34 @@ where
             from_height,
             chunk_size,
             indexed_height,
-            last_update: None,
-            last_message: None,
         }
     }
 
     fn updates_valid(
-        _last_update: &Option<LatestUpdate>,
-        _sorted_updates: &[SignedUpdateWithMeta],
-    ) -> Result<bool> {
-        Ok(true)
-    }
+        last_update: &Option<LatestUpdate>,
+        sorted_updates: &[SignedUpdateWithMeta],
+    ) -> bool {
+        if sorted_updates.is_empty() {
+            return true;
+        }
 
-    fn messages_valid(
-        _last_message: &Option<LatestMessage>,
-        _sorted_messages: &[RawCommittedMessage],
-    ) -> Result<bool> {
-        Ok(true)
+        // If we have seen another update in a previous block range, ensure
+        // first update in new batch builds off last seen update
+        if let Some(last_seen) = last_update {
+            let first_update = sorted_updates.first().unwrap();
+            if last_seen.new_root != first_update.signed_update.update.previous_root {
+                return false;
+            }
+        }
+
+        // Ensure no gaps in new batch of leaves
+        for pair in sorted_updates.windows(2) {
+            if pair[0].signed_update.update.new_root != pair[1].signed_update.update.previous_root {
+                return false;
+            }
+        }
+
+        true
     }
 
     fn store_updates(db: OpticsDB, sorted_updates: &[SignedUpdateWithMeta]) -> Result<()> {
@@ -96,23 +104,6 @@ where
         Ok(())
     }
 
-    fn store_messages(db: OpticsDB, messages: &[RawCommittedMessage]) -> Result<()> {
-        for message in messages {
-            db.store_raw_committed_message(message)?;
-
-            let committed_message: CommittedMessage = message.clone().try_into()?;
-            info!(
-                "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
-                &committed_message.leaf_index,
-                &committed_message.message.origin,
-                &committed_message.message.destination,
-                &committed_message.message.nonce
-            );
-        }
-
-        Ok(())
-    }
-
     /// Spawn task that continuously looks for new on-chain updates and stores
     /// them in db
     pub fn sync_updates(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
@@ -127,7 +118,7 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = db
-                .retrieve_decodable("", UPDATES_LAST_INSPECTED)
+                .retrieve_decodable("", UPDATES_LAST_BLOCK_START)
                 .expect("db failure")
                 .unwrap_or(from_height);
 
@@ -153,12 +144,13 @@ where
                     to
                 );
 
-                let sorted_updates = indexer.fetch_updates(next_height, to).await?;
+                let sorted_updates = indexer.fetch_sorted_updates(next_height, to).await?;
 
                 if !sorted_updates.is_empty() {
-                    // If update chain missing update(s), restart indexing at
-                    // last height of last seen update
-                    if !Self::updates_valid(&last_update, &sorted_updates)? {
+                    // If message chain missing updates(s), restart indexing at
+                    // height of last seen updates. If we have not seen any
+                    // previous updates, start at original from_height
+                    if !Self::updates_valid(&last_update, &sorted_updates) {
                         next_height = match &last_update {
                             Some(last) => last.block_range_start,
                             None => from_height,
@@ -169,13 +161,13 @@ where
                     Self::store_updates(db.clone(), &sorted_updates)?;
 
                     last_update = Some(LatestUpdate {
-                        update: sorted_updates.last().unwrap().signed_update.update,
+                        new_root: sorted_updates.last().unwrap().signed_update.update.new_root,
                         block_range_start: next_height,
                     });
                     db.store_encodable("", LAST_UPDATE, last_update.as_ref().unwrap())?;
                 }
 
-                db.store_encodable("", UPDATES_LAST_INSPECTED, &next_height)?;
+                db.store_encodable("", UPDATES_LAST_BLOCK_START, &next_height)?;
 
                 next_height = to;
                 // sleep here if we've caught up
@@ -192,6 +184,50 @@ impl<I> ContractSync<I>
 where
     I: HomeIndexer + 'static,
 {
+    fn messages_valid(
+        last_message: &Option<LatestMessage>,
+        sorted_messages: &[RawCommittedMessage],
+    ) -> bool {
+        if sorted_messages.is_empty() {
+            return true;
+        }
+
+        // If we have seen another leaf in a previous block range, ensure
+        // first leaf in new batch is the consecutive next leaf
+        if let Some(last_seen) = last_message {
+            let first_message = sorted_messages.first().unwrap();
+            if last_seen.leaf_index != first_message.leaf_index - 1 {
+                return false;
+            }
+        }
+
+        // Ensure no gaps in new batch of leaves
+        for pair in sorted_messages.windows(2) {
+            if pair[0].leaf_index != pair[1].leaf_index - 1 {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn store_messages(db: OpticsDB, messages: &[RawCommittedMessage]) -> Result<()> {
+        for message in messages {
+            db.store_raw_committed_message(message)?;
+
+            let committed_message: CommittedMessage = message.clone().try_into()?;
+            info!(
+                "Stored new message in db. Leaf index: {}. Origin: {}. Destination: {}. Nonce: {}.",
+                &committed_message.leaf_index,
+                &committed_message.message.origin,
+                &committed_message.message.destination,
+                &committed_message.message.nonce
+            );
+        }
+
+        Ok(())
+    }
+
     /// Spawn task that continuously looks for new on-chain messages and stores
     /// them in db
     pub fn sync_messages(&self) -> Instrumented<tokio::task::JoinHandle<color_eyre::Result<()>>> {
@@ -206,7 +242,7 @@ where
 
         tokio::spawn(async move {
             let mut next_height: u32 = db
-                .retrieve_decodable("", MESSAGES_LAST_INSPECTED)
+                .retrieve_decodable("", MESSAGES_LAST_BLOCK_START)
                 .expect("db failure")
                 .unwrap_or(from_height);
 
@@ -232,12 +268,13 @@ where
                     to
                 );
 
-                let sorted_messages = indexer.fetch_messages(next_height, to).await?;
+                let sorted_messages = indexer.fetch_sorted_messages(next_height, to).await?;
 
                 if !sorted_messages.is_empty() {
                     // If message chain missing message(s), restart indexing at
-                    // last height of last seen message
-                    if !Self::messages_valid(&last_message, &sorted_messages)? {
+                    // height of last seen message. If we have not seen any
+                    // previous messages, start at original from_height
+                    if !Self::messages_valid(&last_message, &sorted_messages) {
                         next_height = match &last_message {
                             Some(last) => last.block_range_start,
                             None => from_height,
@@ -254,7 +291,7 @@ where
                     db.store_encodable("", LAST_MESSAGE, last_message.as_ref().unwrap())?;
                 }
 
-                db.store_encodable("", MESSAGES_LAST_INSPECTED, &next_height)?;
+                db.store_encodable("", MESSAGES_LAST_BLOCK_START, &next_height)?;
 
                 next_height = to;
                 // sleep here if we've caught up
@@ -262,24 +299,6 @@ where
                     sleep(Duration::from_secs(100)).await;
                 }
             }
-        })
-        .in_current_span()
-    }
-
-    /// Spawn task that continuously indexes the contract's chain and stores
-    /// messages and updates in the agent's db
-    pub fn spawn(self) -> Instrumented<JoinHandle<Result<()>>> {
-        let span = info_span!("ContractSync");
-
-        tokio::spawn(async move {
-            let sync_tasks = vec![self.index_updates(), self.index_messages()];
-
-            let (_, _, remaining) = select_all(sync_tasks).await;
-            for task in remaining.into_iter() {
-                cancel_task!(task);
-            }
-
-            Ok(())
         })
         .instrument(span)
     }

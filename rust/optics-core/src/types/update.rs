@@ -98,7 +98,7 @@ impl Update {
 #[derive(Debug)]
 pub struct LatestUpdate {
     /// Last seen update
-    pub update: Update,
+    pub new_root: H256,
     /// Block range start of last seen message
     pub block_range_start: u32,
 }
@@ -109,7 +109,7 @@ impl Encode for LatestUpdate {
         W: std::io::Write,
     {
         let mut written = 0;
-        written += self.update.write_to(writer)?;
+        written += self.new_root.write_to(writer)?;
         written += self.block_range_start.write_to(writer)?;
         Ok(written)
     }
@@ -121,10 +121,10 @@ impl Decode for LatestUpdate {
         R: std::io::Read,
         Self: Sized,
     {
-        let update = Update::read_from(reader)?;
+        let new_root = H256::read_from(reader)?;
         let block_range_start = u32::read_from(reader)?;
         Ok(Self {
-            update,
+            new_root,
             block_range_start,
         })
     }
