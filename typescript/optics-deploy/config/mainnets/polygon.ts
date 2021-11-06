@@ -7,7 +7,7 @@ dotenv.config();
 
 const rpc = process.env.POLYGON_RPC;
 if (!rpc) {
-  throw new Error('Missing RPC URI');
+  throw new Error('Missing RPC URI for Polygon');
 }
 
 export const chainJson: ChainJson = {

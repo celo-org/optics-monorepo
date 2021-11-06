@@ -1,7 +1,8 @@
-import { Chain, ChainJson, CoreContractAddresses, toChain } from '../chain';
-import { BridgeContracts } from './BridgeContracts';
-import { parseFileFromDeploy } from '../verification/readDeployOutput';
+import {Chain, ChainJson, CoreContractAddresses, toChain} from '../chain';
+import {BridgeContractAddresses, BridgeContracts} from './BridgeContracts';
+import {getPathToLatestConfig, parseFileFromDeploy} from '../verification/readDeployOutput';
 import { Deploy } from '../deploy';
+import fs from "fs";
 
 export type BridgeConfig = {
   weth?: string;
@@ -40,5 +41,20 @@ export class BridgeDeploy extends Deploy<BridgeContracts> {
     coreDeployPath: string,
   ): BridgeDeploy {
     return new BridgeDeploy(toChain(config), {}, coreDeployPath);
+  }
+}
+
+export class ExistingBridgeDeploy extends BridgeDeploy {
+  constructor(
+      chain: Chain,
+      config: BridgeConfig,
+      coreDeployPath: string,
+      test: boolean = false,
+      coreContracts?: CoreContractAddresses
+  ) {
+    super(chain, config, coreDeployPath, test, coreContracts);
+    const bridgeConfigPath = getPathToLatestConfig(`${coreDeployPath}/bridge`);
+    const addresses: BridgeContractAddresses = JSON.parse(fs.readFileSync(`${bridgeConfigPath}/${chain.name}_contracts.json`) as any as string);
+    this.contracts = BridgeContracts.fromAddresses(addresses, chain.provider);
   }
 }

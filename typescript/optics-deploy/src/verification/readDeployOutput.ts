@@ -60,7 +60,7 @@ export function getPathToLatestDeployConfig() {
  * @param ignoreFolders names of folders to exclude within configPath
  * @return path to folder
  * */
-function getPathToLatestConfig(
+export function getPathToLatestConfig(
   configPath: string,
   ignoreFolders = ['development', 'staging', 'mainnet', 'default'],
 ) {
