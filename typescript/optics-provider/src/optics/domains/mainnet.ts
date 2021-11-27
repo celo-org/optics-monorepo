@@ -1,5 +1,4 @@
 import { OpticsDomain } from './domain';
-import { OpticsDomain } from './domain';
 
 export const ethereum: OpticsDomain = {
   name: 'ethereum',
