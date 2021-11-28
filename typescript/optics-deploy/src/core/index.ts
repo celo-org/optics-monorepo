@@ -143,7 +143,7 @@ export async function deployGovernanceRouter(deploy: CoreDeploy) {
 
   let { xAppConnectionManager } = deploy.contracts;
   const recoveryManager = deploy.config.recoveryManager;
-  const recoveryTimelock = 1;
+  const recoveryTimelock = deploy.config.recoveryTimelock;
 
   let initData = governanceRouter
     .createInterface()
@@ -569,12 +569,10 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   ]);
   log(isTestDeploy, 'done readying');
 
-  // deploy optics on each chain
-  await Promise.all(
-    deploys.map(async (deploy) => {
-      await deployOptics(deploy);
-    }),
-  );
+  // Do it sequentially
+  for (const deploy of deploys) {
+    await deployOptics(deploy)
+  }
 
   // enroll remotes on every chain
   //
@@ -613,6 +611,11 @@ export async function deployNChains(deploys: CoreDeploy[]) {
   // relinquish control of all chains
   await Promise.all(deploys.map(relinquish));
 
+  // write config outputs
+  if (!isTestDeploy) {
+    writeDeployOutput(deploys);
+  }
+
   // checks deploys are correct
   const govDomain = deploys[0].chain.domain;
   for (var i = 0; i < deploys.length; i++) {
@@ -625,7 +628,7 @@ export async function deployNChains(deploys: CoreDeploy[]) {
     await checkCoreDeploy(deploys[i], remoteDomains, govDomain);
   }
 
-  // write config outputs
+  // write config outputs again, should write under a different dir
   if (!isTestDeploy) {
     writeDeployOutput(deploys);
   }

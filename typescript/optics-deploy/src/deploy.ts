@@ -70,17 +70,27 @@ export abstract class Deploy<T extends Contracts> {
   }
 
   get supports1559(): boolean {
-    let notSupported = ['kovan', 'alfajores', 'baklava', 'celo'];
+    let notSupported = ['kovan', 'alfajores', 'baklava', 'celo', 'polygon'];
     return notSupported.indexOf(this.chain.name) === -1;
   }
 
   // this is currently a kludge to account for ethers issues
   get overrides(): ethers.Overrides {
-    let overrides: ethers.Overrides = {
-      type: 0,
-      gasPrice: this.chain.gasPrice,
-      gasLimit: this.chain.gasLimit,
-    };
+    let overrides: ethers.Overrides;
+
+    if (this.supports1559) {
+      overrides = {
+        maxFeePerGas: this.chain.maxFeePerGas,
+        maxPriorityFeePerGas: this.chain.maxPriorityFeePerGas,
+        gasLimit: this.chain.gasLimit,
+      };
+    } else {
+      overrides = {
+        type: 0,
+        gasPrice: this.chain.gasPrice,
+        gasLimit: this.chain.gasLimit,
+      };
+    }
 
     return overrides;
   }

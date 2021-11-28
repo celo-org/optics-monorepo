@@ -15,22 +15,23 @@ export const chainJson: ChainJson = {
   rpc,
   deployerKey: process.env.ETHEREUM_DEPLOYER_KEY,
   domain: 0x657468, // b'eth' interpreted as an int
-  gasPrice: '400000000000',
+  // This isn't actually used because Ethereum supports EIP 1559 - but just in case
+  gasPrice: '400000000000', // 400 gwei
+  // EIP 1559 params
+  maxFeePerGas: '400000000000', // 400 gwei
+  maxPriorityFeePerGas: '4000000000', // 4 gwei
 };
 
 export const chain = toChain(chainJson);
 
 export const config: CoreConfig = {
-  environment: 'prod',
-  updater: '0xDB2091535eb0Ee447Ce170DDC25204FEA822dd81',
-  recoveryTimelock: 60 * 60 * 24, // 1 day
-  recoveryManager: '0x3D9330014952Bf0A3863FEB7a657bfFA5C9D40B9',
-  optimisticSeconds: 60 * 60 * 3, // 3 hours
-  watchers: ['0xeE42B7757798cf495CDaA8eDb0CC237F07c60C81'],
-  governor: {
-    domain: chainJson.domain,
-    address: '0x5Fa96B622D1F4e920b92040c10fA297ca496ad37',
-  },
+  environment: 'prod-community',
+  updater: '0x5Ef6e0F6A7E1f866612D806041799a9D762b62c0',
+  recoveryTimelock: 60 * 60 * 24 * 14, // 14 days
+  recoveryManager: '0x2bb2a5a724170357cb691841f40d26a950d8c33d',
+  optimisticSeconds: 60 * 30, // 30 minutes
+  watchers: ['0xD0D09d9CF712ccE87141Dfa22a3aBBDb7B1c296e'],
+  // governor: {},
   processGas: 850_000,
   reserveGas: 15_000,
 };

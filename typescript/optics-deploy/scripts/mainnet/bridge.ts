@@ -3,6 +3,7 @@ import { deployBridges } from '../../src/bridge';
 import * as celo from '../../config/mainnets/celo';
 import * as ethereum from '../../config/mainnets/ethereum';
 import * as polygon from '../../config/mainnets/polygon';
+import * as avalanche from '../../config/mainnets/avalanche';
 import { BridgeDeploy } from '../../src/bridge/BridgeDeploy';
 
 // get the path to the latest core system deploy
@@ -20,5 +21,11 @@ const polygonDeploy = new BridgeDeploy(
   polygon.bridgeConfig,
   path,
 );
+const avalancheDeploy = new BridgeDeploy(
+  avalanche.chain,
+  avalanche.bridgeConfig,
+  path,
+);
 
-deployBridges([celoDeploy, ethereumDeploy, polygonDeploy]);
+
+deployBridges([celoDeploy, ethereumDeploy, polygonDeploy, avalancheDeploy]);

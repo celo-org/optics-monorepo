@@ -1,0 +1,33 @@
+{
+  "interval": "100",
+  "watcher": {
+    "key": "",
+    "type": "hexKey"
+  },
+  "connectionManagers": [
+    {
+      "address": "0x0000000000000000000000000000000000000000",
+      "domain": "60",
+      "name": "ethereum",
+      "rpcStyle": "ethereum",
+      "config": {
+        "connection": {
+          "type": "ws",
+          "url": "ws://localhost:8545"
+        }
+      }
+    },
+    {
+      "address": "0x0000000000000000000000000000000000000000",
+      "domain": "61",
+      "name": "eth-classic",
+      "rpcStyle": "ethereum",
+      "config": {
+        "connection": {
+          "type": "ws",
+          "url": "ws://localhost:8545"
+        }
+      }
+    }
+  ]
+}

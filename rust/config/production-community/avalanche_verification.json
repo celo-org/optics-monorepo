@@ -1,0 +1,112 @@
+[
+  {
+    "name": "UpgradeBeaconController",
+    "address": "0x916BD92cfdDE39B2c1726A81b620a9475437c704",
+    "constructorArguments": []
+  },
+  {
+    "name": "UpdaterManager",
+    "address": "0x4F50a7081792063693F46A6402390b9647562457",
+    "constructorArguments": [
+      "0x6e29236E86a039F8225834F7E7cd4122dc166e51"
+    ]
+  },
+  {
+    "name": "XAppConnectionManager",
+    "address": "0x81B97dfBB743c343983e9bE7B863dB636DbD7373",
+    "constructorArguments": []
+  },
+  {
+    "name": "Home Implementation",
+    "address": "0x8A926cE79f83A5A4C234BeE93feAFCC85b1E40cD",
+    "constructorArguments": [
+      1635148152
+    ]
+  },
+  {
+    "name": "Home UpgradeBeacon",
+    "address": "0xfc6E146384b5c65f372d5b20537F3e8727aD3723",
+    "constructorArguments": [
+      "0x8A926cE79f83A5A4C234BeE93feAFCC85b1E40cD",
+      "0x916BD92cfdDE39B2c1726A81b620a9475437c704"
+    ]
+  },
+  {
+    "name": "Home Proxy",
+    "address": "0x101a39eA1143cb252fc8093847399046fc35Db89",
+    "constructorArguments": [
+      "0xfc6E146384b5c65f372d5b20537F3e8727aD3723",
+      "0xc4d66de80000000000000000000000004f50a7081792063693f46a6402390b9647562457"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "Governance Implementation",
+    "address": "0x7360b3c893F6390bbb614358E2140b8090E0A29D",
+    "constructorArguments": [
+      1635148152,
+      1209600
+    ]
+  },
+  {
+    "name": "Governance UpgradeBeacon",
+    "address": "0xe552861e90a42ddDC66b508A18a85bCEAbFcB835",
+    "constructorArguments": [
+      "0x7360b3c893F6390bbb614358E2140b8090E0A29D",
+      "0x916BD92cfdDE39B2c1726A81b620a9475437c704"
+    ]
+  },
+  {
+    "name": "Governance Proxy",
+    "address": "0x4d89F34dB307015F8002F97c1d100d84e3AFb76c",
+    "constructorArguments": [
+      "0xe552861e90a42ddDC66b508A18a85bCEAbFcB835",
+      "0x485cc95500000000000000000000000081b97dfbb743c343983e9be7b863db636dbd73730000000000000000000000008a11d528d12ea09ccbf86e21b7813812b53a6900"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "Replica Implementation",
+    "address": "0xcbcF180dbd02460dCFCdD282A0985DdC049a4c94",
+    "constructorArguments": [
+      1635148152,
+      850000,
+      15000
+    ]
+  },
+  {
+    "name": "Replica UpgradeBeacon",
+    "address": "0xCBe8b8C4Fe6590BB59d1507dE7f252AF3E621E58",
+    "constructorArguments": [
+      "0xcbcF180dbd02460dCFCdD282A0985DdC049a4c94",
+      "0x916BD92cfdDE39B2c1726A81b620a9475437c704"
+    ]
+  },
+  {
+    "name": "Replica Proxy",
+    "address": "0xCf9066ee2fF063dD09862B745414c8dEa4Cc0497",
+    "constructorArguments": [
+      "0xCBe8b8C4Fe6590BB59d1507dE7f252AF3E621E58",
+      "0xe7e7a7b70000000000000000000000000000000000000000000000000000000063656c6f000000000000000000000000703643995262c92ab013e3cca810bdcb9239d45a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000708"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "Replica Proxy",
+    "address": "0x706DC810c79dAAFb82D304D7C9ff9518D8B43Fae",
+    "constructorArguments": [
+      "0xCBe8b8C4Fe6590BB59d1507dE7f252AF3E621E58",
+      "0xe7e7a7b700000000000000000000000000000000000000000000000000000000706f6c79000000000000000000000000bd8f71581478e67ce512f980a29266d500ebea7900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000708"
+    ],
+    "isProxy": true
+  },
+  {
+    "name": "Replica Proxy",
+    "address": "0xCf9066ee2fF063dD09862B745414c8dEa4Cc0497",
+    "constructorArguments": [
+      "0xCBe8b8C4Fe6590BB59d1507dE7f252AF3E621E58",
+      "0xe7e7a7b700000000000000000000000000000000000000000000000000000000006574680000000000000000000000005ef6e0f6a7e1f866612d806041799a9d762b62c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000708"
+    ],
+    "isProxy": true
+  }
+]

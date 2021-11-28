@@ -4,7 +4,7 @@ import { NonceManager } from '@ethersproject/experimental';
 import { ProxyAddresses } from './proxyUtils';
 
 type Address = string;
-export type DeployEnvironment = 'dev' | 'staging' | 'prod';
+export type DeployEnvironment = 'dev' | 'staging' | 'prod' | 'staging-community' | 'prod-community';
 
 export type CoreContractAddresses = {
   upgradeBeaconController: Address;
@@ -29,6 +29,8 @@ export interface ChainJson {
   gasLimit?: ethers.BigNumberish;
   gasPrice?: ethers.BigNumberish;
   confirmations?: number;
+  maxFeePerGas?: ethers.BigNumberish;
+  maxPriorityFeePerGas?: ethers.BigNumberish;
 }
 
 export type Chain = {
@@ -40,6 +42,8 @@ export type Chain = {
   config: ChainJson;
   confirmations: number;
   domain: number;
+  maxFeePerGas?: ethers.BigNumber;
+  maxPriorityFeePerGas?: ethers.BigNumber;
 };
 
 export function deployEnvironment(): DeployEnvironment {
@@ -67,6 +71,8 @@ export function toChain(config: ChainJson): Chain {
     gasPrice: BigNumber.from(config.gasPrice ?? '20000000000'),
     gasLimit: BigNumber.from(config.gasLimit ?? 6_000_000),
     config,
+    maxFeePerGas: config.maxFeePerGas ? BigNumber.from(config.maxFeePerGas) : undefined,
+    maxPriorityFeePerGas: config.maxPriorityFeePerGas ? BigNumber.from(config.maxPriorityFeePerGas) : undefined,
   };
 }
 

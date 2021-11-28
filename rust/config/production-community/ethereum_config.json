@@ -1,0 +1,72 @@
+{
+  "environment": "prod-community",
+  "index": {
+    "from": "11662268",
+    "chunk": "2000"
+  },
+  "signers": {
+    "ethereum": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "celo": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "polygon": {
+      "key": "",
+      "type": "hexKey"
+    },
+    "avalanche": {
+      "key": "",
+      "type": "hexKey"
+    }
+  },
+  "replicas": {
+    "celo": {
+      "address": "0xcDE146d1C673fE13f4fF1569d3F0d9f4d0b9c837",
+      "domain": "1667591279",
+      "name": "celo",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": ""
+      }
+    },
+    "polygon": {
+      "address": "0x2784a755690453035f32Ac5e28c52524d127AfE2",
+      "domain": "1886350457",
+      "name": "polygon",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": ""
+      }
+    },
+    "avalanche": {
+      "address": "0xCf9066ee2fF063dD09862B745414c8dEa4Cc0497",
+      "domain": "1635148152",
+      "name": "avalanche",
+      "rpcStyle": "ethereum",
+      "connection": {
+        "type": "http",
+        "url": ""
+      }
+    }
+  },
+  "home": {
+    "address": "0xa73a3a74C7044B5411bD61E1990618A1400DA379",
+    "domain": "6648936",
+    "name": "ethereum",
+    "rpcStyle": "ethereum",
+    "connection": {
+      "type": "http",
+      "url": ""
+    }
+  },
+  "tracing": {
+    "level": "debug",
+    "fmt": "json"
+  },
+  "db": "db_path"
+}
