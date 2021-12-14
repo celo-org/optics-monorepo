@@ -44,7 +44,7 @@
   "dependencies": {
     "@celo-org/optics-sol": "file:../optics-core",
     "@openzeppelin/contracts": "~3.4.2",
-    "@openzeppelin/contracts-upgradeable": "~3.4.2",
+    "@openzeppelin/contracts-upgradeable": "~4.4.1",
     "@summa-tx/memview-sol": "^2.0.0"
   }
 }
