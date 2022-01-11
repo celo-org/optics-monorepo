@@ -13,7 +13,7 @@ switch (environment) {
     break;
 
   default:
-    networks = ['alfajores', 'kovan']
+    networks = ['alfajores', 'rinkeby', 'kovan']
     break;
 }
 
