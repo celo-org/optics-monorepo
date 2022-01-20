@@ -15,6 +15,14 @@ contract ETHHelper {
     // bridge router contract
     BridgeRouter public immutable bridge;
 
+    // ======== Events =========
+
+    /**
+     * @notice emitted when Ether is sent from this domain to another domain
+     * @param from the address sending tokens
+     */
+    event Send(address indexed from);
+
     // ============ Constructor ============
 
     constructor(address _weth, address _bridge) {
@@ -33,8 +41,12 @@ contract ETHHelper {
      * @param _to The 32-byte identifier of the recipient
      */
     function sendTo(uint32 _domain, bytes32 _to) public payable {
+        // wrap ETH to WETH
         weth.deposit{value: msg.value}();
+        // send WETH via bridge
         bridge.send(address(weth), msg.value, _domain, _to);
+        // emit event indicating the original sender of tokens
+        emit Send(msg.sender);
     }
 
     /**
