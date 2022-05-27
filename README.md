@@ -229,5 +229,5 @@ messages will not be relayed between chains).
 Off-chain agents are **not** automatically re-deployed when new contract deploys
 are merged. Auto-redeploys will be implemented at some future date.
 
-The Optics team will maintain a document [here](./docs/agents/agent-operations)
+The Optics team will maintain a document [here](./docs/agents/agent-operations.md)
 that will specify the contracts supported by the rust agents.
