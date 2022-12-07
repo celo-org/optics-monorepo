@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity >=0.6.11;
 
-import {MerkleTreeManager} from "@celo-org/optics-sol/contracts/Merkle.sol";
-import {QueueManager} from "@celo-org/optics-sol/contracts/Queue.sol";
+import {MerkleTreeManager} from "@celo/optics-sol/contracts/Merkle.sol";
+import {QueueManager} from "@celo/optics-sol/contracts/Queue.sol";
 
-import {Message} from "@celo-org/optics-sol/libs/Message.sol";
-import {MerkleLib} from "@celo-org/optics-sol/libs/Merkle.sol";
-import {QueueLib} from "@celo-org/optics-sol/libs/Queue.sol";
+import {Message} from "@celo/optics-sol/libs/Message.sol";
+import {MerkleLib} from "@celo/optics-sol/libs/Merkle.sol";
+import {QueueLib} from "@celo/optics-sol/libs/Queue.sol";
 
 // We reproduce a significant amount of logic from `Home` to ensure that
 // calling dispatch here is AT LEAST AS EXPENSIVE as calling it on home

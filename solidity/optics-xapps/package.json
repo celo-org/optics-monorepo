@@ -1,5 +1,5 @@
 {
-  "name": "@celo-org/optics-xapps-sol",
+  "name": "@celo/optics-xapps-sol",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-etherscan": "^2.1.2",
@@ -42,7 +42,7 @@
   "author": "James Prestwich",
   "license": "MIT OR Apache-2.0",
   "dependencies": {
-    "@celo-org/optics-sol": "file:../optics-core",
+    "@celo/optics-sol": "file:../optics-core",
     "@openzeppelin/contracts": "~3.4.2",
     "@openzeppelin/contracts-upgradeable": "~3.4.2",
     "@summa-tx/memview-sol": "^2.0.0"

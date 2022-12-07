@@ -1,5 +1,5 @@
 {
-  "name": "@celo-org/optics-sol",
+  "name": "@celo/optics-sol",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-etherscan": "^2.1.2",
