@@ -1,0 +1,29 @@
+name: Push to Artifact Registry GitHub Action
+on: 
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+jobs:
+  Build-Container-dev:
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
+    if: github.ref != 'refs/heads/main'
+    with:
+      workload-id-provider: ${{ secrets.WORKLOAD_ID_PROVIDER_NON_PROD }}
+      service-account: optics-monorepo-images-dev@devopsre.iam.gserviceaccount.com 
+      artifact-registry: ${{ vars.DEV_IMAGE_REPO }}/optics-agent
+      tag: testing
+      context: ./rust
+      file: ./rust/Dockerfile
+
+  Build-Container:
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
+    if: github.ref == 'refs/heads/main'
+    with:
+      workload-id-provider: ${{ secrets.WORKLOAD_ID_PROVIDER_PROD }}
+      service-account:  optics-monorepo-images@devopsre.iam.gserviceaccount.com
+      artifact-registry: us-west1-docker.pkg.dev/devopsre/optics-monorepo/optics-agent
+      tag: latest
+      context: ./rust
+      file: ./rust/Dockerfile
