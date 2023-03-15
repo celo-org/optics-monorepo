@@ -10,7 +10,7 @@ jobs:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
     if: github.ref != 'refs/heads/main'
     with:
-      workload-id-provider: ${{ secrets.WORKLOAD_ID_PROVIDER_NON_PROD }}
+      workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo/providers/github-by-repos
       service-account: optics-monorepo-images-dev@devopsre.iam.gserviceaccount.com 
       artifact-registry: ${{ vars.DEV_IMAGE_REPO }}/optics-agent
       tag: testing
@@ -21,7 +21,7 @@ jobs:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
     if: github.ref == 'refs/heads/main'
     with:
-      workload-id-provider: ${{ secrets.WORKLOAD_ID_PROVIDER_PROD }}
+      workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo-main/providers/github-by-repos
       service-account:  optics-monorepo-images@devopsre.iam.gserviceaccount.com
       artifact-registry: us-west1-docker.pkg.dev/devopsre/optics-monorepo/optics-agent
       tag: latest
