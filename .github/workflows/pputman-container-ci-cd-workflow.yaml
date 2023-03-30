@@ -6,13 +6,6 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  print_jwt_tokens:
-    runs-on: ubuntu-latest
-    permissions: # Must change the job token permissions to use JWT auth
-      contents: read
-      id-token: write
-      pull-requests: write
-    steps:
   Build-Container-dev:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.4
     if: github.ref != 'refs/heads/main'
