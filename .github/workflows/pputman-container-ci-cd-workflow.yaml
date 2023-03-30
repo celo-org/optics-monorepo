@@ -15,12 +15,8 @@ jobs:
         with:
           api-url: ${{ inputs.akeyless-api-gateway }}
           access-id: ${{ inputs.akeyless-github-access-id }}
-
-
-      - name: Print inputs passed to the reusable workflow
-        id: get_auth_token
         run: |
-          echo "${{ GITHUB_AUTH_JWT }}"
+          echo "${{ env.GITHUB_AUTH_JWT }}"
 
 
   Build-Container-dev:
