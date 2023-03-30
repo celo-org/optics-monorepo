@@ -1,5 +1,4 @@
 name: Push to Artifact Registry GitHub Action
-name: Push to Artifact Registry GitHub Action
 on:
   push:
   pull_request:
