@@ -13,10 +13,10 @@ jobs:
         id: get_auth_token
         uses: docker://us-docker.pkg.dev/clabs-secrets-and-permissions/public-images/akeyless-actions:latest
         with:
-          api-url: https://api.gateway.akeyless.celo-networks-dev.org
-          access-id:  p-kf9vjzruht6l
-          #akeyless-api-gateway: https://api.gateway.akeyless.celo-networks-dev.org
-          #akeyless-github-access-id: p-kf9vjzruht6l
+          #api-url: https://api.gateway.akeyless.celo-networks-dev.org
+          #access-id:  p-kf9vjzruht6l
+          akeyless-api-gateway: https://api.gateway.akeyless.celo-networks-dev.org
+          akeyless-github-access-id: p-kf9vjzruht6l
 
       - name: echo var
         run: |
