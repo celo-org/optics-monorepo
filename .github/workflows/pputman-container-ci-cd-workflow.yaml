@@ -8,6 +8,10 @@ on:
 jobs:
   print_jwt_tokens:
     runs-on: ubuntu-latest
+    permissions: # Must change the job token permissions to use JWT auth
+      contents: read
+      id-token: write
+      pull-requests: write
     steps:
       - name: Akeyless Get Secrets
         id: get_auth_token
