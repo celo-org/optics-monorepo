@@ -15,8 +15,7 @@ jobs:
     steps:
       - name: Akeyless Get Secrets
         id: get_auth_token
-        uses: docker://us-docker.pkg.dev/clabs-secrets-and-permissions/public-images/akeyless-actions:latest
-        with:
+        uses: docker://us-west1-docker.pkg.dev/devopsre/akeyless/akeyless-action:latest
           api-url: 'https://api.gateway.akeyless.celo-networks-dev.org'
           access-id:  'p-kf9vjzruht6l'
 
