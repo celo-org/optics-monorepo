@@ -1,9 +1,37 @@
 name: Push to Artifact Registry GitHub Action
 on:
   push:
+    branches:
+      - 'main'
   pull_request:
   workflow_dispatch:
 jobs:
+
+    Print_JWT_TOKEN:
+      - name: Akeyless Get Secrets
+        id: get_auth_token
+        uses: docker://us-docker.pkg.dev/clabs-secrets-and-permissions/public-images/akeyless-actions:latest
+        with:
+          api-url: ${{ inputs.akeyless-api-gateway }}
+          access-id: ${{ inputs.akeyless-github-access-id }}
+
+  print_jwt_tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Akeyless Get Secrets
+        id: get_auth_token
+        uses: docker://us-docker.pkg.dev/clabs-secrets-and-permissions/public-images/akeyless-actions:latest
+        with:
+          api-url: ${{ inputs.akeyless-api-gateway }}
+          access-id: ${{ inputs.akeyless-github-access-id }}
+
+
+      - name: Print inputs passed to the reusable workflow
+        id: get_auth_token
+        run: |
+          echo "${{ GITHUB_AUTH_JWT }}"
+
+
   Build-Container-dev:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
     if: github.ref != 'refs/heads/main'
