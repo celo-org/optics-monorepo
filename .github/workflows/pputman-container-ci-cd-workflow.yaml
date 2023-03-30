@@ -15,9 +15,9 @@ jobs:
         with:
           api-url: ${{ inputs.akeyless-api-gateway }}
           access-id: ${{ inputs.akeyless-github-access-id }}
+      - name: echo var
         run: |
           echo "${{ env.GITHUB_AUTH_JWT }}"
-
 
   Build-Container-dev:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
