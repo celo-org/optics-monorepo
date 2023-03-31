@@ -1,13 +1,13 @@
 name: Push to Artifact Registry GitHub Action
-on: 
+on:
   push:
     branches:
-      - '**'
-    tags:
-      - '**'
+      - 'main'
+  pull_request:
+  workflow_dispatch:
 jobs:
   Build-Container-dev:
-    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.4
     if: github.ref != 'refs/heads/main'
     with:
       workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo/providers/github-by-repos
@@ -16,9 +16,11 @@ jobs:
       tag: testing
       context: ./rust
       file: ./rust/Dockerfile
+      trivy: true
+      trivy-timeout: 30m
 
   Build-Container:
-    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.1
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.4
     if: github.ref == 'refs/heads/main'
     with:
       workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo-main/providers/github-by-repos
@@ -27,3 +29,6 @@ jobs:
       tag: latest
       context: ./rust
       file: ./rust/Dockerfile
+      trivy: true
+      trivy-timeout: 30m
+
