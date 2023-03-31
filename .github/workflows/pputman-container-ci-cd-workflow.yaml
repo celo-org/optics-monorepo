@@ -16,6 +16,8 @@ jobs:
       tag: testing
       context: ./rust
       file: ./rust/Dockerfile
+      trivy: true
+      trivy-timeout: 30m
 
   Build-Container:
     uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.4
@@ -27,3 +29,6 @@ jobs:
       tag: latest
       context: ./rust
       file: ./rust/Dockerfile
+      trivy: true
+      trivy-timeout: 30m
+
