@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   Build-Container-dev:
-    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@main
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.5
     if: github.ref != 'refs/heads/main'
     with:
       workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo/providers/github-by-repos
@@ -20,7 +20,7 @@ jobs:
       trivy-timeout: 30m
 
   Build-Container:
-    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@main
+    uses: celo-org/reusable-workflows/.github/workflows/container-cicd.yaml@v1.5
     if: github.ref == 'refs/heads/main'
     with:
       workload-id-provider: projects/1094498259535/locations/global/workloadIdentityPools/gh-optics-monorepo-main/providers/github-by-repos
