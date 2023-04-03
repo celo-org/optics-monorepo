@@ -1,3 +1,4 @@
+#
 name: Push to Artifact Registry GitHub Action
 on:
   push:
