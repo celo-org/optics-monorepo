@@ -14,17 +14,17 @@
   },
   "replicas": {
     "6648936": {
-      "implementation": "0xFF5b010C012A9b4c2ed91a4bF4Cf3B3ec603bC0d",
+      "implementation": "0xa964a637B68BDCAeFEeCAee02bd7d2633C9d31c4",
       "proxy": "0x2784a755690453035f32Ac5e28c52524d127AfE2",
       "beacon": "0xd37d1f682Ff556C5B6C4Eb58075a93747379A3d7"
     },
     "1635148152": {
-      "implementation": "0xFF5b010C012A9b4c2ed91a4bF4Cf3B3ec603bC0d",
+      "implementation": "0xa964a637B68BDCAeFEeCAee02bd7d2633C9d31c4",
       "proxy": "0xfde0a96468ae91B4E13794E1B8e5B222E7Db6a23",
       "beacon": "0xd37d1f682Ff556C5B6C4Eb58075a93747379A3d7"
     },
     "1667591279": {
-      "implementation": "0xFF5b010C012A9b4c2ed91a4bF4Cf3B3ec603bC0d",
+      "implementation": "0xa964a637B68BDCAeFEeCAee02bd7d2633C9d31c4",
       "proxy": "0x45D35F60Ccf8F7031FB5A09954Cd923A9E84F89d",
       "beacon": "0xd37d1f682Ff556C5B6C4Eb58075a93747379A3d7"
     }

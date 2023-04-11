@@ -55,6 +55,8 @@ contract Replica is Version0, Common {
     mapping(bytes32 => uint256) public confirmAt;
     // Mapping of message leaves to MessageStatus
     mapping(bytes32 => MessageStatus) public messages;
+    // address responsible for Updater rotation
+    address private _owner;
 
     // ============ Upgrade Gap ============
 
@@ -62,6 +64,11 @@ contract Replica is Version0, Common {
     uint256[44] private __GAP;
 
     // ============ Events ============
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @notice Emitted when message is processed
@@ -103,9 +110,32 @@ contract Replica is Version0, Common {
         committedRoot = _committedRoot;
         confirmAt[_committedRoot] = 1;
         optimisticSeconds = _optimisticSeconds;
+        transferOwnership(msg.sender);
+    }
+
+    // ============ Modifiers ============
+
+    /**
+     * @notice Ensures that function is called by the owner
+     * @dev NOTE THAT WHEN OWNER IS THE NULL ADDRESS ANYONE CAN CALL ONLYOWNER
+     * FUNCTIONS. This is to allow the owner to be set post-facto. As such,
+     * renouncing ownership to the null address is unsafe and disabled.
+     */
+    modifier onlyOwner() {
+        bool ok = msg.sender == owner() || owner() == address(0);
+        require(ok, "!owner");
+        _;
     }
 
     // ============ External Functions ============
+
+    /**
+     * @notice Set a new Updater
+     * @param _updater the new Updater
+     */
+    function setUpdater(address _updater) external onlyOwner {
+        _setUpdater(_updater);
+    }
 
     /**
      * @notice Called by external agent. Submits the signed update's new root,
@@ -153,6 +183,25 @@ contract Replica is Version0, Common {
     ) external {
         require(prove(keccak256(_message), _proof, _index), "!prove");
         process(_message);
+    }
+
+    // ============ Public Functions ============
+
+    /**
+     * @notice Returns the address of the current owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "!newOwner");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
     }
 
     /**
@@ -228,8 +277,6 @@ contract Replica is Version0, Common {
         // reset re-entrancy guard
         entered = 1;
     }
-
-    // ============ Public Functions ============
 
     /**
      * @notice Check that the root has been submitted

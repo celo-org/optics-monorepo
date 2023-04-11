@@ -18,10 +18,6 @@ contract TestReplica is Replica {
         _setFailed();
     }
 
-    function setUpdater(address _updater) external {
-        updater = _updater;
-    }
-
     function setRemoteDomain(uint32 _remoteDomain) external {
         remoteDomain = _remoteDomain;
     }

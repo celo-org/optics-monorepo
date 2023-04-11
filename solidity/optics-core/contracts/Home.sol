@@ -91,12 +91,6 @@ contract Home is
     event UpdaterSlashed(address indexed updater, address indexed reporter);
 
     /**
-     * @notice Emitted when Updater is rotated by the UpdaterManager
-     * @param updater The address of the new updater
-     */
-    event NewUpdater(address updater);
-
-    /**
      * @notice Emitted when the UpdaterManager contract is changed
      * @param updaterManager The address of the new updaterManager
      */
@@ -213,6 +207,7 @@ contract Home is
     ) external notFailed {
         // check that the update is not fraudulent;
         // if fraud is detected, Updater is slashed & Home is set to FAILED state
+        // Opportunity for gas savings, we iterate through the queue twice.
         if (improperUpdate(_committedRoot, _newRoot, _signature)) return;
         // clear all of the intermediate roots contained in this update from the queue
         while (true) {
@@ -313,15 +308,6 @@ contract Home is
         );
         updaterManager = IUpdaterManager(_updaterManager);
         emit NewUpdaterManager(address(_updaterManager));
-    }
-
-    /**
-     * @notice Set the Updater
-     * @param _updater Address of the Updater
-     */
-    function _setUpdater(address _updater) internal {
-        updater = _updater;
-        emit NewUpdater(_updater);
     }
 
     /**

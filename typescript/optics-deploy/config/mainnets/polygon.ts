@@ -22,7 +22,7 @@ export const chain = toChain(chainJson);
 
 export const config: CoreConfig = {
   environment: 'prod-community',
-  updater: '0xBD8F71581478e67cE512F980a29266d500EBEA79',
+  updater: '0x65Fb23bDaD54574713AD756EFE16ce2eEb1F5855',
   recoveryTimelock: 60 * 60 * 24 * 14, // 14 days
   recoveryManager: '0x8A1405C70c8a45177b5ac71b1d22779272E5d48b',
   optimisticSeconds: 60 * 30, // 30 minutes

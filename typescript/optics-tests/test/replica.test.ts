@@ -80,6 +80,34 @@ describe('Replica', async () => {
     ).to.be.revertedWith('Initializable: contract is already initialized');
   });
 
+  it('Owner can transfer ownership', async () => {
+    const oldOwner = await replica.owner();
+    const newOwner = fakeUpdater.address;
+    expect(oldOwner).to.not.be.equal(newOwner);
+    await replica.transferOwnership(newOwner);
+    expect(await replica.owner()).to.be.equal(newOwner);
+  });
+
+  it('Nonowner cannot transfer ownership', async () => {
+    const newOwner = fakeUpdater.address;
+    await expect(
+      replica.connect(fakeSigner).transferOwnership(newOwner),
+    ).to.be.revertedWith('!owner');
+  });
+
+  it('Owner can rotate updater', async () => {
+    const newUpdater = fakeUpdater.address;
+    await replica.setUpdater(newUpdater);
+    expect(await replica.updater()).to.equal(newUpdater);
+  });
+
+  it('Nonowner cannot rotate updater', async () => {
+    const newUpdater = fakeUpdater.address;
+    await expect(
+      replica.connect(fakeSigner).setUpdater(newUpdater),
+    ).to.be.revertedWith('!owner');
+  });
+
   it('Halts on fail', async () => {
     await replica.setFailed();
     expect(await replica.state()).to.equal(OpticsState.FAILED);
