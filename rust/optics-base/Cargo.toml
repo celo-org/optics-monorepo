@@ -27,7 +27,7 @@ optics-test = { path = "../optics-test" }
 paste = "1.0.5"
 tracing-error = "0.1.2"
 
-prometheus = "0.12"
+prometheus = "0.13"
 
 warp = "0.3"
 
