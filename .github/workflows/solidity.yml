@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Save caches individually
       - name: Core Cache
@@ -90,7 +90,7 @@ jobs:
     needs: [install]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Get cache for Core and XApps
       - name: Core Cache
@@ -123,7 +123,7 @@ jobs:
     needs: [install]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Get caches
       - name: Core Cache
