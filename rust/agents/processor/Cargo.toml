@@ -24,7 +24,7 @@ optics-core = { path = "../../optics-core" }
 optics-base = { path = "../../optics-base" }
 paste = "1.0.5"
 
-prometheus = "0.12"
+prometheus = "0.13"
 rusoto_s3 = "0.47.0"
 rusoto_core = "0.47.0"
 

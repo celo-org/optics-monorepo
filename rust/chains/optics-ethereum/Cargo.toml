@@ -22,6 +22,6 @@ num = "0.4"
 optics-core = { path = "../../optics-core" }
 tokio = "1.7.1"
 hex = "0.4.3"
-prometheus = "0.12"
+prometheus = "0.13"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
 tracing-futures = "0.2.5"

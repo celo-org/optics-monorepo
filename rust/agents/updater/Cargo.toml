@@ -25,7 +25,7 @@ optics-base = { path = "../../optics-base" }
 optics-ethereum = { path = "../../chains/optics-ethereum" }
 paste = "1.0.5"
 
-prometheus = "0.12"
+prometheus = "0.13"
 warp = "0.3"
 hex = "0.4.3"
 
