@@ -2,7 +2,7 @@ export { MultiProvider } from './provider';
 export {
   mainnet,
   mainnetCommunity,
-  dev,
+  devCommunity,
   staging,
   stagingCommunity,
   OpticsContext,

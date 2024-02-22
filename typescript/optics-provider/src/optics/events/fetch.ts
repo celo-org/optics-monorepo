@@ -35,6 +35,23 @@ export async function queryAnnotatedEvents<T extends Result, U>(
   return Annotated.fromEvents(context.resolveDomain(nameOrDomain), events);
 }
 
+export async function findAnnotatedSingleEvent<T extends Result, U>(
+  context: OpticsContext,
+  nameOrDomain: string | number,
+  contract: TSContract<T, U>,
+  filter: TypedEventFilter<T, U>,
+  startBlock?: number,
+): Promise<Array<Annotated<T, TypedEvent<T & U>>>> {
+  const events = await findEvent(
+    context,
+    nameOrDomain,
+    contract,
+    filter,
+    startBlock,
+  );
+  return Annotated.fromEvents(context.resolveDomain(nameOrDomain), events);
+}
+
 export async function getEvents<T extends Result, U>(
   context: OpticsContext,
   nameOrDomain: string | number,
@@ -55,6 +72,26 @@ export async function getEvents<T extends Result, U>(
     );
   }
   return contract.queryFilter(filter, startBlock, endBlock);
+}
+
+export async function findEvent<T extends Result, U>(
+  context: OpticsContext,
+  nameOrDomain: string | number,
+  contract: TSContract<T, U>,
+  filter: TypedEventFilter<T, U>,
+  startBlock?: number,
+): Promise<Array<TypedEvent<T & U>>> {
+  const domain = context.mustGetDomain(nameOrDomain);
+  if (domain.paginate) {
+    return findFromPaginatedEvents(
+      context,
+      domain,
+      contract,
+      filter,
+      startBlock,
+    );
+  }
+  return contract.queryFilter(filter, startBlock);
 }
 
 async function getPaginatedEvents<T extends Result, U>(
@@ -101,4 +138,47 @@ async function getPaginatedEvents<T extends Result, U>(
     events = events.concat(eventArray);
   }
   return events;
+}
+
+async function findFromPaginatedEvents<T extends Result, U>(
+  context: OpticsContext,
+  domain: Domain,
+  contract: TSContract<T, U>,
+  filter: TypedEventFilter<T, U>,
+  startBlock?: number,
+  endBlock?: number,
+): Promise<Array<TypedEvent<T & U>>> {
+  if (!domain.paginate) {
+    throw new Error('Domain need not be paginated');
+  }
+  // get the first block by params
+  // or domain deployment block
+  const firstBlock = startBlock
+    ? Math.max(startBlock, domain.paginate.from)
+    : domain.paginate.from;
+  // get the last block by params
+  // or current block number
+  let lastBlock;
+  if (!endBlock) {
+    const provider = context.mustGetProvider(domain.id);
+    lastBlock = await provider.getBlockNumber();
+  } else {
+    lastBlock = endBlock;
+  }
+  // query domain pagination limit at a time, concurrently
+  // eslint-disable-next-line for-direction
+  for (
+    let end = lastBlock;
+    end > firstBlock;
+    end -= domain.paginate.blocks
+  ) {
+
+    const nextEnd = end - domain.paginate.blocks;
+    const from = Math.max(nextEnd, firstBlock);
+    const queriedEvents = await contract.queryFilter(filter, from, end);
+    if (queriedEvents.length > 0) {
+      return queriedEvents;
+    }
+  }
+  return [];
 }

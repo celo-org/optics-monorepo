@@ -18,7 +18,7 @@ import {
   DispatchTypes,
 } from '../events';
 
-import { queryAnnotatedEvents } from '..';
+import { findAnnotatedSingleEvent } from '..';
 import { keccak256 } from 'ethers/lib/utils';
 
 export type ParsedMessage = {
@@ -244,7 +244,7 @@ export class OpticsMessage {
       this.committedRoot,
     );
 
-    const updateLogs: AnnotatedUpdate[] = await queryAnnotatedEvents<
+    const updateLogs: AnnotatedUpdate[] = await findAnnotatedSingleEvent<
       UpdateTypes,
       UpdateArgs
     >(this.context, this.origin, this.home, updateFilter);
@@ -275,7 +275,8 @@ export class OpticsMessage {
       undefined,
       this.committedRoot,
     );
-    const updateLogs: AnnotatedUpdate[] = await queryAnnotatedEvents<
+
+    const updateLogs: AnnotatedUpdate[] = await findAnnotatedSingleEvent<
       UpdateTypes,
       UpdateArgs
     >(this.context, this.destination, this.replica, updateFilter);
@@ -294,7 +295,7 @@ export class OpticsMessage {
    *
    * @returns An {@link AnnotatedProcess} (if any)
    */
-  async getProcess(): Promise<AnnotatedProcess | undefined> {
+  async getProcess(startBlock?: number): Promise<AnnotatedProcess | undefined> {
     // if we have already gotten the event,
     // return it without re-querying
     if (this.cache.process) {
@@ -302,11 +303,12 @@ export class OpticsMessage {
     }
     // if not, attempt to query the event
     const processFilter = this.replica.filters.Process(this.leaf);
-    const processLogs = await queryAnnotatedEvents<ProcessTypes, ProcessArgs>(
+    const processLogs = await findAnnotatedSingleEvent<ProcessTypes, ProcessArgs>(
       this.context,
       this.destination,
       this.replica,
       processFilter,
+      startBlock
     );
     if (processLogs.length === 1) {
       // if event is returned, store it to the object
@@ -344,7 +346,7 @@ export class OpticsMessage {
     }
     events.push(replicaUpdate);
     // attempt to get Replica process
-    const process = await this.getProcess();
+    const process = await this.getProcess(replicaUpdate.blockNumber);
     if (!process) {
       // NOTE: when this is the status, you may way to
       // query confirmAt() to check if challenge period
