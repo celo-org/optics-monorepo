@@ -28,4 +28,4 @@ export type {
   AnnotatedTokenDeployed,
 } from './bridgeEvents';
 
-export { queryAnnotatedEvents } from './fetch';
+export { queryAnnotatedEvents, findAnnotatedSingleEvent } from './fetch';
