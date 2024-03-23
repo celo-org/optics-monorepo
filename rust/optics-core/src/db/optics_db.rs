@@ -272,7 +272,7 @@ impl OpticsDB {
     }
 
     // TODO(james): this is a quick-fix for the prover_sync and I don't like it
-    /// poll db ever 100 milliseconds waitinf for a leaf.
+    /// poll db ever 100 milliseconds waiting for a leaf.
     pub fn wait_for_leaf(
         &self,
         leaf_index: u32,
