@@ -25,7 +25,7 @@ optics-core = { path = "../optics-core" }
 optics-ethereum = { path = "../chains/optics-ethereum"}
 optics-test = { path = "../optics-test" }
 paste = "1.0.5"
-tracing-error = "0.1.2"
+tracing-error = "0.2.0"
 
 prometheus = "0.13"
 
