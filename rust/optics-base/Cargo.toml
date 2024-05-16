@@ -34,7 +34,7 @@ warp = "0.3"
 # these versions are important!
 tracing-opentelemetry = "0.13.0"
 opentelemetry = { version = "0.14.0", features = ["rt-tokio"] }
-opentelemetry-jaeger = { version = "0.13.0", features = [
+opentelemetry-jaeger = { version = "0.22.0", features = [
     "reqwest_collector_client",
     "tokio",
 ] }
