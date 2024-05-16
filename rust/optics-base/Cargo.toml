@@ -38,7 +38,7 @@ opentelemetry-jaeger = { version = "0.13.0", features = [
     "reqwest_collector_client",
     "tokio",
 ] }
-opentelemetry-zipkin = { version = "0.12.0", default-features = false, features = [
+opentelemetry-zipkin = { version = "0.21.0", default-features = false, features = [
     "reqwest-client",
 ] }
 rusoto_core = "0.47.0"
