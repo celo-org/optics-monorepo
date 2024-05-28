@@ -78,6 +78,12 @@ abstract contract Common is Initializable {
         bytes signature2
     );
 
+    /**
+     * @notice Emitted when Updater is rotated
+     * @param updater The address of the new updater
+     */
+    event NewUpdater(address updater);
+
     // ============ Modifiers ============
 
     /**
@@ -184,5 +190,14 @@ abstract contract Common is Initializable {
         );
         _digest = ECDSA.toEthSignedMessageHash(_digest);
         return (ECDSA.recover(_digest, _signature) == updater);
+    }
+
+    /**
+     * @notice Set the Updater
+     * @param _updater Address of the Updater
+     */
+    function _setUpdater(address _updater) internal {
+        updater = _updater;
+        emit NewUpdater(_updater);
     }
 }
