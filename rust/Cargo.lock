@@ -113,7 +113,7 @@ checksum = "648ed8c8d2ce5409ccd57453d9d1b214b342a0d69376a6feda1fd6cae3299308"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -124,7 +124,7 @@ checksum = "44318e776df68115a881de9a8fd1b9e53368d7a4a5ce4cc48517da3393233a5e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -167,7 +167,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -550,7 +550,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -1110,7 +1110,7 @@ dependencies = [
  "reqwest",
  "serde 1.0.130",
  "serde_json",
- "syn",
+ "syn 1.0.81",
  "url",
 ]
 
@@ -1125,7 +1125,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "serde_json",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -1150,7 +1150,7 @@ dependencies = [
  "rlp-derive",
  "serde 1.0.130",
  "serde_json",
- "syn",
+ "syn 1.0.81",
  "thiserror",
  "tiny-keccak",
 ]
@@ -1403,7 +1403,7 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -1496,9 +1496,9 @@ checksum = "78cc372d058dcf6d5ecd98510e7fbc9e5aec4d21de70f65fea8fecebcd881bd4"
 
 [[package]]
 name = "glob"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
+checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "group"
@@ -1754,7 +1754,7 @@ checksum = "d5dacb10c5b3bb92d46ba347505a9041e676bb20ad220101326bffb0c93031ee"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -1823,9 +1823,9 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.55"
+version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cc9ffccd38c451a86bf13657df244e9c3f37493cce8e5e21e940963777acc84"
+checksum = "29c15563dc2726973df627357ce0c9ddddbea194836909d655df6a75d2cf296d"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -1863,7 +1863,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-futures",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
 ]
 
 [[package]]
@@ -1967,12 +1967,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.14"
+version = "0.4.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
-dependencies = [
- "cfg-if 1.0.0",
-]
+checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 
 [[package]]
 name = "mach"
@@ -2077,7 +2074,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -2175,7 +2172,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -2370,9 +2367,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.8.0"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
+checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "opaque-debug"
@@ -2439,6 +2436,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "opentelemetry"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b69a91d4893e713e06f724597ad630f1fa76057a5e1026c0ca67054a9032a76"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+ "js-sys",
+ "once_cell",
+ "pin-project-lite",
+ "thiserror",
+]
+
+[[package]]
 name = "opentelemetry-http"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2448,7 +2459,7 @@ dependencies = [
  "bytes",
  "futures-util",
  "http",
- "opentelemetry",
+ "opentelemetry 0.14.0",
  "reqwest",
 ]
 
@@ -2462,7 +2473,7 @@ dependencies = [
  "headers",
  "http",
  "lazy_static",
- "opentelemetry",
+ "opentelemetry 0.14.0",
  "opentelemetry-http",
  "reqwest",
  "thiserror",
@@ -2479,13 +2490,33 @@ dependencies = [
  "async-trait",
  "http",
  "lazy_static",
- "opentelemetry",
+ "opentelemetry 0.14.0",
  "opentelemetry-http",
  "reqwest",
  "serde 1.0.130",
  "serde_json",
  "thiserror",
  "typed-builder",
+]
+
+[[package]]
+name = "opentelemetry_sdk"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae312d58eaa90a82d2e627fd86e075cf5230b3f11794e2ed74199ebbe572d4fd"
+dependencies = [
+ "async-trait",
+ "futures-channel",
+ "futures-executor",
+ "futures-util",
+ "glob",
+ "lazy_static",
+ "once_cell",
+ "opentelemetry 0.23.0",
+ "ordered-float 4.2.0",
+ "percent-encoding",
+ "rand 0.8.4",
+ "thiserror",
 ]
 
 [[package]]
@@ -2499,7 +2530,7 @@ dependencies = [
  "futures-util",
  "lazy_static",
  "once_cell",
- "opentelemetry",
+ "opentelemetry 0.14.0",
  "opentelemetry-jaeger",
  "opentelemetry-zipkin",
  "optics-core",
@@ -2518,7 +2549,7 @@ dependencies = [
  "tracing-error",
  "tracing-futures",
  "tracing-opentelemetry",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
  "warp",
 ]
 
@@ -2627,6 +2658,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ordered-float"
+version = "4.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a76df7075c7d4d01fdcb46c912dd17fba5b60c78ea480b475f2b6ab6f666584e"
+dependencies = [
+ "num-traits 0.2.14",
+]
+
+[[package]]
 name = "os_str_bytes"
 version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2673,7 +2713,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -2793,14 +2833,14 @@ checksum = "6e8fe8163d14ce7f0cdac2e040116f22eac817edabff0be91e8aff7e9accf389"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
 name = "pin-project-lite"
-version = "0.2.7"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d31d11c69a6b52a174b42bdc0c30e5e11670f90788b2c471c31c1d17d449443"
+checksum = "bda66fc9667c18cb2758a2ac84d1167245054bcf85d5d1aaa6923f45801bdd02"
 
 [[package]]
 name = "pin-utils"
@@ -2891,7 +2931,7 @@ dependencies = [
  "proc-macro-error-attr",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
  "version_check",
 ]
 
@@ -2920,11 +2960,11 @@ checksum = "bc881b2c22681370c6a780e47af9840ef841837bc98118431d4e1868bd0c1086"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.32"
+version = "1.0.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
+checksum = "ec96c6a92621310b51366f1e28d05ef11489516e93be030060e5fc12024a49d6"
 dependencies = [
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -2951,7 +2991,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-futures",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
 ]
 
 [[package]]
@@ -2999,9 +3039,9 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quote"
-version = "1.0.10"
+version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38bc8cc6a5f2e3655e0899c1b848643b2562f853f114bfec7be120678e3ace05"
+checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
 dependencies = [
  "proc-macro2",
 ]
@@ -3200,7 +3240,7 @@ dependencies = [
  "tokio-test",
  "tracing",
  "tracing-futures",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
 ]
 
 [[package]]
@@ -3295,7 +3335,7 @@ checksum = "e33d7b2abe0c340d8797fe2907d3f20d3b5ea5908683618bfe80df7f621f672a"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -3621,7 +3661,7 @@ checksum = "d7bc1a1ab1961464eae040d96713baa5a724a8152c1222492465b54322ec508b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -3822,7 +3862,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -3840,6 +3880,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
+]
+
+[[package]]
+name = "syn"
+version = "2.0.66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -3912,7 +3963,7 @@ checksum = "aa32fd3f627f367fe16f893e2597ae3c05020f8bba2666a4e6ea73d377e5714b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -3997,7 +4048,7 @@ checksum = "114383b041aa6212c579467afa0075fbbdd0718de036100bc0ba7961d8cb9095"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -4106,11 +4157,10 @@ checksum = "360dfd1d6d30e05fda32ace2c8c70e9c0a9da713275777f5a4dbb8a1893930c6"
 
 [[package]]
 name = "tracing"
-version = "0.1.29"
+version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "375a639232caf30edfc78e8d89b2d4c375515393e7af7e16f01cd96917fb2105"
+checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
- "cfg-if 1.0.0",
  "log",
  "pin-project-lite",
  "tracing-attributes",
@@ -4119,22 +4169,23 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.18"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4f480b8f81512e825f337ad51e94c1eb5d3bbdf2b363dcd01e2b19a9ffe3f8e"
+checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.66",
 ]
 
 [[package]]
 name = "tracing-core"
-version = "0.1.21"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f4ed65637b8390770814083d20756f87bfa2c21bf2f110babdc5438351746e4"
+checksum = "c06d3da6113f116aaee68e4d601191614c9053067f9ab7f6edbcb161237daa54"
 dependencies = [
- "lazy_static",
+ "once_cell",
+ "valuable",
 ]
 
 [[package]]
@@ -4144,7 +4195,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4d7c0b83d4a500748fa5879461652b361edf5c9d51ede2a2ac03875ca185e24"
 dependencies = [
  "tracing",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
 ]
 
 [[package]]
@@ -4169,16 +4220,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "tracing-opentelemetry"
-version = "0.13.0"
+name = "tracing-log"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2f4cb277b92a8ba1170b3b911056428ce2ef9993351baf5965bb0359a2e5963"
+checksum = "ee855f1f400bd0e5c02d150ae5de3840039a3f54b025156404e34c23c03f47c3"
 dependencies = [
- "opentelemetry",
+ "log",
+ "once_cell",
+ "tracing-core",
+]
+
+[[package]]
+name = "tracing-opentelemetry"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f68803492bf28ab40aeccaecc7021096bd256baf7ca77c3d425d89b35a7be4e4"
+dependencies = [
+ "js-sys",
+ "once_cell",
+ "opentelemetry 0.23.0",
+ "opentelemetry_sdk",
+ "smallvec",
  "tracing",
  "tracing-core",
- "tracing-log",
- "tracing-subscriber",
+ "tracing-log 0.2.0",
+ "tracing-subscriber 0.3.6",
+ "web-time",
 ]
 
 [[package]]
@@ -4209,8 +4276,19 @@ dependencies = [
  "thread_local",
  "tracing",
  "tracing-core",
- "tracing-log",
+ "tracing-log 0.1.2",
  "tracing-serde",
+]
+
+[[package]]
+name = "tracing-subscriber"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77be66445c4eeebb934a7340f227bfe7b338173d3f8c00a60a5a58005c9faecf"
+dependencies = [
+ "sharded-slab",
+ "thread_local",
+ "tracing-core",
 ]
 
 [[package]]
@@ -4277,7 +4355,7 @@ checksum = "f85f4270f4f449a3f2c0cf2aecc8415e388a597aeacc7d55fc749c5c968c8533"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.81",
 ]
 
 [[package]]
@@ -4312,6 +4390,12 @@ name = "unicode-bidi"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a01404663e3db436ed2746d9fefef640d868edae3cceb81c3b8d5732fda678f"
+
+[[package]]
+name = "unicode-ident"
+version = "1.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "unicode-normalization"
@@ -4371,7 +4455,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-futures",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
  "warp",
 ]
 
@@ -4402,6 +4486,12 @@ dependencies = [
  "getrandom 0.2.3",
  "serde 1.0.130",
 ]
+
+[[package]]
+name = "valuable"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "vcpkg"
@@ -4485,9 +4575,9 @@ checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.78"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "632f73e236b219150ea279196e54e610f5dbafa5d61786303d4da54f84e47fce"
+checksum = "4be2531df63900aeb2bca0daaaddec08491ee64ceecbee5076636a3b026795a8"
 dependencies = [
  "cfg-if 1.0.0",
  "wasm-bindgen-macro",
@@ -4495,16 +4585,16 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.78"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a317bf8f9fba2476b4b2c85ef4c4af8ff39c3c7f0cdfeed4f82c34a880aa837b"
+checksum = "614d787b966d3989fa7bb98a654e369c762374fd3213d212cfc0251257e747da"
 dependencies = [
  "bumpalo",
- "lazy_static",
  "log",
+ "once_cell",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.66",
  "wasm-bindgen-shared",
 ]
 
@@ -4522,9 +4612,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.78"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d56146e7c495528bf6587663bea13a8eb588d39b36b679d83972e1a2dbbdacf9"
+checksum = "a1f8823de937b71b9460c0c34e25f3da88250760bec0ebac694b49997550d726"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -4532,22 +4622,22 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.78"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7803e0eea25835f8abdc585cd3021b3deb11543c6fe226dcd30b228857c5c5ab"
+checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.66",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.78"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0237232789cf037d5480773fe568aac745bfe2afbc11a863e97901780a6b47cc"
+checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 
 [[package]]
 name = "wasm-timer"
@@ -4588,7 +4678,7 @@ dependencies = [
  "tokio-test",
  "tracing",
  "tracing-futures",
- "tracing-subscriber",
+ "tracing-subscriber 0.2.25",
 ]
 
 [[package]]
@@ -4596,6 +4686,16 @@ name = "web-sys"
 version = "0.3.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38eb105f1c59d9eaa6b5cdc92b859d85b926e82cb2e0945cd0c9259faa6fe9fb"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
