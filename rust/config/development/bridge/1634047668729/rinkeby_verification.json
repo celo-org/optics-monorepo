@@ -1,0 +1,10 @@
+[
+  {
+    "name": "ETH Helper",
+    "address": "0x857d6dE0a9e3F985768FE164844b3e621893B904",
+    "constructorArguments": [
+      "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+      "0x926Df2b652bC8273BB2F06E8de135875bbE1D271"
+    ]
+  }
+]

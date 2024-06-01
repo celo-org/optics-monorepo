@@ -49,7 +49,11 @@ interface ETHHelperInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "Send(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Send"): EventFragment;
 }
 
 export class ETHHelper extends BaseContract {
@@ -159,7 +163,9 @@ export class ETHHelper extends BaseContract {
     weth(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    Send(from?: string | null): TypedEventFilter<[string], { from: string }>;
+  };
 
   estimateGas: {
     bridge(overrides?: CallOverrides): Promise<BigNumber>;

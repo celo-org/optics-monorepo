@@ -18,7 +18,7 @@ export const kovan: OpticsDomain = {
   name: 'kovan',
   id: 3000,
   bridgeRouter: '0xA763Db23711537D7074392b16E84eb04993C9f5d',
-  ethHelper: '0x90b6A931Cf35a1ba72E8959948d0E041320Fa704',
+  ethHelper: '0xEB91c2EA9d8fE1A15f714073384a3007637eBbD6',
   home: '0x0ED518F19fEbbd3737e39a55a8a708AFe8a9BE59',
   replicas: [
     { domain: 2000, address: '0x6776ef96A04a40a4dCB835D42bF59649aA9daFeA' },
@@ -33,7 +33,7 @@ export const rinkeby: OpticsDomain = {
   name: 'rinkeby',
   id: 2000,
   bridgeRouter: '0x926Df2b652bC8273BB2F06E8de135875bbE1D271',
-  ethHelper: '0x4e52f7e2F9f3B592dcfBD8957d36973a0308d1eF',
+  ethHelper: '0x857d6dE0a9e3F985768FE164844b3e621893B904',
   home: '0xDf4c0d67489F945C1e52440Ef8F203F4CE6e4176',
   replicas: [
     { domain: 1000, address: '0x7f41a2A1D97DD5F75B6FF6E1b012f686fE8121E4' },
