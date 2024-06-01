@@ -4,3 +4,4 @@ web3==5.22.0
 prometheus-client==0.11.0
 backoff==1.11.1
 websockets>=10.0 # not directly required, pinned by Snyk to avoid a vulnerability
+eth-keyfile>=0.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
