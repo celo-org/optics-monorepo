@@ -61,3 +61,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "optics-agent.livenessProbeHack" -}}
+livenessProbe:
+  exec:
+    command:
+        - bin/sh
+        - -c
+        - "end=$(date -u +%s);start=$(stat -c %Z /proc/1 | awk '{print int($1)}'); test $(($end-$start)) -lt 28800"
+  failureThreshold: 1
+  initialDelaySeconds: 3600
+  periodSeconds: 60
+{{- end }}
