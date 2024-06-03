@@ -20,7 +20,7 @@ anyhow = "1"
 num = "0.4"
 
 optics-core = { path = "../../optics-core" }
-tokio = "1.7.1"
+tokio = "1.16.1"
 hex = "0.4.3"
 prometheus = "0.13"
 rocksdb = { git = "https://github.com/rust-rocksdb/rust-rocksdb" }
