@@ -23,7 +23,7 @@ In other words, Optics is designed to prioritize:
   cryptography.
 - Ease of use: Simple interface for maintaining xApp connections.
 
-You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/celo-codebase/protocol/optics) or [within the docs folder of this repository](./docs/README.md).
+You can read more about Optics' architecture [at Celo's main documentation site](https://docs.celo.org/learn/celo-milestones#optics) or [within the docs folder of this repository](./docs/README.md).
 
 ## Integrating with Optics
 
@@ -64,7 +64,7 @@ free to try out integrations using the deployed contracts in the LATEST config.
 It is **Strongly Recommended** that xApp admins run a `watcher` daemon to
 maintain their `XAppConnectionManager` and guard from fraud. Please see the
 documentation in the `rust/` directory and the
-[Optics architecture documentation](https://docs.celo.org/celo-codebase/protocol/optics)
+[Optics architecture documentation](https://docs.celo.org/learn/celo-milestones#optics)
 for more details.
 
 ## Working on Optics
