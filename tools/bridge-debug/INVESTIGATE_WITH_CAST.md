@@ -265,9 +265,11 @@ esac
 
 ---
 
-## 📝 Example: Real Investigation
+## 📝 Example: Real Investigation & Successful Recovery
 
-Here's the investigation of transaction `0xf3db12c4aeefe550a5a035e32294a5ea040e965fffc23753b478780761608969`:
+Here's the complete investigation and recovery of transaction `0xf3db12c4aeefe550a5a035e32294a5ea040e965fffc23753b478780761608969`:
+
+### Investigation Phase
 
 ```bash
 # Step 1: Extract message details
@@ -290,7 +292,7 @@ cast call 0x27658c5556A9a57f96E69Bbf6d3B8016f001a785 \
   --rpc-url https://mainnet.infura.io/v3/c1693300643f48729a9ee20cc5142884
 # Result: 1643278944 (Thu Jan 27 2022) ✅ - Confirmed!
 
-# Step 4: Check message status
+# Step 4: Check message status (BEFORE replay)
 cast call 0x27658c5556A9a57f96E69Bbf6d3B8016f001a785 \
   "messages(bytes32)(uint8)" \
   0x1118dab37c42b489cfa3682ea2b76eac6de0e2d16a966aeb73b7697377a605b9 \
@@ -299,6 +301,47 @@ cast call 0x27658c5556A9a57f96E69Bbf6d3B8016f001a785 \
 
 # CONCLUSION: Message stuck at processor, needs manual replay!
 ```
+
+### Recovery Phase
+
+```bash
+# Step 5: Download processor database from Kubernetes
+kubectl cp celo-processor-optics-agent-processor-0:/usr/share/optics ./processor-db
+
+# Step 6: Run optics-cli to replay the message
+cd rust
+./target/release/optics-cli prove \
+  --home-name celo \
+  --db-path /path/to/processor-db \
+  --leaf-index 1996 \
+  --leaf 0x1118dab37c42b489cfa3682ea2b76eac6de0e2d16a966aeb73b7697377a605b9 \
+  --rpc https://mainnet.infura.io/v3/c1693300643f48729a9ee20cc5142884 \
+  --address 0x27658c5556A9a57f96E69Bbf6d3B8016f001a785 \
+  --key YOUR_PRIVATE_KEY
+
+# Output:
+# TxOutcome { txid: 0x99120376e279355309120a93b64103d6b302fe7db7787d957f2c9bbda00afc45, executed: true }
+# ✅ SUCCESS!
+
+# Step 7: Verify message status (AFTER replay)
+cast call 0x27658c5556A9a57f96E69Bbf6d3B8016f001a785 \
+  "messages(bytes32)(uint8)" \
+  0x1118dab37c42b489cfa3682ea2b76eac6de0e2d16a966aeb73b7697377a605b9 \
+  --rpc-url https://mainnet.infura.io/v3/c1693300643f48729a9ee20cc5142884
+# Result: 2 (Processed) ✅
+
+# RECOVERED: Transaction from January 2022 successfully completed!
+```
+
+### Result
+
+- **Original Celo TX**: `0xf3db12c4aeefe550a5a035e32294a5ea040e965fffc23753b478780761608969` (Jan 27, 2022)
+- **Recovery Ethereum TX**: `0x99120376e279355309120a93b64103d6b302fe7db7787d957f2c9bbda00afc45`
+- **Status**: Changed from `0` (None) → `2` (Processed) ✅
+- **Stuck Duration**: ~3 years
+- **Gas Cost**: ~$1-2 USD (at 0.976 gwei)
+
+**The transaction was successfully recovered and completed!** 🎉
 
 ---
 
